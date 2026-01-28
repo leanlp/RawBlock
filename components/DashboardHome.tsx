@@ -37,6 +37,13 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
             )
         },
         {
+            title: "Live Mempool",
+            description: "Real-time transaction feed. Watch blocks fill up live.",
+            href: "/mempool",
+            color: "from-blue-500 to-cyan-600",
+            icon: <span className="text-2xl">🌊</span>
+        },
+        {
             title: "Mempool Tetris",
             description: "Gamified block construction. Play the Fee Market.",
             tab: "game",
@@ -89,8 +96,8 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         },
         {
             title: "Graffiti Wall",
-            description: "Decode the hidden layer. Read raw OP_RETURN messages from the blockchain.",
-            href: "/graffiti",
+            description: "Decode the hidden layer. Read raw OP_RETURN messages.",
+            tab: "graffiti",
             color: "from-green-500 to-emerald-700",
             icon: <span className="text-2xl">🎨</span>
         },
