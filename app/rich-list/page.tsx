@@ -18,7 +18,7 @@ export default function RichListPage() {
     useEffect(() => {
         const fetchWhales = async () => {
             try {
-                const res = await fetch('http://localhost:4000/api/rich-list');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/rich-list`);
                 const data = await res.json();
                 setWhales(data);
             } catch (err) {
