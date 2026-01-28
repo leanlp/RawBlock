@@ -1,0 +1,188 @@
+"use client";
+
+import { useMemo, useState } from 'react';
+import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
+import { scaleLinear } from "d3-scale";
+import { Tooltip } from 'react-tooltip';
+import { MotionConfig } from "framer-motion"; // Assuming we can use framer-motion or just CSS transitions for now due to dependency check
+
+// Use a reliable TopoJSON source for the world map
+// Often hosted locally or from CDN. For this demo we use a standard CDN link often used with react-simple-maps
+const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+
+interface Peer {
+    id: number;
+    addr: string;
+    ip: string;
+    subver: string;
+    inbound: boolean;
+    version: number;
+    ping: number;
+    location: {
+        country: string;
+        city: string;
+        ll: [number, number]; // [lat, lon]
+    } | null;
+}
+
+interface PeerMapProps {
+    peers: Peer[];
+    knownPeers?: any[];
+    onCountrySelect?: (countryCode: string, countryName: string) => void;
+    selectedCountryCode?: string | null;
+}
+
+export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selectedCountryCode }: PeerMapProps) {
+
+    // Filter only peers with location data
+    const locatedPeers = useMemo(() => peers.filter(p => p.location && p.location.ll), [peers]);
+    const locatedKnownPeers = useMemo(() => knownPeers || [], [knownPeers]);
+
+    // Zoom State
+    const [position, setPosition] = useState({ coordinates: [0, 20], zoom: 1 });
+
+    // Simple centroid lookup for demo (replace with d3-geo or full list later)
+    const COUNTRY_CENTERS: Record<string, [number, number]> = {
+        'US': [-95.71, 37.09], 'DE': [10.45, 51.16], 'CN': [104.19, 35.86],
+        'FR': [2.21, 46.22], 'GB': [-3.43, 55.37], 'BR': [-51.92, -14.23],
+        'RU': [105.31, 61.52], 'AU': [133.77, -25.27], 'CA': [-106.34, 56.13],
+        'IN': [78.96, 20.59], 'JP': [138.25, 36.20]
+    };
+
+    // Mapping for countries where the map data might not have ISO_A2 or it differs
+    const NAME_TO_ISO: Record<string, string> = {
+        'United States of America': 'US',
+        'United States': 'US',
+        'Germany': 'DE',
+        'France': 'FR',
+        'China': 'CN',
+        'Russia': 'RU',
+        'Brazil': 'BR',
+        'United Kingdom': 'GB',
+        'Canada': 'CA',
+        'Australia': 'AU',
+        'India': 'IN',
+        'Japan': 'JP',
+        'South Korea': 'KR',
+        'Italy': 'IT',
+        'Spain': 'ES',
+        'Netherlands': 'NL',
+        'Argentina': 'AR',
+        'Mexico': 'MX',
+        'South Africa': 'ZA',
+        'Switzerland': 'CH',
+        'Sweden': 'SE',
+        'Norway': 'NO',
+        'Poland': 'PL',
+        'Ukraine': 'UA',
+        'Turkey': 'TR',
+        'Iran': 'IR',
+        'Venezuela': 'VE',
+        'Colombia': 'CO',
+        'Chile': 'CL',
+        'Peru': 'PE'
+    };
+
+    // Effect to handle selection changes
+    useMemo(() => {
+        if (selectedCountryCode && COUNTRY_CENTERS[selectedCountryCode]) {
+            setPosition({ coordinates: COUNTRY_CENTERS[selectedCountryCode], zoom: 4 });
+        } else if (selectedCountryCode) {
+            // Default zoom for unknown centers
+            setPosition({ coordinates: [0, 20], zoom: 1 });
+        } else {
+            // Reset
+            setPosition({ coordinates: [0, 20], zoom: 1 });
+        }
+    }, [selectedCountryCode]);
+
+    return (
+        <div className="w-full h-[500px] bg-slate-900 border border-slate-800 rounded-xl overflow-hidden relative">
+            <div className="absolute top-4 left-4 z-10">
+                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    Global Nodes
+                </h2>
+                <div className="text-xs text-slate-600 mt-1">
+                    Connected: <span className="text-slate-200">{peers.length}</span> |
+                    Located: <span className="text-slate-200">{locatedPeers.length + locatedKnownPeers.length}</span>
+                </div>
+            </div>
+
+            <MotionConfig transition={{ duration: 1 }}>
+                <ComposableMap
+                    projection="geoMercator"
+                    projectionConfig={{
+                        scale: 100 * position.zoom,
+                        center: position.coordinates as [number, number]
+                    }}
+                    style={{ width: "100%", height: "100%", transition: "all 1s ease-in-out" }}
+                >
+                    <Geographies geography={GEO_URL}>
+                        {({ geographies }: { geographies: any[] }) =>
+                            geographies.map((geo) => {
+                                // Robust code resolution
+                                const geoName = geo.properties.NAME || geo.properties.name;
+                                const code = geo.properties.ISO_A2 || NAME_TO_ISO[geoName] || geo.properties.ISO_A3;
+                                const isSelected = selectedCountryCode === code;
+
+                                return (
+                                    <Geography
+                                        key={geo.rsmKey}
+                                        geography={geo}
+                                        onClick={() => {
+                                            if (onCountrySelect && code) {
+                                                onCountrySelect(code, geoName);
+                                            }
+                                        }}
+                                        fill={isSelected ? "rgba(16, 185, 129, 0.2)" : "#1e293b"}
+                                        stroke={isSelected ? "#10b981" : "#0f172a"}
+                                        strokeWidth={isSelected ? 1 : 0.5}
+                                        style={{
+                                            default: { outline: "none", transition: "all 250ms" },
+                                            hover: { fill: "#334155", outline: "none", cursor: "pointer" },
+                                            pressed: { outline: "none" },
+                                        }}
+                                    />
+                                )
+                            })
+                        }
+                    </Geographies>
+
+                    {/* Known Node Markers (Outer Rim) */}
+                    {locatedKnownPeers.map((node, i) => (
+                        node.location && node.location.ll ? (
+                            <Marker
+                                key={`known-${i}`}
+                                coordinates={[node.location.ll[1], node.location.ll[0]]}
+                                data-tooltip-id="peer-tooltip"
+                                data-tooltip-content={`Known Node (${node.location.city}, ${node.location.country})`}
+                            >
+                                <circle r={1.5} fill="#475569" fillOpacity={0.6} />
+                            </Marker>
+                        ) : null
+                    ))}
+
+                    {/* Peer Markers */}
+                    {locatedPeers.map((peer) => (
+                        <Marker
+                            key={peer.id}
+                            coordinates={[peer.location!.ll[1], peer.location!.ll[0]]} // [lon, lat] - GeoJSON uses Lon,Lat order!
+                            data-tooltip-id="peer-tooltip"
+                            data-tooltip-content={`${peer.subver} (${peer.location?.city}, ${peer.location?.country}) - Ping: ${(peer.ping * 1000).toFixed(0)}ms`}
+                        >
+                            <circle r={4} fill={peer.inbound ? "#f43f5e" : "#22d3ee"} stroke="#fff" strokeWidth={1} className="animate-pulse" />
+                        </Marker>
+                    ))}
+                </ComposableMap>
+            </MotionConfig>
+
+            <Tooltip id="peer-tooltip" style={{ backgroundColor: "#0f172a", color: "#f1f5f9", borderRadius: "8px" }} />
+
+            <div className="absolute bottom-4 right-4 flex gap-4 text-[10px] text-slate-500 font-mono">
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-cyan-400"></div> OUTBOUND</div>
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div> INBOUND</div>
+            </div>
+        </div>
+    );
+}
