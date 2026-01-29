@@ -77,36 +77,28 @@ export default function HeroMetrics() {
                     setIsLive(true);
                 }
 
-                // Fetch blockchain info for block height
-                const infoRes = await fetch(`${baseUrl}/api/blockchain/info`);
-                if (infoRes.ok) {
-                    const data = await infoRes.json();
+                // Fetch network stats for block height and fees
+                const networkRes = await fetch(`${baseUrl}/api/network-stats`);
+                if (networkRes.ok) {
+                    const data = await networkRes.json();
                     setStats(prev => ({
                         ...prev,
-                        blockHeight: data.blocks || prev.blockHeight
+                        blockHeight: data.blocks || prev.blockHeight,
+                        // Fees from network-stats endpoint
+                        feeHigh: data.fees?.fast ? parseFloat(data.fees.fast) : prev.feeHigh,
+                        feeMed: data.fees?.medium ? parseFloat(data.fees.medium) : prev.feeMed,
+                        feeLow: data.fees?.slow ? parseFloat(data.fees.slow) : prev.feeLow
                     }));
                 }
 
-                // Fetch mempool info
-                const mempoolRes = await fetch(`${baseUrl}/api/mempool/info`);
+                // Fetch mempool data from candidate-block or mempool-recent
+                const mempoolRes = await fetch(`${baseUrl}/api/candidate-block`);
                 if (mempoolRes.ok) {
                     const data = await mempoolRes.json();
                     setStats(prev => ({
                         ...prev,
-                        mempoolSize: data.bytes ? Math.round(data.bytes / 1024 / 1024) : prev.mempoolSize,
-                        mempoolTx: data.size || prev.mempoolTx
-                    }));
-                }
-
-                // Fetch fee estimates
-                const feeRes = await fetch(`${baseUrl}/api/fee/estimates`);
-                if (feeRes.ok) {
-                    const data = await feeRes.json();
-                    setStats(prev => ({
-                        ...prev,
-                        feeHigh: data.high || prev.feeHigh,
-                        feeMed: data.medium || prev.feeMed,
-                        feeLow: data.low || prev.feeLow
+                        mempoolTx: data.transactions?.length || prev.mempoolTx,
+                        mempoolSize: data.totalWeight ? Math.round(data.totalWeight / 4 / 1024) : prev.mempoolSize
                     }));
                 }
 
