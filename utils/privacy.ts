@@ -1,4 +1,4 @@
-import { DecodedTx } from "../app/decoder/page";
+import { DecodedTx } from "../app/explorer/decoder/page";
 
 export interface PrivacyAnalysisResult {
     score: number; // 0-100

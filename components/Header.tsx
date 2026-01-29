@@ -14,15 +14,15 @@ export default function Header() {
 
         // 1. Check if Block Height (Number)
         if (/^\d+$/.test(q)) {
-            router.push(`/block/${q}`);
+            router.push(`/explorer/block/${q}`);
         }
         // 2. Check if Block Hash (likely starts with 00000)
         else if (q.startsWith('00000') && q.length === 64) {
-            router.push(`/block/${q}`);
+            router.push(`/explorer/block/${q}`);
         }
         // 3. Default to Decoder (Tx, Address, or Raw Hex)
         else {
-            router.push(`/decoder?query=${encodeURIComponent(q)}`);
+            router.push(`/explorer/decoder?query=${encodeURIComponent(q)}`);
         }
     };
 
@@ -34,7 +34,7 @@ export default function Header() {
                 </div>
                 <div>
                     <h1 className="text-xl font-bold text-slate-200 tracking-tight group-hover:text-white transition-colors">
-                        Mempool<span className="text-cyan-400">Viz</span>
+                        Raw <span className="text-cyan-400">Block</span>
                     </h1>
                     <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
@@ -63,20 +63,20 @@ export default function Header() {
                 <Link href="/" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/' ? 'text-cyan-400' : 'text-slate-400'}`}>
                     Mempool
                 </Link>
-                <Link href="/script-lab" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/script-lab' ? 'text-cyan-400' : 'text-slate-400'}`}>
+                <Link href="/lab/script" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/lab/script' ? 'text-cyan-400' : 'text-slate-400'}`}>
                     Script
                 </Link>
-                <Link href="/taproot" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/taproot' ? 'text-cyan-400' : 'text-slate-400'}`}>
+                <Link href="/lab/taproot" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/lab/taproot' ? 'text-cyan-400' : 'text-slate-400'}`}>
                     Taproot
                 </Link>
-                <Link href="/mempool-game" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/mempool-game' ? 'text-cyan-400' : 'text-slate-400'}`}>
+                <Link href="/game/tetris" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/game/tetris' ? 'text-cyan-400' : 'text-slate-400'}`}>
                     Game
                 </Link>
                 <div className="w-px h-4 bg-slate-700 mx-2 hidden md:block"></div>
-                <Link href="/decoder" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/decoder' ? 'text-cyan-400' : 'text-slate-400'}`}>
+                <Link href="/explorer/decoder" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/explorer/decoder' ? 'text-cyan-400' : 'text-slate-400'}`}>
                     Decoder
                 </Link>
-                <Link href="/network" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/network' ? 'text-cyan-400' : 'text-slate-400'}`}>
+                <Link href="/explorer/network" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/explorer/network' ? 'text-cyan-400' : 'text-slate-400'}`}>
                     Net
                 </Link>
             </nav>

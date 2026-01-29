@@ -172,7 +172,7 @@ export default function BlockVisualizer() {
                     </button>
 
                     {/* Decoder Link (New) */}
-                    <a href="/decoder" className="text-[10px] font-bold px-3 py-1 rounded-full border bg-slate-900 border-slate-700 text-slate-400 hover:text-indigo-400 hover:border-indigo-400 transition-all flex items-center gap-1">
+                    <a href="/explorer/decoder" className="text-[10px] font-bold px-3 py-1 rounded-full border bg-slate-900 border-slate-700 text-slate-400 hover:text-indigo-400 hover:border-indigo-400 transition-all flex items-center gap-1">
                         🛠️ DECODER
                     </a>
                 </div>
