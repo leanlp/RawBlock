@@ -129,11 +129,13 @@ export default function BlockVisualizer() {
 
     const fetchBlock = async () => {
         try {
-            const res = await fetch('http://localhost:4000/api/candidate-block');
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+            const res = await fetch(`${apiUrl}/api/candidate-block`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const json = await res.json();
             setData(json);
         } catch (e) {
-            console.error("Failed to fetch block", e);
+            console.error("Failed to fetch candidate block:", e);
         } finally {
             setLoading(false);
         }
