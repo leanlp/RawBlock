@@ -22,7 +22,8 @@ export default function NetworkHud() {
 
     const fetchStats = async () => {
         try {
-            const res = await fetch('http://localhost:4000/api/network-stats');
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+            const res = await fetch(`${apiUrl}/api/network-stats`);
             const json = await res.json();
             setStats(json);
         } catch (e) {

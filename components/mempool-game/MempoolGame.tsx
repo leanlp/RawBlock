@@ -26,22 +26,13 @@ export default function MempoolGame() {
     const currentFees = block.reduce((acc, tx) => acc + tx.totalFee, 0);
     const fullness = (currentSize / MAX_BLOCK_SIZE) * 100;
 
-    // Generators
-    // Generators
+    // Transaction ID counter to ensure uniqueness
+    let txIdCounter = 0;
+
     // Generators
     const generateTx = useCallback(() => {
-        // Fix: Use crypto.randomUUID if available, else fallback to high-entropy random
-        // This guarantees uniqueness better than short random strings
-        let id;
-        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-            id = crypto.randomUUID().split('-')[0].toUpperCase(); // First segment is enough entropy (8 chars)
-        } else {
-            id = Math.random().toString(36).substring(2, 10).toUpperCase();
-        }
-
-        // Ensure strictly unique by appending a random suffix if needed, but UUID is pretty safe.
-        // For game purposes, we can also check against existing? No, too expensive.
-        // Let's just use full random string logic.
+        // Ensure truly unique ID by combining timestamp, counter, and randomness
+        const id = `${Date.now().toString(36)}${(txIdCounter++).toString(36)}${Math.random().toString(36).substring(2, 6)}`.toUpperCase();
 
         // Weighted random for fee rate
         // Most are low (10-20), some are med (50-100), few are high (200+)

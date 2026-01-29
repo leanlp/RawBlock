@@ -9,6 +9,7 @@ export default function KeysPage() {
     const [publicKey, setPublicKey] = useState<string>("");
     const [legacyAddr, setLegacyAddr] = useState<string>("");
     const [segwitAddr, setSegwitAddr] = useState<string>("");
+    const [taprootAddr, setTaprootAddr] = useState<string>("");
 
     // Generate a new key pair
     const generateKey = () => {
@@ -51,6 +52,10 @@ export default function KeysPage() {
 
         // Mock SegWit (bc1q...) - Bech32ish
         setSegwitAddr("bc1q" + hashHex.substring(0, 40) + "d60z");
+
+        // Mock Taproot (bc1p...) - Bech32m (SegWit v1)
+        // Taproot uses 32-byte x-only public keys
+        setTaprootAddr("bc1p" + hashHex.substring(0, 52) + "xa7c");
     }
 
     const handleGenerate = () => {
@@ -144,7 +149,7 @@ export default function KeysPage() {
                                 <h3 className="text-emerald-400 text-xs uppercase tracking-widest mb-1">Step 3: Address Derivation</h3>
                                 <p className="text-slate-500 text-xs mb-6">Encoding the Public Key into shareable formats.</p>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="p-4 bg-slate-950 rounded border border-slate-800 relative group transition-all hover:border-amber-500/50">
                                         <div className="absolute top-2 right-2 text-[10px] text-slate-600 uppercase">Legacy (P2PKH)</div>
                                         <div className="text-amber-500 font-bold mb-1">1 (Base58)</div>
@@ -155,6 +160,12 @@ export default function KeysPage() {
                                         <div className="absolute top-2 right-2 text-[10px] text-slate-600 uppercase">SegWit (Bech32)</div>
                                         <div className="text-emerald-500 font-bold mb-1">bc1q (Native)</div>
                                         <div className="text-xs text-slate-400 font-mono break-all">{segwitAddr}</div>
+                                    </div>
+
+                                    <div className="p-4 bg-slate-950 rounded border border-slate-800 relative group transition-all hover:border-violet-500/50">
+                                        <div className="absolute top-2 right-2 text-[10px] text-slate-600 uppercase">Taproot (Bech32m)</div>
+                                        <div className="text-violet-500 font-bold mb-1">bc1p (SegWit v1)</div>
+                                        <div className="text-xs text-slate-400 font-mono break-all">{taprootAddr}</div>
                                     </div>
                                 </div>
                             </div>

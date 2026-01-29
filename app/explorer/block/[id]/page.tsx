@@ -140,13 +140,13 @@ export default function BlockPage() {
 
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => router.push(`/block/${block.height - 1}`)}
+                                        onClick={() => router.push(`/explorer/block/${block.height - 1}`)}
                                         className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors flex items-center gap-2"
                                     >
                                         ← Prev
                                     </button>
                                     <button
-                                        onClick={() => router.push(`/block/${block.height + 1}`)}
+                                        onClick={() => router.push(`/explorer/block/${block.height + 1}`)}
                                         className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors flex items-center gap-2"
                                     >
                                         Next →

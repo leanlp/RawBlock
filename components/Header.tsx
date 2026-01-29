@@ -58,28 +58,6 @@ export default function Header() {
                     </svg>
                 </div>
             </form>
-
-            <nav className="flex items-center gap-4 bg-slate-900/50 px-6 py-2 rounded-full border border-slate-800/50 backdrop-blur-md overflow-x-auto max-w-[50vw] md:max-w-none">
-                <Link href="/" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/' ? 'text-cyan-400' : 'text-slate-400'}`}>
-                    Mempool
-                </Link>
-                <Link href="/lab/script" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/lab/script' ? 'text-cyan-400' : 'text-slate-400'}`}>
-                    Script
-                </Link>
-                <Link href="/lab/taproot" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/lab/taproot' ? 'text-cyan-400' : 'text-slate-400'}`}>
-                    Taproot
-                </Link>
-                <Link href="/game/tetris" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/game/tetris' ? 'text-cyan-400' : 'text-slate-400'}`}>
-                    Game
-                </Link>
-                <div className="w-px h-4 bg-slate-700 mx-2 hidden md:block"></div>
-                <Link href="/explorer/decoder" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/explorer/decoder' ? 'text-cyan-400' : 'text-slate-400'}`}>
-                    Decoder
-                </Link>
-                <Link href="/explorer/network" className={`text-xs md:text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/explorer/network' ? 'text-cyan-400' : 'text-slate-400'}`}>
-                    Net
-                </Link>
-            </nav>
         </header>
     );
 }
