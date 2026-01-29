@@ -1,0 +1,374 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Header from "../../../components/Header";
+import { motion } from "framer-motion";
+import {
+    PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
+    BarChart, Bar, XAxis, YAxis, CartesianGrid
+} from 'recharts';
+
+interface UTXOStats {
+    height: number;
+    bestblock: string;
+    txouts: number;
+    bogosize: number;
+    total_amount: number;
+    transactions: number;
+    disk_size: number;
+}
+
+interface Distribution {
+    addressTypes: { name: string; value: number; color: string }[];
+    valueRanges: { range: string; count: number; btc: number }[];
+    ageDistribution: { age: string; count: number }[];
+}
+
+const COLORS = {
+    p2pkh: '#f59e0b',   // Amber - Legacy
+    p2sh: '#3b82f6',    // Blue - Script Hash
+    p2wpkh: '#10b981',  // Emerald - Native SegWit
+    p2wsh: '#8b5cf6',   // Violet - SegWit Script
+    p2tr: '#ec4899',    // Pink - Taproot
+};
+
+export default function UTXOExplorerPage() {
+    const [stats, setStats] = useState<UTXOStats | null>(null);
+    const [distribution, setDistribution] = useState<Distribution | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function fetchUTXOStats() {
+            setLoading(true);
+            try {
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+                const res = await fetch(`${baseUrl}/api/utxo-stats`);
+
+                if (!res.ok) throw new Error('Failed to fetch UTXO stats');
+
+                const data = await res.json();
+                setStats(data.stats);
+                setDistribution(data.distribution);
+                setError(null);
+            } catch (err) {
+                console.error("UTXO Stats Error:", err);
+                setError("Failed to load UTXO data. Node may be syncing.");
+
+                // Use demo data for visualization
+                setStats({
+                    height: 934250,
+                    bestblock: "0000000000000000000...",
+                    txouts: 180234567,
+                    bogosize: 13523456789,
+                    total_amount: 19823456.78,
+                    transactions: 1023456789,
+                    disk_size: 7654321098
+                });
+
+                setDistribution({
+                    addressTypes: [
+                        { name: 'P2WPKH (SegWit)', value: 45, color: COLORS.p2wpkh },
+                        { name: 'P2PKH (Legacy)', value: 30, color: COLORS.p2pkh },
+                        { name: 'P2SH (Script)', value: 12, color: COLORS.p2sh },
+                        { name: 'P2TR (Taproot)', value: 8, color: COLORS.p2tr },
+                        { name: 'P2WSH', value: 5, color: COLORS.p2wsh },
+                    ],
+                    valueRanges: [
+                        { range: 'Dust (<546 sat)', count: 45000000, btc: 12.5 },
+                        { range: 'Tiny (<10k sat)', count: 35000000, btc: 180.3 },
+                        { range: 'Small (<0.01 BTC)', count: 60000000, btc: 285000 },
+                        { range: 'Medium (<1 BTC)', count: 35000000, btc: 8500000 },
+                        { range: 'Large (<100 BTC)', count: 4500000, btc: 9000000 },
+                        { range: 'Whale (≥100 BTC)', count: 234567, btc: 2038000 },
+                    ],
+                    ageDistribution: [
+                        { age: '< 1 day', count: 150000 },
+                        { age: '1-7 days', count: 890000 },
+                        { age: '1-4 weeks', count: 2100000 },
+                        { age: '1-6 months', count: 12000000 },
+                        { age: '6-12 months', count: 18000000 },
+                        { age: '1-3 years', count: 45000000 },
+                        { age: '3-5 years', count: 52000000 },
+                        { age: '5+ years', count: 50000000 },
+                    ]
+                });
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchUTXOStats();
+    }, []);
+
+    const formatNumber = (num: number) => {
+        if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+        if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+        if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+        return num.toLocaleString();
+    };
+
+    const formatBTC = (btc: number) => {
+        if (btc >= 1e6) return (btc / 1e6).toFixed(2) + 'M BTC';
+        if (btc >= 1e3) return (btc / 1e3).toFixed(1) + 'K BTC';
+        return btc.toFixed(2) + ' BTC';
+    };
+
+    const formatBytes = (bytes: number) => {
+        if (bytes >= 1e12) return (bytes / 1e12).toFixed(2) + ' TB';
+        if (bytes >= 1e9) return (bytes / 1e9).toFixed(2) + ' GB';
+        if (bytes >= 1e6) return (bytes / 1e6).toFixed(2) + ' MB';
+        return (bytes / 1e3).toFixed(2) + ' KB';
+    };
+
+    return (
+        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans">
+            <div className="max-w-7xl mx-auto space-y-8">
+                <Header />
+
+                {/* Title */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end pb-6 border-b border-slate-800">
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
+                            🔬 UTXO Set Explorer
+                        </h1>
+                        <p className="mt-2 text-slate-400 text-sm">
+                            The complete state of all spendable Bitcoin - {stats ? formatNumber(stats.txouts) : '...'} unspent outputs
+                        </p>
+                    </div>
+                    {error && (
+                        <div className="mt-2 md:mt-0 text-xs text-amber-400 bg-amber-500/10 px-3 py-1 rounded">
+                            ⚠️ Using demo data
+                        </div>
+                    )}
+                </div>
+
+                {loading ? (
+                    <div className="py-20 text-center animate-pulse">
+                        <div className="text-6xl mb-4">🔍</div>
+                        <div className="text-slate-500">Scanning UTXO Set...</div>
+                        <div className="text-xs text-slate-600 mt-2">(This can take a minute on first load)</div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Hero Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-gradient-to-br from-amber-500/20 to-orange-600/10 border border-amber-500/30 rounded-2xl p-5 text-center"
+                            >
+                                <div className="text-3xl font-black text-amber-400">
+                                    {stats ? formatNumber(stats.txouts) : '---'}
+                                </div>
+                                <div className="text-xs text-slate-400 uppercase tracking-wider mt-1">Total UTXOs</div>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className="bg-gradient-to-br from-emerald-500/20 to-green-600/10 border border-emerald-500/30 rounded-2xl p-5 text-center"
+                            >
+                                <div className="text-3xl font-black text-emerald-400">
+                                    {stats ? formatBTC(stats.total_amount) : '---'}
+                                </div>
+                                <div className="text-xs text-slate-400 uppercase tracking-wider mt-1">Total Value</div>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="bg-gradient-to-br from-cyan-500/20 to-blue-600/10 border border-cyan-500/30 rounded-2xl p-5 text-center"
+                            >
+                                <div className="text-3xl font-black text-cyan-400">
+                                    {stats ? (stats.total_amount / stats.txouts).toFixed(4) : '---'}
+                                </div>
+                                <div className="text-xs text-slate-400 uppercase tracking-wider mt-1">Avg UTXO (BTC)</div>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="bg-gradient-to-br from-violet-500/20 to-purple-600/10 border border-violet-500/30 rounded-2xl p-5 text-center"
+                            >
+                                <div className="text-3xl font-black text-violet-400">
+                                    {stats ? formatBytes(stats.disk_size) : '---'}
+                                </div>
+                                <div className="text-xs text-slate-400 uppercase tracking-wider mt-1">UTXO Set Size</div>
+                            </motion.div>
+                        </div>
+
+                        {/* Charts Row */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                            {/* Address Type Distribution */}
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.4 }}
+                                className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6"
+                            >
+                                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+                                    📊 Address Type Distribution
+                                </h2>
+
+                                <div className="h-[300px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={distribution?.addressTypes || []}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={100}
+                                                paddingAngle={2}
+                                                dataKey="value"
+                                            >
+                                                {distribution?.addressTypes.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}
+                                                formatter={(value) => [`${value}%`, 'Share']}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 mt-4">
+                                    {distribution?.addressTypes.map((type, i) => (
+                                        <div key={i} className="flex items-center gap-2 text-xs">
+                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }} />
+                                            <span className="text-slate-400">{type.name}</span>
+                                            <span className="text-slate-200 font-bold ml-auto">{type.value}%</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.div>
+
+                            {/* Value Distribution */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.5 }}
+                                className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6"
+                            >
+                                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+                                    💰 Value Distribution
+                                </h2>
+
+                                <div className="h-[300px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={distribution?.valueRanges || []}
+                                            layout="vertical"
+                                            margin={{ left: 80, right: 20 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                                            <XAxis type="number" tickFormatter={formatNumber} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                                            <YAxis
+                                                type="category"
+                                                dataKey="range"
+                                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                                width={75}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}
+                                                formatter={(value, name) => [
+                                                    name === 'count' ? formatNumber(Number(value)) + ' UTXOs' : formatBTC(Number(value)),
+                                                    name === 'count' ? 'Count' : 'Total BTC'
+                                                ]}
+                                            />
+                                            <Bar dataKey="count" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </motion.div>
+                        </div>
+
+                        {/* Age Distribution */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6 }}
+                            className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6"
+                        >
+                            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+                                ⏰ Coin Age Distribution
+                            </h2>
+
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={distribution?.ageDistribution || []}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                                        <XAxis dataKey="age" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                                        <YAxis tickFormatter={formatNumber} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}
+                                            formatter={(value) => [formatNumber(Number(value)) + ' UTXOs', 'Count']}
+                                        />
+                                        <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            <div className="mt-4 p-4 bg-slate-800/30 rounded-xl">
+                                <div className="text-xs text-slate-500 uppercase tracking-widest mb-2">🔥 Insight</div>
+                                <p className="text-sm text-slate-300">
+                                    <strong className="text-amber-400">~28%</strong> of all UTXOs haven&apos;t moved in over 5 years.
+                                    These could be lost coins, long-term hodlers, or forgotten wallets -
+                                    representing a significant portion of Bitcoin&apos;s effective supply.
+                                </p>
+                            </div>
+                        </motion.div>
+
+                        {/* Educational Section */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.7 }}
+                            className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-6"
+                        >
+                            <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-4">
+                                💡 What is a UTXO?
+                            </h2>
+
+                            <div className="grid md:grid-cols-2 gap-6 text-sm text-slate-300">
+                                <div>
+                                    <p className="mb-3">
+                                        <strong className="text-white">UTXO</strong> stands for <em>Unspent Transaction Output</em>.
+                                        Unlike bank accounts that track balances, Bitcoin doesn&apos;t know your &quot;balance&quot; -
+                                        it only knows which outputs from previous transactions haven&apos;t been spent yet.
+                                    </p>
+                                    <p>
+                                        Think of UTXOs like physical cash: when you receive Bitcoin, you get specific
+                                        &quot;coins&quot; (UTXOs). When you spend, you consume entire UTXOs and create new ones
+                                        (including &quot;change&quot; back to yourself).
+                                    </p>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="bg-slate-900/50 p-3 rounded border-l-4 border-cyan-500">
+                                        <strong className="text-cyan-400">Why it matters:</strong>
+                                        <p className="text-xs mt-1">The UTXO set IS Bitcoin&apos;s state. Every full node stores this ~7GB database to validate transactions.</p>
+                                    </div>
+                                    <div className="bg-slate-900/50 p-3 rounded border-l-4 border-amber-500">
+                                        <strong className="text-amber-400">Dust problem:</strong>
+                                        <p className="text-xs mt-1">Tiny UTXOs (&lt;546 sats) cost more to spend than they&apos;re worth, bloating the set forever.</p>
+                                    </div>
+                                    <div className="bg-slate-900/50 p-3 rounded border-l-4 border-emerald-500">
+                                        <strong className="text-emerald-400">SegWit/Taproot benefits:</strong>
+                                        <p className="text-xs mt-1">Modern address types reduce UTXO size and transaction costs, helping Bitcoin scale.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </div>
+        </main>
+    );
+}
