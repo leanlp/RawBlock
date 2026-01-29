@@ -18,6 +18,7 @@ export default function ScriptLabPage() {
     const [scriptInput, setScriptInput] = useState(PRESETS["P2PKH (Valid)"]);
     const [state, setState] = useState<ScriptState>(OpcodeEngine.initialState(PRESETS["P2PKH (Valid)"]));
     const [isPlaying, setIsPlaying] = useState(false);
+    const [selectedPreset, setSelectedPreset] = useState("P2PKH (Valid)");
 
     // Reset when input changes manually? No, allow editing without reset until "Load"
 
@@ -71,16 +72,19 @@ export default function ScriptLabPage() {
                                 <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Script Input</label>
                                 <select
                                     className="bg-slate-950 text-xs border border-slate-700 rounded p-1 text-slate-300"
+                                    value={selectedPreset}
                                     onChange={(e) => {
-                                        setScriptInput(e.target.value);
+                                        const presetName = e.target.value;
+                                        const presetCode = PRESETS[presetName as keyof typeof PRESETS];
+                                        setSelectedPreset(presetName);
+                                        setScriptInput(presetCode);
                                         // Auto load for UX
-                                        setState(OpcodeEngine.initialState(e.target.value));
+                                        setState(OpcodeEngine.initialState(presetCode));
                                         setIsPlaying(false);
                                     }}
                                 >
-                                    <option value="">-- Load Preset --</option>
                                     {Object.entries(PRESETS).map(([name, code]) => (
-                                        <option key={name} value={code}>{name}</option>
+                                        <option key={name} value={name}>{name}</option>
                                     ))}
                                 </select>
                             </div>
