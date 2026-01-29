@@ -35,7 +35,7 @@ export default function RichListPage() {
         // Navigate to Decoder with the address pre-filled (user needs to find TXID manually for now, 
         // or we update Decoder to handle address search - but for now checking balance is "verify with node")
         // Actually, let's just copy to clipboard for now or go to decoder
-        router.push(`/decoder?search=${address}`);
+        router.push(`/explorer/decoder?query=${address}`);
     };
 
     return (
