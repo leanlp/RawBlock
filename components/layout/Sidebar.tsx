@@ -63,7 +63,7 @@ export default function Sidebar() {
             animate={{ x: 0, opacity: 1 }}
             className={`
                 fixed left-0 top-0 bottom-0 z-50
-                bg-slate-950/80 backdrop-blur-xl border-r border-slate-800/50
+                bg-slate-950/95 backdrop-blur-xl border-r border-slate-900
                 transition-all duration-300 ease-in-out
                 ${collapsed ? "w-20" : "w-64"}
                 hidden md:flex flex-col
