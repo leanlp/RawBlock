@@ -53,7 +53,7 @@ type DecoderResult = (DecodedTx & { type?: 'transaction' }) | AddressInfo;
 
 function DecoderContent() {
     const searchParams = useSearchParams();
-    const initialSearch = searchParams.get('search');
+    const initialSearch = searchParams.get('query');
 
     const [query, setQuery] = useState(initialSearch || '');
     const [loading, setLoading] = useState(false);
