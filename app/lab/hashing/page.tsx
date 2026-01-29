@@ -53,13 +53,13 @@ export default function HashingPage() {
         if (!isMining) {
             calculateHash(version, prevHash, merkleRoot, timestamp, bits, nonce).then(h => {
                 setBlockHash(h);
-                checkValidity(h);
+                checkValidity(h, targetZeros);
             });
         }
-    }, [version, prevHash, merkleRoot, timestamp, bits, nonce, isMining]);
+    }, [version, prevHash, merkleRoot, timestamp, bits, nonce, isMining, targetZeros]);
 
-    const checkValidity = (hash: string) => {
-        const prefix = "0".repeat(targetZeros);
+    const checkValidity = (hash: string, zeros: number) => {
+        const prefix = "0".repeat(zeros);
         setValid(hash.startsWith(prefix));
     };
 

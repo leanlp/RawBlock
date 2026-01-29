@@ -15,7 +15,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 opacity-80 pointer-events-none -z-10" />
                 <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay pointer-events-none -z-10"></div>
 
-                <div className="p-4 md:p-8 max-w-7xl mx-auto">
+
+                <div className="p-4 md:p-8">
                     {children}
                 </div>
             </main>

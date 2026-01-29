@@ -9,7 +9,7 @@ export default function LightningPage() {
     const capacity = 1000000; // 1M sats
     const [aliceBal, setAliceBal] = useState(500000); // 500k sats
     const [bobBal, setBobBal] = useState(500000);     // 500k sats
-    const [history, setHistory] = useState<string[]>([]);
+    const [history, setHistory] = useState<Array<{ id: string, msg: string }>>([]);
 
     // Routing State
     const [packetPos, setPacketPos] = useState<'A' | 'B' | 'C' | null>(null);
@@ -20,7 +20,7 @@ export default function LightningPage() {
         if (aliceBal >= amount) {
             setAliceBal(p => p - amount);
             setBobBal(p => p + amount);
-            setHistory(prev => [`Alice sent ${amount} sats to Bob via Channel Update #${prev.length + 1}`, ...prev]);
+            setHistory(prev => [{ id: `${Date.now()}-${Math.random()}`, msg: `Alice sent ${amount} sats to Bob via Channel Update #${prev.length + 1}` }, ...prev]);
         }
     };
 
@@ -28,7 +28,7 @@ export default function LightningPage() {
         if (bobBal >= amount) {
             setBobBal(p => p - amount);
             setAliceBal(p => p + amount);
-            setHistory(prev => [`Bob sent ${amount} sats to Alice via Channel Update #${prev.length + 1}`, ...prev]);
+            setHistory(prev => [{ id: `${Date.now()}-${Math.random()}`, msg: `Bob sent ${amount} sats to Alice via Channel Update #${prev.length + 1}` }, ...prev]);
         }
     };
 
@@ -55,7 +55,7 @@ export default function LightningPage() {
 
         setPacketStatus('idle');
         setPacketPos(null);
-        setHistory(prev => [`Alice routed Payment to Charlie (hops: 2). Preimage revealed.`, ...prev]);
+        setHistory(prev => [{ id: `${Date.now()}-${Math.random()}`, msg: `Alice routed Payment to Charlie (hops: 2). Preimage revealed.` }, ...prev]);
     };
 
     return (
@@ -125,8 +125,8 @@ export default function LightningPage() {
 
                         <div className="mt-8 p-4 bg-slate-950 rounded border border-slate-800 text-xs font-mono h-32 overflow-y-auto">
                             {history.length === 0 ? <span className="text-slate-600">Channel Activity Log...</span> : history.map((h, i) => (
-                                <div key={i} className="mb-1 text-slate-400">
-                                    <span className="text-slate-600">[{i}]</span> {h}
+                                <div key={h.id} className="mb-1 text-slate-400">
+                                    <span className="text-slate-600">[{i}]</span> {h.msg}
                                 </div>
                             ))}
                         </div>

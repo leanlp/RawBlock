@@ -136,9 +136,9 @@ export default function RPCExplorer() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-100px)] gap-4 p-4 font-mono text-sm">
+        <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-100px)] gap-4 p-4 font-mono text-sm">
             {/* Sidebar - Learning Menu */}
-            <div className="w-64 flex-shrink-0 bg-slate-900/50 border border-slate-800 rounded-lg overflow-hidden flex flex-col">
+            <div className="w-full lg:w-64 lg:flex-shrink-0 bg-slate-900/50 border border-slate-800 rounded-lg overflow-hidden flex flex-col max-h-80 lg:max-h-none">
                 <div className="p-3 bg-slate-900 border-b border-slate-800 font-bold text-slate-400">
                     COMMAND LIBRARY
                 </div>
@@ -177,7 +177,7 @@ export default function RPCExplorer() {
             </div>
 
             {/* Terminal Window */}
-            <div className="flex-1 bg-black/90 border border-slate-800 rounded-lg shadow-2xl overflow-hidden flex flex-col relative">
+            <div className="flex-1 min-h-[500px] lg:min-h-0 bg-black/90 border border-slate-800 rounded-lg shadow-2xl overflow-hidden flex flex-col relative">
                 {/* Terminal Header */}
                 <div className="bg-slate-900 py-2 px-4 flex items-center justify-between border-b border-slate-800">
                     <div className="flex gap-2">
