@@ -73,11 +73,11 @@ export default function Sidebar() {
             <div className="h-16 flex items-center justify-center border-b border-slate-800/50">
                 <div onClick={() => setCollapsed(!collapsed)} className="cursor-pointer flex items-center gap-3">
                     <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                        <span className="text-white font-bold">M</span>
+                        <span className="text-white font-bold">R</span>
                     </div>
                     {!collapsed && (
                         <h1 className="font-bold text-slate-200 tracking-tight">
-                            Mempool<span className="text-cyan-400">Viz</span>
+                            Raw<span className="text-cyan-400">Block</span>
                         </h1>
                     )}
                 </div>

@@ -150,7 +150,7 @@ export default function DashboardHome() {
                 className="text-center mb-16"
             >
                 <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-600 mb-6 drop-shadow-2xl">
-                    MEMPOOL VIZ
+                    RAW BLOCK
                 </h1>
                 <p className="text-xl text-slate-400 max-w-2xl mx-auto font-light leading-relaxed">
                     Your command center for analyzing the <span className="text-cyan-400 font-medium">Bitcoin P2P network</span>.

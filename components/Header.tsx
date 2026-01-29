@@ -34,7 +34,7 @@ export default function Header() {
                 </div>
                 <div>
                     <h1 className="text-xl font-bold text-slate-200 tracking-tight group-hover:text-white transition-colors">
-                        Mempool<span className="text-cyan-400">Viz</span>
+                        Raw <span className="text-cyan-400">Block</span>
                     </h1>
                     <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>

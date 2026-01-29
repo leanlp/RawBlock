@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mempool Viz | Bitcoin Explorer",
-  description: "Advanced visualization for Bitcoin Core nodes: Mempool, P2P Network, and Script debugging.",
+  title: "Raw Block | Bitcoin Explorer",
+  description: "Advanced visualization for Bitcoin Core nodes: Blocks, Mempool, P2P Network, and Script debugging.",
 };
 
 export default function RootLayout({
