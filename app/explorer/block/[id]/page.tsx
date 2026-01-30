@@ -23,11 +23,16 @@ export default function BlockPage() {
     const router = useRouter();
     const [block, setBlock] = useState<BlockData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [latestHeight, setLatestHeight] = useState<number>(Infinity);
 
     useEffect(() => {
         if (!id) return;
         setLoading(true);
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/block/${id}`)
+
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+        // Fetch the block
+        fetch(`${baseUrl}/api/block/${id}`)
             .then(res => {
                 if (!res.ok) throw new Error("Block not found");
                 return res.json();
@@ -40,12 +45,23 @@ export default function BlockPage() {
                 console.error(err);
                 setLoading(false);
             });
+
+        // Fetch latest block height to know if Next should be disabled
+        fetch(`${baseUrl}/api/network-stats`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.blocks) setLatestHeight(data.blocks);
+            })
+            .catch(() => { });
     }, [id]);
 
     const formatSize = (bytes: number) => {
         if (bytes > 1000000) return (bytes / 1000000).toFixed(2) + " MB";
         return (bytes / 1000).toFixed(2) + " KB";
     };
+
+    // Check if we're at the latest block
+    const isLatestBlock = block ? block.height >= latestHeight : false;
 
     // Prepare TreeMap Data
     const treeMapData = block ? [
@@ -109,7 +125,7 @@ export default function BlockPage() {
                     <div className="text-center py-20 text-red-400">
                         <h1 className="text-2xl font-bold">Block Not Found</h1>
                         <p className="mt-2 text-slate-500">The requested block could not be located in the local node.</p>
-                        <button onClick={() => router.push('/')} className="mt-4 px-4 py-2 bg-slate-800 rounded hover:bg-slate-700">Return to Nexus</button>
+                        <button onClick={() => router.push('/')} className="mt-4 px-4 py-2 bg-slate-800 rounded hover:bg-slate-700">Return to Home</button>
                     </div>
                 ) : (
                     <>
@@ -141,15 +157,18 @@ export default function BlockPage() {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => router.push(`/explorer/block/${block.height - 1}`)}
-                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors flex items-center gap-2"
+                                        disabled={block.height <= 0}
+                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm transition-colors flex items-center gap-2"
                                     >
                                         ← Prev
                                     </button>
                                     <button
-                                        onClick={() => router.push(`/explorer/block/${block.height + 1}`)}
-                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors flex items-center gap-2"
+                                        onClick={() => !isLatestBlock && router.push(`/explorer/block/${block.height + 1}`)}
+                                        disabled={isLatestBlock}
+                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm transition-colors flex items-center gap-2"
+                                        title={isLatestBlock ? "This is the latest block" : ""}
                                     >
-                                        Next →
+                                        {isLatestBlock ? "Latest" : "Next →"}
                                     </button>
                                 </div>
                             </div>
