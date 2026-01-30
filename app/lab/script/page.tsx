@@ -15,10 +15,10 @@ const PRESETS = {
 };
 
 export default function ScriptLabPage() {
-    const [scriptInput, setScriptInput] = useState(PRESETS["P2PKH (Valid)"]);
-    const [state, setState] = useState<ScriptState>(OpcodeEngine.initialState(PRESETS["P2PKH (Valid)"]));
+    const [scriptInput, setScriptInput] = useState(PRESETS["Addition"]);
+    const [state, setState] = useState<ScriptState>(OpcodeEngine.initialState(PRESETS["Addition"]));
     const [isPlaying, setIsPlaying] = useState(false);
-    const [selectedPreset, setSelectedPreset] = useState("P2PKH (Valid)");
+    const [selectedPreset, setSelectedPreset] = useState("Addition");
 
     // Reset when input changes manually? No, allow editing without reset until "Load"
 
