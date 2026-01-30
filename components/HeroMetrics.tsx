@@ -140,7 +140,7 @@ export default function HeroMetrics() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 text-center hover:border-cyan-500/50 transition-all group cursor-pointer"
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-cyan-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
                     >
                         <div className="text-2xl mb-1">📦</div>
                         <div className="text-3xl font-black text-white mb-1 group-hover:text-cyan-400 transition-colors">
@@ -152,12 +152,12 @@ export default function HeroMetrics() {
                 </Link>
 
                 {/* Hashrate */}
-                <Link href="/analysis/vitals">
+                <Link href="/explorer/vitals">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 text-center hover:border-orange-500/50 transition-all group cursor-pointer"
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-orange-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
                     >
                         <div className="text-2xl mb-1">⛏️</div>
                         <div className="text-3xl font-black text-white mb-1 group-hover:text-orange-400 transition-colors">
@@ -174,7 +174,7 @@ export default function HeroMetrics() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 text-center hover:border-blue-500/50 transition-all group cursor-pointer"
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-blue-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
                     >
                         <div className="text-2xl mb-1">🌊</div>
                         <div className="text-3xl font-black text-white mb-1 group-hover:text-blue-400 transition-colors">
@@ -186,12 +186,12 @@ export default function HeroMetrics() {
                 </Link>
 
                 {/* Halving */}
-                <Link href="/analysis/vitals">
+                <Link href="/explorer/vitals">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 text-center hover:border-violet-500/50 transition-all group cursor-pointer"
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-violet-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
                     >
                         <div className="text-2xl mb-1">⏳</div>
                         <div className="text-3xl font-black text-white mb-1 group-hover:text-violet-400 transition-colors">

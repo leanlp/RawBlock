@@ -12,6 +12,11 @@ import { ripemd160 } from '@noble/hashes/legacy.js';
 import { bech32, bech32m } from 'bech32';
 import bs58check from 'bs58check';
 
+// Configure secp256k1 to use sha256 for Schnorr signatures (required in v3.x)
+// The library has hashes.sha256 = undefined by default, we must set it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(secp as any).hashes.sha256 = (msg: Uint8Array) => sha256(msg);
+
 // ═══════════════════════════════════════════════════════════════
 // UTILITY FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
