@@ -208,68 +208,72 @@ export default function HeroMetrics() {
             {/* Fee Bands + Live Activity */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Fee Bands */}
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="bg-slate-900/40 border border-slate-800 rounded-xl p-4"
-                >
-                    <div className="text-xs text-slate-500 uppercase tracking-widest mb-3">Fee Market (sat/vB)</div>
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                <span className="text-xs text-slate-400">High Priority</span>
+                <Link href="/explorer/fees" className="block w-full h-full">
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="bg-slate-900/40 border border-slate-800 rounded-xl p-4 cursor-pointer hover:border-slate-600 transition-colors h-full"
+                    >
+                        <div className="text-xs text-slate-500 uppercase tracking-widest mb-3">Fee Market (sat/vB)</div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                    <span className="text-xs text-slate-400">High Priority</span>
+                                </div>
+                                <span className="font-mono text-red-400 font-bold">
+                                    {stats.feeHigh > 0 ? `${stats.feeHigh} sat/vB` : "---"}
+                                </span>
                             </div>
-                            <span className="font-mono text-red-400 font-bold">
-                                {stats.feeHigh > 0 ? `${stats.feeHigh} sat/vB` : "---"}
-                            </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                                <span className="text-xs text-slate-400">Medium</span>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                                    <span className="text-xs text-slate-400">Medium</span>
+                                </div>
+                                <span className="font-mono text-amber-400 font-bold">
+                                    {stats.feeMed > 0 ? `${stats.feeMed} sat/vB` : "---"}
+                                </span>
                             </div>
-                            <span className="font-mono text-amber-400 font-bold">
-                                {stats.feeMed > 0 ? `${stats.feeMed} sat/vB` : "---"}
-                            </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                <span className="text-xs text-slate-400">Low (Economy)</span>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                    <span className="text-xs text-slate-400">Low (Economy)</span>
+                                </div>
+                                <span className="font-mono text-emerald-400 font-bold">
+                                    {stats.feeLow > 0 ? `${stats.feeLow} sat/vB` : "---"}
+                                </span>
                             </div>
-                            <span className="font-mono text-emerald-400 font-bold">
-                                {stats.feeLow > 0 ? `${stats.feeLow} sat/vB` : "---"}
-                            </span>
                         </div>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                </Link>
 
                 {/* Live Mempool Feed */}
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="bg-slate-900/40 border border-slate-800 rounded-xl p-4"
-                >
-                    <div className="text-xs text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
-                        Live Mempool Stream
-                    </div>
-                    <div className="space-y-1 font-mono text-xs h-[72px] overflow-hidden">
-                        {recentTxs.map((tx, i) => (
-                            <motion.div
-                                key={`${tx}-${i}`}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1 - i * 0.15, x: 0 }}
-                                className="text-cyan-400/70 truncate"
-                            >
-                                <span className="text-slate-600">TX:</span> {tx}...{Math.random().toString(36).substring(2, 6)}
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
+                <Link href="/explorer/mempool" className="block w-full h-full">
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="bg-slate-900/40 border border-slate-800 rounded-xl p-4 cursor-pointer hover:border-slate-600 transition-colors h-full"
+                    >
+                        <div className="text-xs text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
+                            Live Mempool Stream
+                        </div>
+                        <div className="space-y-1 font-mono text-xs h-[72px] overflow-hidden">
+                            {recentTxs.map((tx, i) => (
+                                <motion.div
+                                    key={`${tx}-${i}`}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1 - i * 0.15, x: 0 }}
+                                    className="text-cyan-400/70 truncate"
+                                >
+                                    <span className="text-slate-600">TX:</span> {tx}...{Math.random().toString(36).substring(2, 6)}
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+                </Link>
             </div>
         </div>
     );
