@@ -1,0 +1,108 @@
+{
+  "timestamp": 1769801083757,
+  "status": "ready",
+  "stats": {
+    "height": 934371,
+    "bestblock": "000000000000000000014cc3f9e94a8455b3f666c5759ed89080c301af5ffb2a",
+    "txouts": 164138246,
+    "bogosize": 12863397765,
+    "total_amount": 19982182.40718221,
+    "transactions": 113766931,
+    "disk_size": 11264444453
+  },
+  "distribution": {
+    "addressTypes": [
+      {
+        "name": "P2WPKH (SegWit)",
+        "value": 45,
+        "color": "#10b981"
+      },
+      {
+        "name": "P2PKH (Legacy)",
+        "value": 30,
+        "color": "#f59e0b"
+      },
+      {
+        "name": "P2SH (Script)",
+        "value": 12,
+        "color": "#3b82f6"
+      },
+      {
+        "name": "P2TR (Taproot)",
+        "value": 8,
+        "color": "#ec4899"
+      },
+      {
+        "name": "P2WSH",
+        "value": 5,
+        "color": "#8b5cf6"
+      }
+    ],
+    "valueRanges": [
+      {
+        "range": "Dust (<546 sat)",
+        "count": 41034561,
+        "btc": 19982.18240718221
+      },
+      {
+        "range": "Tiny (<10k sat)",
+        "count": 32827649,
+        "btc": 199821.8240718221
+      },
+      {
+        "range": "Small (<0.01 BTC)",
+        "count": 57448386,
+        "btc": 1998218.240718221
+      },
+      {
+        "range": "Medium (<1 BTC)",
+        "count": 24620736,
+        "btc": 5994654.722154663
+      },
+      {
+        "range": "Large (<100 BTC)",
+        "count": 6565529,
+        "btc": 7992872.962872884
+      },
+      {
+        "range": "Whale (≥100 BTC)",
+        "count": 1641382,
+        "btc": 3776632.4749574377
+      }
+    ],
+    "ageDistribution": [
+      {
+        "age": "< 1 day",
+        "count": 3282764
+      },
+      {
+        "age": "1-7 days",
+        "count": 13131059
+      },
+      {
+        "age": "1-4 weeks",
+        "count": 24620736
+      },
+      {
+        "age": "1-6 months",
+        "count": 32827649
+      },
+      {
+        "age": "6-12 months",
+        "count": 24620736
+      },
+      {
+        "age": "1-3 years",
+        "count": 32827649
+      },
+      {
+        "age": "3-5 years",
+        "count": 24620736
+      },
+      {
+        "age": "5+ years",
+        "count": 8206912
+      }
+    ]
+  }
+}
