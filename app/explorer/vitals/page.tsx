@@ -97,8 +97,8 @@ export default function VitalsPage() {
             <div className="max-w-6xl mx-auto space-y-8">
                 <Header />
 
-                <div className="flex flex-col md:flex-row justify-between items-end pb-6 border-b border-slate-800">
-                    <div>
+                <div className="flex flex-col md:flex-row justify-between items-center md:items-end pb-6 border-b border-slate-800">
+                    <div className="text-center md:text-left">
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-500">
                             Protocol Vital Signs
                         </h1>
@@ -187,7 +187,7 @@ export default function VitalsPage() {
                                     </div>
                                     <div className="p-4 bg-slate-800/50 rounded-lg">
                                         <div className="text-xs text-slate-400 mb-1">Version</div>
-                                        <div className="text-lg font-mono text-slate-200">
+                                        <div className="text-sm md:text-lg font-mono text-slate-200 break-all leading-tight">
                                             {data.node!.version ? data.node!.version.replace(/\//g, '') : 'Unknown'}
                                         </div>
                                     </div>

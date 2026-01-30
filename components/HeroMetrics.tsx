@@ -135,7 +135,7 @@ export default function HeroMetrics() {
             {/* Main Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr">
                 {/* Block Height */}
-                <Link href="/explorer/block">
+                <Link href="/explorer/blocks">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}

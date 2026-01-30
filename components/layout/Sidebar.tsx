@@ -17,7 +17,7 @@ const NAV_ITEMS = [
         items: [
             { name: "Mempool", path: "/explorer/mempool", icon: "🌊" },
             { name: "Network", path: "/explorer/network", icon: "🌍" },
-            { name: "Blocks", path: "/explorer/block", icon: "📦" },
+            { name: "Blocks", path: "/explorer/blocks", icon: "📦" },
             { name: "Decoder", path: "/explorer/decoder", icon: "🔍" },
             { name: "Rich List", path: "/explorer/rich-list", icon: "🐳" },
             { name: "Fees", path: "/explorer/fees", icon: "💸" },
