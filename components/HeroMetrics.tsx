@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 interface NetworkStats {
     blockHeight: number;
@@ -132,68 +133,76 @@ export default function HeroMetrics() {
             </div>
 
             {/* Main Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8 auto-rows-fr">
                 {/* Block Height */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 text-center hover:border-cyan-500/50 transition-all group"
-                >
-                    <div className="text-2xl mb-1">📦</div>
-                    <div className="text-3xl font-black text-white mb-1 group-hover:text-cyan-400 transition-colors">
-                        {stats.blockHeight > 0 ? stats.blockHeight.toLocaleString() : "---"}
-                    </div>
-                    <div className="text-xs text-slate-500 uppercase tracking-wider">Block Height</div>
-                    <div className="text-[10px] text-slate-600 mt-1">{stats.lastBlockTime}</div>
-                </motion.div>
+                <Link href="/explorer/block">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-cyan-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
+                    >
+                        <div className="text-xl md:text-2xl mb-1">📦</div>
+                        <div className="text-2xl md:text-3xl font-black text-white mb-1 group-hover:text-cyan-400 transition-colors">
+                            {stats.blockHeight > 0 ? stats.blockHeight.toLocaleString() : "---"}
+                        </div>
+                        <div className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider">Block Height</div>
+                        <div className="text-[10px] text-slate-600 mt-1 hidden md:block">{stats.lastBlockTime}</div>
+                    </motion.div>
+                </Link>
 
                 {/* Hashrate */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 text-center hover:border-orange-500/50 transition-all group"
-                >
-                    <div className="text-2xl mb-1">⛏️</div>
-                    <div className="text-3xl font-black text-white mb-1 group-hover:text-orange-400 transition-colors">
-                        {stats.hashrate}
-                    </div>
-                    <div className="text-xs text-slate-500 uppercase tracking-wider">Hashrate</div>
-                    <div className="text-[10px] text-slate-600 mt-1">Network Security</div>
-                </motion.div>
+                <Link href="/explorer/vitals">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-orange-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
+                    >
+                        <div className="text-xl md:text-2xl mb-1">⛏️</div>
+                        <div className="text-2xl md:text-3xl font-black text-white mb-1 group-hover:text-orange-400 transition-colors whitespace-nowrap">
+                            {stats.hashrate}
+                        </div>
+                        <div className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider">Hashrate</div>
+                        <div className="text-[10px] text-slate-600 mt-1 hidden md:block">Network Security</div>
+                    </motion.div>
+                </Link>
 
                 {/* Mempool */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 text-center hover:border-blue-500/50 transition-all group"
-                >
-                    <div className="text-2xl mb-1">🌊</div>
-                    <div className="text-3xl font-black text-white mb-1 group-hover:text-blue-400 transition-colors">
-                        {stats.mempoolTx > 0 ? stats.mempoolTx.toLocaleString() : "---"}
-                    </div>
-                    <div className="text-xs text-slate-500 uppercase tracking-wider">Pending TXs</div>
-                    <div className="text-[10px] text-slate-600 mt-1">{stats.mempoolSize > 0 ? `${stats.mempoolSize} MB` : "..."}</div>
-                </motion.div>
+                <Link href="/explorer/mempool">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-blue-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
+                    >
+                        <div className="text-xl md:text-2xl mb-1">🌊</div>
+                        <div className="text-2xl md:text-3xl font-black text-white mb-1 group-hover:text-blue-400 transition-colors">
+                            {stats.mempoolTx > 0 ? stats.mempoolTx.toLocaleString() : "---"}
+                        </div>
+                        <div className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider">Pending TXs</div>
+                        <div className="text-[10px] text-slate-600 mt-1 hidden md:block">{stats.mempoolSize > 0 ? `${stats.mempoolSize} MB` : "..."}</div>
+                    </motion.div>
+                </Link>
 
                 {/* Halving */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 text-center hover:border-violet-500/50 transition-all group"
-                >
-                    <div className="text-2xl mb-1">⏳</div>
-                    <div className="text-3xl font-black text-white mb-1 group-hover:text-violet-400 transition-colors">
-                        {stats.daysUntilHalving > 0 ? stats.daysUntilHalving : "---"}
-                    </div>
-                    <div className="text-xs text-slate-500 uppercase tracking-wider">Days to Halving</div>
-                    <div className="text-[10px] text-slate-600 mt-1">
-                        {stats.blocksUntilHalving > 0 ? `~${stats.blocksUntilHalving.toLocaleString()} blocks` : "..."}
-                    </div>
-                </motion.div>
+                <Link href="/explorer/vitals">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-violet-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
+                    >
+                        <div className="text-xl md:text-2xl mb-1">⏳</div>
+                        <div className="text-2xl md:text-3xl font-black text-white mb-1 group-hover:text-violet-400 transition-colors">
+                            {stats.daysUntilHalving > 0 ? stats.daysUntilHalving : "---"}
+                        </div>
+                        <div className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider">Days to Halving</div>
+                        <div className="text-[10px] text-slate-600 mt-1 hidden md:block">
+                            {stats.blocksUntilHalving > 0 ? `~${stats.blocksUntilHalving.toLocaleString()} blocks` : "..."}
+                        </div>
+                    </motion.div>
+                </Link>
             </div>
 
             {/* Fee Bands + Live Activity */}

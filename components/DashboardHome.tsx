@@ -92,6 +92,13 @@ const categories = {
                 href: "/lab/lightning",
                 color: "from-yellow-400 to-amber-600",
                 icon: "⚡"
+            },
+            {
+                title: "Consensus Debugger",
+                description: "Step through block validation. See PoW, merkle roots, and coinbase checks.",
+                href: "/lab/consensus",
+                color: "from-cyan-400 to-blue-600",
+                icon: "⚙️"
             }
         ]
     },
@@ -139,6 +146,13 @@ const categories = {
                 href: "/analysis/graffiti",
                 color: "from-green-500 to-emerald-700",
                 icon: "🎨"
+            },
+            {
+                title: "UTXO Set Explorer",
+                description: "Visualize all 180M+ unspent outputs by type, value, and age.",
+                href: "/analysis/utxo",
+                color: "from-amber-400 to-orange-500",
+                icon: "🔬"
             },
             {
                 title: "Fee Intelligence",
@@ -213,8 +227,8 @@ function CategorySection({ category, categoryKey }: { category: typeof categorie
                 <p className="text-sm text-slate-500 mt-1">{category.subtitle}</p>
             </div>
             <div className={`grid gap-4 ${categoryKey === 'play' || categoryKey === 'tools'
-                    ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2'
-                    : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3'
+                ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2'
+                : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3'
                 }`}>
                 {category.features.map((feature, i) => (
                     <FeatureCard key={feature.href} feature={feature} index={i} />
