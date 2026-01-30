@@ -69,7 +69,7 @@ export default function BlocksIndexPage() {
                                             {block.hash.substring(0, 8)}...{block.hash.substring(56)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="px-2 py-1 rounded-full bg-slate-800 text-[10px] text-slate-400 border border-slate-700">
+                                            <span className="inline-block min-w-20 px-3 py-1 rounded-full bg-slate-800 text-[10px] text-slate-400 border border-slate-700 text-center truncate">
                                                 {block.miner}
                                             </span>
                                         </td>
