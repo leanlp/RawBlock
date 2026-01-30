@@ -114,9 +114,9 @@ export default function EvolutionPage() {
                                         No gross overpayments detected recently.
                                     </div>
                                 ) : (
-                                    data.fatFingers.map((tx) => (
+                                    data.fatFingers.map((tx, index) => (
                                         <motion.div
-                                            key={tx.txid}
+                                            key={`${tx.txid}-${index}`}
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 hover:border-red-500/30 transition-colors"

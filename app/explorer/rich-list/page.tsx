@@ -3,96 +3,163 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Header from '../../../components/Header';
 
-interface Whale {
+// Static imports - all whale data embedded in frontend
+import whale01 from '../../../data/whales/whale_01.json';
+import whale02 from '../../../data/whales/whale_02.json';
+import whale03 from '../../../data/whales/whale_03.json';
+import whale04 from '../../../data/whales/whale_04.json';
+import whale05 from '../../../data/whales/whale_05.json';
+import whale06 from '../../../data/whales/whale_06.json';
+import whale07 from '../../../data/whales/whale_07.json';
+import whale08 from '../../../data/whales/whale_08.json';
+import whale09 from '../../../data/whales/whale_09.json';
+import whale10 from '../../../data/whales/whale_10.json';
+import whale11 from '../../../data/whales/whale_11.json';
+import whale12 from '../../../data/whales/whale_12.json';
+import whale13 from '../../../data/whales/whale_13.json';
+import whale14 from '../../../data/whales/whale_14.json';
+import whale15 from '../../../data/whales/whale_15.json';
+import whale16 from '../../../data/whales/whale_16.json';
+import whale17 from '../../../data/whales/whale_17.json';
+import whale18 from '../../../data/whales/whale_18.json';
+import whale19 from '../../../data/whales/whale_19.json';
+import whale20 from '../../../data/whales/whale_20.json';
+
+// All whales array for easy access
+const allWhales = [
+    whale01, whale02, whale03, whale04, whale05,
+    whale06, whale07, whale08, whale09, whale10,
+    whale11, whale12, whale13, whale14, whale15,
+    whale16, whale17, whale18, whale19, whale20
+];
+
+interface WhaleData {
     rank: number;
     address: string;
     balance: number;
+    utxoCount: number;
+    fetchedAt: string;
 }
 
 export default function RichListPage() {
-    const [whales, setWhales] = useState<Whale[]>([]);
-    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
-    useEffect(() => {
-        const fetchWhales = async () => {
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/rich-list`);
-                const data = await res.json();
-                setWhales(data);
-            } catch (err) {
-                console.error('Failed to fetch rich list', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchWhales();
-    }, []);
+    // Hardcoded as we are using static imports now
+    const dataSource = 'api';
 
-    const handleInspect = (address: string) => {
-        // Navigate to Decoder with the address pre-filled (user needs to find TXID manually for now, 
-        // or we update Decoder to handle address search - but for now checking balance is "verify with node")
-        // Actually, let's just copy to clipboard for now or go to decoder
-        router.push(`/explorer/decoder?query=${address}`);
+    const whales: WhaleData[] = allWhales.map(w => ({
+        rank: w.rank,
+        address: w.address,
+        balance: w.balance,
+        utxoCount: w.utxoCount,
+        fetchedAt: w.fetchedAt
+    }));
+
+    const handleViewWhale = (rank: number) => {
+        router.push(`/explorer/rich-list/${rank}`);
     };
 
+    const formatDate = (isoString?: string) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const totalBtc = whales.reduce((sum, w) => sum + w.balance, 0);
+    const totalUtxos = whales.reduce((sum, w) => sum + w.utxoCount, 0);
+
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono selection:bg-cyan-500/30">
+        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono selection:bg-cyan-500/30">
             <div className="max-w-6xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-600 mb-2">
-                            Whale Watch
+                        <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-600 mb-2">
+                            🐋 Whale Watch
                         </h1>
-                        <p className="text-slate-400 text-sm uppercase tracking-widest">Global Rich List • Verified Snapshot</p>
+                        <p className="text-slate-400 text-sm uppercase tracking-widest">
+                            Top 20 Bitcoin Holders • Static Node Data
+                        </p>
                     </div>
-                    <Link href="/" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors">
+                    <Link href="/" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors self-start md:self-auto">
                         ← Back to Dashboard
                     </Link>
                 </div>
 
+                {/* Data Source Notice */}
+                <div className="bg-green-900/20 border border-green-500/30 rounded-lg px-4 py-3 text-xs text-green-300/80">
+                    ✅ <span className="font-bold">Static Node Data</span> — Scanned from your Bitcoin node via scantxoutset RPC.
+                    Last updated: {formatDate(whales[0]?.fetchedAt)}
+                </div>
+
+                {/* Stats Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-slate-900/50 border border-amber-500/30 rounded-xl p-5 text-center">
+                        <div className="text-3xl font-bold text-amber-400">
+                            {totalBtc.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </div>
+                        <div className="text-xs text-slate-500 uppercase mt-1">Total BTC</div>
+                    </div>
+                    <div className="bg-slate-900/50 border border-cyan-500/30 rounded-xl p-5 text-center">
+                        <div className="text-3xl font-bold text-cyan-400">
+                            {totalUtxos.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-slate-500 uppercase mt-1">Total UTXOs</div>
+                    </div>
+                    <div className="bg-slate-900/50 border border-purple-500/30 rounded-xl p-5 text-center">
+                        <div className="text-3xl font-bold text-purple-400">20</div>
+                        <div className="text-xs text-slate-500 uppercase mt-1">Whales Tracked</div>
+                    </div>
+                </div>
+
                 {/* Leaderboard */}
                 <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm shadow-2xl">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-slate-800 bg-slate-900/80 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                <th className="p-4 w-20 text-center">Rank</th>
-                                <th className="p-4">Address</th>
-                                <th className="p-4 text-right">Balance (BTC)</th>
-                                <th className="p-4 w-40 text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-800/50">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={4} className="p-12 text-center text-slate-500 animate-pulse">Loading Whale Data...</td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr className="border-b border-slate-800 bg-slate-900/80 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                    <th className="p-4 w-20 text-center">Rank</th>
+                                    <th className="p-4">Address</th>
+                                    <th className="p-4 text-right">Balance (BTC)</th>
+                                    <th className="p-4 text-right">UTXOs</th>
+                                    <th className="p-4 w-32 text-center">Action</th>
                                 </tr>
-                            ) : whales.map((whale) => (
-                                <tr key={whale.rank} className="group hover:bg-slate-800/30 transition-colors">
-                                    <td className="p-4 text-center font-bold text-slate-600 group-hover:text-amber-500 transition-colors">
-                                        #{whale.rank}
-                                    </td>
-                                    <td className="p-4 font-mono text-sm text-cyan-300/80 group-hover:text-cyan-300 break-all">
-                                        {whale.address}
-                                    </td>
-                                    <td className="p-4 text-right font-bold text-slate-200">
-                                        {whale.balance.toLocaleString()} BTC
-                                    </td>
-                                    <td className="p-4 text-center">
-                                        <button
-                                            onClick={() => handleInspect(whale.address)}
-                                            className="text-[10px] bg-slate-800 hover:bg-cyan-900/50 text-slate-400 hover:text-cyan-300 border border-slate-700 rounded px-3 py-1 transition-all"
-                                        >
-                                            INSPECT
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800/50">
+                                {whales.map((whale) => (
+                                    <tr
+                                        key={whale.rank}
+                                        className="group hover:bg-slate-800/30 transition-colors cursor-pointer"
+                                        onClick={() => handleViewWhale(whale.rank)}
+                                    >
+                                        <td className="p-4 text-center font-bold text-slate-600 group-hover:text-amber-500 transition-colors">
+                                            #{whale.rank}
+                                        </td>
+                                        <td className="p-4 font-mono text-sm text-cyan-300/80 group-hover:text-cyan-300">
+                                            {whale.address.slice(0, 12)}...{whale.address.slice(-8)}
+                                        </td>
+                                        <td className="p-4 text-right font-bold text-slate-200">
+                                            {whale.balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC
+                                        </td>
+                                        <td className="p-4 text-right text-slate-400">
+                                            <span className={whale.utxoCount > 1000 ? 'text-amber-400 font-bold' : ''}>
+                                                {whale.utxoCount.toLocaleString()}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleViewWhale(whale.rank); }}
+                                                className="text-[10px] bg-slate-800 hover:bg-cyan-900/50 text-slate-400 hover:text-cyan-300 border border-slate-700 rounded px-3 py-1 transition-all"
+                                            >
+                                                VIEW UTXOS
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </main>
