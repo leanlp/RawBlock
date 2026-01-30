@@ -27,7 +27,7 @@ const categories = {
             {
                 title: "Block Explorer",
                 description: "Browse the latest blocks and transactions.",
-                href: "/explorer/block",
+                href: "/explorer/blocks",
                 color: "from-slate-600 to-slate-500",
                 icon: "📦"
             },
