@@ -1,0 +1,85 @@
+{
+  "fetchedAt": "2026-01-30T16:03:10.155Z",
+  "fetchMethod": "local_node_rpc",
+  "scanDurationSeconds": 77.3,
+  "rank": 20,
+  "address": "bc1qws342rlkhszh58rtn35zrw7w076puz83gkcufy",
+  "balance": 39070.00011295,
+  "balanceSats": 3907000011295,
+  "scanHeight": 934355,
+  "utxoCount": 9,
+  "utxos": [
+    {
+      "txid": "38595e6f08a21a4787290160f30d48efa7b02932ead7752c2cd1d5af843a3719",
+      "vout": 0,
+      "value": 2500,
+      "valueBtc": 2500,
+      "blockHeight": 933204,
+      "scriptPubKey": "00147423550ff6bc057a1c6b9c6821bbce7fb41e08f1"
+    },
+    {
+      "txid": "64586c1db1e3710d6e8740e591ba022430858dc1fd70f2a52c040df56122bb44",
+      "vout": 0,
+      "value": 2500,
+      "valueBtc": 2500,
+      "blockHeight": 933531,
+      "scriptPubKey": "00147423550ff6bc057a1c6b9c6821bbce7fb41e08f1"
+    },
+    {
+      "txid": "0763c290ea1812e03114c3f697baa270e64f6f233f657cf4330a129b4a5b1569",
+      "vout": 0,
+      "value": 0.00005,
+      "valueBtc": 0.00005,
+      "blockHeight": 933970,
+      "scriptPubKey": "00147423550ff6bc057a1c6b9c6821bbce7fb41e08f1"
+    },
+    {
+      "txid": "055312e9aa7793124dadbc045a0b9dfeeba60043ba2ad82eca63a86edbc06476",
+      "vout": 2,
+      "value": 32450.00003764,
+      "valueBtc": 32450.00003764,
+      "blockHeight": 932056,
+      "scriptPubKey": "00147423550ff6bc057a1c6b9c6821bbce7fb41e08f1"
+    },
+    {
+      "txid": "d4234c2b8462511ecdadb420cd2a556f26cbef3cdba5a79decda5eae41200c84",
+      "vout": 0,
+      "value": 390,
+      "valueBtc": 390,
+      "blockHeight": 932904,
+      "scriptPubKey": "00147423550ff6bc057a1c6b9c6821bbce7fb41e08f1"
+    },
+    {
+      "txid": "fe67885060e50a4f10daaed2a9b9f0151d7983fe72bac4e933b6129d15ce78a8",
+      "vout": 0,
+      "value": 530,
+      "valueBtc": 530,
+      "blockHeight": 932361,
+      "scriptPubKey": "00147423550ff6bc057a1c6b9c6821bbce7fb41e08f1"
+    },
+    {
+      "txid": "df805bfb0c5546d7c2c9de66cd9bb19af15b038b5381d9e47cbf545fd44358ae",
+      "vout": 0,
+      "value": 700,
+      "valueBtc": 700,
+      "blockHeight": 932238,
+      "scriptPubKey": "00147423550ff6bc057a1c6b9c6821bbce7fb41e08f1"
+    },
+    {
+      "txid": "334ff3d86b70acb3e3a4db18fba21946faf83051dcf6e6e3eadfcbdf57c129f1",
+      "vout": 3,
+      "value": 0.00000294,
+      "valueBtc": 0.00000294,
+      "blockHeight": 934277,
+      "scriptPubKey": "00147423550ff6bc057a1c6b9c6821bbce7fb41e08f1"
+    },
+    {
+      "txid": "4b5450ecaed421a37228ec76ab900d316a1b937e3fbeaf0ebf602e685b210cfd",
+      "vout": 0,
+      "value": 0.00002237,
+      "valueBtc": 0.00002237,
+      "blockHeight": 933637,
+      "scriptPubKey": "00147423550ff6bc057a1c6b9c6821bbce7fb41e08f1"
+    }
+  ]
+}

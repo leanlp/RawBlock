@@ -57,7 +57,12 @@ export default function MempoolPage() {
         // Socket Connection
         const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-        socketRef.current = io(socketUrl);
+        // Force websocket transport to avoid polling CORS issues
+        socketRef.current = io(socketUrl, {
+            transports: ["websocket"],
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+        });
 
         const socket = socketRef.current;
 

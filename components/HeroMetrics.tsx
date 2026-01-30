@@ -133,21 +133,21 @@ export default function HeroMetrics() {
             </div>
 
             {/* Main Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8 auto-rows-fr">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr">
                 {/* Block Height */}
                 <Link href="/explorer/block">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-cyan-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 sm:p-4 lg:p-5 text-center hover:border-cyan-500/50 transition-all group cursor-pointer min-h-[110px] sm:min-h-[120px] flex flex-col justify-center overflow-hidden"
                     >
-                        <div className="text-xl md:text-2xl mb-1">📦</div>
-                        <div className="text-2xl md:text-3xl font-black text-white mb-1 group-hover:text-cyan-400 transition-colors">
+                        <div className="text-lg sm:text-xl lg:text-2xl mb-1">📦</div>
+                        <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 group-hover:text-cyan-400 transition-colors truncate">
                             {stats.blockHeight > 0 ? stats.blockHeight.toLocaleString() : "---"}
                         </div>
-                        <div className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider">Block Height</div>
-                        <div className="text-[10px] text-slate-600 mt-1 hidden md:block">{stats.lastBlockTime}</div>
+                        <div className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider">Block Height</div>
+                        <div className="text-[9px] text-slate-600 mt-1 hidden lg:block">{stats.lastBlockTime}</div>
                     </motion.div>
                 </Link>
 
@@ -157,14 +157,14 @@ export default function HeroMetrics() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-orange-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 sm:p-4 lg:p-5 text-center hover:border-orange-500/50 transition-all group cursor-pointer min-h-[110px] sm:min-h-[120px] flex flex-col justify-center overflow-hidden"
                     >
-                        <div className="text-xl md:text-2xl mb-1">⛏️</div>
-                        <div className="text-2xl md:text-3xl font-black text-white mb-1 group-hover:text-orange-400 transition-colors whitespace-nowrap">
+                        <div className="text-lg sm:text-xl lg:text-2xl mb-1">⛏️</div>
+                        <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-black text-white mb-1 group-hover:text-orange-400 transition-colors truncate">
                             {stats.hashrate}
                         </div>
-                        <div className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider">Hashrate</div>
-                        <div className="text-[10px] text-slate-600 mt-1 hidden md:block">Network Security</div>
+                        <div className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider">Hashrate</div>
+                        <div className="text-[9px] text-slate-600 mt-1 hidden lg:block">Network Security</div>
                     </motion.div>
                 </Link>
 
@@ -174,14 +174,14 @@ export default function HeroMetrics() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-blue-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 sm:p-4 lg:p-5 text-center hover:border-blue-500/50 transition-all group cursor-pointer min-h-[110px] sm:min-h-[120px] flex flex-col justify-center overflow-hidden"
                     >
-                        <div className="text-xl md:text-2xl mb-1">🌊</div>
-                        <div className="text-2xl md:text-3xl font-black text-white mb-1 group-hover:text-blue-400 transition-colors">
+                        <div className="text-lg sm:text-xl lg:text-2xl mb-1">🌊</div>
+                        <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 group-hover:text-blue-400 transition-colors truncate">
                             {stats.mempoolTx > 0 ? stats.mempoolTx.toLocaleString() : "---"}
                         </div>
-                        <div className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider">Pending TXs</div>
-                        <div className="text-[10px] text-slate-600 mt-1 hidden md:block">{stats.mempoolSize > 0 ? `${stats.mempoolSize} MB` : "..."}</div>
+                        <div className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider">Pending TXs</div>
+                        <div className="text-[9px] text-slate-600 mt-1 hidden lg:block">{stats.mempoolSize > 0 ? `${stats.mempoolSize} MB` : "..."}</div>
                     </motion.div>
                 </Link>
 
@@ -191,14 +191,14 @@ export default function HeroMetrics() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-5 text-center hover:border-violet-500/50 transition-all group cursor-pointer min-h-[120px] flex flex-col justify-center"
+                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 sm:p-4 lg:p-5 text-center hover:border-violet-500/50 transition-all group cursor-pointer min-h-[110px] sm:min-h-[120px] flex flex-col justify-center overflow-hidden"
                     >
-                        <div className="text-xl md:text-2xl mb-1">⏳</div>
-                        <div className="text-2xl md:text-3xl font-black text-white mb-1 group-hover:text-violet-400 transition-colors">
+                        <div className="text-lg sm:text-xl lg:text-2xl mb-1">⏳</div>
+                        <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 group-hover:text-violet-400 transition-colors truncate">
                             {stats.daysUntilHalving > 0 ? stats.daysUntilHalving : "---"}
                         </div>
-                        <div className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider">Days to Halving</div>
-                        <div className="text-[10px] text-slate-600 mt-1 hidden md:block">
+                        <div className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider whitespace-nowrap">Days to Halving</div>
+                        <div className="text-[9px] text-slate-600 mt-1 hidden lg:block truncate">
                             {stats.blocksUntilHalving > 0 ? `~${stats.blocksUntilHalving.toLocaleString()} blocks` : "..."}
                         </div>
                     </motion.div>

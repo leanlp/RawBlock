@@ -127,17 +127,17 @@ export default function VitalsPage() {
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 blur-[100px] rounded-full" />
                                 <h2 className="text-slate-500 text-sm font-bold uppercase tracking-[0.2em] mb-8 text-center">Next Halving Event</h2>
 
-                                <div className="flex justify-center gap-4 md:gap-12 text-center">
+                                <div className="flex justify-center items-start gap-4 md:gap-12 text-center">
                                     <div>
                                         <div className="text-5xl md:text-7xl font-black text-slate-100 tabular-nums">{countdown.days}</div>
                                         <div className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Days</div>
                                     </div>
-                                    <div className="text-5xl md:text-7xl font-thin text-slate-700">:</div>
+                                    <div className="text-5xl md:text-7xl font-thin text-slate-700 leading-none pt-1">:</div>
                                     <div>
                                         <div className="text-5xl md:text-7xl font-black text-slate-100 tabular-nums">{countdown.hours}</div>
                                         <div className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Hours</div>
                                     </div>
-                                    <div className="text-5xl md:text-7xl font-thin text-slate-700">:</div>
+                                    <div className="text-5xl md:text-7xl font-thin text-slate-700 leading-none pt-1">:</div>
                                     <div>
                                         <div className="text-5xl md:text-7xl font-black text-slate-100 tabular-nums">{countdown.minutes}</div>
                                         <div className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Minutes</div>

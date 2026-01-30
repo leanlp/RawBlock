@@ -1,0 +1,45 @@
+{
+  "fetchedAt": "2026-01-30T15:33:52.466Z",
+  "fetchMethod": "local_node_rpc",
+  "scanDurationSeconds": 89.4,
+  "rank": 7,
+  "address": "bc1qd4ysezhmypwty5dnw7c8nqy5h5nxg0xqsvaefd0qn5kq32vwnwqqgv4rzr",
+  "balance": 91850.11283386,
+  "balanceSats": 9185011283386,
+  "scanHeight": 934354,
+  "utxoCount": 4,
+  "utxos": [
+    {
+      "txid": "54001f30bf41321616bda8c6328ef63a218b60ed6bacd265f571ba3c5a78e3a6",
+      "vout": 0,
+      "value": 0.00000546,
+      "valueBtc": 0.00000546,
+      "blockHeight": 934259,
+      "scriptPubKey": "00206d490c8afb205cb251b377b0798094bd26643cc0833b94b5e09d2c08a98e9b80"
+    },
+    {
+      "txid": "d6e21694db97fb4c922ddd5f3fdbb30bbf92bb35a0f455adfb800a09642ac7bd",
+      "vout": 0,
+      "value": 0.00001225,
+      "valueBtc": 0.00001225,
+      "blockHeight": 933503,
+      "scriptPubKey": "00206d490c8afb205cb251b377b0798094bd26643cc0833b94b5e09d2c08a98e9b80"
+    },
+    {
+      "txid": "d6e21694db97fb4c922ddd5f3fdbb30bbf92bb35a0f455adfb800a09642ac7bd",
+      "vout": 1,
+      "value": 91850.11281285,
+      "valueBtc": 91850.11281285,
+      "blockHeight": 933503,
+      "scriptPubKey": "00206d490c8afb205cb251b377b0798094bd26643cc0833b94b5e09d2c08a98e9b80"
+    },
+    {
+      "txid": "cbf6ab982fe19009390c8c26c36f4a54d424d571c3dafe898dd7d3b0e83979e1",
+      "vout": 4,
+      "value": 0.0000033,
+      "valueBtc": 0.0000033,
+      "blockHeight": 934257,
+      "scriptPubKey": "00206d490c8afb205cb251b377b0798094bd26643cc0833b94b5e09d2c08a98e9b80"
+    }
+  ]
+}
