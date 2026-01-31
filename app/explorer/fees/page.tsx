@@ -28,7 +28,14 @@ export default function FeesPage() {
         // Fetch History
         fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/fee-history`)
             .then(res => res.json())
-            .then(data => setHistory(data));
+            .then(data => {
+                // Normalize data: ensure 'time' exists (backend might send 'timestamp')
+                const normalized = data.map((entry: any) => ({
+                    ...entry,
+                    time: entry.time || entry.timestamp
+                }));
+                setHistory(normalized);
+            });
 
         // Fetch Current Stats
         fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/network-stats`)
@@ -141,3 +148,4 @@ export default function FeesPage() {
         </main>
     );
 }
+
