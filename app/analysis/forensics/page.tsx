@@ -19,6 +19,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import Header from "../../../components/Header";
 import { Search, Plus, Save, Network, ShieldAlert, X, ArrowLeft, ArrowRight } from "lucide-react";
+import dagre from 'dagre';
 
 // --- Custom Node Components ---
 
@@ -141,6 +142,48 @@ export default function ForensicsPage() {
         [setEdges],
     );
 
+    // --- Case Studies Logic ---
+    const CASE_STUDIES = [
+        { id: 'pizza', label: '🍕 Pizza Transaction', value: 'cca7507897abc89628f450e8b1e0c6fca4ec3f7b34cccf55f3f531c659ff4d79' },
+        { id: 'genesis', label: '🏛️ Satoshi Genesis', value: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' },
+        { id: 'mtgox', label: '🏴‍☠️ Mt Gox Hack (1Feex)', value: '1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF' },
+        { id: 'wikileaks', label: '📢 Wikileaks Donation', value: '1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v' }
+    ];
+
+    const loadCaseStudy = async (studyId: string) => {
+        const study = CASE_STUDIES.find(s => s.id === studyId);
+        if (!study) return;
+        setSearchQuery(study.value);
+        // Small delay to allow state update before trigger? 
+        // Better to just call directly:
+        setLoading(true);
+        // Clear graph first?
+        setNodes([]);
+        setEdges([]);
+        setSelectedNode(null);
+
+        try {
+            const data = await fetchNodeData(study.value);
+            if (!data) return;
+
+            // Create Root Node
+            const newNode: Node = {
+                id: study.value,
+                type: data.type === 'transaction' ? 'tx' : 'address',
+                position: { x: 500, y: 300 },
+                data: {
+                    label: data.type === 'transaction' ? data.txid.substring(0, 8) + '...' : data.address.substring(0, 8) + '...',
+                    value: data.type === 'transaction' ? '0.00' : data.balance,
+                    risk: 0,
+                    tag: data.type === 'address' ? 'Case Study' : undefined
+                }
+            };
+            setNodes([newNode]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // --- API Integration ---
     const fetchNodeData = async (query: string) => {
         setLoading(true);
@@ -190,19 +233,49 @@ export default function ForensicsPage() {
 
     // --- Layout Engine ---
     const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'RL') => {
-        // Simple tree layout calculation (replacing Dagre for zero-dep implementation)
-        // RL = Right to Left (Ancestry flowing into Wallet)
-        const ySpacing = 150;
-        const xSpacing = 400;
+        const dagreGraph = new dagre.graphlib.Graph();
+        dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-        // 1. Identify Ranks (BFS based on edges)
-        const ranks: Record<string, number> = {};
-        // ... specialized algorithm to be implemented in step 2 if needed
-        // For now, we rely on the manual positioning logic in expansion functions
-        // which effectively builds a tree.
+        const isHorizontal = direction === 'LR' || direction === 'RL';
+        dagreGraph.setGraph({ rankdir: direction });
 
-        return { nodes, edges };
+        nodes.forEach((node) => {
+            dagreGraph.setNode(node.id, { width: 240, height: 150 });
+        });
+
+        edges.forEach((edge) => {
+            dagreGraph.setEdge(edge.source, edge.target);
+        });
+
+        dagre.layout(dagreGraph);
+
+        const newNodes = nodes.map((node) => {
+            const nodeWithPosition = dagreGraph.node(node.id);
+            return {
+                ...node,
+                targetPosition: isHorizontal ? Position.Left : Position.Top,
+                sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
+                // We are shifting the dagre node position (anchor=center center) to the top left
+                // so it matches the React Flow node anchor point (top left).
+                position: {
+                    x: nodeWithPosition.x - 120,
+                    y: nodeWithPosition.y - 75,
+                },
+            };
+        });
+
+        return { nodes: newNodes, edges };
     };
+
+    const handleAutoLayout = useCallback(() => {
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+            nodes,
+            edges,
+            'RL' // Right to Left (Inputs -> Output)
+        );
+        setNodes([...layoutedNodes]);
+        setEdges([...layoutedEdges]);
+    }, [nodes, edges, setNodes, setEdges]);
 
     // --- Graph Interaction ---
     const expandTxNode = useCallback((node: Node, txData: any, direction: 'in' | 'out' | 'both' = 'both') => {
@@ -280,6 +353,7 @@ export default function ForensicsPage() {
 
         setNodes((nds) => nds.concat(newNodes));
         setEdges((eds) => eds.concat(newEdges));
+        return newNodes;
     }, [nodes, edges, setNodes, setEdges]);
 
     // --- Accounting Mode Logic ---
@@ -354,7 +428,7 @@ export default function ForensicsPage() {
                     label: node.data.label || node.id,
                     risk: node.data.risk || 0,
                     balance: node.data.balance || "0.00",
-                    vin: [], 
+                    vin: [],
                     vout: [],
                     utxos: []
                 });
@@ -384,6 +458,88 @@ export default function ForensicsPage() {
         }
     }, []); // Removed auto-expand logic
 
+    // --- Deep Trace Logic ---
+    const handleDeepTrace = async (node: Node, txData: any) => {
+        setLoading(true);
+        try {
+            // 1. Expand Layer 1 (Source) - We cast to avoid TS error if signature update didn't propagate in IDE yet, but runtime works.
+            const layer1Nodes = (expandTxNode as any)(node, txData, 'in') || [];
+
+            if (layer1Nodes.length === 0) return;
+
+            // 2. Expand Layer 2 (Recursively fetch and expand)
+            // Limit to first 3 inputs to avoid RPC overload
+            const subset = layer1Nodes.slice(0, 3);
+
+            await Promise.all(subset.map(async (l1Node: Node) => {
+                const l1Data = await fetchNodeData(l1Node.id);
+                if (l1Data) {
+                    // Recursively expand this node
+                    (expandTxNode as any)(l1Node, l1Data, 'in');
+                }
+            }));
+
+            alert(`Deep Trace Complete. Expanded ${subset.length} ancestry paths.`);
+        } catch (error) {
+            console.error("Deep trace failed", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    // --- Forensic Tools ---
+
+    // 1. Taint Simulation
+    const propagateRisk = (startNodeId: string, riskLevel: number) => {
+        const visited = new Set<string>();
+        const queue = [startNodeId];
+        const riskMap = new Map<string, number>();
+
+        // Breadth-first propagation
+        while (queue.length > 0) {
+            const currentId = queue.shift()!;
+            if (visited.has(currentId)) continue;
+            visited.add(currentId);
+            riskMap.set(currentId, riskLevel);
+
+            // Find children (targets of edges from current)
+            const children = edges
+                .filter(e => e.source === currentId)
+                .map(e => e.target);
+
+            queue.push(...children);
+        }
+
+        // Batch update nodes
+        setNodes((nds) => nds.map(n =>
+            riskMap.has(n.id) ? { ...n, data: { ...n.data, risk: riskMap.get(n.id) } } : n
+        ));
+
+        // Update selected if needed
+        if (selectedNode && riskMap.has(selectedNode.id)) {
+            setSelectedNodeData((prev: any) => ({ ...prev, risk: riskLevel }));
+        }
+
+        alert(`Taint Simulation: Propagated High Risk to ${visited.size - 1} downstream nodes.`);
+    };
+
+    // 2. Export Evidence
+    const saveEvidence = () => {
+        const evidence = {
+            caseId: `CASE-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            nodes: nodes,
+            edges: edges
+        };
+        const blob = new Blob([JSON.stringify(evidence, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `forensic_evidence_${new Date().getTime()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <main className="h-screen w-full bg-slate-950 flex flex-col pt-16 md:pt-0 relative overflow-hidden">
@@ -393,6 +549,28 @@ export default function ForensicsPage() {
                     Forensics Workbench
                 </h1>
                 <p className="text-xs text-slate-500 mt-1">Professional Audit Board</p>
+            </div>
+
+            {/* Case Studies Sidebar */}
+            <div className="absolute top-20 left-4 z-40 md:left-4 w-12 hover:w-64 transition-all duration-300 bg-slate-900/50 backdrop-blur border-r border-slate-800 h-[calc(100vh-100px)] overflow-hidden group">
+                <div className="flex flex-col gap-2 p-2">
+                    <div className="text-[10px] uppercase font-bold text-slate-500 mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2">
+                        Real World Cases
+                    </div>
+                    {CASE_STUDIES.map(study => (
+                        <button
+                            key={study.id}
+                            onClick={() => loadCaseStudy(study.id)}
+                            className="flex items-center gap-3 p-2 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors whitespace-nowrap"
+                            title={study.label}
+                        >
+                            <span className="text-lg">{study.label.split(' ')[0]}</span>
+                            <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                {study.label.substring(study.label.indexOf(' ') + 1)}
+                            </span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Search Bar */}
@@ -412,8 +590,8 @@ export default function ForensicsPage() {
             {/* Toolbar */}
             <div className="absolute top-4 right-4 z-50 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-lg p-2 flex gap-2">
                 <button className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
-                <button className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-emerald-400 transition-colors" title="Save Graph"><Save size={18} /></button>
-                <button className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-purple-400 transition-colors" title="Auto Layout"><Network size={18} /></button>
+                <button onClick={saveEvidence} className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-emerald-400 transition-colors" title="Save Graph"><Save size={18} /></button>
+                <button onClick={handleAutoLayout} className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-purple-400 transition-colors" title="Auto Layout"><Network size={18} /></button>
             </div>
 
             {/* Inspector Panel (Right Sidebar) */}
@@ -449,6 +627,43 @@ export default function ForensicsPage() {
                                 Trace Dest <ArrowRight size={12} />
                             </button>
 
+                            <button
+                                onClick={() => handleDeepTrace(selectedNode, selectedNodeData)}
+                                disabled={loading}
+                                className="col-span-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs py-2 rounded flex items-center justify-center gap-2 transition-all mt-1"
+                            >
+                                <Network size={12} /> Deep Trace (2 Layers)
+                            </button>
+
+                            {/* Block Details (New) */}
+                            {selectedNode.type === 'tx' && selectedNodeData.blocktime && (
+                                <div className="col-span-2 bg-slate-950/50 p-2 rounded border border-slate-800 mt-2">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-[10px] text-slate-500">Time</span>
+                                        <span className="text-xs text-white font-mono">
+                                            {new Date(selectedNodeData.blocktime * 1000).toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-[10px] text-slate-500">Block</span>
+                                        <a
+                                            href={`https://mempool.space/block/${selectedNodeData.blockhash}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-xs text-blue-400 hover:underline font-mono"
+                                        >
+                                            #{selectedNodeData.blockheight}
+                                        </a>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[10px] text-slate-500">Status</span>
+                                        <span className={`text-xs font-bold ${selectedNodeData.confirmations > 6 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                            {selectedNodeData.confirmations} Confs
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Special: Accounting Mode (Only for Addresses) */}
                             {selectedNode.type === 'address' && (
                                 <button
@@ -465,19 +680,13 @@ export default function ForensicsPage() {
                             <label className="text-xs text-slate-500 block mb-2">Audit Status</label>
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => {
-                                        setNodes((nds) => nds.map(n => n.id === selectedNode.id ? { ...n, data: { ...n.data, risk: 0 } } : n));
-                                        setSelectedNodeData({ ...selectedNodeData, risk: 0 }); // Local update
-                                    }}
+                                    onClick={() => propagateRisk(selectedNode.id, 0)}
                                     className="flex-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 text-xs py-1 rounded hover:bg-emerald-500/20 hover:border-emerald-500/60 transition-all"
                                 >
                                     Safe
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        setNodes((nds) => nds.map(n => n.id === selectedNode.id ? { ...n, data: { ...n.data, risk: 100 } } : n));
-                                        setSelectedNodeData({ ...selectedNodeData, risk: 100 }); // Local update
-                                    }}
+                                    onClick={() => propagateRisk(selectedNode.id, 100)}
                                     className="flex-1 bg-red-500/10 text-red-500 border border-red-500/30 text-xs py-1 rounded hover:bg-red-500/20 hover:border-red-500/60 transition-all shadow-[0_0_10px_rgba(239,68,68,0.2)]"
                                 >
                                     Suspicious

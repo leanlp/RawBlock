@@ -7,7 +7,7 @@ import Header from '../../../components/Header';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface FeeEntry {
-    time: number;
+    timestamp: number; // API returns 'timestamp', not 'time'
     fast: number;   // 1 block
     medium: number; // 6 blocks
     slow: number;   // 144 blocks
@@ -116,7 +116,7 @@ export default function FeesPage() {
                                     <LineChart data={history}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                                         <XAxis
-                                            dataKey="time"
+                                            dataKey="timestamp"
                                             tickFormatter={formatTime}
                                             stroke="#475569"
                                             tick={{ fontSize: 12 }}

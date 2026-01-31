@@ -65,9 +65,24 @@ export async function POST(req: Request) {
         if (isTxID) {
             console.log(`[Proxy] Fetching transaction: ${cleanQuery}`);
             const tx = await rpcCall('getrawtransaction', [cleanQuery, true]);
+            
+            // Fetch Block Data (Time & Confirmations)
+            let blockInfo: any = {};
+            if (tx.blockhash) {
+                try {
+                    console.log(`[Proxy] Fetching block info: ${tx.blockhash}`);
+                    blockInfo = await rpcCall('getblock', [tx.blockhash, 1]);
+                } catch (err) {
+                    console.warn("Failed to fetch block details", err);
+                }
+            }
+
             result = {
                 type: 'transaction',
-                ...tx
+                ...tx,
+                blocktime: blockInfo.time ? blockInfo.time : undefined,
+                blockheight: blockInfo.height ? blockInfo.height : undefined,
+                confirmations: tx.confirmations || 0
             };
         } else if (isAddress) {
             console.log(`[Proxy] Scanning UTXO set for address: ${cleanQuery}`);
