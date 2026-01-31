@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 const PRESETS = {
     "P2PKH (Valid)": "OP_DUP OP_HASH160 abcd1234abcd1234 OP_EQUALVERIFY OP_CHECKSIG",
     "TimeLock (Mock)": "OP_10 OP_CHECKSEQUENCEVERIFY OP_DROP OP_TRUE",
-    "Addition": "OP_1 OP_2 OP_ADD OP_3 OP_EQUAL",
+    "Addition": "OP_1 OP_1 OP_ADD OP_2 OP_EQUAL",
     "If-Else Logic": "OP_1 OP_IF OP_10 OP_ELSE OP_20 OP_ENDIF",
     "Hash Collision (Fail)": "OP_SHA256 deadbeef OP_SHA256 badf00d OP_EQUAL",
 };

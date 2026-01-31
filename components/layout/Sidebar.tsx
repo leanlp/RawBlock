@@ -24,6 +24,7 @@ const NAV_ITEMS = [
             { name: "Miners", path: "/explorer/miners", icon: "⛏️" },
             { name: "Vitals", path: "/explorer/vitals", icon: "🩺" },
             { name: "RPC Console", path: "/explorer/rpc", icon: "💻" },
+            { name: "UTXO Set", path: "/analysis/utxo", icon: "🔬" },
         ]
     },
     {
@@ -39,7 +40,6 @@ const NAV_ITEMS = [
     {
         category: "Analysis",
         items: [
-            { name: "UTXO", path: "/analysis/utxo", icon: "🔬" },
             { name: "Evolution", path: "/analysis/evolution", icon: "📈" },
             { name: "D-Index", path: "/analysis/d-index", icon: "⚖️" },
             { name: "Graffiti", path: "/analysis/graffiti", icon: "🎨" },
