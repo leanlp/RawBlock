@@ -18,7 +18,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import Header from "../../../components/Header";
-import { Search, Plus, Save, Network, ShieldAlert, X, ArrowLeft, ArrowRight } from "lucide-react";
+import { Search, Plus, Save, Network, ShieldAlert, X, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import dagre from 'dagre';
 
 // --- Custom Node Components ---
@@ -143,6 +143,11 @@ export default function ForensicsPage() {
     );
 
     // --- Case Studies Logic ---
+    // --- Case Studies Logic ---
+    // Import static data (ensure tsconfig allows json import or use require if needed)
+    // For Next.js/Webpack, direct import is fine.
+    // Note: We use a require here to avoid top-level import issues if file is missing during build
+
     const CASE_STUDIES = [
         { id: 'pizza', label: '🍕 Pizza Transaction', value: 'cca7507897abc89628f450e8b1e0c6fca4ec3f7b34cccf55f3f531c659ff4d79' },
         { id: 'genesis', label: '🏛️ Satoshi Genesis', value: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' },
@@ -161,7 +166,32 @@ export default function ForensicsPage() {
         setSelectedNode(null);
 
         try {
-            const data = await fetchNodeData(study.value);
+            // OPTIMIZATION: Try loading from static JSON in public folder
+            // This prevents bundling 17MB+ files into the client JS and allows browser caching.
+            let data: any = null;
+            try {
+                const res = await fetch(`/data/forensics/${studyId}.json`);
+                if (res.ok) {
+                    const staticCase = await res.json();
+                    // No need to access via key since file contains just the case object
+                    if (staticCase && !staticCase.error) {
+                        console.log(`[Forensics] Loaded static case via HTTP: ${studyId}`);
+                        data = staticCase;
+                    }
+                }
+            } catch (e) {
+                console.warn("Static case file lookup failed, falling back to API", e);
+            }
+
+            // Fallback to Live API
+            let source = 'Static Archive';
+            // STRICT MODE: User requested ONLY static JSON for these examples.
+            if (!data) {
+                console.error("Failed to load static case data.");
+                alert("Could not load case study data. Please ensure the static files are generated.");
+                return;
+            }
+
             if (!data) return;
 
             // Create Root Node
@@ -173,10 +203,17 @@ export default function ForensicsPage() {
                     label: data.type === 'transaction' ? data.txid.substring(0, 8) + '...' : data.address.substring(0, 8) + '...',
                     value: data.type === 'transaction' ? '0.00' : data.balance,
                     risk: 0,
-                    tag: data.type === 'address' ? 'Case Study' : undefined
+                    tag: data.type === 'address' ? 'Case Study' : undefined,
+                    source, // Track source
+                    // Store full data for local access
+                    ...data
                 }
             };
             setNodes([newNode]);
+
+            // If it's an address with UTXOs (from static scan), auto-expand?
+            // Optional: for now just show root.
+
         } finally {
             setLoading(false);
         }
@@ -206,6 +243,15 @@ export default function ForensicsPage() {
 
     const handleSearch = async () => {
         if (!searchQuery) return;
+
+        // Prevent Duplicate Nodes (Crash Fix)
+        const exists = nodes.find(n => n.id === searchQuery);
+        if (exists) {
+            alert("Node already in workspace");
+            setSelectedNode(exists);
+            return;
+        }
+
         const data = await fetchNodeData(searchQuery);
         if (!data) return;
 
@@ -218,7 +264,8 @@ export default function ForensicsPage() {
                 label: data.type === 'transaction' ? data.txid.substring(0, 8) + '...' : data.address.substring(0, 8) + '...',
                 value: data.type === 'transaction' ? '0.00' : data.balance, // TODO: Calc value for TX
                 risk: 0,
-                tag: data.type === 'address' ? 'Wallet' : undefined
+                tag: data.type === 'address' ? 'Wallet' : undefined,
+                source: 'Live Node'
             }
         };
 
@@ -278,81 +325,98 @@ export default function ForensicsPage() {
 
     // --- Graph Interaction ---
     const expandTxNode = useCallback((node: Node, txData: any, direction: 'in' | 'out' | 'both' = 'both') => {
-        const newNodes: Node[] = [];
-        const newEdges: Edge[] = [];
-        const spacingY = 150;
+        try {
+            console.log("Expanding Tx Node:", { id: node.id, direction, txData });
 
-        // 1. Expand Outputs (Trace Dest)
-        if (direction === 'out' || direction === 'both') {
-            txData.vout.forEach((out: any, index: number) => {
-                if (!out.scriptPubKey.address) return;
+            if (!txData) {
+                console.error("No txData provided for expansion");
+                // alert("Error: Missing transaction data. Cannot trace."); // Removed intrusive alert
+                return;
+            }
 
-                const nodeId = out.scriptPubKey.address;
-                const exists = nodes.find(n => n.id === nodeId);
+            const newNodes: Node[] = [];
+            const newEdges: Edge[] = [];
+            const spacingY = 150;
 
-                if (!exists) {
-                    newNodes.push({
-                        id: nodeId,
-                        type: 'address',
-                        position: { x: node.position.x + 400, y: node.position.y + (index * spacingY) - ((txData.vout.length * spacingY) / 2) },
-                        data: {
-                            label: out.scriptPubKey.address.substring(0, 8) + '...',
-                            balance: out.value.toFixed(8),
-                            tag: 'Recipient'
+            // 1. Expand Outputs (Trace Dest)
+            if (direction === 'out' || direction === 'both') {
+                if (txData.vout && Array.isArray(txData.vout)) {
+                    txData.vout.forEach((out: any, index: number) => {
+                        if (!out.scriptPubKey.address) return;
+
+                        const nodeId = out.scriptPubKey.address;
+                        const exists = nodes.find(n => n.id === nodeId);
+
+                        if (!exists) {
+                            newNodes.push({
+                                id: nodeId,
+                                type: 'address',
+                                position: { x: node.position.x + 400, y: node.position.y + (index * spacingY) - ((txData.vout.length * spacingY) / 2) },
+                                data: {
+                                    label: out.scriptPubKey.address.substring(0, 8) + '...',
+                                    balance: out.value.toFixed(8),
+                                    tag: 'Recipient'
+                                }
+                            });
+                        }
+                        // Prevent duplicate edges
+                        const edgeId = `e-${node.id}-${nodeId}-${index}`;
+                        if (!edges.find(e => e.id === edgeId)) {
+                            newEdges.push({
+                                id: edgeId,
+                                source: node.id,
+                                target: nodeId,
+                                animated: true,
+                                label: `${out.value} BTC`,
+                                style: { stroke: '#10b981' }
+                            });
                         }
                     });
                 }
-                // Prevent duplicate edges
-                const edgeId = `e-${node.id}-${nodeId}-${index}`;
-                if (!edges.find(e => e.id === edgeId)) {
-                    newEdges.push({
-                        id: edgeId,
-                        source: node.id,
-                        target: nodeId,
-                        animated: true,
-                        label: `${out.value} BTC`,
-                        style: { stroke: '#10b981' }
-                    });
-                }
-            });
-        }
+            }
 
-        // 2. Expand Inputs (Trace Source / Ancestry)
-        if (direction === 'in' || direction === 'both') {
-            txData.vin.forEach((inpt: any, index: number) => {
-                if (!inpt.txid) return;
+            // 2. Expand Inputs (Trace Source / Ancestry)
+            if (direction === 'in' || direction === 'both') {
+                if (txData.vin && Array.isArray(txData.vin)) {
+                    txData.vin.forEach((inpt: any, index: number) => {
+                        if (!inpt.txid) return;
 
-                const nodeId = inpt.txid;
-                const exists = nodes.find(n => n.id === nodeId);
+                        const nodeId = inpt.txid;
+                        const exists = nodes.find(n => n.id === nodeId);
 
-                if (!exists) {
-                    newNodes.push({
-                        id: nodeId,
-                        type: 'tx',
-                        position: { x: node.position.x - 400, y: node.position.y + (index * spacingY) - ((txData.vin.length * spacingY) / 2) },
-                        data: {
-                            label: inpt.txid.substring(0, 8) + '...',
-                            value: '?',
-                            risk: 0
+                        if (!exists) {
+                            newNodes.push({
+                                id: nodeId,
+                                type: 'tx',
+                                position: { x: node.position.x - 400, y: node.position.y + (index * spacingY) - ((txData.vin.length * spacingY) / 2) },
+                                data: {
+                                    label: inpt.txid.substring(0, 8) + '...',
+                                    value: '?',
+                                    risk: 0
+                                }
+                            });
+                        }
+
+                        const edgeId = `e-${nodeId}-${node.id}-${index}`;
+                        if (!edges.find(e => e.id === edgeId)) {
+                            newEdges.push({
+                                id: edgeId,
+                                source: nodeId,
+                                target: node.id,
+                                style: { stroke: '#64748b' } // Grey for history
+                            });
                         }
                     });
                 }
+            }
 
-                const edgeId = `e-${nodeId}-${node.id}-${index}`;
-                if (!edges.find(e => e.id === edgeId)) {
-                    newEdges.push({
-                        id: edgeId,
-                        source: nodeId,
-                        target: node.id,
-                        style: { stroke: '#64748b' } // Grey for history
-                    });
-                }
-            });
+            setNodes((nds) => nds.concat(newNodes));
+            setEdges((eds) => eds.concat(newEdges));
+            return newNodes;
+        } catch (e: any) {
+            console.error("Trace Logic Failed:", e);
+            alert(`Trace Failed: ${e.message}`);
         }
-
-        setNodes((nds) => nds.concat(newNodes));
-        setEdges((eds) => eds.concat(newEdges));
-        return newNodes;
     }, [nodes, edges, setNodes, setEdges]);
 
     // --- Accounting Mode Logic ---
@@ -364,36 +428,78 @@ export default function ForensicsPage() {
 
         if (!addressData.utxos) return;
 
+        // GROUPING LOGIC: Group by Year
+        const utxosByYear: Record<string, any[]> = {};
+
+        addressData.utxos.forEach((utxo: any) => {
+            let year = "Unknown";
+            if (utxo.status && utxo.status.block_time) {
+                year = new Date(utxo.status.block_time * 1000).getFullYear().toString();
+            } else if (utxo.block_height) {
+                // Rough approximation if time missing (Genesis block 0 is 2009)
+                if (utxo.block_height < 32000) year = "2009";
+                else if (utxo.block_height < 100000) year = "2010";
+                else year = "Legacy";
+            }
+            // Fallback for Genesis (often missing timestamp in explicit UTXO set if not enriched)
+            if (utxo.value >= 50) year = "2009"; // Genesis block reward eras
+
+            if (!utxosByYear[year]) utxosByYear[year] = [];
+            utxosByYear[year].push(utxo);
+        });
+
         const newNodes: Node[] = [];
         const newEdges: Edge[] = [];
-        const spacingY = 120;
+        const years = Object.keys(utxosByYear).sort();
 
-        // 2. Lay out UTXOs to the LEFT (Source of funds)
-        addressData.utxos.forEach((utxo: any, index: number) => {
-            // Optimization: Fold dust if too many?
-            if (index > 50) return; // Hard limit for MVP
+        // TIMELINE LAYOUT CONFIG
+        const START_X = rootPosition.x - (years.length * 150) / 2; // Center timeline
+        const SPACING_X = 200;
+        const TIMELINE_Y = rootPosition.y + 300;
 
-            const nodeId = `${utxo.txid}:${utxo.vout}`; // Unique UTXO ID
+        years.forEach((year, index) => {
+            const groupUtxos = utxosByYear[year];
+            const totalValue = groupUtxos.reduce((acc, u) => acc + u.value, 0);
+
+            const nodeId = `cluster-year-${year}`;
 
             newNodes.push({
                 id: nodeId,
-                type: 'tx', // visualized as Tx that created it
-                position: { x: rootPosition.x - 400, y: rootPosition.y + (index * spacingY) - ((addressData.utxos.length * spacingY) / 2) },
+                type: 'default',
+                position: {
+                    x: START_X + (index * SPACING_X),
+                    y: TIMELINE_Y
+                },
                 data: {
-                    label: `UTXO: ${utxo.amount.toFixed(4)}`,
-                    value: utxo.amount.toFixed(8),
-                    risk: 0,
-                    txid: utxo.txid // Store raw TXID for query
+                    label: `${year} (${groupUtxos.length})`,
+                    value: totalValue.toFixed(2) + ' BTC',
+                    type: 'cluster', // Tag to identify logic handling
+                    year: year,
+                    utxos: groupUtxos
+                },
+                style: {
+                    backgroundColor: '#0f172a',
+                    border: '1px solid #fbbf24',
+                    color: '#fbbf24',
+                    width: 140,
+                    borderRadius: '12px',
+                    height: 80,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 20px rgba(251, 191, 36, 0.15)'
                 }
             });
 
             newEdges.push({
-                id: `e-${nodeId}-${addressNode.id}`,
+                id: `e-root-${nodeId}`,
                 source: nodeId,
                 target: addressNode.id,
-                animated: false,
-                style: { stroke: '#fbbf24', strokeWidth: 2 }, // Gold/Amber for HODLings
-                label: 'Funding'
+                animated: true,
+                style: { stroke: '#fbbf24', strokeDasharray: '5,5' },
+                label: `${groupUtxos.length} txs`
             });
         });
 
@@ -401,18 +507,85 @@ export default function ForensicsPage() {
         setEdges((eds) => eds.concat(newEdges));
 
         // Notifying user
-        alert(`Accounting Mode: Displaying ${addressData.utxos.length} UTXOs. Trace individual nodes to find ancestry.`);
+        // Alert removed for better UX
 
     }, [setNodes, setEdges]);
 
 
     const onNodeClick = useCallback(async (event: any, node: Node) => {
         setSelectedNode(node);
+        setSelectedNodeData(null); // Clear previous data to show loading state
+
+        // --- CLUSTER EXPANSION LOGIC ---
+        if (node.data.type === 'cluster') {
+            // Expand this cluster into individual UTXOs
+            // Reuse the Grid Layout logic we had before, but only for this cluster's UTXOs
+            const clusterData = node.data as any;
+
+            const newNodes: Node[] = [];
+            const newEdges: Edge[] = [];
+
+            // Grid Layout relative to the Cluster Node
+            const COLS = 5; // Smaller grid for expanded cluster
+            const COL_WIDTH = 250;
+            const ROW_HEIGHT = 150;
+            const rootPos = node.position;
+
+            clusterData.utxos.forEach((utxo: any, index: number) => {
+                const nodeId = `${utxo.txid}:${utxo.vout}`;
+                // Avoid duplicates if already expanded
+                if (nodes.find(n => n.id === nodeId)) return;
+
+                const col = index % COLS;
+                const row = Math.floor(index / COLS);
+
+                // Position below the cluster
+                newNodes.push({
+                    id: nodeId,
+                    type: 'tx',
+                    position: {
+                        x: rootPos.x - ((COLS * COL_WIDTH) / 2) + (col * COL_WIDTH),
+                        y: rootPos.y + 200 + (row * ROW_HEIGHT)
+                    },
+                    data: {
+                        label: `UTXO: ${utxo.amount.toFixed(4)}`,
+                        value: utxo.amount.toFixed(8),
+                        risk: 0,
+                        txid: utxo.txid // Crucial for Trace Source
+                    }
+                });
+
+                newEdges.push({
+                    id: `e-${node.id}-${nodeId}`,
+                    source: node.id,
+                    target: nodeId,
+                    style: { stroke: '#fbbf24', strokeWidth: 1 },
+                    label: ''
+                });
+            });
+
+            setNodes((nds) => nds.concat(newNodes));
+            setEdges((eds) => eds.concat(newEdges));
+            return;
+        }
 
         try {
             // Fetch detailed data for the Inspector
             // Prefer data.txid if available (for UTXO nodes), else use node.id
             const queryId = (node.data.txid as string) || node.id;
+
+            // OPTIMIZATION: Check if node already has full data (Static Mode)
+            const hasFullData = (node.data.vin && node.data.vout) || node.data.utxos;
+            if (hasFullData) {
+                console.log("Using cached/static node data for inspector", node.id);
+                setSelectedNodeData({
+                    id: node.id,
+                    type: node.type,
+                    // Spread all cached data
+                    ...node.data
+                });
+                return;
+            }
 
             // VALIDATION: Ensure we only fetch real Bitcoin identifiers
             const isTxID = /^[0-9a-fA-F]{64}$/.test(queryId);
@@ -455,7 +628,7 @@ export default function ForensicsPage() {
         } catch (e) {
             console.error("Inspector Error", e);
         }
-    }, []); // Removed auto-expand logic
+    }, [nodes, edges, setNodes, setEdges]); // Updated dependency array
 
     // --- Deep Trace Logic ---
     const handleDeepTrace = async (node: Node, txData: any) => {
@@ -478,7 +651,7 @@ export default function ForensicsPage() {
                 }
             }));
 
-            alert(`Deep Trace Complete. Expanded ${subset.length} ancestry paths.`);
+            console.log(`Deep Trace Complete. Expanded ${subset.length} ancestry paths.`);
         } catch (error) {
             console.error("Deep trace failed", error);
         } finally {
@@ -543,27 +716,27 @@ export default function ForensicsPage() {
     return (
         <main className="h-screen w-full bg-slate-950 flex flex-col pt-16 md:pt-0 relative overflow-hidden">
             {/* Header */}
-            <div className="absolute top-4 left-4 z-50 md:left-20 pointer-events-none">
+            <div className="absolute top-8 left-4 z-50 md:left-24 pointer-events-none">
                 <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
                     Forensics Workbench
                 </h1>
                 <p className="text-xs text-slate-500 mt-1">Professional Audit Board</p>
             </div>
 
-            {/* Case Studies Sidebar */}
-            <div className="absolute top-20 left-4 z-40 md:left-4 w-12 hover:w-64 transition-all duration-300 bg-slate-900/50 backdrop-blur border-r border-slate-800 h-[calc(100vh-100px)] overflow-hidden group">
+            {/* Case Studies Floating Dock (New Style) */}
+            <div className="absolute top-24 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 <div className="flex flex-col gap-2 p-2">
-                    <div className="text-[10px] uppercase font-bold text-slate-500 mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2">
-                        Real World Cases
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2 pt-2">
+                        Case Files
                     </div>
                     {CASE_STUDIES.map(study => (
                         <button
                             key={study.id}
                             onClick={() => loadCaseStudy(study.id)}
-                            className="flex items-center gap-3 p-2 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors whitespace-nowrap"
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-cyan-400 transition-all whitespace-nowrap"
                             title={study.label}
                         >
-                            <span className="text-lg">{study.label.split(' ')[0]}</span>
+                            <span className="text-lg filter drop-shadow-lg">{study.label.split(' ')[0]}</span>
                             <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 {study.label.substring(study.label.indexOf(' ') + 1)}
                             </span>
@@ -572,138 +745,164 @@ export default function ForensicsPage() {
                 </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="absolute top-20 left-4 z-50 md:left-20 flex gap-2">
+            {/* Search Bar - Relocated to Top Right to avoid Sidebar Overlap */}
+            <div className="absolute top-6 right-4 z-50 flex gap-2 w-[300px]">
                 <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Enter TxID or Address..."
-                    className="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white w-64 focus:outline-none focus:border-cyan-500"
+                    className="flex-1 bg-slate-900/90 backdrop-blur border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 shadow-lg"
                 />
-                <button onClick={handleSearch} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-2 rounded text-sm font-bold transition-colors">
-                    {loading ? '...' : <Search size={16} />}
+                <button onClick={handleSearch} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500 text-white p-2 rounded-lg transition-all shadow-lg hover:shadow-cyan-500/20">
+                    {loading ? '...' : <Search size={18} />}
                 </button>
             </div>
 
-            {/* Toolbar */}
-            <div className="absolute top-4 right-4 z-50 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-lg p-2 flex gap-2">
-                <button className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
-                <button onClick={saveEvidence} className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-emerald-400 transition-colors" title="Save Graph"><Save size={18} /></button>
-                <button onClick={handleAutoLayout} className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-purple-400 transition-colors" title="Auto Layout"><Network size={18} /></button>
+            {/* Toolbar - Relocated below Search */}
+            <div className="absolute top-20 right-4 z-40 bg-slate-900/90 backdrop-blur border border-slate-700/50 rounded-lg p-1.5 flex gap-1 shadow-xl">
+                <button className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
+                <button onClick={saveEvidence} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-emerald-400 transition-colors" title="Save Graph"><Save size={18} /></button>
+                <button onClick={handleAutoLayout} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-purple-400 transition-colors" title="Auto Layout"><Network size={18} /></button>
             </div>
 
-            {/* Inspector Panel (Right Sidebar) */}
+            {/* Inspector Panel (Floating Glass Card) */}
             <div className={`
-            absolute top-0 right-0 h-full w-80 bg-slate-900/95 backdrop-blur border-l border-slate-800 z-40 transform transition-transform duration-300 ease-in-out pt-20 overflow-y-auto
-            ${selectedNode ? 'translate-x-0' : 'translate-x-full'}
+            absolute top-24 right-4 bottom-8 w-80 bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-xl z-40 transform transition-all duration-300 ease-in-out overflow-y-auto shadow-2xl
+            [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-600
+            ${selectedNode ? 'translate-x-0 opacity-100' : 'translate-x-[150%] opacity-0'}
         `}>
-                {selectedNode && selectedNodeData ? (
-                    <div className="p-4 space-y-6">
-                        {/* Header */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold uppercase text-slate-500">{selectedNode.type === 'tx' ? 'Transaction' : 'Address'}</span>
-                                <button onClick={() => setSelectedNode(null)} className="text-slate-400 hover:text-white"><X size={16} /></button>
-                            </div>
-                            <h2 className="text-sm font-mono text-white break-all bg-slate-950 p-2 rounded border border-slate-800 select-all">
-                                {selectedNode.id}
-                            </h2>
+                {selectedNode ? (
+                    loading && !selectedNodeData ? (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-2">
+                            <Loader2 className="animate-spin w-8 h-8 text-cyan-500" />
+                            <span className="text-xs font-mono">Analyzing Node...</span>
                         </div>
-
-                        {/* Actions */}
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                onClick={() => expandTxNode(selectedNode, selectedNodeData, 'in')}
-                                className="bg-slate-800 hover:bg-blue-600 text-slate-200 text-xs py-2 rounded flex items-center justify-center gap-1 transition-colors"
-                            >
-                                <ArrowLeft size={12} /> Trace Source
-                            </button>
-                            <button
-                                onClick={() => expandTxNode(selectedNode, selectedNodeData, 'out')}
-                                className="bg-slate-800 hover:bg-emerald-600 text-slate-200 text-xs py-2 rounded flex items-center justify-center gap-1 transition-colors"
-                            >
-                                Trace Dest <ArrowRight size={12} />
-                            </button>
-
-                            <button
-                                onClick={() => handleDeepTrace(selectedNode, selectedNodeData)}
-                                disabled={loading}
-                                className="col-span-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs py-2 rounded flex items-center justify-center gap-2 transition-all mt-1"
-                            >
-                                <Network size={12} /> Deep Trace (2 Layers)
-                            </button>
-
-                            {/* Block Details (New) */}
-                            {selectedNode.type === 'tx' && selectedNodeData.blocktime && (
-                                <div className="col-span-2 bg-slate-950/50 p-2 rounded border border-slate-800 mt-2">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[10px] text-slate-500">Time</span>
-                                        <span className="text-xs text-white font-mono">
-                                            {new Date(selectedNodeData.blocktime * 1000).toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[10px] text-slate-500">Block</span>
-                                        <a
-                                            href={`https://mempool.space/block/${selectedNodeData.blockhash}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-xs text-blue-400 hover:underline font-mono"
-                                        >
-                                            #{selectedNodeData.blockheight}
-                                        </a>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[10px] text-slate-500">Status</span>
-                                        <span className={`text-xs font-bold ${selectedNodeData.confirmations > 6 ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                            {selectedNodeData.confirmations} Confs
-                                        </span>
-                                    </div>
+                    ) : selectedNodeData ? (
+                        <div className="p-4 space-y-6">
+                            {/* Header */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-bold uppercase text-slate-500">{selectedNode.type === 'tx' ? 'Transaction' : 'Address'}</span>
+                                    <button onClick={() => setSelectedNode(null)} className="text-slate-400 hover:text-white"><X size={16} /></button>
                                 </div>
-                            )}
+                                <h2 className="text-sm font-mono text-white break-all bg-slate-950 p-2 rounded border border-slate-800 select-all">
+                                    {selectedNode.id}
+                                </h2>
+                            </div>
 
-                            {/* Special: Accounting Mode (Only for Addresses) */}
-                            {selectedNode.type === 'address' && (
+                            {/* Actions */}
+                            <div className="grid grid-cols-2 gap-2">
                                 <button
-                                    onClick={() => activateAccountingMode(selectedNode, selectedNodeData)}
-                                    className="col-span-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 text-xs py-2 rounded flex items-center justify-center gap-2 transition-all mt-2"
+                                    onClick={() => expandTxNode(selectedNode, selectedNodeData, 'in')}
+                                    className="bg-slate-800 hover:bg-blue-600 text-slate-200 text-xs py-2 rounded flex items-center justify-center gap-1 transition-colors"
                                 >
-                                    <Network size={12} /> Start Balance Accounting
+                                    <ArrowLeft size={12} /> Trace Source
                                 </button>
-                            )}
-                        </div>
+                                <button
+                                    onClick={() => expandTxNode(selectedNode, selectedNodeData, 'out')}
+                                    className="bg-slate-800 hover:bg-emerald-600 text-slate-200 text-xs py-2 rounded flex items-center justify-center gap-1 transition-colors"
+                                >
+                                    Trace Dest <ArrowRight size={12} />
+                                </button>
 
-                        {/* Taint / Risk */}
-                        <div className="bg-slate-950 rounded p-3 border border-slate-800">
-                            <label className="text-xs text-slate-500 block mb-2">Audit Status</label>
-                            <div className="flex gap-2">
                                 <button
-                                    onClick={() => propagateRisk(selectedNode.id, 0)}
-                                    className="flex-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 text-xs py-1 rounded hover:bg-emerald-500/20 hover:border-emerald-500/60 transition-all"
+                                    onClick={() => handleDeepTrace(selectedNode, selectedNodeData)}
+                                    disabled={loading}
+                                    className="col-span-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs py-2 rounded flex items-center justify-center gap-2 transition-all mt-1"
                                 >
-                                    Safe
+
+                                    {loading ? <Loader2 size={12} className="animate-spin" /> : <Network size={12} />} Deep Trace (2 Layers)
                                 </button>
-                                <button
-                                    onClick={() => propagateRisk(selectedNode.id, 100)}
-                                    className="flex-1 bg-red-500/10 text-red-500 border border-red-500/30 text-xs py-1 rounded hover:bg-red-500/20 hover:border-red-500/60 transition-all shadow-[0_0_10px_rgba(239,68,68,0.2)]"
-                                >
-                                    Suspicious
-                                </button>
+
+                                {/* Block Details (New) */}
+                                {selectedNode.type === 'tx' && selectedNodeData.blocktime && (
+                                    <div className="col-span-2 bg-slate-950/50 p-2 rounded border border-slate-800 mt-2">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-[10px] text-slate-500">Time</span>
+                                            <span className="text-xs text-white font-mono">
+                                                {new Date(selectedNodeData.blocktime * 1000).toLocaleString()}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-[10px] text-slate-500">Block</span>
+                                            <a
+                                                href={`https://mempool.space/block/${selectedNodeData.blockhash}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-xs text-blue-400 hover:underline font-mono"
+                                            >
+                                                #{selectedNodeData.blockheight}
+                                            </a>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] text-slate-500">Status</span>
+                                            <span className={`text-xs font-bold ${selectedNodeData.confirmations > 6 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                                {selectedNodeData.confirmations} Confs
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Special: Accounting Mode (Only for Addresses) */}
+                                {selectedNode.type === 'address' && (
+                                    <button
+                                        onClick={() => activateAccountingMode(selectedNode, selectedNodeData)}
+                                        className="col-span-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 text-xs py-2 rounded flex items-center justify-center gap-2 transition-all mt-2"
+                                    >
+                                        <Network size={12} /> Start Balance Accounting
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Taint / Risk */}
+                            <div className="bg-slate-950 rounded p-3 border border-slate-800">
+                                <label className="text-xs text-slate-500 block mb-2">Audit Status</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => propagateRisk(selectedNode.id, 0)}
+                                        className="flex-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 text-xs py-1 rounded hover:bg-emerald-500/20 hover:border-emerald-500/60 transition-all"
+                                    >
+                                        Safe
+                                    </button>
+                                    <button
+                                        onClick={() => propagateRisk(selectedNode.id, 100)}
+                                        className="flex-1 bg-red-500/10 text-red-500 border border-red-500/30 text-xs py-1 rounded hover:bg-red-500/20 hover:border-red-500/60 transition-all shadow-[0_0_10px_rgba(239,68,68,0.2)]"
+                                    >
+                                        Suspicious
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Raw Details */}
+                            <div>
+                                <h3 className="text-xs font-bold text-slate-400 mb-2">Raw Data</h3>
+                                <div className="bg-slate-950 p-2 rounded border border-slate-800 overflow-x-auto">
+                                    <pre className="text-[10px] text-slate-500 font-mono">
+                                        {JSON.stringify({
+                                            ...selectedNodeData,
+                                            // Truncate large arrays for display performance
+                                            utxos: selectedNodeData.utxos?.length > 10
+                                                ? [...selectedNodeData.utxos.slice(0, 10), `... ${selectedNodeData.utxos.length - 10} more items`]
+                                                : selectedNodeData.utxos,
+                                            vin: selectedNodeData.vin?.length > 10
+                                                ? [...selectedNodeData.vin.slice(0, 10), `... ${selectedNodeData.vin.length - 10} more items`]
+                                                : selectedNodeData.vin,
+                                            vout: selectedNodeData.vout?.length > 10
+                                                ? [...selectedNodeData.vout.slice(0, 10), `... ${selectedNodeData.vout.length - 10} more items`]
+                                                : selectedNodeData.vout
+                                        }, null, 2)}
+                                    </pre>
+                                </div>
                             </div>
                         </div>
-
-                        {/* Raw Details */}
-                        <div>
-                            <h3 className="text-xs font-bold text-slate-400 mb-2">Raw Data</h3>
-                            <div className="bg-slate-950 p-2 rounded border border-slate-800 overflow-x-auto">
-                                <pre className="text-[10px] text-slate-500 font-mono">
-                                    {JSON.stringify(selectedNodeData, null, 2)}
-                                </pre>
-                            </div>
+                    ) : (
+                        <div className="p-8 text-center text-slate-500 text-sm">
+                            Select a node to inspect details.
                         </div>
-                    </div>
-                ) : (
+                    )) : null}
+                {/* Fallback for no node selected (though panel is hidden) */}
+                {!selectedNode && (
                     <div className="p-8 text-center text-slate-500 text-sm">
                         Select a node to inspect details.
                     </div>
