@@ -114,13 +114,13 @@ const initialNodes: Node[] = [
     {
         id: '1',
         type: 'address',
-        position: { x: 100, y: 100 },
+        position: { x: 100, y: 350 }, // Shifted Down for UI safety
         data: { label: 'bc1qxy...29', balance: '50.2', tag: 'Whale' }
     },
     {
         id: '2',
         type: 'tx',
-        position: { x: 400, y: 100 },
+        position: { x: 400, y: 350 }, // Shifted Down for UI safety
         data: { label: 'tx_a7f2...9c', value: '12.5', risk: 80 }
     },
 ];
@@ -154,10 +154,8 @@ export default function ForensicsPage() {
         const study = CASE_STUDIES.find(s => s.id === studyId);
         if (!study) return;
         setSearchQuery(study.value);
-        // Small delay to allow state update before trigger? 
-        // Better to just call directly:
         setLoading(true);
-        // Clear graph first?
+        // Clear graph first
         setNodes([]);
         setEdges([]);
         setSelectedNode(null);
@@ -170,7 +168,7 @@ export default function ForensicsPage() {
             const newNode: Node = {
                 id: study.value,
                 type: data.type === 'transaction' ? 'tx' : 'address',
-                position: { x: 500, y: 300 },
+                position: { x: 500, y: 400 }, // Shifted down
                 data: {
                     label: data.type === 'transaction' ? data.txid.substring(0, 8) + '...' : data.address.substring(0, 8) + '...',
                     value: data.type === 'transaction' ? '0.00' : data.balance,
@@ -215,7 +213,7 @@ export default function ForensicsPage() {
         const newNode: Node = {
             id: searchQuery,
             type: data.type === 'transaction' ? 'tx' : 'address',
-            position: { x: 500, y: 300 }, // Center-ish
+            position: { x: 500, y: 400 }, // Shifted down
             data: {
                 label: data.type === 'transaction' ? data.txid.substring(0, 8) + '...' : data.address.substring(0, 8) + '...',
                 value: data.type === 'transaction' ? '0.00' : data.balance, // TODO: Calc value for TX
@@ -257,9 +255,10 @@ export default function ForensicsPage() {
                 sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
                 // We are shifting the dagre node position (anchor=center center) to the top left
                 // so it matches the React Flow node anchor point (top left).
+                // PLUS an explicit Y-offset to clear the HUD
                 position: {
                     x: nodeWithPosition.x - 120,
-                    y: nodeWithPosition.y - 75,
+                    y: nodeWithPosition.y - 75 + 150, // +150px safety margin
                 },
             };
         });
@@ -721,6 +720,7 @@ export default function ForensicsPage() {
                     onNodeClick={onNodeClick}
                     nodeTypes={nodeTypes}
                     fitView
+                    fitViewOptions={{ padding: 0.3 }}
                     className="bg-slate-950"
                 >
                     <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#1e293b" />

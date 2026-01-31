@@ -43,8 +43,34 @@ export default function Header() {
                 </div>
             </Link>
 
+            {/* Navigation Menu */}
+            <nav className="hidden md:flex items-center gap-1 bg-slate-900/50 p-1 rounded-full border border-slate-800">
+                {[
+                    { name: 'Dashboard', path: '/' },
+                    { name: 'Mempool', path: '/explorer/mempool' },
+                    { name: 'Fees', path: '/explorer/fees' },
+                    { name: 'Blocks', path: '/explorer/blocks' },
+                    { name: 'Forensics', path: '/analysis/forensics', highlight: true },
+                ].map((item) => (
+                    <Link
+                        key={item.path}
+                        href={item.path}
+                        className={`
+                            px-4 py-1.5 rounded-full text-xs font-semibold transition-all
+                            ${pathname === item.path
+                                ? 'bg-slate-800 text-white shadow-lg'
+                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                            }
+                            ${item.highlight && pathname !== item.path ? 'text-cyan-400 hover:text-cyan-300' : ''}
+                        `}
+                    >
+                        {item.name}
+                    </Link>
+                ))}
+            </nav>
+
             {/* Omni-Search */}
-            <form onSubmit={handleSearch} className="relative w-full md:w-96 group">
+            <form onSubmit={handleSearch} className="relative w-full md:w-64 group">
                 <input
                     type="text"
                     placeholder="Search TXID, Address, or Block..."
