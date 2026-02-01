@@ -54,12 +54,22 @@ const TxNode = ({ data }: { data: { label: string, value: string, risk: number }
 
     return (
         <div className={`
-      group relative min-w-[240px] ${bgClass} backdrop-blur-xl rounded-xl border border-slate-700/50 shadow-2xl transition-all duration-300
-      hover:scale-105 hover:shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)]
+      group relative min-w-[240px] ${bgClass} backdrop-blur-xl rounded-xl border border-slate-700/50 shadow-2xl 
+      transition-all duration-700 ease-out
+      hover:scale-125 hover:z-50 hover:shadow-[0_0_40px_-5px_rgba(56,189,248,0.5)]
       ${isRisky ? 'border-red-500/30' : 'hover:border-cyan-500/50'}
     `}>
             {/* Glow Effect */}
-            <div className={`absolute -inset-0.5 bg-gradient-to-r ${isRisky ? 'from-red-500 to-orange-600' : 'from-cyan-500 to-blue-600'} rounded-xl opacity-0 group-hover:opacity-20 transition duration-500 blur`}></div>
+            <div className={`absolute -inset-0.5 bg-gradient-to-r ${isRisky ? 'from-red-500 to-orange-600' : 'from-cyan-500 to-blue-600'} rounded-xl opacity-0 group-hover:opacity-20 transition duration-1000 blur`}></div>
+
+            {/* HOVER CARD OVERLAY (Appears on top) */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-[300px] hidden group-hover:block z-[60] pointer-events-none">
+                <div className="bg-slate-900/95 backdrop-blur-md border border-slate-600 p-3 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.5)] text-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Full Transaction ID</div>
+                    <div className="text-xs font-mono text-cyan-300 break-all leading-tight select-all">{data.label}</div>
+                    <div className="mt-2 text-xs text-slate-500">Click to Inspect</div>
+                </div>
+            </div>
 
             <Handle type="target" position={Position.Left} className="!bg-slate-500 !w-3 !h-3 !-left-1.5" />
 
@@ -68,7 +78,9 @@ const TxNode = ({ data }: { data: { label: string, value: string, risk: number }
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col">
                         <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-0.5">Transaction</span>
-                        <span className="text-xs font-mono text-slate-200 truncate max-w-[140px]" title={data.label}>{data.label}</span>
+                        <span className="text-xs font-mono text-slate-200 truncate max-w-[140px]" title={data.label}>
+                            {data.label.substring(0, 8)}...{data.label.substring(data.label.length - 8)}
+                        </span>
                     </div>
                     {isRisky ? (
                         <ShieldAlert className="w-5 h-5 text-red-500 animate-pulse" />
@@ -111,9 +123,20 @@ const AddressNode = ({ data }: { data: { label: string, balance: string, tag?: s
 
     return (
         <div className={`
-        relative min-w-[220px] ${bgClass} backdrop-blur rounded-full border border-slate-700 shadow-xl flex items-center gap-3 p-1.5 pr-6 transition-all duration-300
-        hover:border-purple-500/50 hover:shadow-[0_0_15px_-3px_rgba(168,85,247,0.3)]
+        relative min-w-[220px] ${bgClass} backdrop-blur rounded-full border border-slate-700 shadow-xl flex items-center gap-3 p-1.5 pr-6 
+        transition-all duration-700 ease-out
+        hover:border-purple-500/50 hover:shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)]
+        hover:scale-125 hover:z-50
       `}>
+            {/* HOVER CARD OVERLAY */}
+            <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-[280px] hidden group-hover:block z-[60] pointer-events-none">
+                <div className="bg-slate-900/95 backdrop-blur-md border border-slate-600 p-3 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.5)] text-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Wallet Address</div>
+                    <div className="text-xs font-mono text-purple-300 break-all leading-tight select-all">{data.label}</div>
+                    <div className="mt-2 text-xs text-emerald-400 font-bold">Balance: {data.balance} BTC</div>
+                </div>
+            </div>
+
             <Handle type="target" position={Position.Left} className="!bg-slate-500 !w-3 !h-3 !-left-1" />
             <Handle type="source" position={Position.Right} className="!bg-slate-500 !w-3 !h-3 !-right-1" />
 
@@ -131,7 +154,7 @@ const AddressNode = ({ data }: { data: { label: string, balance: string, tag?: s
                         {data.tag || "Wallet"}
                     </span>
                 </div>
-                <div className="text-xs font-mono text-slate-200 truncate max-w-[120px]">{data.label}</div>
+                <div className="text-xs font-mono text-slate-200 truncate max-w-[120px]">{data.label.substring(0, 6)}...{data.label.substring(data.label.length - 6)}</div>
                 <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                     Bal: <span className="text-emerald-400 font-bold">{data.balance} BTC</span>
                 </div>
@@ -937,7 +960,7 @@ export default function ForensicsPage() {
     const onNodeClick = useCallback(async (event: any, node: Node) => {
         // --- LOAD MORE LOGIC (Radial Expansion) ---
         if (node.data.action === 'load_more_utxos') {
-            const remaining = node.data.remainingUtxos || [];
+            const remaining = (node.data.remainingUtxos as any[]) || [];
             if (remaining.length === 0) return;
 
             setLoading(true);
