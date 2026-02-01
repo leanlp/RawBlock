@@ -163,6 +163,28 @@ const DotNode = ({ data }: { data: { value: string, risk?: number } }) => {
     );
 };
 
+// 4. Block Group Node (Container)
+const BlockGroupNode = ({ data }: { data: { label: string, height: number } }) => {
+    return (
+        <div className="min-w-[300px] h-full bg-slate-900/40 border-2 border-dashed border-slate-700/50 rounded-xl p-4 flex flex-col justify-end relative group transition-all hover:bg-slate-900/60 hover:border-slate-600">
+            <div className="absolute -top-3 left-4 bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-400 font-mono border border-slate-700 shadow-sm flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                Block #{data.height}
+            </div>
+            <div className="text-xs text-slate-600 font-mono opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2">
+                {data.label}
+            </div>
+        </div>
+    );
+};
+
+const nodeTypes = {
+    tx: TxNode,
+    address: AddressNode,
+    dot: DotNode,
+    blockGroup: BlockGroupNode,
+};
+
 
 // --- Main Component ---
 
@@ -214,7 +236,7 @@ export default function ForensicsPage() {
         })));
     }, [heatmapMode, setNodes]);
 
-    const nodeTypes = useMemo(() => ({ tx: TxNode, address: AddressNode, dot: DotNode }), []);
+    const nodeTypes = useMemo(() => ({ tx: TxNode, address: AddressNode, dot: DotNode, blockGroup: BlockGroupNode }), []);
 
     const onConnect = useCallback(
         (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#94a3b8', strokeDasharray: '5,5' } }, eds)),
@@ -273,10 +295,10 @@ export default function ForensicsPage() {
     // Note: We use a require here to avoid top-level import issues if file is missing during build
 
     const CASE_STUDIES = [
-        { id: 'pizza', label: '🍕 Pizza Transaction', value: 'cca7507897abc89628f450e8b1e0c6fca4ec3f7b34cccf55f3f531c659ff4d79' },
-        { id: 'genesis', label: '🏛️ Satoshi Genesis', value: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' },
-        { id: 'mtgox', label: '🏴‍☠️ Mt Gox Hack (1Feex)', value: '1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF' },
-        { id: 'wikileaks', label: '📢 Wikileaks Donation', value: '1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v' }
+        { id: 'pizza', label: '🍕 Pizza Transaction', value: 'cca7507897abc89628f450e8b1e0c6fca4ec3f7b34cccf55f3f531c659ff4d79', defaultHeight: 57043 },
+        { id: 'genesis', label: '🏛️ Satoshi Genesis', value: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', defaultHeight: 0 },
+        { id: 'mtgox', label: '🏴‍☠️ Mt Gox Hack (1Feex)', value: '1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF', defaultHeight: 135303 },
+        { id: 'wikileaks', label: '📢 Wikileaks Donation', value: '1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v', defaultHeight: 89000 },
     ];
 
     const loadCaseStudy = async (studyId: string) => {
@@ -329,6 +351,7 @@ export default function ForensicsPage() {
                     risk: 0,
                     tag: data.type === 'address' ? 'Case Study' : undefined,
                     source, // Track source
+                    block_height: data.blockheight || data.block_height || study.defaultHeight, // Fallback to safe default
                     // Store full data for local access
                     ...data
                 }
@@ -465,46 +488,95 @@ export default function ForensicsPage() {
     }, []);
 
     // --- Timeline Layout Engine ---
+    // --- Timeline Layout Engine ---
+    // --- Timeline Layout Engine ---
     const getTimelineLayout = useCallback((nodes: Node[], edges: Edge[]) => {
-        // 1. Extract Time Data
-        const timeNodes = nodes.map(n => ({
-            ...n,
-            ts: n.data.block_height || 0 // Default to 0 if unknown
-        }));
+        // 1. Clean Data & Sort by Time
+        // Filter valid nodes that should be part of the timeline
+        const validNodes = nodes.filter(n => n.type === 'tx' || n.type === 'address' || n.type === 'dot');
 
-        // 2. Find Min/Max
-        const times = timeNodes.map(n => n.ts).filter(t => t > 0);
-        if (times.length === 0) return { nodes, edges }; // No data
+        const processingNodes = validNodes.map(n => {
+            const rawHeight = (n.data as any).block_height;
 
-        const minTime = Math.min(...times);
-        // Scale Factor: 1 Block = X pixels
-        const SCALE_X = 5;
 
-        // 3. Assign Positions basically
-        // Y-Collision Strategy: Simple Bucket per 'Column'
-        const grid: Record<number, number> = {}; // map X -> next Y
+            // Handle number or string number
+            const parsed = Number(rawHeight);
+            const ts: number = !isNaN(parsed) && parsed > 0 ? parsed : 0;
 
-        const layoutedNodes = timeNodes.map(node => {
-            if (node.ts === 0) return node; // Skip unknown (or place at start?)
+            return { ...n, ts, original: n };
+        }).sort((a, b) => a.ts - b.ts);
 
-            // Calculate X based on relative time
-            const x = (node.ts - minTime) * SCALE_X;
+        // Filter valid items for timeline (must have height)
+        const timeItems = processingNodes.filter(n => n.ts > 0);
+        const nonTimeItems = processingNodes.filter(n => n.ts === 0);
 
-            // Quantize X to avoid overlapping walls (bucket every 50px)
-            const bucket = Math.floor(x / 50) * 50;
+        if (timeItems.length === 0) return { nodes, edges };
 
-            // Get current Y for this bucket
-            const y = (grid[bucket] || 0);
-            grid[bucket] = y + 100; // Increment Y for next vertical stack
-
-            return {
-                ...node,
-                position: { x: bucket, y }
-            };
+        // 2. Group by Block Height
+        const blockGroups = new Map<number, typeof timeItems>();
+        timeItems.forEach(item => {
+            if (!blockGroups.has(item.ts)) blockGroups.set(item.ts, []);
+            blockGroups.get(item.ts)?.push(item);
         });
 
-        return { nodes: layoutedNodes, edges };
+        // 3. Create Group Nodes & Position Children
+        const finalNodes: Node[] = [...nonTimeItems.map(i => i.original)];
+        const sortedBlocks = Array.from(blockGroups.keys()).sort((a, b) => a - b);
+
+        let currentX = 0;
+        const GROUP_GAP = 100; // Gap between blocks
+        const NODE_WIDTH = 250;
+        const NODE_X_GAP = 20;
+        const NODE_Y_GAP = 120;
+
+        sortedBlocks.forEach(blockHeight => {
+            const groupItems = blockGroups.get(blockHeight) || [];
+
+            // Calculate Group Dimensions
+            // Grid layout for children within the group
+            const itemsPerRow = Math.ceil(Math.sqrt(groupItems.length));
+            // Ensure at least 1 item width
+            const gridCols = Math.max(1, itemsPerRow);
+            const gridRows = Math.ceil(groupItems.length / gridCols);
+
+            const groupWidth = Math.max(320, (gridCols * (NODE_WIDTH + NODE_X_GAP)) + 40);
+            const groupHeight = (gridRows * NODE_Y_GAP) + 80; // Header offset + rows
+
+            // Create Group Node
+            const groupId = `block-group-${blockHeight}`;
+            const groupNode: Node = {
+                id: groupId,
+                type: 'blockGroup',
+                data: { label: `${groupItems.length} Txns`, height: blockHeight },
+                position: { x: currentX, y: 0 },
+                style: { width: groupWidth, height: groupHeight }
+            };
+            finalNodes.push(groupNode);
+
+            // Position Children Relative to Group
+            groupItems.forEach((item, index) => {
+                const col = index % gridCols;
+                const row = Math.floor(index / gridCols);
+
+                // Clone and verify parent relationship
+                const childNode = {
+                    ...item.original,
+                    parentId: groupId, // Attach to Group
+                    extent: 'parent' as 'parent',  // Constrain to Group
+                    position: {
+                        x: 20 + (col * (NODE_WIDTH + NODE_X_GAP)),
+                        y: 50 + (row * NODE_Y_GAP)
+                    }
+                };
+                finalNodes.push(childNode);
+            });
+
+            currentX += groupWidth + GROUP_GAP;
+        });
+
+        return { nodes: finalNodes, edges };
     }, []);
+
 
     const handleAutoLayout = useCallback(async (mode?: 'horizontal' | 'vertical' | 'radial') => {
         const targetMode = mode || layoutMode;
@@ -1043,71 +1115,7 @@ export default function ForensicsPage() {
                 </div>
             </div>
 
-            {/* Search Bar - Relocated to Top Right to avoid Sidebar Overlap */}
-            <div className="absolute top-6 right-4 z-50 flex gap-2 w-[300px]">
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Enter TxID or Address... (Cmd+F)"
-                    id="search-input"
-                    className="flex-1 bg-slate-900/90 backdrop-blur border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 shadow-lg"
-                />
-                <button onClick={handleSearch} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500 text-white p-2 rounded-lg transition-all shadow-lg hover:shadow-cyan-500/20">
-                    {loading ? '...' : <Search size={18} />}
-                </button>
-            </div>
 
-            {/* Toolbar - Relocated below Search */}
-            <div className="absolute top-20 right-4 z-40 bg-slate-900/90 backdrop-blur border border-slate-700/50 rounded-lg p-1.5 flex gap-1 shadow-xl">
-                <div className="flex bg-slate-800 rounded p-0.5 mr-2">
-                    <button
-                        onClick={() => handleAutoLayout('horizontal')}
-                        className={`p-1.5 rounded ${layoutMode === 'horizontal' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                        title="Horizontal Layout"
-                    >
-                        <ArrowRight size={14} />
-                    </button>
-                    <button
-                        onClick={() => handleAutoLayout('vertical')}
-                        className={`p-1.5 rounded ${layoutMode === 'vertical' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                        title="Vertical Layout"
-                    >
-                        <ArrowRight size={14} className="rotate-90" />
-                    </button>
-                    <button
-                        onClick={() => handleAutoLayout('radial')}
-                        className={`p-1.5 rounded ${layoutMode === 'radial' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                        title="Radial Layout"
-                    >
-                        <Network size={14} />
-                    </button>
-                </div>
-                <button
-                    onClick={toggleHeatmap}
-                    className={`p-2 rounded-md transition-colors ${heatmapMode ? 'bg-red-500/20 text-red-500 border border-red-500/50' : 'text-slate-400 hover:bg-slate-800 hover:text-red-400'}`}
-                    title="Risk Heatmap"
-                >
-                    <ShieldAlert size={18} />
-                </button>
-                <button
-                    onClick={() => {
-                        const layout = getTimelineLayout(nodes, edges);
-                        setNodes(layout.nodes);
-                        // setEdges(layout.edges);
-                        setTimeout(() => document.querySelector<HTMLElement>('.react-flow__controls-fitview')?.click(), 200);
-                    }}
-                    className={`p-2 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-cyan-400`}
-                    title="Timeline View (Block Height)"
-                >
-                    <Clock size={18} />
-                </button>
-                <div className="w-px h-6 bg-slate-700 mx-1"></div>
-                <button onClick={handleExportCSV} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-blue-400 transition-colors" title="Export CSV"><FileText size={18} /></button>
-                <button onClick={handleExportImage} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-indigo-400 transition-colors" title="Export Image"><Camera size={18} /></button>
-                <button className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
-                <button onClick={saveEvidence} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-emerald-400 transition-colors" title="Save Graph"><Save size={18} /></button>
-            </div>
 
 
             {/* Main Content: Flex Row */}
@@ -1115,6 +1123,72 @@ export default function ForensicsPage() {
 
                 {/* 1. Graph Container (Left / Center) */}
                 <div className="flex-1 h-full relative bg-slate-950">
+
+                    {/* Search Bar - Moved Inside Graph to shift with Inspector */}
+                    <div className="absolute top-6 right-4 z-50 flex gap-2 w-[300px]">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Enter TxID or Address... (Cmd+F)"
+                            id="search-input"
+                            className="flex-1 bg-slate-900/90 backdrop-blur border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 shadow-lg"
+                        />
+                        <button onClick={handleSearch} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500 text-white p-2 rounded-lg transition-all shadow-lg hover:shadow-cyan-500/20">
+                            {loading ? '...' : <Search size={18} />}
+                        </button>
+                    </div>
+
+                    {/* Toolbar - Moved Inside Graph */}
+                    <div className="absolute top-20 right-4 z-40 bg-slate-900/90 backdrop-blur border border-slate-700/50 rounded-lg p-1.5 flex gap-1 shadow-xl">
+                        <div className="flex bg-slate-800 rounded p-0.5 mr-2">
+                            <button
+                                onClick={() => handleAutoLayout('horizontal')}
+                                className={`p-1.5 rounded ${layoutMode === 'horizontal' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                                title="Horizontal Layout"
+                            >
+                                <ArrowRight size={14} />
+                            </button>
+                            <button
+                                onClick={() => handleAutoLayout('vertical')}
+                                className={`p-1.5 rounded ${layoutMode === 'vertical' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                                title="Vertical Layout"
+                            >
+                                <ArrowRight size={14} className="rotate-90" />
+                            </button>
+                            <button
+                                onClick={() => handleAutoLayout('radial')}
+                                className={`p-1.5 rounded ${layoutMode === 'radial' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                                title="Radial Layout"
+                            >
+                                <Network size={14} />
+                            </button>
+                        </div>
+                        <button
+                            onClick={toggleHeatmap}
+                            className={`p-2 rounded-md transition-colors ${heatmapMode ? 'bg-red-500/20 text-red-500 border border-red-500/50' : 'text-slate-400 hover:bg-slate-800 hover:text-red-400'}`}
+                            title="Risk Heatmap"
+                        >
+                            <ShieldAlert size={18} />
+                        </button>
+                        <button
+                            onClick={() => {
+                                const layout = getTimelineLayout(nodes, edges);
+                                setNodes(layout.nodes);
+                                // setEdges(layout.edges);
+                                setTimeout(() => document.querySelector<HTMLElement>('.react-flow__controls-fitview')?.click(), 200);
+                            }}
+                            className={`p-2 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-cyan-400`}
+                            title="Timeline View (Block Height)"
+                        >
+                            <Clock size={18} />
+                        </button>
+                        <div className="w-px h-6 bg-slate-700 mx-1"></div>
+                        <button onClick={handleExportCSV} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-blue-400 transition-colors" title="Export CSV"><FileText size={18} /></button>
+                        <button onClick={handleExportImage} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-indigo-400 transition-colors" title="Export Image"><Camera size={18} /></button>
+                        <button className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
+                        <button onClick={saveEvidence} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-emerald-400 transition-colors" title="Save Graph"><Save size={18} /></button>
+                    </div>
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}
@@ -1135,13 +1209,13 @@ export default function ForensicsPage() {
 
                         {/* Controls Bottom-Left */}
                         <div className="absolute bottom-4 left-4 z-50">
-                            <Controls showInteractive={false} className="!bg-slate-900 !border-slate-700 !fill-white [&>button]:!fill-slate-400 hover:[&>button]:!fill-white shadow-xl" />
+                            <Controls
+                                showInteractive={false}
+                                className="!bg-slate-900 !border-slate-700 shadow-xl [&>button]:!bg-slate-900 [&>button]:!border-slate-700 [&>button]:!fill-slate-400 hover:[&>button]:!fill-white hover:[&>button]:!bg-slate-800"
+                            />
                         </div>
 
-                        <MiniMap
-                            className="!bg-slate-900 !border-slate-800 !bottom-4 !right-auto !left-16"
-                            nodeColor={(n) => n.type === 'tx' ? '#3b82f6' : '#8b5cf6'}
-                        />
+
 
                         {/* Context Menu */}
                         {menu && (
