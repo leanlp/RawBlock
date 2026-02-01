@@ -295,76 +295,13 @@ export default function ForensicsPage() {
     // Note: We use a require here to avoid top-level import issues if file is missing during build
 
     const CASE_STUDIES = [
-        { id: 'pizza', label: '🍕 Pizza Transaction', value: 'cca7507897abc89628f450e8b1e0c6fca4ec3f7b34cccf55f3f531c659ff4d79', defaultHeight: 57043 },
+        { id: 'pizza', label: '🍕 Pizza Address (Laszlo)', value: '1XPTgYs9xZ64oM22f7QWpZnqbL6N3Fp1xH', defaultHeight: 57044 },
         { id: 'genesis', label: '🏛️ Satoshi Genesis', value: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', defaultHeight: 0 },
         { id: 'mtgox', label: '🏴‍☠️ Mt Gox Hack (1Feex)', value: '1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF', defaultHeight: 135303 },
         { id: 'wikileaks', label: '📢 Wikileaks Donation', value: '1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v', defaultHeight: 89000 },
     ];
 
-    const loadCaseStudy = async (studyId: string) => {
-        const study = CASE_STUDIES.find(s => s.id === studyId);
-        if (!study) return;
-        setSearchQuery(study.value);
-        setLoading(true);
-        // Clear graph first
-        setNodes([]);
-        setEdges([]);
-        setSelectedNode(null);
 
-        try {
-            // OPTIMIZATION: Try loading from static JSON in public folder
-            // This prevents bundling 17MB+ files into the client JS and allows browser caching.
-            let data: any = null;
-            try {
-                const res = await fetch(`/data/forensics/${studyId}.json`);
-                if (res.ok) {
-                    const staticCase = await res.json();
-                    // No need to access via key since file contains just the case object
-                    if (staticCase && !staticCase.error) {
-                        console.log(`[Forensics] Loaded static case via HTTP: ${studyId}`);
-                        data = staticCase;
-                    }
-                }
-            } catch (e) {
-                console.warn("Static case file lookup failed, falling back to API", e);
-            }
-
-            // Fallback to Live API
-            let source = 'Static Archive';
-            // STRICT MODE: User requested ONLY static JSON for these examples.
-            if (!data) {
-                console.error("Failed to load static case data.");
-                alert("Could not load case study data. Please ensure the static files are generated.");
-                return;
-            }
-
-            if (!data) return;
-
-            // Create Root Node
-            const newNode: Node = {
-                id: study.value,
-                type: data.type === 'transaction' ? 'tx' : 'address',
-                position: { x: 500, y: 400 }, // Shifted down
-                data: {
-                    label: data.type === 'transaction' ? data.txid.substring(0, 8) + '...' : data.address.substring(0, 8) + '...',
-                    value: data.type === 'transaction' ? '0.00' : data.balance,
-                    risk: 0,
-                    tag: data.type === 'address' ? 'Case Study' : undefined,
-                    source, // Track source
-                    block_height: data.blockheight || data.block_height || study.defaultHeight, // Fallback to safe default
-                    // Store full data for local access
-                    ...data
-                }
-            };
-            setNodes([newNode]);
-
-            // If it's an address with UTXOs (from static scan), auto-expand?
-            // Optional: for now just show root.
-
-        } finally {
-            setLoading(false);
-        }
-    };
 
     // --- API Integration ---
     const fetchNodeData = async (query: string) => {
@@ -790,99 +727,346 @@ export default function ForensicsPage() {
     }, [heatmapMode, setNodes]);
 
     // --- Accounting Mode Logic ---
+    // --- Accounting Mode Logic ---
     const activateAccountingMode = useCallback(async (addressNode: Node, addressData: any) => {
         // 1. Clear Graph but keep ROOT
         const rootPosition = addressNode.position;
         setNodes([addressNode]);
         setEdges([]);
 
-        if (!addressData.utxos) return;
+        if (!addressData.utxos || addressData.utxos.length === 0) return;
 
-        // GROUPING LOGIC: Group by Year
-        const utxosByYear: Record<string, any[]> = {};
-
-        addressData.utxos.forEach((utxo: any) => {
-            let year = "Unknown";
-            if (utxo.status && utxo.status.block_time) {
-                year = new Date(utxo.status.block_time * 1000).getFullYear().toString();
-            } else if (utxo.block_height) {
-                // Rough approximation if time missing (Genesis block 0 is 2009)
-                if (utxo.block_height < 32000) year = "2009";
-                else if (utxo.block_height < 100000) year = "2010";
-                else year = "Legacy";
-            }
-            // Fallback for Genesis (often missing timestamp in explicit UTXO set if not enriched)
-            if (utxo.value >= 50) year = "2009"; // Genesis block reward eras
-
-            if (!utxosByYear[year]) utxosByYear[year] = [];
-            utxosByYear[year].push(utxo);
+        // 2. Data Preparation & Sorting
+        // Sort UTXOs by height/date desc (newest first) or asc? 
+        // Forensic usually wants to see the history. Oldest first (Genesis) makes sense for these cases.
+        const sortedUtxos = [...addressData.utxos].sort((a: any, b: any) => {
+            const hA = a.block_height || a.height || 0;
+            const hB = b.block_height || b.height || 0;
+            return hA - hB; // ASCENDING: Oldest first (Genesis at top/start)
         });
+
+        const BURST_LIMIT = 50;
+        const initialBatch = sortedUtxos.slice(0, BURST_LIMIT);
+        const remaining = sortedUtxos.slice(BURST_LIMIT);
 
         const newNodes: Node[] = [];
         const newEdges: Edge[] = [];
-        const years = Object.keys(utxosByYear).sort();
 
-        // TIMELINE LAYOUT CONFIG
-        const START_X = rootPosition.x - (years.length * 150) / 2; // Center timeline
-        const SPACING_X = 200;
-        const TIMELINE_Y = rootPosition.y + 300;
+        // 3. Layout Configuration (Radial / Orbit Layout)
+        // Distribute nodes in concentric circles around the root address.
+        // Ring 1: First 20 nodes at Radius 500px
+        // Ring 2: Next 30 nodes at Radius 850px
+        const CENTER_X = rootPosition.x;
+        const CENTER_Y = rootPosition.y;
 
-        years.forEach((year, index) => {
-            const groupUtxos = utxosByYear[year];
-            const totalValue = groupUtxos.reduce((acc, u) => acc + u.value, 0);
+        initialBatch.forEach((utxo: any, index: number) => {
+            // Determine Ring
+            const ringIndex = Math.floor(index / 20); // 0 or 1 (for 50 items)
+            const itemsInRing = Math.min(20, initialBatch.length - (ringIndex * 20)); // How many in this specific ring
 
-            const nodeId = `cluster-year-${year}`;
+            // Calculate Angle
+            // We want to distribute them evenly in the ring.
+            // Index within the ring:
+            const indexInRing = index % 20;
+            const angleStep = (2 * Math.PI) / (ringIndex === 0 ? 20 : 30); // Use fixed denominator for stability or dynamic?
+            // Dynamic is better for perfect circle:
+            // const angleStep = (2 * Math.PI) / Math.min(20, initialBatch.length - (ringIndex * 20)); 
+
+            // Let's use a nice distribution. 
+            // Ring 1: 0..19. Angle = index * (360/20)
+            const angle = indexInRing * ((2 * Math.PI) / (ringIndex === 0 ? 20 : 30));
+
+            // Radius
+            const radius = 500 + (ringIndex * 350); // 500, 850...
+
+            const x = CENTER_X + radius * Math.cos(angle);
+            const y = CENTER_Y + radius * Math.sin(angle);
+
+            // Fix Date Logic (Year Detection)
+            let year = "Unknown";
+            const height = utxo.block_height || utxo.height; // FIXED: Support both formats
+            if (utxo.status?.block_time) {
+                year = new Date(utxo.status.block_time * 1000).getFullYear().toString();
+            } else if (height) {
+                if (height < 32000) year = "2009";
+                else if (height < 100000) year = "2010";
+                else if (height < 150000) year = "2011"; // Approx
+                else year = "Legacy";
+            }
+
+            // Fix Value Logic
+            const rawValue = utxo.value !== undefined ? utxo.value : utxo.amount;
+            const valStr = rawValue !== undefined ? rawValue.toString() : "0";
+
+            // Genesis override
+            if (height === 0 || (parseFloat(valStr) >= 50 && year === "Unknown")) year = "2009";
+
+            const nodeId = `utxo-${utxo.txid}-${utxo.vout}`;
 
             newNodes.push({
                 id: nodeId,
-                type: 'default',
-                position: {
-                    x: START_X + (index * SPACING_X),
-                    y: TIMELINE_Y
-                },
+                type: 'tx',
+                position: { x, y },
                 data: {
-                    label: `${year} (${groupUtxos.length})`,
-                    value: totalValue.toFixed(2) + ' BTC',
-                    type: 'cluster', // Tag to identify logic handling
-                    year: year,
-                    utxos: groupUtxos
-                },
-                style: {
-                    backgroundColor: '#0f172a',
-                    border: '1px solid #fbbf24',
-                    color: '#fbbf24',
-                    width: 140,
-                    borderRadius: '12px',
-                    height: 80,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 4px 20px rgba(251, 191, 36, 0.15)'
+                    label: `${valStr} BTC`,
+                    value: valStr,
+                    risk: 0,
+                    tag: year,
+                    type: 'utxo_leaf',
+                    ...utxo
                 }
             });
 
             newEdges.push({
                 id: `e-root-${nodeId}`,
-                source: nodeId,
-                target: addressNode.id,
+                source: addressNode.id,
+                target: nodeId,
                 animated: true,
-                style: { stroke: '#fbbf24', strokeDasharray: '5,5' },
-                label: `${groupUtxos.length} txs`
+                type: 'default', // Curve works best for radial
+                style: { stroke: '#5eead4', strokeWidth: 1.5, opacity: 0.6 } // Cyan/Teal
             });
         });
 
-        setNodes((nds) => nds.concat(newNodes));
-        setEdges((eds) => eds.concat(newEdges));
+        // 4. Handle Overflow (Load More Node)
+        if (remaining.length > 0) {
+            const overflowNodeId = `overflow-${addressNode.id}`;
+            // Place overflow at bottom center of the outer ring
+            newNodes.push({
+                id: overflowNodeId,
+                type: 'default',
+                position: {
+                    x: CENTER_X,
+                    y: CENTER_Y + 1000 // Below the outer ring
+                },
+                data: {
+                    label: `Load ${remaining.length} More...`,
+                    action: 'load_more_utxos',
+                    remainingUtxos: remaining
+                },
+                style: {
+                    background: '#1e293b',
+                    color: '#94a3b8',
+                    border: '1px dashed #475569',
+                    borderRadius: '8px',
+                    width: 180,
+                    cursor: 'pointer'
+                }
+            });
 
-        // Notifying user
-        // Alert removed for better UX
+            newEdges.push({
+                id: `e-overflow-${overflowNodeId}`,
+                source: addressNode.id,
+                target: overflowNodeId,
+                style: { stroke: '#334155', strokeDasharray: '4 4' }
+            });
+        }
+
+        setNodes([addressNode, ...newNodes]);
+        setEdges(newEdges);
+
+        // Auto-Fit
+        setTimeout(() => {
+            const fitBtn = document.querySelector('.react-flow__controls-fitview');
+            if (fitBtn) (fitBtn as HTMLButtonElement).click();
+        }, 500);
 
     }, [setNodes, setEdges]);
 
 
+    // MOVED: loadCaseStudy here to access activateAccountingMode
+    const loadCaseStudy = async (studyId: string) => {
+        const study = CASE_STUDIES.find(s => s.id === studyId);
+        if (!study) return;
+        setSearchQuery(study.value);
+        setLoading(true);
+        // Clear graph first
+        setNodes([]);
+        setEdges([]);
+        setSelectedNode(null);
+
+        try {
+            let data: any = null;
+            try {
+                const res = await fetch(`/data/forensics/${studyId}.json`);
+                if (res.ok) {
+                    const staticCase = await res.json();
+                    if (staticCase && !staticCase.error) {
+                        data = staticCase;
+                    }
+                }
+            } catch (e) { console.warn("Static fetch fail", e); }
+
+            if (!data) {
+                alert("Could not load case study data. Static files missing.");
+                return;
+            }
+
+            // Create Root Node
+            const newNode: Node = {
+                id: study.value,
+                type: data.type === 'transaction' ? 'tx' : 'address',
+                position: { x: 500, y: 400 },
+                data: {
+                    label: data.type === 'transaction' ? data.txid.substring(0, 8) + '...' : data.address.substring(0, 8) + '...',
+                    value: data.type === 'transaction' ? '0.00' : data.balance,
+                    risk: 0,
+                    tag: data.type === 'address' ? 'Case Study' : undefined,
+                    source: 'Static Archive',
+                    block_height: data.blockheight || data.block_height || study.defaultHeight,
+                    ...data
+                }
+            };
+
+            // Auto-Expand if UTXOs exist (Historic Data)
+            if (data.type === 'address' && data.utxos && data.utxos.length > 0) {
+                console.log("Auto-Expanding Case Study UTXOs...");
+                setNodes([newNode]); // Set root first
+                // Use a small timeout to let the state settle or call logic directly
+                // Calling logic directly passes the 'newNode' which is what we want
+                activateAccountingMode(newNode, data);
+            } else {
+                setNodes([newNode]);
+            }
+
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     const onNodeClick = useCallback(async (event: any, node: Node) => {
+        // --- LOAD MORE LOGIC (Radial Expansion) ---
+        if (node.data.action === 'load_more_utxos') {
+            const remaining = node.data.remainingUtxos || [];
+            if (remaining.length === 0) return;
+
+            setLoading(true);
+
+            // 1. Calculate Batch
+            const BATCH_SIZE = 50;
+            const nextBatch = remaining.slice(0, BATCH_SIZE);
+            const nextRemaining = remaining.slice(BATCH_SIZE);
+
+            // 2. Determine Start State for Layout
+            // Count existing UTXO nodes to continue the spiral/rings
+            const currentUtxoCount = nodes.filter(n => n.type === 'tx').length;
+            const addressNode = nodes.find(n => n.type === 'address' || n.type === 'cluster' || n.id === node.parentId) || nodes[0]; // Fallback to root
+            const CENTER_X = addressNode.position.x;
+            const CENTER_Y = addressNode.position.y;
+
+            const newNodes: Node[] = [];
+            const newEdges: Edge[] = [];
+
+            nextBatch.forEach((utxo: any, i: number) => {
+                const globalIndex = currentUtxoCount + i;
+
+                // Dynamic Ring Logic:
+                // Ring 0: 20 items
+                // Ring 1: 30 items
+                // Ring 2+: 40 items...
+                // This is an approximation to avoid complex loop calculation every click.
+                // Simplified: Just assume rings of 30 after the first 20.
+                let ringIndex = 0;
+                let indexInRing = globalIndex;
+
+                if (globalIndex < 20) {
+                    ringIndex = 0;
+                } else {
+                    // Offset by first 20
+                    const adjusted = globalIndex - 20;
+                    ringIndex = 1 + Math.floor(adjusted / 30);
+                    indexInRing = adjusted % 30;
+                }
+
+                const ringCapacity = ringIndex === 0 ? 20 : 30;
+                const angle = indexInRing * ((2 * Math.PI) / ringCapacity);
+                const radius = 500 + (ringIndex * 300); // Tighten radius slightly for outer rings? 350 was okay. Keep 300-350.
+
+                const x = CENTER_X + radius * Math.cos(angle);
+                const y = CENTER_Y + radius * Math.sin(angle);
+
+                // Re-use logic for Year/Value
+                let year = "Unknown";
+                const height = utxo.block_height || utxo.height;
+                const rawValue = utxo.value !== undefined ? utxo.value : utxo.amount;
+                const valStr = rawValue !== undefined ? rawValue.toString() : "0";
+
+                if (height < 32000) year = "2009";
+                else if (height < 100000) year = "2010";
+                else year = "Later";
+
+                // Genesis overrides
+                if (height === 0 || (parseFloat(valStr) >= 50 && year === "Unknown")) year = "2009";
+
+                const nodeId = `utxo-${utxo.txid}-${utxo.vout}`;
+                newNodes.push({
+                    id: nodeId,
+                    type: 'tx',
+                    position: { x, y },
+                    data: {
+                        label: `${valStr} BTC`,
+                        value: valStr,
+                        risk: 0,
+                        tag: year,
+                        type: 'utxo_leaf',
+                        ...utxo
+                    }
+                });
+
+                newEdges.push({
+                    id: `e-${addressNode.id}-${nodeId}`,
+                    source: addressNode.id,
+                    target: nodeId,
+                    type: 'default',
+                    animated: true,
+                    style: { stroke: '#5eead4', strokeWidth: 1.5, opacity: 0.6 }
+                });
+            });
+
+            // 3. Handle Next Load More
+            if (nextRemaining.length > 0) {
+                const newOverflowId = `overflow-${Date.now()}`;
+                // Place it further down
+                const lastNode = newNodes[newNodes.length - 1];
+
+                newNodes.push({
+                    id: newOverflowId,
+                    type: 'default',
+                    position: {
+                        x: CENTER_X,
+                        y: lastNode.position.y + 400 // Push it down below the cluster
+                    },
+                    data: {
+                        label: `Load ${nextRemaining.length} More...`,
+                        action: 'load_more_utxos',
+                        remainingUtxos: nextRemaining
+                    },
+                    style: {
+                        background: '#1e293b',
+                        color: '#94a3b8',
+                        border: '1px dashed #475569',
+                        borderRadius: '8px',
+                        width: 180,
+                        cursor: 'pointer'
+                    }
+                });
+
+                newEdges.push({
+                    id: `e-overflow-${newOverflowId}`,
+                    source: addressNode.id,
+                    target: newOverflowId,
+                    style: { stroke: '#334155', strokeDasharray: '4 4' }
+                });
+            }
+
+            // Remove the Old Load More Node
+            setNodes((nds) => nds.filter(n => n.id !== node.id).concat(newNodes));
+            setEdges((eds) => eds.filter(e => e.target !== node.id).concat(newEdges)); // Remove edge to old button
+
+            setTimeout(() => setLoading(false), 300);
+            return;
+        }
+
         setSelectedNode(node);
         setSelectedNodeData(null); // Clear previous data to show loading state
 
@@ -1094,7 +1278,7 @@ export default function ForensicsPage() {
             </div>
 
             {/* Case Studies Floating Dock (New Style) */}
-            <div className="absolute top-24 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+            <div className="absolute top-48 md:top-24 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 <div className="flex flex-col gap-2 p-2">
                     <div className="text-[10px] uppercase font-bold text-slate-400 mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2 pt-2">
                         Case Files
@@ -1124,70 +1308,83 @@ export default function ForensicsPage() {
                 {/* 1. Graph Container (Left / Center) */}
                 <div className="flex-1 h-full relative bg-slate-950">
 
-                    {/* Search Bar - Moved Inside Graph to shift with Inspector */}
-                    <div className="absolute top-6 right-4 z-50 flex gap-2 w-[300px]">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Enter TxID or Address... (Cmd+F)"
-                            id="search-input"
-                            className="flex-1 bg-slate-900/90 backdrop-blur border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 shadow-lg"
-                        />
-                        <button onClick={handleSearch} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500 text-white p-2 rounded-lg transition-all shadow-lg hover:shadow-cyan-500/20">
-                            {loading ? '...' : <Search size={18} />}
-                        </button>
-                    </div>
+                    {/* Command Center (Top Center Island) */}
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3 w-[95%] md:w-full md:max-w-2xl pointer-events-none">
 
-                    {/* Toolbar - Moved Inside Graph */}
-                    <div className="absolute top-20 right-4 z-40 bg-slate-900/90 backdrop-blur border border-slate-700/50 rounded-lg p-1.5 flex gap-1 shadow-xl">
-                        <div className="flex bg-slate-800 rounded p-0.5 mr-2">
+                        {/* 1. Search Bar */}
+                        <div className="flex gap-2 w-full md:max-w-md pointer-events-auto shadow-2xl shadow-cyan-900/20">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Enter TxID or Address... (Cmd+F)"
+                                id="search-input"
+                                className="flex-1 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder:text-slate-500"
+                            />
                             <button
-                                onClick={() => handleAutoLayout('horizontal')}
-                                className={`p-1.5 rounded ${layoutMode === 'horizontal' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                                title="Horizontal Layout"
+                                onClick={handleSearch}
+                                disabled={loading}
+                                className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-xl transition-all shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <ArrowRight size={14} />
-                            </button>
-                            <button
-                                onClick={() => handleAutoLayout('vertical')}
-                                className={`p-1.5 rounded ${layoutMode === 'vertical' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                                title="Vertical Layout"
-                            >
-                                <ArrowRight size={14} className="rotate-90" />
-                            </button>
-                            <button
-                                onClick={() => handleAutoLayout('radial')}
-                                className={`p-1.5 rounded ${layoutMode === 'radial' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                                title="Radial Layout"
-                            >
-                                <Network size={14} />
+                                {loading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
                             </button>
                         </div>
-                        <button
-                            onClick={toggleHeatmap}
-                            className={`p-2 rounded-md transition-colors ${heatmapMode ? 'bg-red-500/20 text-red-500 border border-red-500/50' : 'text-slate-400 hover:bg-slate-800 hover:text-red-400'}`}
-                            title="Risk Heatmap"
-                        >
-                            <ShieldAlert size={18} />
-                        </button>
-                        <button
-                            onClick={() => {
-                                const layout = getTimelineLayout(nodes, edges);
-                                setNodes(layout.nodes);
-                                // setEdges(layout.edges);
-                                setTimeout(() => document.querySelector<HTMLElement>('.react-flow__controls-fitview')?.click(), 200);
-                            }}
-                            className={`p-2 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-cyan-400`}
-                            title="Timeline View (Block Height)"
-                        >
-                            <Clock size={18} />
-                        </button>
-                        <div className="w-px h-6 bg-slate-700 mx-1"></div>
-                        <button onClick={handleExportCSV} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-blue-400 transition-colors" title="Export CSV"><FileText size={18} /></button>
-                        <button onClick={handleExportImage} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-indigo-400 transition-colors" title="Export Image"><Camera size={18} /></button>
-                        <button className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
-                        <button onClick={saveEvidence} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-emerald-400 transition-colors" title="Save Graph"><Save size={18} /></button>
+
+                        {/* 2. Toolbar (Controls) */}
+                        <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl md:rounded-full p-2 md:p-1.5 flex flex-wrap md:flex-nowrap justify-center gap-2 md:gap-1 shadow-xl pointer-events-auto items-center max-w-full overflow-x-auto no-scrollbar">
+                            <div className="flex bg-slate-800/50 rounded-full p-1 mr-2 gap-1">
+                                <button
+                                    onClick={() => handleAutoLayout('horizontal')}
+                                    className={`p-1.5 rounded-full transition-all ${layoutMode === 'horizontal' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                                    title="Horizontal Layout"
+                                >
+                                    <ArrowRight size={14} />
+                                </button>
+                                <button
+                                    onClick={() => handleAutoLayout('vertical')}
+                                    className={`p-1.5 rounded-full transition-all ${layoutMode === 'vertical' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                                    title="Vertical Layout"
+                                >
+                                    <ArrowRight size={14} className="rotate-90" />
+                                </button>
+                                <button
+                                    onClick={() => handleAutoLayout('radial')}
+                                    className={`p-1.5 rounded-full transition-all ${layoutMode === 'radial' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                                    title="Radial Layout"
+                                >
+                                    <Network size={14} />
+                                </button>
+                            </div>
+
+                            <div className="hidden md:block w-px h-4 bg-slate-700 mx-0.5"></div>
+
+                            <button
+                                onClick={toggleHeatmap}
+                                className={`p-2 rounded-full transition-all ${heatmapMode ? 'bg-red-500/20 text-red-500 ring-1 ring-red-500/50' : 'text-slate-400 hover:bg-slate-800 hover:text-red-400'}`}
+                                title="Risk Heatmap"
+                            >
+                                <ShieldAlert size={16} />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const layout = getTimelineLayout(nodes, edges);
+                                    setNodes(layout.nodes);
+                                    // setEdges(layout.edges);
+                                    setTimeout(() => document.querySelector<HTMLElement>('.react-flow__controls-fitview')?.click(), 200);
+                                }}
+                                className={`p-2 rounded-full transition-all text-slate-400 hover:bg-slate-800 hover:text-blue-400`}
+                                title="Timeline View (Block Height)"
+                            >
+                                <Clock size={16} />
+                            </button>
+
+                            <div className="hidden md:block w-px h-4 bg-slate-700 mx-0.5"></div>
+
+                            <button onClick={handleExportCSV} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Export CSV"><FileText size={16} /></button>
+                            <button onClick={handleExportImage} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-indigo-400 transition-colors" title="Export Image"><Camera size={16} /></button>
+                            <button className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
+                            <button onClick={saveEvidence} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Save Evidence"><Save size={16} /></button>
+                        </div>
                     </div>
                     <ReactFlow
                         nodes={nodes}
@@ -1277,10 +1474,13 @@ export default function ForensicsPage() {
                     </ReactFlow>
                 </div>
 
-                {/* 2. Inspector Panel (Right, Flex Item, Outside ReactFlow) */}
+                {/* 2. Inspector Panel (Right, Flex Item on Desktop, Absolute Bottom Sheet on Mobile) */}
                 <div className={`
-                    bg-slate-900 border-l border-slate-800 flex flex-col transition-all duration-300 ease-in-out
-                    ${selectedNode ? 'w-80 opacity-100 translate-x-0' : 'w-0 opacity-0 translate-x-full border-none overflow-hidden'}
+                    bg-slate-900 border-l border-t md:border-t-0 border-slate-800 flex flex-col transition-all duration-300 ease-in-out z-[60]
+                    absolute md:relative bottom-0 md:bottom-auto right-0 md:right-auto
+                    ${selectedNode
+                        ? 'w-full h-[60vh] md:w-80 md:h-full opacity-100 translate-y-0 md:translate-x-0 cursor-auto'
+                        : 'w-full md:w-0 h-0 md:h-full opacity-0 translate-y-full md:translate-x-full border-none overflow-hidden'}
                 `}>
                     {selectedNode && (
                         loading && !selectedNodeData ? (
