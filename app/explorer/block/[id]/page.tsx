@@ -29,10 +29,12 @@ export default function BlockPage() {
         if (!id) return;
         setLoading(true);
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        // const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        // Use relative path to hit Next.js API
+
 
         // Fetch the block
-        fetch(`${baseUrl}/api/block/${id}`)
+        fetch(`/api/block/${id}`)
             .then(res => {
                 if (!res.ok) throw new Error("Block not found");
                 return res.json();
@@ -47,7 +49,7 @@ export default function BlockPage() {
             });
 
         // Fetch latest block height to know if Next should be disabled
-        fetch(`${baseUrl}/api/network-stats`)
+        fetch(`/api/network-stats`)
             .then(res => res.json())
             .then(data => {
                 if (data.blocks) setLatestHeight(data.blocks);
@@ -176,20 +178,23 @@ export default function BlockPage() {
 
                         {/* Block DNA Visualization */}
                         <div className="space-y-4">
-                            <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500 inline-block">
-                                Block DNA (TreeMap)
-                            </h2>
-                            <p className="text-slate-500 text-sm max-w-2xl">
-                                Visualizing the Top 500 transactions packed into this block. Size represents weight (vBytes).
-                                Green = SegWit, Amber = Legacy.
-                            </p>
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500 inline-block">
+                                        Block DNA (TreeMap)
+                                    </h2>
+                                    <p className="text-slate-500 text-sm max-w-2xl mt-1">
+                                        Visualizing the transactions packed into this block. Size represents weight.
+                                    </p>
+                                </div>
+                            </div>
 
-                            <div className="h-[500px] w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                            <div className="h-[400px] w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <Treemap
                                         data={treeMapData}
                                         dataKey="size"
-                                        aspectRatio={4 / 3}
+                                        aspectRatio={4 / 1}
                                         stroke="#1e293b"
                                         content={<CustomizedContent />}
                                     >
@@ -198,16 +203,63 @@ export default function BlockPage() {
                                                 if (!payload || !payload.length) return null;
                                                 const data = payload[0].payload;
                                                 return (
-                                                    <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl text-xs">
-                                                        <div className="font-mono text-slate-300 mb-1">TXID: {data.name}</div>
-                                                        <div className="text-slate-400">Weight: <span className="text-white">{data.size} wu</span></div>
-                                                        <div className="text-slate-400">Type: <span className={data.isSegwit ? "text-emerald-400" : "text-amber-400"}>{data.isSegwit ? "SegWit (Efficient)" : "Legacy (Heavy)"}</span></div>
+                                                    <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl text-xs z-50">
+                                                        <div className="font-mono text-cyan-300 mb-1">TXID: {data.name}</div>
+                                                        <div className="text-slate-400">Weight: <span className="text-white">{data.size.toLocaleString()} wu</span></div>
+                                                        <div className="text-slate-400">Fee: <span className="text-orange-400">{data.fee?.toLocaleString()} sats</span></div>
                                                     </div>
                                                 );
                                             }}
                                         />
                                     </Treemap>
                                 </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Transaction List */}
+                        <div className="space-y-4">
+                            <h2 className="text-xl font-bold text-slate-300 flex items-center gap-2">
+                                <span>📑</span> Transactions ({block.transactions.length.toLocaleString()} fetched)
+                            </h2>
+
+                            <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm">
+                                <div className="max-h-[800px] overflow-y-auto custom-scrollbar">
+                                    <table className="w-full text-left text-sm text-slate-400">
+                                        <thead className="bg-slate-900/80 text-xs uppercase text-slate-500 sticky top-0 z-10 backdrop-blur-md">
+                                            <tr>
+                                                <th className="px-6 py-3 font-medium">TXID</th>
+                                                <th className="px-6 py-3 font-medium text-right">Fee (sats)</th>
+                                                <th className="px-6 py-3 font-medium text-right">Weight (wu)</th>
+                                                <th className="px-6 py-3 font-medium text-right">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800/50">
+                                            {block.transactions.map((tx) => (
+                                                <tr key={tx.txid} className="hover:bg-slate-800/30 transition-colors group">
+                                                    <td className="px-6 py-3 font-mono text-cyan-300 group-hover:text-cyan-200 truncate max-w-[200px]">
+                                                        {tx.txid}
+                                                    </td>
+                                                    <td className="px-6 py-3 text-right font-mono text-orange-400/80">
+                                                        {tx.fee?.toLocaleString()}
+                                                    </td>
+                                                    <td className="px-6 py-3 text-right font-mono text-slate-500">
+                                                        {tx.weight?.toLocaleString()}
+                                                    </td>
+                                                    <td className="px-6 py-3 text-right">
+                                                        <a
+                                                            href={`/explorer/decoder?tx=${tx.txid}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full text-cyan-400 transition-colors"
+                                                        >
+                                                            Decode 🔍
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </>

@@ -5,6 +5,8 @@ const RPC_USER = process.env.BITCOIN_RPC_USER;
 const RPC_PASS = process.env.BITCOIN_RPC_PASSWORD;
 const RPC_HOST = process.env.BITCOIN_RPC_HOST || 'localhost';
 const RPC_PORT = process.env.BITCOIN_RPC_PORT || 8332;
+// Check for Electrs URL
+const ELECTRS_URL = process.env.ELECTRS_API_URL; // e.g., http://192.168.1.41:3002
 
 async function rpcCall(method: string, params: any[] = []) {
     if (!RPC_USER || !RPC_PASS) {
@@ -45,6 +47,18 @@ async function rpcCall(method: string, params: any[] = []) {
     return json.result;
 }
 
+// Helper to query Electrs
+async function electrsCall(endpoint: string) {
+    if (!ELECTRS_URL) throw new Error("ELECTRS_API_URL is not configured.");
+    
+    //console.log(`[Proxy] Querying Electrs: ${ELECTRS_URL}${endpoint}`);
+    const res = await fetch(`${ELECTRS_URL}${endpoint}`);
+    if (!res.ok) {
+        throw new Error(`Electrs Error: ${res.status} ${res.statusText}`);
+    }
+    return await res.json();
+}
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
@@ -64,13 +78,19 @@ export async function POST(req: Request) {
 
         if (isTxID) {
             console.log(`[Proxy] Fetching transaction: ${cleanQuery}`);
+            
+            // HYBRID: Try Electrs for simple metadata, but Core 'getrawtransaction' is robust for full details.
+            // For now, let's keep using Core for TX details as it works well, unless user specifically wants Electrs speed.
+            // Actually, switching to Electrs for TX allows us to see unconfirmed mempool parents easily without -txindex sometimes.
+            // But let's stick to Core for TX to minimize friction, as Core works fine for single TX lookup usually.
+            
             const tx = await rpcCall('getrawtransaction', [cleanQuery, true]);
             
             // Fetch Block Data (Time & Confirmations)
             let blockInfo: any = {};
             if (tx.blockhash) {
                 try {
-                    console.log(`[Proxy] Fetching block info: ${tx.blockhash}`);
+                   // console.log(`[Proxy] Fetching block info: ${tx.blockhash}`);
                     blockInfo = await rpcCall('getblock', [tx.blockhash, 1]);
                 } catch (err) {
                     console.warn("Failed to fetch block details", err);
@@ -84,32 +104,49 @@ export async function POST(req: Request) {
                 blockheight: blockInfo.height ? blockInfo.height : undefined,
                 confirmations: tx.confirmations || 0
             };
+
         } else if (isAddress) {
-            console.log(`[Proxy] Scanning UTXO set for address: ${cleanQuery}`);
-             // IMPORTANT: scantxoutset is blocking. Next.js serverless functions have timeouts (usually 10s-60s).
-             // If local node, it should be fast for single address.
-             // 'start' action, [ { desc: addr(X) } ]
-             const scan = await rpcCall('scantxoutset', ['start', [{ desc: `addr(${cleanQuery})` }]]);
-             
-             // Transform to match frontend expectations
-             result = {
+            console.log(`[Proxy] Searching Address (via Electrs): ${cleanQuery}`);
+            
+            if (!ELECTRS_URL) {
+                 return NextResponse.json({ error: "Electrs Indexer is not configured. Cannot search addresses natively without scanning." }, { status: 501 });
+            }
+
+            // 1. Get Address Stats (Balance, Tx Count)
+            // Electrs API: GET /address/:address
+            const stats = await electrsCall(`/address/${cleanQuery}`);
+            
+            // 2. Get UTXOs
+            // Electrs API: GET /address/:address/utxo
+            const utxos = await electrsCall(`/address/${cleanQuery}/utxo`);
+
+            // 3. Map to Frontend Format
+            // Electrs UTXO format: { txid, vout, status: { confirmed, block_height, block_hash }, value }
+            
+            const totalBalanceSat = (stats.chain_stats.funded_txo_sum - stats.chain_stats.spent_txo_sum) + 
+                                    (stats.mempool_stats.funded_txo_sum - stats.mempool_stats.spent_txo_sum);
+            
+            result = {
                  type: 'address',
                  address: cleanQuery,
-                 balance: scan.total_amount,
-                 utxoCount: scan.txouts,
-                 scanHeight: scan.height,
-                 utxos: scan.unspents.map((u: any) => ({
+                 balance: totalBalanceSat / 100000000, // Convert Sats to BTC
+                 utxoCount: stats.chain_stats.tx_count + stats.mempool_stats.tx_count, // Total interactions
+                 scanHeight: 0, // Not relevant for indexer
+                 utxos: utxos.map((u: any) => ({
                     txid: u.txid,
                     vout: u.vout,
-                    amount: u.amount,
-                    height: u.height,
-                    scriptPubKey: u.scriptPubKey
+                    amount: u.value / 100000000, // Sats to BTC
+                    height: u.status.block_height,
+                    scriptPubKey: "" // Electrs doesn't return scriptPubKey in UTXO list usually, frontend might need it? 
+                    // If frontend needs scriptPubKey, we might need to fetch it or mock it. 
+                    // Looking at 'AddressNode', it mostly uses value/txid. 
+                    // Let's leave empty for now, or fetch if critical.
                  }))
-             };
+            };
+            
         } else {
-             // Fallback: Try decoding raw hex? Or just error.
-             console.log(`[Proxy] Validation failed for: '${cleanQuery}' (Length: ${cleanQuery.length})`);
-             return NextResponse.json({ error: `Invalid format. Expected TxID or Address. Received: '${cleanQuery}'` }, { status: 400 });
+             console.log(`[Proxy] Validation failed for: '${cleanQuery}'`);
+             return NextResponse.json({ error: `Invalid format. Expected TxID or Address.` }, { status: 400 });
         }
 
         return NextResponse.json(result);
@@ -117,7 +154,7 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error("RPC Proxy Error:", error.message);
         return NextResponse.json({ 
-            error: error.message || "Failed to process request via local RPC." 
+            error: error.message || "Failed to process request." 
         }, { status: 500 });
     }
 }
