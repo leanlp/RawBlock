@@ -40,6 +40,7 @@ const NAV_ITEMS = [
     {
         category: "Analysis",
         items: [
+            { name: "Forensics", path: "/analysis/forensics", icon: "🕵️‍♂️" },
             { name: "Evolution", path: "/analysis/evolution", icon: "📈" },
             { name: "D-Index", path: "/analysis/d-index", icon: "⚖️" },
             { name: "Graffiti", path: "/analysis/graffiti", icon: "🎨" },

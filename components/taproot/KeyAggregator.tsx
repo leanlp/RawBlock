@@ -33,6 +33,25 @@ export default function KeyAggregator() {
     const [verificationResult, setVerificationResult] = useState<boolean | null>(null);
     const [isSigningAll, setIsSigningAll] = useState(false);
 
+    const createSigner = (id: number, name: string): Signer => {
+        const privKey = generatePrivateKey();
+        const pubKey = getPublicKey(privKey, true);
+        const xOnlyPubKey = getXOnlyPubKey(privKey);
+        return {
+            id,
+            name,
+            privateKey: privKey,
+            publicKey: pubKey,
+            xOnlyPubKey
+        };
+    };
+
+    const addSigner = () => {
+        const id = signers.length + 1;
+        const newSigner = createSigner(id, `Signer ${id}`);
+        setSigners([...signers, newSigner]);
+    };
+
     // Initialize with two signers
     useEffect(() => {
         const alice = createSigner(1, "Alice");
@@ -59,25 +78,7 @@ export default function KeyAggregator() {
         }
     }, [signers]);
 
-    const createSigner = (id: number, name: string): Signer => {
-        const privKey = generatePrivateKey();
-        const pubKey = getPublicKey(privKey, true);
-        const xOnlyPubKey = getXOnlyPubKey(privKey);
-        return {
-            id,
-            name,
-            privateKey: privKey,
-            publicKey: pubKey,
-            xOnlyPubKey
-        };
-    };
 
-    const addSigner = () => {
-        const id = signers.length + 1;
-        const names = ["Charlie", "Diana", "Eve", "Frank", "Grace", "Henry"];
-        const name = names[(id - 1) % names.length] || `Signer ${id}`;
-        setSigners([...signers, createSigner(id, name)]);
-    };
 
     const removeSigner = (id: number) => {
         setSigners(signers.filter(s => s.id !== id));
