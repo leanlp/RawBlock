@@ -1,0 +1,45 @@
+# UI/UX Visual Audit Report: Rawblock.net
+**Date**: 2026-02-03
+**Auditor**: Antigravity (Senior UI/UX Tester)
+**Target**: `www.rawblock.net`
+
+## Executive Summary
+The visual audit reveals a polished, "Dark Mode" aesthetic that generally responds well to different viewports. However, a critical usability defect (missing Copy buttons) and some layout inefficiencies on very large screens were identified.
+
+## 1. Responsiveness Audit
+
+### Mobile (375px)
+**Status**: **Mixed (Mostly Good)**
+- **✅ Navigation**: Hamburger menu works correctly; sidebar collapses effectively.
+- **✅ Data Tables**: "Latest Blocks" and "Rich List" automatically use horizontal scrolling (`overflow-x-auto`), preventing site breakage.
+- **✅ Truncation**: Long hashes (e.g., `0000...28ca`) are truncated appropriately.
+- **⚠️ Issues**:
+    - **Header Stacking**: On Block Details, the full block hash wraps to 3 lines, creating a very tall header that pushes primary content below the fold.
+    - **Dense Decoder**: The "Butterfly Layout" stacks vertically (Inputs on top, Outputs on bottom). While functional, the distinction between the two sections is less visually distinct than on desktop.
+
+### Desktop (1920px)
+**Status**: **Functional but Sparse**
+- **✅ Scaling**: The "Block DNA" Treemap scales beautifully without pixelation and tooltips are readable.
+- **⚠️ White Space**: The "Latest Blocks" table stretches to the full 1920px width, leaving excessive whitespace between columns (Miner -> Time), making it hard to scan rows horizontally.
+- **⚠️ Butterfly Gaps**: In the Transaction Decoder, the gap between Input and Output columns is very wide, disconnecting the visual "flow" of funds.
+
+## 2. Interactive Elements Audit
+**Status**: **FAIL**
+- **❌ Copy Buttons**: The audit explicitly checked for "Copy to Clipboard" buttons next to:
+    - Transaction Hashes (TXIDs)
+    - Block Hashes
+    - Addresses
+  **Result**: **NONE FOUND**. Users must manually select text to copy it. This is a critical usability miss for a blockchain explorer.
+
+## 3. Data Visualization
+**Status**: **Pass with Notes**
+- **✅ Treemap**: Tooltips work perfectly on hover. Colors (SegWit vs Legacy) are distinct.
+- **❌ Missing Sparklines**: The request mentioned checking Hashrate/Difficulty graphs/sparklines. These appear to be static numbers rather than interactive charts.
+
+## Recommendations
+1.  **Urgent**: Implement "Click-to-Copy" icons next to all Hashes and Addresses.
+2.  **Layout**: Set a `max-width` (e.g., `1440px`) for the main container on purely tabular pages to prevent "stretched" tables on ultra-wide monitors.
+3.  **Mobile Tuning**: Truncate the Block Hash in the **Title** of the Block Details page on mobile to 1 line with an ellipsis, rather than wrapping it to 3 lines.
+
+## Conclusion
+Visually stable, but lacks key interactive "quality of life" features expected in 2026.

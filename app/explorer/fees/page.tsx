@@ -32,7 +32,8 @@ export default function FeesPage() {
                 // Normalize data: ensure 'time' exists (backend might send 'timestamp')
                 const normalized = data.map((entry: any) => ({
                     ...entry,
-                    time: entry.time || entry.timestamp
+                    time: entry.time || entry.timestamp,
+                    timestamp: entry.timestamp || entry.time
                 }));
                 setHistory(normalized);
             });
