@@ -55,19 +55,22 @@ export default function HeroMetrics() {
             try {
                 const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-                // Fetch from /api/vitals - same as Vitals page for consistent data
-                const vitalsRes = await fetch(`${baseUrl}/api/vitals`);
+                // Fetch all endpoints in parallel
+                const [vitalsRes, networkRes, mempoolRes] = await Promise.all([
+                    fetch(`${baseUrl}/api/vitals`),
+                    fetch(`${baseUrl}/api/network-stats`),
+                    fetch(`${baseUrl}/api/candidate-block`)
+                ]);
+
                 if (vitalsRes.ok) {
                     const data = await vitalsRes.json();
 
                     setStats(prev => ({
                         ...prev,
-                        // Halving data
                         blocksUntilHalving: data.halving?.blocksRemaining || prev.blocksUntilHalving,
                         daysUntilHalving: data.halving?.blocksRemaining
                             ? blocksToDays(data.halving.blocksRemaining)
                             : prev.daysUntilHalving,
-                        // Hashrate and difficulty
                         hashrate: data.difficulty?.networkHashps
                             ? formatHashrate(data.difficulty.networkHashps)
                             : prev.hashrate,
@@ -78,22 +81,17 @@ export default function HeroMetrics() {
                     setIsLive(true);
                 }
 
-                // Fetch network stats for block height and fees
-                const networkRes = await fetch(`${baseUrl}/api/network-stats`);
                 if (networkRes.ok) {
                     const data = await networkRes.json();
                     setStats(prev => ({
                         ...prev,
                         blockHeight: data.blocks || prev.blockHeight,
-                        // Fees from network-stats endpoint
                         feeHigh: data.fees?.fast ? parseFloat(data.fees.fast) : prev.feeHigh,
                         feeMed: data.fees?.medium ? parseFloat(data.fees.medium) : prev.feeMed,
                         feeLow: data.fees?.slow ? parseFloat(data.fees.slow) : prev.feeLow
                     }));
                 }
 
-                // Fetch mempool data from candidate-block or mempool-recent
-                const mempoolRes = await fetch(`${baseUrl}/api/candidate-block`);
                 if (mempoolRes.ok) {
                     const data = await mempoolRes.json();
                     setStats(prev => ({
@@ -109,7 +107,7 @@ export default function HeroMetrics() {
         };
 
         fetchStats();
-        const interval = setInterval(fetchStats, 30000); // Update every 30s
+        const interval = setInterval(fetchStats, 10000); // 10s refresh interval
         return () => clearInterval(interval);
     }, []);
 
