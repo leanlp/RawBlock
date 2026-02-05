@@ -51,7 +51,10 @@ export default function HeroMetrics() {
 
     // Fetch real stats from backend - using same API as Vitals page
     useEffect(() => {
+        let timerId: NodeJS.Timeout;
+
         const fetchStats = async () => {
+            let anySuccess = false;
             try {
                 const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -64,7 +67,6 @@ export default function HeroMetrics() {
 
                 if (vitalsRes.ok) {
                     const data = await vitalsRes.json();
-
                     setStats(prev => ({
                         ...prev,
                         blocksUntilHalving: data.halving?.blocksRemaining || prev.blocksUntilHalving,
@@ -78,7 +80,7 @@ export default function HeroMetrics() {
                             ? `${(data.difficulty.current / 1e12).toFixed(2)} T`
                             : prev.difficulty
                     }));
-                    setIsLive(true);
+                    anySuccess = true;
                 }
 
                 if (networkRes.ok) {
@@ -90,6 +92,7 @@ export default function HeroMetrics() {
                         feeMed: data.fees?.medium ? parseFloat(data.fees.medium) : prev.feeMed,
                         feeLow: data.fees?.slow ? parseFloat(data.fees.slow) : prev.feeLow
                     }));
+                    anySuccess = true;
                 }
 
                 if (mempoolRes.ok) {
@@ -99,16 +102,23 @@ export default function HeroMetrics() {
                         mempoolTx: data.transactions?.length || prev.mempoolTx,
                         mempoolSize: data.totalWeight ? Math.round(data.totalWeight / 4 / 1024) : prev.mempoolSize
                     }));
+                    anySuccess = true;
                 }
+
+                setIsLive(anySuccess);
 
             } catch (error) {
                 console.log("HeroMetrics: Backend API not available");
+                setIsLive(false);
+            } finally {
+                // SUCCESS: Wait 10 seconds.
+                // FAILURE: Retry quickly in 2 seconds to recover as soon as possible.
+                timerId = setTimeout(fetchStats, anySuccess ? 10000 : 2000);
             }
         };
 
         fetchStats();
-        const interval = setInterval(fetchStats, 10000); // 10s refresh interval
-        return () => clearInterval(interval);
+        return () => clearTimeout(timerId);
     }, []);
 
     // Simulated mempool activity animation
