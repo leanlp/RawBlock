@@ -17,7 +17,7 @@ export default function BlocksIndexPage() {
 
     useEffect(() => {
         // Reuse the miners API which returns recent blocks
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/miners`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/miners`)
             .then(res => res.json())
             .then(data => {
                 setBlocks(data.blocks);
@@ -46,8 +46,8 @@ export default function BlocksIndexPage() {
                 {loading ? (
                     <div className="text-center py-20 text-slate-500 animate-pulse">Fetching blocks...</div>
                 ) : (
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm">
-                        <table className="w-full text-left text-sm text-slate-400">
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm overflow-x-auto">
+                        <table className="w-full min-w-[600px] text-left text-sm text-slate-400">
                             <thead className="bg-slate-900/80 text-xs uppercase text-slate-500">
                                 <tr>
                                     <th className="px-6 py-3 font-medium">Height</th>

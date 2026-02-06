@@ -53,7 +53,7 @@ export default function HeroMetrics() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
                 // Fetch all endpoints in parallel
                 const [vitalsRes, networkRes, mempoolRes] = await Promise.all([

@@ -2,10 +2,19 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
+const navItems = [
+    { name: 'Dashboard', path: '/' },
+    { name: 'Mempool', path: '/explorer/mempool' },
+    { name: 'Fees', path: '/explorer/fees' },
+    { name: 'Blocks', path: '/explorer/blocks' },
+    { name: 'Forensics', path: '/analysis/forensics', highlight: true },
+];
+
 export default function Header() {
     const pathname = usePathname();
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,7 +36,49 @@ export default function Header() {
     };
 
     return (
-        <header className="py-6 border-b border-slate-800/50 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <header className="py-6 border-b border-slate-800/50 mb-8 flex flex-col md:flex-row justify-between items-center gap-4 relative">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="md:hidden absolute left-0 top-6 p-2 bg-slate-900/80 border border-slate-800 rounded-lg hover:bg-slate-800 transition-colors z-50"
+                aria-label="Toggle menu"
+            >
+                {menuOpen ? (
+                    <svg className="w-5 h-5 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                ) : (
+                    <svg className="w-5 h-5 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                )}
+            </button>
+
+            {/* Mobile Drawer */}
+            {menuOpen && (
+                <div className="md:hidden fixed inset-0 z-40 bg-slate-950/95 backdrop-blur-md animate-in fade-in duration-200">
+                    <nav className="flex flex-col items-center justify-center h-full gap-6">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.path}
+                                href={item.path}
+                                onClick={() => setMenuOpen(false)}
+                                className={`
+                                    px-6 py-3 rounded-full text-lg font-semibold transition-all
+                                    ${pathname === item.path
+                                        ? 'bg-slate-800 text-white shadow-lg'
+                                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                                    }
+                                    ${item.highlight && pathname !== item.path ? 'text-cyan-400 hover:text-cyan-300' : ''}
+                                `}
+                            >
+                                {item.name}
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
+            )}
+
             <Link href="/" className="flex items-center gap-3 group">
                 <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800 group-hover:border-slate-700 transition-colors shadow-xl shadow-black/20">
                     <span className="text-xl">⚡</span>
@@ -45,13 +96,7 @@ export default function Header() {
 
             {/* Navigation Menu */}
             <nav className="hidden md:flex items-center gap-1 bg-slate-900/50 p-1 rounded-full border border-slate-800">
-                {[
-                    { name: 'Dashboard', path: '/' },
-                    { name: 'Mempool', path: '/explorer/mempool' },
-                    { name: 'Fees', path: '/explorer/fees' },
-                    { name: 'Blocks', path: '/explorer/blocks' },
-                    { name: 'Forensics', path: '/analysis/forensics', highlight: true },
-                ].map((item) => (
+                {navItems.map((item) => (
                     <Link
                         key={item.path}
                         href={item.path}

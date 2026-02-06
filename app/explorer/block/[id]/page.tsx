@@ -29,7 +29,7 @@ export default function BlockPage() {
         if (!id) return;
         setLoading(true);
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
         // Fetch the block
         fetch(`${baseUrl}/api/block/${id}`)
@@ -146,7 +146,7 @@ export default function BlockPage() {
                                         <span className="text-slate-500 text-xs">{new Date(block.time * 1000).toLocaleString()}</span>
                                     </div>
                                     <h1 className="text-2xl md:text-4xl font-mono font-bold text-white break-all">{block.hash}</h1>
-                                    <div className="mt-4 flex gap-6 text-sm text-slate-400">
+                                    <div className="mt-4 flex flex-wrap gap-4 md:gap-6 text-sm text-slate-400">
                                         <div><span className="block text-slate-500 text-xs uppercase">Miner</span> <span className="text-slate-200">{block.miner}</span></div>
                                         <div><span className="block text-slate-500 text-xs uppercase">Size</span> <span className="text-slate-200">{formatSize(block.size)}</span></div>
                                         <div><span className="block text-slate-500 text-xs uppercase">Tx Count</span> <span className="text-slate-200">{block.txCount.toLocaleString()}</span></div>

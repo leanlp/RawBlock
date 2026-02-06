@@ -54,9 +54,9 @@ const TxNode = ({ data }: { data: { label: string, value: string, risk: number }
 
     return (
         <div className={`
-      group relative min-w-[240px] ${bgClass} backdrop-blur-xl rounded-xl border border-slate-700/50 shadow-2xl 
+      group relative min-w-[180px] md:min-w-[240px] ${bgClass} backdrop-blur-xl rounded-xl border border-slate-700/50 shadow-2xl 
       transition-all duration-700 ease-out
-      hover:scale-125 hover:z-50 hover:shadow-[0_0_40px_-5px_rgba(56,189,248,0.5)]
+      md:hover:scale-125 hover:z-50 hover:shadow-[0_0_40px_-5px_rgba(56,189,248,0.5)]
       ${isRisky ? 'border-red-500/30' : 'hover:border-cyan-500/50'}
     `}>
             {/* Glow Effect */}
@@ -122,11 +122,11 @@ const AddressNode = ({ data }: { data: { label: string, balance: string, tag?: s
     }
 
     return (
-        <div className={`
-        relative min-w-[220px] ${bgClass} backdrop-blur rounded-full border border-slate-700 shadow-xl flex items-center gap-3 p-1.5 pr-6 
+        <div className={`group
+        relative min-w-[180px] md:min-w-[220px] ${bgClass} backdrop-blur rounded-full border border-slate-700 shadow-xl flex items-center gap-3 p-1.5 pr-6 
         transition-all duration-700 ease-out
         hover:border-purple-500/50 hover:shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)]
-        hover:scale-125 hover:z-50
+        md:hover:scale-125 hover:z-50
       `}>
             {/* HOVER CARD OVERLAY */}
             <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-[280px] hidden group-hover:block z-[60] pointer-events-none">
@@ -269,6 +269,50 @@ export default function ForensicsPage() {
     // --- Context Menu State ---
     const [menu, setMenu] = useState<{ id: string, top: number, left: number, bottom?: number, right?: number } | null>(null);
     const ref = useMemo(() => ({ current: null as HTMLDivElement | null }), []);
+
+    // --- Touch Long-Press State for Mobile Context Menu ---
+    const touchStartRef = React.useRef<{ x: number; y: number; nodeId: string; timeout: NodeJS.Timeout | null }>({ x: 0, y: 0, nodeId: '', timeout: null });
+
+    const handleTouchStart = useCallback((event: React.TouchEvent, node: Node) => {
+        const touch = event.touches[0];
+        touchStartRef.current = {
+            x: touch.clientX,
+            y: touch.clientY,
+            nodeId: node.id,
+            timeout: setTimeout(() => {
+                // Long press detected - open context menu
+                const pane = ref.current?.getBoundingClientRect();
+                setMenu({
+                    id: node.id,
+                    top: touch.clientY < (pane?.height || 0) - 200 ? touch.clientY : undefined as any,
+                    bottom: touch.clientY >= (pane?.height || 0) - 200 ? (pane?.height || 0) - touch.clientY : undefined,
+                    left: touch.clientX < (pane?.width || 0) - 200 ? touch.clientX : undefined as any,
+                    right: touch.clientX >= (pane?.width || 0) - 200 ? (pane?.width || 0) - touch.clientX : undefined,
+                });
+                setSelectedNode(node);
+            }, 200) // 200ms long-press threshold
+        };
+    }, [setMenu, setSelectedNode]);
+
+    const handleTouchMove = useCallback((event: React.TouchEvent) => {
+        const touch = event.touches[0];
+        const dx = Math.abs(touch.clientX - touchStartRef.current.x);
+        const dy = Math.abs(touch.clientY - touchStartRef.current.y);
+        // Cancel if moved more than 6px
+        if (dx > 6 || dy > 6) {
+            if (touchStartRef.current.timeout) {
+                clearTimeout(touchStartRef.current.timeout);
+                touchStartRef.current.timeout = null;
+            }
+        }
+    }, []);
+
+    const handleTouchEnd = useCallback(() => {
+        if (touchStartRef.current.timeout) {
+            clearTimeout(touchStartRef.current.timeout);
+            touchStartRef.current.timeout = null;
+        }
+    }, []);
 
     const onNodeContextMenu = useCallback((event: any, node: Node) => {
         event.preventDefault();
@@ -580,23 +624,49 @@ export default function ForensicsPage() {
         document.body.removeChild(link);
     }, [nodes]);
 
-    const handleExportImage = useCallback(() => {
+    const handleExportImage = useCallback(async () => {
         const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
         if (!viewport) return;
 
         setLoading(true);
-        toPng(viewport, { backgroundColor: '#020617', style: { transform: 'scale(1)' } }) // Captures viewport
-            .then((dataUrl) => {
-                const link = document.createElement('a');
-                link.download = `forensics_graph_${Date.now()}.png`;
-                link.href = dataUrl;
-                link.click();
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error('Snapshot failed', err);
-                setLoading(false);
-            });
+        try {
+            const { toBlob } = await import('html-to-image');
+            const blob = await toBlob(viewport, { backgroundColor: '#020617' });
+
+            if (!blob) {
+                throw new Error('Failed to generate image');
+            }
+
+            const file = new File([blob], `forensics_graph_${Date.now()}.png`, { type: 'image/png' });
+
+            // Try Web Share API for mobile native sharing
+            if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                try {
+                    await navigator.share({ files: [file], title: 'Forensics Graph' });
+                } catch (shareError: any) {
+                    // User cancelled or share failed - fall back to download
+                    if (shareError.name !== 'AbortError') {
+                        downloadBlob(blob);
+                    }
+                }
+            } else {
+                // Fallback: direct download
+                downloadBlob(blob);
+            }
+        } catch (err) {
+            console.error('Snapshot failed', err);
+        } finally {
+            setLoading(false);
+        }
+
+        function downloadBlob(blob: Blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `forensics_graph_${Date.now()}.png`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
     }, []);
 
     // --- Graph Interaction ---

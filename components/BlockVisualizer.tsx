@@ -90,7 +90,7 @@ const CustomTooltip = ({ active, payload, isXRay }: any) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-            <div className="bg-slate-950/90 backdrop-blur-xl border border-cyan-500/30 ring-1 ring-cyan-500/20 p-4 rounded-lg shadow-2xl text-xs z-50 min-w-[220px]">
+            <div className="bg-slate-950/90 backdrop-blur-xl border border-cyan-500/30 ring-1 ring-cyan-500/20 p-4 rounded-lg shadow-2xl text-xs z-50 min-w-[220px] max-w-[90vw] break-words">
                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
                     <div className={`w-2 h-2 rounded-full animate-pulse ${data.isSegwit ? 'bg-teal-400' : 'bg-orange-500'}`}></div>
                     <p className="font-mono text-cyan-100 truncate w-full" title={data.txid}>{data.txid}</p>
