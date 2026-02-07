@@ -67,7 +67,7 @@ export default function BlockPage() {
     const treeMapData = block ? [
         {
             name: "Transactions",
-            children: block.transactions.slice(0, 500).map((tx, i) => ({ // Limit to 500 for perf
+            children: (block.transactions || []).slice(0, 500).map((tx, i) => ({ // Limit to 500 for perf
                 name: tx.txid.substring(0, 6) + "...",
                 size: tx.weight, // Rect size = weight
                 fee: tx.fee, // For tooltip
@@ -149,8 +149,8 @@ export default function BlockPage() {
                                     <div className="mt-4 flex flex-wrap gap-4 md:gap-6 text-sm text-slate-400">
                                         <div><span className="block text-slate-500 text-xs uppercase">Miner</span> <span className="text-slate-200">{block.miner}</span></div>
                                         <div><span className="block text-slate-500 text-xs uppercase">Size</span> <span className="text-slate-200">{formatSize(block.size)}</span></div>
-                                        <div><span className="block text-slate-500 text-xs uppercase">Tx Count</span> <span className="text-slate-200">{block.txCount.toLocaleString()}</span></div>
-                                        <div><span className="block text-slate-500 text-xs uppercase">Reward</span> <span className="text-slate-200 text-yellow-500">{block.reward.toFixed(8)} BTC</span></div>
+                                        <div><span className="block text-slate-500 text-xs uppercase">Tx Count</span> <span className="text-slate-200">{(block.txCount ?? 0).toLocaleString()}</span></div>
+                                        <div><span className="block text-slate-500 text-xs uppercase">Reward</span> <span className="text-slate-200 text-yellow-500">{(block.reward ?? 0).toFixed(8)} BTC</span></div>
                                     </div>
                                 </div>
 
@@ -175,41 +175,43 @@ export default function BlockPage() {
                         </motion.div>
 
                         {/* Block DNA Visualization */}
-                        <div className="space-y-4">
-                            <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500 inline-block">
-                                Block DNA (TreeMap)
-                            </h2>
-                            <p className="text-slate-500 text-sm max-w-2xl">
-                                Visualizing the Top 500 transactions packed into this block. Size represents weight (vBytes).
-                                Green = SegWit, Amber = Legacy.
-                            </p>
+                        {block.transactions && block.transactions.length > 0 && (
+                            <div className="space-y-4">
+                                <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500 inline-block">
+                                    Block DNA (TreeMap)
+                                </h2>
+                                <p className="text-slate-500 text-sm max-w-2xl">
+                                    Visualizing the Top 500 transactions packed into this block. Size represents weight (vBytes).
+                                    Green = SegWit, Amber = Legacy.
+                                </p>
 
-                            <div className="h-[500px] w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <Treemap
-                                        data={treeMapData}
-                                        dataKey="size"
-                                        aspectRatio={4 / 3}
-                                        stroke="#1e293b"
-                                        content={<CustomizedContent />}
-                                    >
-                                        <Tooltip
-                                            content={({ payload }) => {
-                                                if (!payload || !payload.length) return null;
-                                                const data = payload[0].payload;
-                                                return (
-                                                    <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl text-xs">
-                                                        <div className="font-mono text-slate-300 mb-1">TXID: {data.name}</div>
-                                                        <div className="text-slate-400">Weight: <span className="text-white">{data.size} wu</span></div>
-                                                        <div className="text-slate-400">Type: <span className={data.isSegwit ? "text-emerald-400" : "text-amber-400"}>{data.isSegwit ? "SegWit (Efficient)" : "Legacy (Heavy)"}</span></div>
-                                                    </div>
-                                                );
-                                            }}
-                                        />
-                                    </Treemap>
-                                </ResponsiveContainer>
+                                <div className="h-[500px] w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <Treemap
+                                            data={treeMapData}
+                                            dataKey="size"
+                                            aspectRatio={4 / 3}
+                                            stroke="#1e293b"
+                                            content={<CustomizedContent />}
+                                        >
+                                            <Tooltip
+                                                content={({ payload }) => {
+                                                    if (!payload || !payload.length) return null;
+                                                    const data = payload[0].payload;
+                                                    return (
+                                                        <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl text-xs">
+                                                            <div className="font-mono text-slate-300 mb-1">TXID: {data.name}</div>
+                                                            <div className="text-slate-400">Weight: <span className="text-white">{data.size} wu</span></div>
+                                                            <div className="text-slate-400">Type: <span className={data.isSegwit ? "text-emerald-400" : "text-amber-400"}>{data.isSegwit ? "SegWit (Efficient)" : "Legacy (Heavy)"}</span></div>
+                                                        </div>
+                                                    );
+                                                }}
+                                            />
+                                        </Treemap>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </>
                 )}
             </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import Link from "next/link";
+import Card, { MetricValue, PanelHeader } from "./Card";
 
 interface NetworkStats {
     blockHeight: number;
@@ -49,13 +49,12 @@ export default function HeroMetrics() {
         return Math.floor(minutes / 60 / 24);
     };
 
-    // Fetch real stats from backend - using same API as Vitals page
+    // Fetch real stats from backend
     useEffect(() => {
         const fetchStats = async () => {
             try {
                 const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-                // Fetch all endpoints in parallel
                 const [vitalsRes, networkRes, mempoolRes] = await Promise.all([
                     fetch(`${baseUrl}/api/vitals`),
                     fetch(`${baseUrl}/api/network-stats`),
@@ -64,7 +63,6 @@ export default function HeroMetrics() {
 
                 if (vitalsRes.ok) {
                     const data = await vitalsRes.json();
-
                     setStats(prev => ({
                         ...prev,
                         blocksUntilHalving: data.halving?.blocksRemaining || prev.blocksUntilHalving,
@@ -107,7 +105,7 @@ export default function HeroMetrics() {
         };
 
         fetchStats();
-        const interval = setInterval(fetchStats, 10000); // 10s refresh interval
+        const interval = setInterval(fetchStats, 10000);
         return () => clearInterval(interval);
     }, []);
 
@@ -134,72 +132,54 @@ export default function HeroMetrics() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr">
                 {/* Block Height */}
                 <Link href="/explorer/blocks">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 sm:p-4 lg:p-5 text-center hover:border-cyan-500/50 transition-all group cursor-pointer min-h-[110px] sm:min-h-[120px] flex flex-col justify-center overflow-hidden"
-                    >
-                        <div className="text-lg sm:text-xl lg:text-2xl mb-1">📦</div>
-                        <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 group-hover:text-cyan-400 transition-colors truncate">
-                            {stats.blockHeight > 0 ? stats.blockHeight.toLocaleString() : "---"}
-                        </div>
-                        <div className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider">Block Height</div>
-                        <div className="text-[9px] text-slate-600 mt-1 hidden lg:block">{stats.lastBlockTime}</div>
-                    </motion.div>
+                    <Card variant="metric" accent="cyan" onClick={() => { }}>
+                        <MetricValue
+                            icon="📦"
+                            value={stats.blockHeight > 0 ? stats.blockHeight.toLocaleString() : "---"}
+                            label="Block Height"
+                            sublabel={stats.lastBlockTime}
+                            accent="cyan"
+                        />
+                    </Card>
                 </Link>
 
                 {/* Hashrate */}
                 <Link href="/explorer/vitals">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 sm:p-4 lg:p-5 text-center hover:border-orange-500/50 transition-all group cursor-pointer min-h-[110px] sm:min-h-[120px] flex flex-col justify-center overflow-hidden"
-                    >
-                        <div className="text-lg sm:text-xl lg:text-2xl mb-1">⛏️</div>
-                        <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-black text-white mb-1 group-hover:text-orange-400 transition-colors truncate">
-                            {stats.hashrate}
-                        </div>
-                        <div className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider">Hashrate</div>
-                        <div className="text-[9px] text-slate-600 mt-1 hidden lg:block">Network Security</div>
-                    </motion.div>
+                    <Card variant="metric" accent="orange" onClick={() => { }}>
+                        <MetricValue
+                            icon="⛏️"
+                            value={stats.hashrate}
+                            label="Hashrate"
+                            sublabel="Network Security"
+                            accent="orange"
+                        />
+                    </Card>
                 </Link>
 
                 {/* Mempool */}
                 <Link href="/explorer/mempool">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 sm:p-4 lg:p-5 text-center hover:border-blue-500/50 transition-all group cursor-pointer min-h-[110px] sm:min-h-[120px] flex flex-col justify-center overflow-hidden"
-                    >
-                        <div className="text-lg sm:text-xl lg:text-2xl mb-1">🌊</div>
-                        <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 group-hover:text-blue-400 transition-colors truncate">
-                            {stats.mempoolTx > 0 ? stats.mempoolTx.toLocaleString() : "---"}
-                        </div>
-                        <div className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider">Pending TXs</div>
-                        <div className="text-[9px] text-slate-600 mt-1 hidden lg:block">{stats.mempoolSize > 0 ? `${stats.mempoolSize} MB` : "..."}</div>
-                    </motion.div>
+                    <Card variant="metric" accent="blue" onClick={() => { }}>
+                        <MetricValue
+                            icon="🌊"
+                            value={stats.mempoolTx > 0 ? stats.mempoolTx.toLocaleString() : "---"}
+                            label="Pending TXs"
+                            sublabel={stats.mempoolSize > 0 ? `${stats.mempoolSize} MB` : "..."}
+                            accent="blue"
+                        />
+                    </Card>
                 </Link>
 
                 {/* Halving */}
                 <Link href="/explorer/vitals">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 sm:p-4 lg:p-5 text-center hover:border-violet-500/50 transition-all group cursor-pointer min-h-[110px] sm:min-h-[120px] flex flex-col justify-center overflow-hidden"
-                    >
-                        <div className="text-lg sm:text-xl lg:text-2xl mb-1">⏳</div>
-                        <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 group-hover:text-violet-400 transition-colors truncate">
-                            {stats.daysUntilHalving > 0 ? stats.daysUntilHalving : "---"}
-                        </div>
-                        <div className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider whitespace-nowrap">Days to Halving</div>
-                        <div className="text-[9px] text-slate-600 mt-1 hidden lg:block truncate">
-                            {stats.blocksUntilHalving > 0 ? `~${stats.blocksUntilHalving.toLocaleString()} blocks` : "..."}
-                        </div>
-                    </motion.div>
+                    <Card variant="metric" accent="violet" onClick={() => { }}>
+                        <MetricValue
+                            icon="⏳"
+                            value={stats.daysUntilHalving > 0 ? stats.daysUntilHalving : "---"}
+                            label="Days to Halving"
+                            sublabel={stats.blocksUntilHalving > 0 ? `~${stats.blocksUntilHalving.toLocaleString()} blocks` : "..."}
+                            accent="violet"
+                        />
+                    </Card>
                 </Link>
             </div>
 
@@ -207,13 +187,8 @@ export default function HeroMetrics() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Fee Bands */}
                 <Link href="/explorer/fees" className="block w-full h-full">
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="bg-slate-900/40 border border-slate-800 rounded-xl p-4 cursor-pointer hover:border-slate-600 transition-colors h-full"
-                    >
-                        <div className="text-xs text-slate-500 uppercase tracking-widest mb-3">Fee Market (sat/vB)</div>
+                    <Card variant="panel" className="h-full" onClick={() => { }}>
+                        <PanelHeader>Fee Market (sat/vB)</PanelHeader>
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -243,34 +218,27 @@ export default function HeroMetrics() {
                                 </span>
                             </div>
                         </div>
-                    </motion.div>
+                    </Card>
                 </Link>
 
                 {/* Live Mempool Feed */}
                 <Link href="/explorer/mempool" className="block w-full h-full">
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.6 }}
-                        className="bg-slate-900/40 border border-slate-800 rounded-xl p-4 cursor-pointer hover:border-slate-600 transition-colors h-full"
-                    >
-                        <div className="text-xs text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
+                    <Card variant="panel" className="h-full" onClick={() => { }}>
+                        <PanelHeader icon={<div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />}>
                             Live Mempool Stream
-                        </div>
+                        </PanelHeader>
                         <div className="space-y-1 font-mono text-xs h-[72px] overflow-hidden">
                             {recentTxs.map((tx, i) => (
-                                <motion.div
+                                <div
                                     key={`${tx}-${i}`}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1 - i * 0.15, x: 0 }}
                                     className="text-cyan-400/70 truncate"
+                                    style={{ opacity: 1 - i * 0.15 }}
                                 >
                                     <span className="text-slate-600">TX:</span> {tx}...{Math.random().toString(36).substring(2, 6)}
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
-                    </motion.div>
+                    </Card>
                 </Link>
             </div>
         </div>

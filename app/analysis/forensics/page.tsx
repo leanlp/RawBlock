@@ -1505,6 +1505,29 @@ export default function ForensicsPage() {
                             />
                         </div>
 
+                        {/* Mobile Node Actions Button (Visible when node is selected) */}
+                        {selectedNode && (
+                            <div className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                <button
+                                    onClick={() => {
+                                        // Open context menu at bottom center
+                                        const rect = ref.current?.getBoundingClientRect();
+                                        setMenu({
+                                            id: selectedNode.id,
+                                            top: undefined as any,
+                                            bottom: 120,
+                                            left: (rect?.width || 300) / 2 - 80,
+                                            right: undefined
+                                        });
+                                    }}
+                                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold rounded-full shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all active:scale-95"
+                                >
+                                    <Network size={18} />
+                                    <span>Node Actions</span>
+                                </button>
+                            </div>
+                        )}
+
 
 
                         {/* Context Menu */}
