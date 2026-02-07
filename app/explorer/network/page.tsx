@@ -102,7 +102,23 @@ export default function NetworkPage() {
 
                     {!loading && error && <ErrorState message={error} onRetry={fetchPeers} />}
 
-                    {!loading && !error && (
+                    {!loading && !error && peers.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="text-6xl mb-4">🌍</div>
+                            <h3 className="text-xl font-bold text-white mb-2">No Peers Found</h3>
+                            <p className="text-slate-400 max-w-md mx-auto mb-8">
+                                Your node doesn't seem to be connected to any peers. Check your network connection.
+                            </p>
+                            <button
+                                onClick={fetchPeers}
+                                className="px-6 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-200 transition-colors"
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    )}
+
+                    {!loading && !error && peers.length > 0 && (
                         <>
                             <div className="relative">
                                 <PeerMap

@@ -238,6 +238,15 @@ export default function ForensicsPage() {
     const [loading, setLoading] = useState(false);
     const [selectedNodeData, setSelectedNodeData] = useState<any>(null);
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+    const [notification, setNotification] = useState<{ type: 'error' | 'success', message: string } | null>(null);
+
+    // Auto-dismiss notification
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => setNotification(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
 
     // --- Helper: Edge Styling ---
     const getEdgeStyle = useCallback((amount: number) => {
@@ -386,7 +395,7 @@ export default function ForensicsPage() {
             return data;
         } catch (e: any) {
             console.error("Fetch Error", e);
-            alert("Failed to fetch data: " + e.message);
+            setNotification({ type: 'error', message: "Failed to fetch data: " + e.message });
             return null;
         } finally {
             setLoading(false);
@@ -396,10 +405,9 @@ export default function ForensicsPage() {
     const handleSearch = async () => {
         if (!searchQuery) return;
 
-        // Prevent Duplicate Nodes (Crash Fix)
         const exists = nodes.find(n => n.id === searchQuery);
         if (exists) {
-            alert("Node already in workspace");
+            setNotification({ type: 'error', message: "Node already in workspace" });
             setSelectedNode(exists);
             return;
         }
@@ -765,7 +773,7 @@ export default function ForensicsPage() {
             return newNodes;
         } catch (e: any) {
             console.error("Trace Logic Failed:", e);
-            alert(`Trace Failed: ${e.message}`);
+            setNotification({ type: 'error', message: `Trace Failed: ${e.message}` });
         }
     }, [nodes, edges, setNodes, setEdges]);
 
@@ -991,7 +999,7 @@ export default function ForensicsPage() {
             } catch (e) { console.warn("Static fetch fail", e); }
 
             if (!data) {
-                alert("Could not load case study data. Static files missing.");
+                setNotification({ type: 'error', message: "Could not load case study. Static files missing." });
                 return;
             }
 
@@ -1341,7 +1349,7 @@ export default function ForensicsPage() {
             setSelectedNodeData((prev: any) => ({ ...prev, risk: riskLevel }));
         }
 
-        alert(`Taint Simulation: Propagated High Risk to ${visited.size - 1} downstream nodes.`);
+        setNotification({ type: 'success', message: `Taint Simulation: Propagated High Risk to ${visited.size - 1} downstream nodes.` });
     };
 
     // 2. Export Evidence
@@ -1373,6 +1381,18 @@ export default function ForensicsPage() {
                     gradient="from-cyan-400 to-blue-500"
                 />
             </div>
+
+            {/* Notifications */}
+            {notification && (
+                <div className={`
+                    absolute top-32 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300
+                    ${notification.type === 'error' ? 'bg-red-500/10 border border-red-500/50 text-red-200' : 'bg-emerald-500/10 border border-emerald-500/50 text-emerald-200'}
+                    backdrop-blur-xl
+                `}>
+                    {notification.type === 'error' ? <ShieldAlert size={20} /> : <ShieldAlert size={20} />}
+                    <span className="font-semibold">{notification.message}</span>
+                </div>
+            )}
 
             {/* Case Studies Floating Dock (Adjusted Top) */}
             <div className="absolute top-48 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">

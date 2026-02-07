@@ -305,7 +305,7 @@ function DecoderContent() {
                                     INPUTS ({result.vin.length})
                                 </h3>
                                 <div className="space-y-2">
-                                    {result.vin.map((vin, i) => (
+                                    {result.vin.slice(0, 50).map((vin, i) => (
                                         <div key={i} className="bg-slate-900/40 border border-slate-800/60 rounded-lg p-3 hover:border-slate-700 transition-colors group">
                                             <div className="flex justify-between items-start mb-2">
                                                 <span className="text-[10px] font-mono text-slate-600">#{i}</span>
@@ -339,6 +339,11 @@ function DecoderContent() {
                                             )}
                                         </div>
                                     ))}
+                                    {result.vin.length > 50 && (
+                                        <div className="text-center text-xs text-slate-500 italic py-2">
+                                            Showing 50 of {result.vin.length} inputs
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -349,7 +354,7 @@ function DecoderContent() {
                                     OUTPUTS ({result.vout.length})
                                 </h3>
                                 <div className="space-y-2">
-                                    {result.vout.map((vout, i) => (
+                                    {result.vout.slice(0, 50).map((vout, i) => (
                                         <div key={i} className="bg-slate-900/40 border border-slate-800/60 rounded-lg p-3 hover:border-slate-700 transition-colors">
                                             <div className="flex justify-between items-start mb-2">
                                                 <span className="text-[10px] font-mono text-slate-600">#{i}</span>
@@ -365,12 +370,17 @@ function DecoderContent() {
 
                                             <div>
                                                 <div className="text-[10px] text-slate-600 mb-1">SCRIPT PUBKEY (ASM)</div>
-                                                <div className="text-[10px] font-mono text-slate-500 break-all bg-slate-950/50 p-2 rounded border border-slate-800/30">
+                                                <div className="text-xs font-mono text-slate-500 break-all bg-slate-950/50 p-2 rounded border border-slate-800/30">
                                                     <InteractiveScript asm={vout.scriptPubKey.asm} />
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
+                                    {result.vout.length > 50 && (
+                                        <div className="text-center text-xs text-slate-500 italic py-2">
+                                            Showing 50 of {result.vout.length} outputs
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

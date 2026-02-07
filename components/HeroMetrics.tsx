@@ -52,55 +52,67 @@ export default function HeroMetrics() {
     // Fetch real stats from backend
     useEffect(() => {
         const fetchStats = async () => {
-            try {
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-                const [vitalsRes, networkRes, mempoolRes] = await Promise.all([
+            try {
+                const results = await Promise.allSettled([
                     fetch(`${baseUrl}/api/vitals`),
                     fetch(`${baseUrl}/api/network-stats`),
                     fetch(`${baseUrl}/api/candidate-block`)
                 ]);
 
-                if (vitalsRes.ok) {
-                    const data = await vitalsRes.json();
-                    setStats(prev => ({
-                        ...prev,
-                        blocksUntilHalving: data.halving?.blocksRemaining || prev.blocksUntilHalving,
-                        daysUntilHalving: data.halving?.blocksRemaining
-                            ? blocksToDays(data.halving.blocksRemaining)
-                            : prev.daysUntilHalving,
-                        hashrate: data.difficulty?.networkHashps
-                            ? formatHashrate(data.difficulty.networkHashps)
-                            : prev.hashrate,
-                        difficulty: data.difficulty?.current
-                            ? `${(data.difficulty.current / 1e12).toFixed(2)} T`
-                            : prev.difficulty
-                    }));
-                    setIsLive(true);
+                const [vitalsRes, networkRes, mempoolRes] = results;
+
+                // Handle Vitals
+                if (vitalsRes.status === 'fulfilled' && vitalsRes.value.ok) {
+                    try {
+                        const data = await vitalsRes.value.json();
+                        setStats(prev => ({
+                            ...prev,
+                            blocksUntilHalving: data.halving?.blocksRemaining ?? prev.blocksUntilHalving,
+                            daysUntilHalving: data.halving?.blocksRemaining
+                                ? blocksToDays(data.halving.blocksRemaining)
+                                : prev.daysUntilHalving,
+                            hashrate: data.difficulty?.networkHashps
+                                ? formatHashrate(data.difficulty.networkHashps)
+                                : prev.hashrate,
+                            difficulty: data.difficulty?.current
+                                ? `${(data.difficulty.current / 1e12).toFixed(2)} T`
+                                : prev.difficulty
+                        }));
+                        setIsLive(true);
+                    } catch (e) { console.error("Vitals parse error", e); }
                 }
 
-                if (networkRes.ok) {
-                    const data = await networkRes.json();
-                    setStats(prev => ({
-                        ...prev,
-                        blockHeight: data.blocks || prev.blockHeight,
-                        feeHigh: data.fees?.fast ? parseFloat(data.fees.fast) : prev.feeHigh,
-                        feeMed: data.fees?.medium ? parseFloat(data.fees.medium) : prev.feeMed,
-                        feeLow: data.fees?.slow ? parseFloat(data.fees.slow) : prev.feeLow
-                    }));
+                // Handle Network Stats
+                if (networkRes.status === 'fulfilled' && networkRes.value.ok) {
+                    try {
+                        const data = await networkRes.value.json();
+                        setStats(prev => ({
+                            ...prev,
+                            blockHeight: data.blocks ?? prev.blockHeight,
+                            feeHigh: data.fees?.fast ? parseFloat(data.fees.fast) : prev.feeHigh,
+                            feeMed: data.fees?.medium ? parseFloat(data.fees.medium) : prev.feeMed,
+                            feeLow: data.fees?.slow ? parseFloat(data.fees.slow) : prev.feeLow
+                        }));
+                        setIsLive(true); // At least one successful
+                    } catch (e) { console.error("Network parse error", e); }
                 }
 
-                if (mempoolRes.ok) {
-                    const data = await mempoolRes.json();
-                    setStats(prev => ({
-                        ...prev,
-                        mempoolTx: data.transactions?.length || prev.mempoolTx,
-                        mempoolSize: data.totalWeight ? Math.round(data.totalWeight / 4 / 1024) : prev.mempoolSize
-                    }));
+                // Handle Mempool
+                if (mempoolRes.status === 'fulfilled' && mempoolRes.value.ok) {
+                    try {
+                        const data = await mempoolRes.value.json();
+                        setStats(prev => ({
+                            ...prev,
+                            mempoolTx: data.transactions?.length ?? prev.mempoolTx,
+                            mempoolSize: data.totalWeight ? Math.round(data.totalWeight / 4 / 1024) : prev.mempoolSize
+                        }));
+                    } catch (e) { console.error("Mempool parse error", e); }
                 }
 
             } catch (error) {
-                console.log("HeroMetrics: Backend API not available");
+                console.log("HeroMetrics: Backend API error", error);
             }
         };
 

@@ -74,7 +74,7 @@ export default function MinersPage() {
 
                 {!loading && error && <ErrorState message={error} onRetry={fetchData} />}
 
-                {!loading && !error && !data && (
+                {!loading && !error && (!data || !data.blocks || data.blocks.length === 0) && (
                     <EmptyState
                         icon="⛏️"
                         title="No Miner Data"

@@ -201,7 +201,7 @@ export default function BlockVisualizer() {
             <div className="relative group">
                 <div className={`absolute -inset-0.5 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-1000 ${isXRay ? 'bg-gradient-to-r from-teal-500/20 to-orange-500/20' : 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20'}`}></div>
                 <div className="relative h-[320px] w-full bg-slate-950/50 backdrop-blur-md border border-cyan-500/10 rounded-xl overflow-hidden shadow-2xl">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                         <Treemap
                             data={vizData}
                             dataKey="value"

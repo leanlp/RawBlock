@@ -199,7 +199,7 @@ export default function MempoolVisualizer() {
                 >
                     {mode === 'treemap' && (
                         <div className="w-full h-96 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                                 <Treemap
                                     data={vizData}
                                     dataKey="value"
@@ -213,7 +213,7 @@ export default function MempoolVisualizer() {
                                             return (
                                                 <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs font-mono shadow-xl">
                                                     <p className="text-cyan-400 mb-1 truncate max-w-xs">{data.txid}</p>
-                                                    <p className="text-slate-300">Fee Rate: <span className="text-purple-400 font-bold">{data.feeRate.toFixed(2)} sat/vB</span></p>
+                                                    <p className="text-slate-300">Fee Rate: <span className="text-purple-400 font-bold">{(data.feeRate || 0).toFixed(2)} sat/vB</span></p>
                                                     <p className="text-slate-300">Weight: <span className="text-blue-400 font-bold">{data.weight.toLocaleString()}</span></p>
                                                     <p className="text-slate-300">Fee: <span className="text-emerald-400 font-bold">{(data.fee / 100000000).toFixed(8)} BTC</span></p>
                                                 </div>
