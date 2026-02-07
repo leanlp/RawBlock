@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Header from "../../../../components/Header";
+import PageHeader from "../../../../components/PageHeader";
+import Card from "../../../../components/Card";
 import { motion } from "framer-motion";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 
@@ -29,7 +31,7 @@ export default function BlockPage() {
         if (!id) return;
         setLoading(true);
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
         // Fetch the block
         fetch(`${baseUrl}/api/block/${id}`)
@@ -67,7 +69,7 @@ export default function BlockPage() {
     const treeMapData = block ? [
         {
             name: "Transactions",
-            children: block.transactions.slice(0, 500).map((tx, i) => ({ // Limit to 500 for perf
+            children: (block.transactions || []).slice(0, 500).map((tx, i) => ({ // Limit to 500 for perf
                 name: tx.txid.substring(0, 6) + "...",
                 size: tx.weight, // Rect size = weight
                 fee: tx.fee, // For tooltip
@@ -129,87 +131,95 @@ export default function BlockPage() {
                     </div>
                 ) : (
                     <>
-                        {/* Cinematic Header */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-10 relative overflow-hidden"
-                        >
-                            <div className="absolute top-0 right-0 p-4 text-[100px] font-bold text-slate-800/20 leading-none select-none -z-10">
-                                {block.height}
-                            </div>
-
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="bg-blue-500/20 text-blue-400 text-xs font-bold px-2 py-1 rounded">BLOCK {block.height}</span>
-                                        <span className="text-slate-500 text-xs">{new Date(block.time * 1000).toLocaleString()}</span>
-                                    </div>
-                                    <h1 className="text-2xl md:text-4xl font-mono font-bold text-white break-all">{block.hash}</h1>
-                                    <div className="mt-4 flex gap-6 text-sm text-slate-400">
-                                        <div><span className="block text-slate-500 text-xs uppercase">Miner</span> <span className="text-slate-200">{block.miner}</span></div>
-                                        <div><span className="block text-slate-500 text-xs uppercase">Size</span> <span className="text-slate-200">{formatSize(block.size)}</span></div>
-                                        <div><span className="block text-slate-500 text-xs uppercase">Tx Count</span> <span className="text-slate-200">{block.txCount.toLocaleString()}</span></div>
-                                        <div><span className="block text-slate-500 text-xs uppercase">Reward</span> <span className="text-slate-200 text-yellow-500">{block.reward.toFixed(8)} BTC</span></div>
-                                    </div>
-                                </div>
-
+                        {/* Standardized Header */}
+                        <PageHeader
+                            title={`Block #${block.height}`}
+                            subtitle={block.hash}
+                            icon="📦"
+                            gradient="from-blue-400 to-indigo-500"
+                            actions={
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => router.push(`/explorer/block/${block.height - 1}`)}
                                         disabled={block.height <= 0}
-                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm transition-colors flex items-center gap-2"
+                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
                                     >
                                         ← Prev
                                     </button>
                                     <button
                                         onClick={() => !isLatestBlock && router.push(`/explorer/block/${block.height + 1}`)}
                                         disabled={isLatestBlock}
-                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm transition-colors flex items-center gap-2"
+                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
                                         title={isLatestBlock ? "This is the latest block" : ""}
                                     >
                                         {isLatestBlock ? "Latest" : "Next →"}
                                     </button>
                                 </div>
+                            }
+                        />
+
+                        {/* Block Details Card */}
+                        <Card variant="panel" className="mb-8">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-2">
+                                <div>
+                                    <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Mined By</div>
+                                    <div className="text-slate-200 font-mono text-sm truncate" title={block.miner}>{block.miner}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Time</div>
+                                    <div className="text-slate-200 font-mono text-sm">{new Date(block.time * 1000).toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Stats</div>
+                                    <div className="text-slate-200 font-mono text-sm">
+                                        <span className="text-slate-400">Size:</span> {formatSize(block.size)} <span className="text-slate-600">|</span> <span className="text-slate-400">Tx:</span> {(block.txCount ?? 0).toLocaleString()}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Reward</div>
+                                    <div className="text-emerald-400 font-mono font-bold text-sm">{(block.reward ?? 0).toFixed(8)} BTC</div>
+                                </div>
                             </div>
-                        </motion.div>
+                        </Card>
 
                         {/* Block DNA Visualization */}
-                        <div className="space-y-4">
-                            <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500 inline-block">
-                                Block DNA (TreeMap)
-                            </h2>
-                            <p className="text-slate-500 text-sm max-w-2xl">
-                                Visualizing the Top 500 transactions packed into this block. Size represents weight (vBytes).
-                                Green = SegWit, Amber = Legacy.
-                            </p>
+                        {block.transactions && block.transactions.length > 0 && (
+                            <div className="space-y-4">
+                                <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500 inline-block">
+                                    Block DNA (TreeMap)
+                                </h2>
+                                <p className="text-slate-500 text-sm max-w-2xl">
+                                    Visualizing the Top 500 transactions packed into this block. Size represents weight (vBytes).
+                                    Green = SegWit, Amber = Legacy.
+                                </p>
 
-                            <div className="h-[500px] w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <Treemap
-                                        data={treeMapData}
-                                        dataKey="size"
-                                        aspectRatio={4 / 3}
-                                        stroke="#1e293b"
-                                        content={<CustomizedContent />}
-                                    >
-                                        <Tooltip
-                                            content={({ payload }) => {
-                                                if (!payload || !payload.length) return null;
-                                                const data = payload[0].payload;
-                                                return (
-                                                    <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl text-xs">
-                                                        <div className="font-mono text-slate-300 mb-1">TXID: {data.name}</div>
-                                                        <div className="text-slate-400">Weight: <span className="text-white">{data.size} wu</span></div>
-                                                        <div className="text-slate-400">Type: <span className={data.isSegwit ? "text-emerald-400" : "text-amber-400"}>{data.isSegwit ? "SegWit (Efficient)" : "Legacy (Heavy)"}</span></div>
-                                                    </div>
-                                                );
-                                            }}
-                                        />
-                                    </Treemap>
-                                </ResponsiveContainer>
+                                <div className="h-[500px] w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <Treemap
+                                            data={treeMapData}
+                                            dataKey="size"
+                                            aspectRatio={4 / 3}
+                                            stroke="#1e293b"
+                                            content={<CustomizedContent />}
+                                        >
+                                            <Tooltip
+                                                content={({ payload }) => {
+                                                    if (!payload || !payload.length) return null;
+                                                    const data = payload[0].payload;
+                                                    return (
+                                                        <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl text-xs">
+                                                            <div className="font-mono text-slate-300 mb-1">TXID: {data.name}</div>
+                                                            <div className="text-slate-400">Weight: <span className="text-white">{data.size} wu</span></div>
+                                                            <div className="text-slate-400">Type: <span className={data.isSegwit ? "text-emerald-400" : "text-amber-400"}>{data.isSegwit ? "SegWit (Efficient)" : "Legacy (Heavy)"}</span></div>
+                                                        </div>
+                                                    );
+                                                }}
+                                            />
+                                        </Treemap>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </>
                 )}
             </div>

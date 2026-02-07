@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { LoadingState, ErrorState } from "../../../components/EmptyState";
 
 interface FeeEntry {
     timestamp: number; // API returns 'timestamp', not 'time'
@@ -23,38 +24,55 @@ export default function FeesPage() {
     const [history, setHistory] = useState<FeeEntry[]>([]);
     const [current, setCurrent] = useState<CurrentFees | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        // Fetch History
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/fee-history`)
-            .then(res => res.json())
-            .then(data => {
-                // Normalize data: ensure 'time' exists (backend might send 'timestamp')
+    const fetchData = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+            const [historyRes, currentRes] = await Promise.allSettled([
+                fetch(`${baseUrl}/api/fee-history`),
+                fetch(`${baseUrl}/api/network-stats`)
+            ]);
+
+            if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
+                const data = await historyRes.value.json();
                 const normalized = data.map((entry: any) => ({
                     ...entry,
                     time: entry.time || entry.timestamp,
                     timestamp: entry.timestamp || entry.time
                 }));
                 setHistory(normalized);
-            });
+            }
 
-        // Fetch Current Stats
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/network-stats`)
-            .then(res => res.json())
-            .then(data => {
+            if (currentRes.status === 'fulfilled' && currentRes.value.ok) {
+                const data = await currentRes.value.json();
                 setCurrent(data.fees);
-                setLoading(false);
-            });
+            } else if (currentRes.status === 'rejected') {
+                throw new Error("Failed to fetch fee data");
+            }
 
-        // Setup simple refresh
+            setLoading(false);
+        } catch (err) {
+            console.error(err);
+            setError("Unable to load fee market data. The API might be offline.");
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+
         const interval = setInterval(() => {
-            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/network-stats`)
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+            fetch(`${baseUrl}/api/network-stats`)
                 .then(res => res.json())
-                .then(data => setCurrent(data.fees));
-        }, 10000); // 10s refresh for dashboard feel
+                .then(data => setCurrent(data.fees))
+                .catch(() => { });
+        }, 10000);
 
         return () => clearInterval(interval);
-
     }, []);
 
     // Format time for chart
@@ -62,10 +80,10 @@ export default function FeesPage() {
         return new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
-    const getGaugeColor = (val: number) => {
-        if (val < 10) return "text-emerald-400";
-        if (val < 50) return "text-amber-400";
-        return "text-red-500";
+    // Helper to format fee value safely
+    const formatFee = (val: string | number | undefined) => {
+        if (val === undefined || val === null) return "---";
+        return val;
     };
 
     return (
@@ -82,29 +100,31 @@ export default function FeesPage() {
                     </div>
                 </div>
 
-                {loading ? (
-                    <div className="text-center py-20 text-slate-500 animate-pulse">Analyzing mempool dynamics...</div>
-                ) : (
+                {loading && <LoadingState message="Analyzing mempool dynamics..." />}
+
+                {!loading && error && <ErrorState message={error} onRetry={fetchData} />}
+
+                {!loading && !error && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Priority Cards */}
                         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Economy (Low Priority)</h3>
-                            <div className="text-4xl font-black text-slate-200">{current?.slow} <span className="text-lg font-medium text-slate-500">sat/vB</span></div>
+                            <div className="text-4xl font-black text-slate-200">{formatFee(current?.slow)} <span className="text-lg font-medium text-slate-500">sat/vB</span></div>
                             <p className="text-xs text-slate-400 mt-2">~1 Hour Confirmation</p>
                         </div>
 
                         <div className="bg-slate-900/50 border border-amber-500/20 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Standard (Recommended)</h3>
-                            <div className="text-5xl font-black text-amber-400">{current?.medium} <span className="text-lg font-medium text-amber-500/70">sat/vB</span></div>
+                            <div className="text-5xl font-black text-amber-400">{formatFee(current?.medium)} <span className="text-lg font-medium text-amber-500/70">sat/vB</span></div>
                             <p className="text-xs text-slate-400 mt-2">~30 Min Confirmation</p>
                         </div>
 
                         <div className="bg-slate-900/50 border border-red-500/20 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Express (Next Block)</h3>
-                            <div className="text-4xl font-black text-red-400">{current?.fast} <span className="text-lg font-medium text-red-500/70">sat/vB</span></div>
+                            <div className="text-4xl font-black text-red-400">{formatFee(current?.fast)} <span className="text-lg font-medium text-red-500/70">sat/vB</span></div>
                             <p className="text-xs text-slate-400 mt-2">~10 Min Confirmation</p>
                         </div>
 
@@ -120,7 +140,7 @@ export default function FeesPage() {
                             </div>
 
                             <div className="h-[350px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                                     <AreaChart data={history}>
                                         <defs>
                                             <linearGradient id="colorSlow" x1="0" y1="0" x2="0" y2="1">

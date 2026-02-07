@@ -139,7 +139,7 @@ export default function Sidebar() {
             {/* Mobile Hamburger Button */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-slate-900/90 backdrop-blur-sm border border-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:text-cyan-400 transition-colors"
+                className="md:hidden fixed top-4 left-4 z-[60] w-10 h-10 bg-slate-900/90 backdrop-blur-sm border border-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:text-cyan-400 transition-colors"
                 aria-label="Toggle menu"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

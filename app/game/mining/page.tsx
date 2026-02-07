@@ -169,7 +169,7 @@ export default function MiningSimPage() {
 
                 {/* GRAPH */}
                 <div className="h-64 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                         <LineChart data={blocks}>
                             <XAxis dataKey="height" hide />
                             <YAxis domain={[0, 'auto']} hide />

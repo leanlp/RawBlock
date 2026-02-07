@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from 'next/link';
 import HeroMetrics from "./HeroMetrics";
+import Card from "./Card";
 
 // Feature categories for organized navigation
 const categories = {
@@ -188,15 +189,13 @@ const categories = {
 function FeatureCard({ feature, index }: { feature: typeof categories.explore.features[0], index: number }) {
     return (
         <Link href={feature.href} passHref>
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                whileHover={{ scale: 1.02, y: -3 }}
-                className="cursor-pointer h-full bg-slate-900/40 border border-slate-800/50 hover:border-slate-700 rounded-xl p-5 backdrop-blur-sm transition-all duration-300 relative overflow-hidden group hover:shadow-xl hover:shadow-cyan-900/10"
+            <Card
+                className="h-full p-5 group"
+                onClick={() => { }}
+                hoverable
             >
                 {/* Hover Gradient Glow */}
-                <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br ${feature.color} transition-opacity duration-500`} />
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br ${feature.color} transition-opacity duration-500 rounded-xl`} />
 
                 <div className="flex items-start justify-between mb-3 relative z-10">
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${feature.color} bg-opacity-10 text-white shadow-lg text-xl`}>
@@ -210,7 +209,7 @@ function FeatureCard({ feature, index }: { feature: typeof categories.explore.fe
                         {feature.description}
                     </p>
                 </div>
-            </motion.div>
+            </Card>
         </Link>
     );
 }
@@ -238,6 +237,55 @@ function CategorySection({ category, categoryKey }: { category: typeof categorie
     );
 }
 
+// Primary action card for hero section
+function PrimaryActionCard({
+    href,
+    icon,
+    title,
+    description,
+    actionText,
+    color,
+    delay = 0
+}: {
+    href: string;
+    icon: string;
+    title: string;
+    description: string;
+    actionText: string;
+    color: string;
+    delay?: number;
+}) {
+    const colorMap: Record<string, string> = {
+        cyan: 'group-hover:text-cyan-400 text-cyan-500',
+        purple: 'group-hover:text-purple-400 text-purple-500',
+        blue: 'group-hover:text-blue-400 text-blue-500',
+    };
+
+    return (
+        <Link href={href}>
+            <Card
+                className="p-6 group h-full"
+                onClick={() => { }}
+                hoverable
+            >
+                <div className="relative z-10">
+                    <div className="text-4xl mb-4">{icon}</div>
+                    <h3 className={`text-xl font-bold text-white mb-2 ${colorMap[color]?.split(' ')[0]} transition-colors`}>
+                        {title}
+                    </h3>
+                    <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
+                        {description}
+                    </p>
+                    <div className={`mt-4 flex items-center ${colorMap[color]?.split(' ')[1]} text-sm font-medium`}>
+                        <span>{actionText}</span>
+                        <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                </div>
+            </Card>
+        </Link>
+    );
+}
+
 export default function DashboardHome() {
     return (
         <div className="flex flex-col items-center justify-center py-8 relative z-10 max-w-6xl w-full mx-auto px-4">
@@ -258,6 +306,36 @@ export default function DashboardHome() {
 
             {/* Live Metrics Hero */}
             <HeroMetrics />
+
+            {/* ===== PRIMARY ACTIONS ROW ===== */}
+            <div className="w-full mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <PrimaryActionCard
+                        href="/explorer/blocks"
+                        icon="📦"
+                        title="Explore Blocks"
+                        description="Browse the latest blocks, transactions, and miners on the network."
+                        actionText="Start exploring"
+                        color="cyan"
+                    />
+                    <PrimaryActionCard
+                        href="/analysis/forensics"
+                        icon="🔍"
+                        title="Trace Transaction"
+                        description="Follow the money flow with our forensic analysis workbench."
+                        actionText="Open forensics"
+                        color="purple"
+                    />
+                    <PrimaryActionCard
+                        href="/explorer/mempool"
+                        icon="🌊"
+                        title="Watch Mempool"
+                        description="Real-time feed of pending transactions entering the network."
+                        actionText="View live"
+                        color="blue"
+                    />
+                </div>
+            </div>
 
             {/* Categorized Features */}
             <div className="w-full">

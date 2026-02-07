@@ -17,6 +17,7 @@ import {
     BackgroundVariant
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import PageHeader from "../../../components/PageHeader";
 import {
     Search,
     ShieldAlert,
@@ -54,9 +55,9 @@ const TxNode = ({ data }: { data: { label: string, value: string, risk: number }
 
     return (
         <div className={`
-      group relative min-w-[240px] ${bgClass} backdrop-blur-xl rounded-xl border border-slate-700/50 shadow-2xl 
+      group relative min-w-[180px] md:min-w-[240px] ${bgClass} backdrop-blur-xl rounded-xl border border-slate-700/50 shadow-2xl 
       transition-all duration-700 ease-out
-      hover:scale-125 hover:z-50 hover:shadow-[0_0_40px_-5px_rgba(56,189,248,0.5)]
+      md:hover:scale-125 hover:z-50 hover:shadow-[0_0_40px_-5px_rgba(56,189,248,0.5)]
       ${isRisky ? 'border-red-500/30' : 'hover:border-cyan-500/50'}
     `}>
             {/* Glow Effect */}
@@ -122,11 +123,11 @@ const AddressNode = ({ data }: { data: { label: string, balance: string, tag?: s
     }
 
     return (
-        <div className={`
-        relative min-w-[220px] ${bgClass} backdrop-blur rounded-full border border-slate-700 shadow-xl flex items-center gap-3 p-1.5 pr-6 
+        <div className={`group
+        relative min-w-[180px] md:min-w-[220px] ${bgClass} backdrop-blur rounded-full border border-slate-700 shadow-xl flex items-center gap-3 p-1.5 pr-6 
         transition-all duration-700 ease-out
         hover:border-purple-500/50 hover:shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)]
-        hover:scale-125 hover:z-50
+        md:hover:scale-125 hover:z-50
       `}>
             {/* HOVER CARD OVERLAY */}
             <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-[280px] hidden group-hover:block z-[60] pointer-events-none">
@@ -237,6 +238,15 @@ export default function ForensicsPage() {
     const [loading, setLoading] = useState(false);
     const [selectedNodeData, setSelectedNodeData] = useState<any>(null);
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+    const [notification, setNotification] = useState<{ type: 'error' | 'success', message: string } | null>(null);
+
+    // Auto-dismiss notification
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => setNotification(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
 
     // --- Helper: Edge Styling ---
     const getEdgeStyle = useCallback((amount: number) => {
@@ -269,6 +279,50 @@ export default function ForensicsPage() {
     // --- Context Menu State ---
     const [menu, setMenu] = useState<{ id: string, top: number, left: number, bottom?: number, right?: number } | null>(null);
     const ref = useMemo(() => ({ current: null as HTMLDivElement | null }), []);
+
+    // --- Touch Long-Press State for Mobile Context Menu ---
+    const touchStartRef = React.useRef<{ x: number; y: number; nodeId: string; timeout: NodeJS.Timeout | null }>({ x: 0, y: 0, nodeId: '', timeout: null });
+
+    const handleTouchStart = useCallback((event: React.TouchEvent, node: Node) => {
+        const touch = event.touches[0];
+        touchStartRef.current = {
+            x: touch.clientX,
+            y: touch.clientY,
+            nodeId: node.id,
+            timeout: setTimeout(() => {
+                // Long press detected - open context menu
+                const pane = ref.current?.getBoundingClientRect();
+                setMenu({
+                    id: node.id,
+                    top: touch.clientY < (pane?.height || 0) - 200 ? touch.clientY : undefined as any,
+                    bottom: touch.clientY >= (pane?.height || 0) - 200 ? (pane?.height || 0) - touch.clientY : undefined,
+                    left: touch.clientX < (pane?.width || 0) - 200 ? touch.clientX : undefined as any,
+                    right: touch.clientX >= (pane?.width || 0) - 200 ? (pane?.width || 0) - touch.clientX : undefined,
+                });
+                setSelectedNode(node);
+            }, 200) // 200ms long-press threshold
+        };
+    }, [setMenu, setSelectedNode]);
+
+    const handleTouchMove = useCallback((event: React.TouchEvent) => {
+        const touch = event.touches[0];
+        const dx = Math.abs(touch.clientX - touchStartRef.current.x);
+        const dy = Math.abs(touch.clientY - touchStartRef.current.y);
+        // Cancel if moved more than 6px
+        if (dx > 6 || dy > 6) {
+            if (touchStartRef.current.timeout) {
+                clearTimeout(touchStartRef.current.timeout);
+                touchStartRef.current.timeout = null;
+            }
+        }
+    }, []);
+
+    const handleTouchEnd = useCallback(() => {
+        if (touchStartRef.current.timeout) {
+            clearTimeout(touchStartRef.current.timeout);
+            touchStartRef.current.timeout = null;
+        }
+    }, []);
 
     const onNodeContextMenu = useCallback((event: any, node: Node) => {
         event.preventDefault();
@@ -341,7 +395,7 @@ export default function ForensicsPage() {
             return data;
         } catch (e: any) {
             console.error("Fetch Error", e);
-            alert("Failed to fetch data: " + e.message);
+            setNotification({ type: 'error', message: "Failed to fetch data: " + e.message });
             return null;
         } finally {
             setLoading(false);
@@ -351,10 +405,9 @@ export default function ForensicsPage() {
     const handleSearch = async () => {
         if (!searchQuery) return;
 
-        // Prevent Duplicate Nodes (Crash Fix)
         const exists = nodes.find(n => n.id === searchQuery);
         if (exists) {
-            alert("Node already in workspace");
+            setNotification({ type: 'error', message: "Node already in workspace" });
             setSelectedNode(exists);
             return;
         }
@@ -580,23 +633,49 @@ export default function ForensicsPage() {
         document.body.removeChild(link);
     }, [nodes]);
 
-    const handleExportImage = useCallback(() => {
+    const handleExportImage = useCallback(async () => {
         const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
         if (!viewport) return;
 
         setLoading(true);
-        toPng(viewport, { backgroundColor: '#020617', style: { transform: 'scale(1)' } }) // Captures viewport
-            .then((dataUrl) => {
-                const link = document.createElement('a');
-                link.download = `forensics_graph_${Date.now()}.png`;
-                link.href = dataUrl;
-                link.click();
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error('Snapshot failed', err);
-                setLoading(false);
-            });
+        try {
+            const { toBlob } = await import('html-to-image');
+            const blob = await toBlob(viewport, { backgroundColor: '#020617' });
+
+            if (!blob) {
+                throw new Error('Failed to generate image');
+            }
+
+            const file = new File([blob], `forensics_graph_${Date.now()}.png`, { type: 'image/png' });
+
+            // Try Web Share API for mobile native sharing
+            if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                try {
+                    await navigator.share({ files: [file], title: 'Forensics Graph' });
+                } catch (shareError: any) {
+                    // User cancelled or share failed - fall back to download
+                    if (shareError.name !== 'AbortError') {
+                        downloadBlob(blob);
+                    }
+                }
+            } else {
+                // Fallback: direct download
+                downloadBlob(blob);
+            }
+        } catch (err) {
+            console.error('Snapshot failed', err);
+        } finally {
+            setLoading(false);
+        }
+
+        function downloadBlob(blob: Blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `forensics_graph_${Date.now()}.png`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
     }, []);
 
     // --- Graph Interaction ---
@@ -694,7 +773,7 @@ export default function ForensicsPage() {
             return newNodes;
         } catch (e: any) {
             console.error("Trace Logic Failed:", e);
-            alert(`Trace Failed: ${e.message}`);
+            setNotification({ type: 'error', message: `Trace Failed: ${e.message}` });
         }
     }, [nodes, edges, setNodes, setEdges]);
 
@@ -920,7 +999,7 @@ export default function ForensicsPage() {
             } catch (e) { console.warn("Static fetch fail", e); }
 
             if (!data) {
-                alert("Could not load case study data. Static files missing.");
+                setNotification({ type: 'error', message: "Could not load case study. Static files missing." });
                 return;
             }
 
@@ -1270,7 +1349,7 @@ export default function ForensicsPage() {
             setSelectedNodeData((prev: any) => ({ ...prev, risk: riskLevel }));
         }
 
-        alert(`Taint Simulation: Propagated High Risk to ${visited.size - 1} downstream nodes.`);
+        setNotification({ type: 'success', message: `Taint Simulation: Propagated High Risk to ${visited.size - 1} downstream nodes.` });
     };
 
     // 2. Export Evidence
@@ -1290,18 +1369,33 @@ export default function ForensicsPage() {
         URL.revokeObjectURL(url);
     };
 
+
     return (
-        <main className="h-screen w-full bg-slate-950 flex flex-col pt-16 md:pt-0 relative overflow-hidden">
-            {/* Header */}
-            <div className="absolute top-8 left-4 z-50 md:left-24 pointer-events-none">
-                <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                    Forensics Workbench
-                </h1>
-                <p className="text-xs text-slate-500 mt-1">Professional Audit Board</p>
+        <main className="h-screen w-full bg-slate-950 flex flex-col relative overflow-hidden">
+            {/* Standardized Header */}
+            <div className="bg-slate-950 px-4 md:px-8 pt-4 z-50 shadow-sm relative">
+                <PageHeader
+                    title="Forensics Workbench"
+                    subtitle="Professional Audit Board & Taint Analysis"
+                    icon={<ShieldAlert className="w-8 h-8 text-cyan-400" />}
+                    gradient="from-cyan-400 to-blue-500"
+                />
             </div>
 
-            {/* Case Studies Floating Dock (New Style) */}
-            <div className="absolute top-48 md:top-24 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+            {/* Notifications */}
+            {notification && (
+                <div className={`
+                    absolute top-32 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300
+                    ${notification.type === 'error' ? 'bg-red-500/10 border border-red-500/50 text-red-200' : 'bg-emerald-500/10 border border-emerald-500/50 text-emerald-200'}
+                    backdrop-blur-xl
+                `}>
+                    {notification.type === 'error' ? <ShieldAlert size={20} /> : <ShieldAlert size={20} />}
+                    <span className="font-semibold">{notification.message}</span>
+                </div>
+            )}
+
+            {/* Case Studies Floating Dock (Adjusted Top) */}
+            <div className="absolute top-48 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 <div className="flex flex-col gap-2 p-2">
                     <div className="text-[10px] uppercase font-bold text-slate-400 mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2 pt-2">
                         Case Files
@@ -1331,11 +1425,11 @@ export default function ForensicsPage() {
                 {/* 1. Graph Container (Left / Center) */}
                 <div className="flex-1 h-full relative bg-slate-950">
 
-                    {/* Command Center (Top Center Island) */}
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3 w-[95%] md:w-full md:max-w-2xl pointer-events-none">
+                    {/* Command Center (Relocated to Top Right) */}
+                    <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-3 w-[95%] md:w-auto pointer-events-none">
 
                         {/* 1. Search Bar */}
-                        <div className="flex gap-2 w-full md:max-w-md pointer-events-auto shadow-2xl shadow-cyan-900/20">
+                        <div className="flex gap-2 w-full md:w-[400px] pointer-events-auto shadow-2xl shadow-cyan-900/20">
                             <input
                                 type="text"
                                 value={searchQuery}
@@ -1434,6 +1528,29 @@ export default function ForensicsPage() {
                                 className="!bg-slate-900 !border-slate-700 shadow-xl [&>button]:!bg-slate-900 [&>button]:!border-slate-700 [&>button]:!fill-slate-400 hover:[&>button]:!fill-white hover:[&>button]:!bg-slate-800"
                             />
                         </div>
+
+                        {/* Mobile Node Actions Button (Visible when node is selected) */}
+                        {selectedNode && (
+                            <div className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                <button
+                                    onClick={() => {
+                                        // Open context menu at bottom center
+                                        const rect = ref.current?.getBoundingClientRect();
+                                        setMenu({
+                                            id: selectedNode.id,
+                                            top: undefined as any,
+                                            bottom: 120,
+                                            left: (rect?.width || 300) / 2 - 80,
+                                            right: undefined
+                                        });
+                                    }}
+                                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold rounded-full shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all active:scale-95"
+                                >
+                                    <Network size={18} />
+                                    <span>Node Actions</span>
+                                </button>
+                            </div>
+                        )}
 
 
 
