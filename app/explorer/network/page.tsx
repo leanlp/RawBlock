@@ -90,7 +90,7 @@ export default function NetworkPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Header />
 
-                <div className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <PageHeader
                         title="Global Network"
                         subtitle="Visualizing the decentralized P2P connections of your local Bitcoin node."
@@ -116,7 +116,7 @@ export default function NetworkPage() {
                                     <button
                                         onClick={handleDeepScan}
                                         disabled={scanning || knownPeers.length > 0}
-                                        className={`px-4 py-2 rounded-lg text-xs font-bold tracking-widest uppercase border transition-all ${knownPeers.length > 0
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase border transition-all ${knownPeers.length > 0
                                             ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 cursor-default'
                                             : scanning
                                                 ? 'bg-cyan-900/50 border-cyan-800 text-cyan-400 cursor-wait'

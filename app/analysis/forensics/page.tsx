@@ -17,6 +17,7 @@ import {
     BackgroundVariant
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import PageHeader from "../../../components/PageHeader";
 import {
     Search,
     ShieldAlert,
@@ -1360,18 +1361,21 @@ export default function ForensicsPage() {
         URL.revokeObjectURL(url);
     };
 
+
     return (
-        <main className="h-screen w-full bg-slate-950 flex flex-col pt-16 md:pt-0 relative overflow-hidden">
-            {/* Header */}
-            <div className="absolute top-8 left-4 z-50 md:left-24 pointer-events-none">
-                <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                    Forensics Workbench
-                </h1>
-                <p className="text-xs text-slate-500 mt-1">Professional Audit Board</p>
+        <main className="h-screen w-full bg-slate-950 flex flex-col relative overflow-hidden">
+            {/* Standardized Header */}
+            <div className="bg-slate-950 px-4 md:px-8 pt-4 z-50 shadow-sm relative">
+                <PageHeader
+                    title="Forensics Workbench"
+                    subtitle="Professional Audit Board & Taint Analysis"
+                    icon={<ShieldAlert className="w-8 h-8 text-cyan-400" />}
+                    gradient="from-cyan-400 to-blue-500"
+                />
             </div>
 
-            {/* Case Studies Floating Dock (New Style) */}
-            <div className="absolute top-48 md:top-24 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+            {/* Case Studies Floating Dock (Adjusted Top) */}
+            <div className="absolute top-48 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 <div className="flex flex-col gap-2 p-2">
                     <div className="text-[10px] uppercase font-bold text-slate-400 mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2 pt-2">
                         Case Files
@@ -1401,11 +1405,11 @@ export default function ForensicsPage() {
                 {/* 1. Graph Container (Left / Center) */}
                 <div className="flex-1 h-full relative bg-slate-950">
 
-                    {/* Command Center (Top Center Island) */}
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3 w-[95%] md:w-full md:max-w-2xl pointer-events-none">
+                    {/* Command Center (Relocated to Top Right) */}
+                    <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-3 w-[95%] md:w-auto pointer-events-none">
 
                         {/* 1. Search Bar */}
-                        <div className="flex gap-2 w-full md:max-w-md pointer-events-auto shadow-2xl shadow-cyan-900/20">
+                        <div className="flex gap-2 w-full md:w-[400px] pointer-events-auto shadow-2xl shadow-cyan-900/20">
                             <input
                                 type="text"
                                 value={searchQuery}
