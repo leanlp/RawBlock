@@ -117,7 +117,7 @@ export default function BlocksIndexPage() {
                         </div>
 
                         {/* Desktop Table Layout */}
-                        <div className="hidden md:block bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm">
+                        <Card variant="panel" className="hidden md:block overflow-hidden p-0">
                             <table className="w-full text-left text-sm text-slate-400">
                                 <thead className="bg-slate-900/80 text-xs uppercase text-slate-500">
                                     <tr>
@@ -152,7 +152,7 @@ export default function BlocksIndexPage() {
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
+                        </Card>
                     </>
                 )}
             </div>

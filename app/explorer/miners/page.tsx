@@ -87,11 +87,13 @@ export default function MinersPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Chart Section */}
                         {data.distribution && data.distribution.length > 0 && (
-                            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm">
-                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-                                    Hashrate Distribution (Last {data.blocks?.length || 0} Blocks)
-                                </h3>
-                                <div className="h-[300px] w-full">
+                            <Card variant="panel" accent="orange" className="h flex flex-col">
+                                <div className="mb-6">
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                                        Hashrate Distribution (Last {data.blocks?.length || 0} Blocks)
+                                    </h3>
+                                </div>
+                                <div className="h-[300px] w-full flex-1">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
@@ -116,11 +118,11 @@ export default function MinersPage() {
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </div>
-                            </div>
+                            </Card>
                         )}
 
                         {/* List Section */}
-                        <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm">
+                        <Card variant="panel" className="p-0 overflow-hidden flex flex-col">
                             <div className="px-6 py-4 border-b border-slate-800">
                                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Forensic Ledger</h3>
                             </div>
@@ -187,7 +189,7 @@ export default function MinersPage() {
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </Card>
                     </div>
                 )}
             </div>

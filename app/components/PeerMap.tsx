@@ -4,10 +4,10 @@ import { useMemo, useState } from 'react';
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
 import { Tooltip } from 'react-tooltip';
-import { MotionConfig } from "framer-motion"; // Assuming we can use framer-motion or just CSS transitions for now due to dependency check
+import { MotionConfig } from "framer-motion";
+import Card from '../../components/Card';
 
 // Use a reliable TopoJSON source for the world map
-// Often hosted locally or from CDN. For this demo we use a standard CDN link often used with react-simple-maps
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 interface Peer {
@@ -97,15 +97,15 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
     }, [selectedCountryCode]);
 
     return (
-        <div className="w-full h-[500px] bg-slate-900 border border-slate-800 rounded-xl overflow-hidden relative">
-            <div className="absolute top-4 left-4 z-10">
-                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+        <Card className="w-full h-[500px] p-0 overflow-hidden relative" variant="panel" accent="cyan">
+            <div className="absolute top-4 left-4 z-10 pointer-events-none">
+                <h2 className="text-sm font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2 drop-shadow-md">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
                     Global Nodes
                 </h2>
-                <div className="text-xs text-slate-600 mt-1">
-                    Connected: <span className="text-slate-200">{peers.length}</span> |
-                    Located: <span className="text-slate-200">{locatedPeers.length + locatedKnownPeers.length}</span>
+                <div className="text-xs text-slate-400 mt-1 font-mono pl-4 drop-shadow-sm">
+                    Connected: <span className="text-cyan-400 font-bold">{peers.length}</span> |
+                    Located: <span className="text-emerald-400 font-bold">{locatedPeers.length + locatedKnownPeers.length}</span>
                 </div>
             </div>
 
@@ -135,8 +135,8 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                                                 onCountrySelect(code, geoName);
                                             }
                                         }}
-                                        fill={isSelected ? "rgba(16, 185, 129, 0.2)" : "#1e293b"}
-                                        stroke={isSelected ? "#10b981" : "#0f172a"}
+                                        fill={isSelected ? "rgba(34, 211, 238, 0.2)" : "#1e293b"}
+                                        stroke={isSelected ? "#22d3ee" : "#0f172a"}
                                         strokeWidth={isSelected ? 1 : 0.5}
                                         style={{
                                             default: { outline: "none", transition: "all 250ms" },
@@ -177,12 +177,12 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                 </ComposableMap>
             </MotionConfig>
 
-            <Tooltip id="peer-tooltip" style={{ backgroundColor: "#0f172a", color: "#f1f5f9", borderRadius: "8px" }} />
+            <Tooltip id="peer-tooltip" style={{ backgroundColor: "#0f172a", color: "#f1f5f9", borderRadius: "8px", border: "1px solid #1e293b" }} />
 
-            <div className="absolute bottom-4 right-4 flex gap-4 text-[10px] text-slate-500 font-mono">
+            <div className="absolute bottom-4 right-4 flex gap-4 text-[10px] text-slate-500 font-mono pointer-events-none">
                 <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-cyan-400"></div> OUTBOUND</div>
                 <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div> INBOUND</div>
             </div>
-        </div>
+        </Card>
     );
 }

@@ -129,7 +129,7 @@ export default function NetworkPage() {
                             </div>
 
                             {/* Peer Section */}
-                            <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm">
+                            <Card variant="panel" className="p-0 overflow-hidden flex flex-col">
                                 <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
                                     <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Active Connections</h3>
                                     <span className="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">{peers.length} Peers</span>
@@ -219,7 +219,7 @@ export default function NetworkPage() {
                                         showing top 20 of {peers.length} peers
                                     </div>
                                 )}
-                            </div>
+                            </Card>
                         </>
                     )}
                 </div>
