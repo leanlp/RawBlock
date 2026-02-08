@@ -190,7 +190,7 @@ function FeatureCard({ feature, index }: { feature: typeof categories.explore.fe
     return (
         <Link href={feature.href} passHref>
             <Card
-                className="h-full p-5 group"
+                className="h-full p-4 lg:p-5 group"
                 onClick={() => { }}
                 hoverable
             >
@@ -205,7 +205,7 @@ function FeatureCard({ feature, index }: { feature: typeof categories.explore.fe
 
                 <div className="relative z-10">
                     <h3 className="text-lg font-bold text-slate-200 mb-1 group-hover:text-white transition-colors">{feature.title}</h3>
-                    <p className="text-slate-500 group-hover:text-slate-400 transition-colors leading-relaxed text-xs">
+                    <p className="text-slate-400 group-hover:text-slate-200 transition-colors leading-relaxed text-xs sm:text-sm">
                         {feature.description}
                     </p>
                 </div>
@@ -223,11 +223,11 @@ function CategorySection({ category, categoryKey }: { category: typeof categorie
         >
             <div className="mb-6 border-b border-slate-800/50 pb-4">
                 <h2 className="text-2xl font-bold text-white">{category.title}</h2>
-                <p className="text-sm text-slate-500 mt-1">{category.subtitle}</p>
+                <p className="text-sm text-slate-400 mt-1">{category.subtitle}</p>
             </div>
             <div className={`grid gap-4 ${categoryKey === 'play' || categoryKey === 'tools'
-                ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2'
-                : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3'
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
                 }`}>
                 {category.features.map((feature, i) => (
                     <FeatureCard key={feature.href} feature={feature} index={i} />
@@ -264,7 +264,7 @@ function PrimaryActionCard({
     return (
         <Link href={href}>
             <Card
-                className="p-6 group h-full"
+                className="p-5 lg:p-6 group h-full"
                 onClick={() => { }}
                 hoverable
             >
@@ -273,7 +273,7 @@ function PrimaryActionCard({
                     <h3 className={`text-xl font-bold text-white mb-2 ${colorMap[color]?.split(' ')[0]} transition-colors`}>
                         {title}
                     </h3>
-                    <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
+                    <p className="text-sm text-slate-300 group-hover:text-white transition-colors">
                         {description}
                     </p>
                     <div className={`mt-4 flex items-center ${colorMap[color]?.split(' ')[1]} text-sm font-medium`}>
@@ -288,7 +288,7 @@ function PrimaryActionCard({
 
 export default function DashboardHome() {
     return (
-        <div className="flex flex-col items-center justify-center py-8 relative z-10 max-w-6xl w-full mx-auto px-4">
+        <div className="flex flex-col items-center justify-start py-8 relative z-10 max-w-7xl w-full mx-auto px-3 sm:px-4">
             {/* Hero Title */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -296,10 +296,10 @@ export default function DashboardHome() {
                 transition={{ duration: 0.8 }}
                 className="text-center mb-8"
             >
-                <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-600 mb-4 drop-shadow-2xl">
+                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 mb-4 drop-shadow-2xl">
                     RAW BLOCK
                 </h1>
-                <p className="text-lg text-slate-400 max-w-2xl mx-auto font-light leading-relaxed">
+                <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
                     Your command center for analyzing the <span className="text-cyan-400 font-medium">Bitcoin P2P network</span>.
                 </p>
             </motion.div>
@@ -309,7 +309,7 @@ export default function DashboardHome() {
 
             {/* ===== PRIMARY ACTIONS ROW ===== */}
             <div className="w-full mb-12">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <PrimaryActionCard
                         href="/explorer/blocks"
                         icon="📦"
