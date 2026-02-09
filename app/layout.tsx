@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Advanced visualization for Bitcoin Core nodes: Blocks, Mempool, P2P Network, and Script debugging.",
 };
 
+import { Analytics } from "@vercel/analytics/react";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -41,6 +43,7 @@ export default function RootLayout({
       >
         <AppShell>
           {children}
+          <Analytics />
         </AppShell>
       </body>
     </html>
