@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { Twitter, Linkedin } from "lucide-react";
 import { useState } from "react";
 
 const NAV_ITEMS = [
@@ -125,7 +126,25 @@ export default function Sidebar() {
 
             {/* Footer */}
             {!collapsed && (
-                <div className="p-4 border-t border-slate-800/50">
+                <div className="p-4 border-t border-slate-800/50 flex flex-col gap-4">
+                    <div className="flex justify-center gap-4">
+                        <Link
+                            href="https://x.com/rawblocknet"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-slate-400 hover:text-cyan-400 transition-colors"
+                        >
+                            <Twitter size={16} />
+                        </Link>
+                        <Link
+                            href="https://linkedin.com/company/rawblock"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-slate-400 hover:text-cyan-400 transition-colors"
+                        >
+                            <Linkedin size={16} />
+                        </Link>
+                    </div>
                     <p className="text-[10px] text-slate-600 text-center">
                         © 2026 Raw Block
                     </p>
