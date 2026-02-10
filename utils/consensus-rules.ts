@@ -184,9 +184,9 @@ export function validateBlock(block: BlockData): ValidationStep[] {
     });
     
     // Step 1.2: Previous Block Hash
-    const prevHashValid = block.header.previousblockhash && 
-                          block.header.previousblockhash.length === 64 &&
-                          (block.header.height === 0 || block.header.previousblockhash !== '0'.repeat(64));
+    const prevHash = block.header.previousblockhash || '';
+    const prevHashValid = prevHash.length === 64 &&
+                          (block.header.height === 0 || prevHash !== '0'.repeat(64));
     steps.push({
         id: '1.2',
         stage: 1,
@@ -195,11 +195,11 @@ export function validateBlock(block: BlockData): ValidationStep[] {
         rule: 'The previousblockhash must reference an existing valid block (except genesis)',
         check: block.header.height === 0 
             ? 'Genesis block - no previous block required'
-            : `References block: ${block.header.previousblockhash.substring(0, 16)}...`,
+            : `References block: ${prevHash.substring(0, 16)}...`,
         explanation: 'This creates the chain! Each block commits to its parent, making modification of historical blocks require re-doing all subsequent proof of work.',
         status: prevHashValid ? 'pass' : 'fail',
         details: {
-            previousblockhash: block.header.previousblockhash,
+            previousblockhash: prevHash,
             height: block.header.height,
             isGenesis: block.header.height === 0
         }
