@@ -119,11 +119,11 @@ export default function RichListPage() {
                         <table className="w-full text-left border-collapse min-w-[600px]">
                             <thead>
                                 <tr className="border-b border-slate-800 bg-slate-900/80 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                    <th className="p-4 w-20 text-center">Rank</th>
-                                    <th className="p-4">Address</th>
-                                    <th className="p-4 text-right">Balance (BTC)</th>
-                                    <th className="p-4 text-right">UTXOs</th>
-                                    <th className="p-4 w-32 text-center">Action</th>
+                                    <th className="p-2 md:p-4 w-20 text-center">Rank</th>
+                                    <th className="p-2 md:p-4">Address</th>
+                                    <th className="p-2 md:p-4 text-right">Balance (BTC)</th>
+                                    <th className="p-2 md:p-4 text-right hidden md:table-cell">UTXOs</th>
+                                    <th className="p-2 md:p-4 w-32 text-center hidden md:table-cell">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/50">
@@ -133,21 +133,21 @@ export default function RichListPage() {
                                         className="group hover:bg-slate-800/30 transition-colors cursor-pointer"
                                         onClick={() => handleViewWhale(whale.rank)}
                                     >
-                                        <td className="p-4 text-center font-bold text-slate-600 group-hover:text-amber-500 transition-colors">
+                                        <td className="p-2 md:p-4 text-center font-bold text-slate-600 group-hover:text-amber-500 transition-colors">
                                             #{whale.rank}
                                         </td>
-                                        <td className="p-4 font-mono text-sm text-cyan-300/80 group-hover:text-cyan-300">
+                                        <td className="p-2 md:p-4 font-mono text-xs md:text-sm text-cyan-300/80 group-hover:text-cyan-300">
                                             {whale.address.slice(0, 12)}...{whale.address.slice(-8)}
                                         </td>
-                                        <td className="p-4 text-right font-bold text-slate-200">
+                                        <td className="p-2 md:p-4 text-right font-bold text-slate-200">
                                             {whale.balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC
                                         </td>
-                                        <td className="p-4 text-right text-slate-400">
+                                        <td className="p-2 md:p-4 text-right text-slate-400 hidden md:table-cell">
                                             <span className={whale.utxoCount > 1000 ? 'text-amber-400 font-bold' : ''}>
                                                 {whale.utxoCount.toLocaleString()}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-center">
+                                        <td className="p-2 md:p-4 text-center hidden md:table-cell">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleViewWhale(whale.rank); }}
                                                 className="text-[10px] bg-slate-800 hover:bg-cyan-900/50 text-slate-400 hover:text-cyan-300 border border-slate-700 rounded px-3 py-1 transition-all"
