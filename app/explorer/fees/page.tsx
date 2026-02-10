@@ -130,17 +130,17 @@ export default function FeesPage() {
 
                         {/* Chart Section */}
                         <div className="md:col-span-3 bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm min-h-[400px]">
-                            <div className="flex justify-between items-center mb-6">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">24-Hour Fee Trend (The "Purge" Graph)</h3>
-                                <div className="flex gap-4 text-xs font-mono">
+                                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-mono">
                                     <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-emerald-500"></span>Economy</span>
                                     <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-amber-500"></span>Standard</span>
                                     <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-red-500"></span>Express</span>
                                 </div>
                             </div>
 
-                            <div className="h-[350px] w-full">
-                                <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                            <div className="h-[350px] w-full min-w-0">
+                                <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={history}>
                                         <defs>
                                             <linearGradient id="colorSlow" x1="0" y1="0" x2="0" y2="1">

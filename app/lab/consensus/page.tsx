@@ -67,10 +67,19 @@ export default function ConsensusDebuggerPage() {
         setUseDemo(false);
 
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-            const endpoint = query
-                ? `${baseUrl}/api/block/${query}`
-                : `${baseUrl}/api/latest-block`;
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+            let endpoint = '';
+
+            if (query) {
+                endpoint = `${baseUrl}/api/block/${query}`;
+            } else {
+                // Fetch latest height first
+                const statsRes = await fetch(`${baseUrl}/api/network-stats`);
+                if (!statsRes.ok) throw new Error('Failed to fetch network stats');
+                const stats = await statsRes.json();
+                if (!stats.blocks) throw new Error('Network stats missing block height');
+                endpoint = `${baseUrl}/api/block/${stats.blocks}`;
+            }
 
             const res = await fetch(endpoint);
             if (!res.ok) throw new Error('Failed to fetch block');
@@ -107,7 +116,7 @@ export default function ConsensusDebuggerPage() {
             const validationSteps = validateBlock(DEMO_BLOCK);
             setSteps(validationSteps);
             setCurrentStepIndex(0);
-            setError("Using demo block data");
+            setError("Using demo block data (API Unreachable)");
             setUseDemo(true);
         } finally {
             setLoading(false);
@@ -242,10 +251,10 @@ export default function ConsensusDebuggerPage() {
                                     <div
                                         key={sp.stage}
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${sp.completed === sp.total && sp.allPass
-                                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                                : sp.completed > 0
-                                                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                                                    : 'bg-slate-800/50 text-slate-500 border border-slate-700'
+                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                            : sp.completed > 0
+                                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                                                : 'bg-slate-800/50 text-slate-500 border border-slate-700'
                                             }`}
                                     >
                                         <span>{sp.info.icon}</span>
@@ -278,23 +287,23 @@ export default function ConsensusDebuggerPage() {
                                     exit={{ opacity: 0, x: -20 }}
                                     transition={{ duration: 0.3 }}
                                     className={`bg-slate-900/70 border rounded-2xl overflow-hidden ${currentStep.status === 'pass' ? 'border-emerald-500/30' :
-                                            currentStep.status === 'fail' ? 'border-rose-500/30' :
-                                                currentStep.status === 'info' ? 'border-blue-500/30' :
-                                                    'border-slate-700'
+                                        currentStep.status === 'fail' ? 'border-rose-500/30' :
+                                            currentStep.status === 'info' ? 'border-blue-500/30' :
+                                                'border-slate-700'
                                         }`}
                                 >
                                     {/* Step Header */}
                                     <div className={`px-6 py-4 border-b ${currentStep.status === 'pass' ? 'bg-emerald-500/10 border-emerald-500/20' :
-                                            currentStep.status === 'fail' ? 'bg-rose-500/10 border-rose-500/20' :
-                                                currentStep.status === 'info' ? 'bg-blue-500/10 border-blue-500/20' :
-                                                    'bg-slate-800/50 border-slate-700'
+                                        currentStep.status === 'fail' ? 'bg-rose-500/10 border-rose-500/20' :
+                                            currentStep.status === 'info' ? 'bg-blue-500/10 border-blue-500/20' :
+                                                'bg-slate-800/50 border-slate-700'
                                         }`}>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold ${currentStep.status === 'pass' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                        currentStep.status === 'fail' ? 'bg-rose-500/20 text-rose-400' :
-                                                            currentStep.status === 'info' ? 'bg-blue-500/20 text-blue-400' :
-                                                                'bg-slate-700 text-slate-400'
+                                                    currentStep.status === 'fail' ? 'bg-rose-500/20 text-rose-400' :
+                                                        currentStep.status === 'info' ? 'bg-blue-500/20 text-blue-400' :
+                                                            'bg-slate-700 text-slate-400'
                                                     }`}>
                                                     {stageInfo?.icon}
                                                 </div>
@@ -306,9 +315,9 @@ export default function ConsensusDebuggerPage() {
                                                 </div>
                                             </div>
                                             <div className={`px-4 py-2 rounded-lg font-bold uppercase tracking-wider text-sm ${currentStep.status === 'pass' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                    currentStep.status === 'fail' ? 'bg-rose-500/20 text-rose-400' :
-                                                        currentStep.status === 'info' ? 'bg-blue-500/20 text-blue-400' :
-                                                            'bg-slate-700 text-slate-400'
+                                                currentStep.status === 'fail' ? 'bg-rose-500/20 text-rose-400' :
+                                                    currentStep.status === 'info' ? 'bg-blue-500/20 text-blue-400' :
+                                                        'bg-slate-700 text-slate-400'
                                                 }`}>
                                                 {currentStep.status === 'pass' && '✅ PASS'}
                                                 {currentStep.status === 'fail' && '❌ FAIL'}
@@ -333,12 +342,12 @@ export default function ConsensusDebuggerPage() {
 
                                         {/* The Check */}
                                         <div className={`rounded-xl p-4 ${currentStep.status === 'pass' ? 'bg-emerald-500/10 border border-emerald-500/20' :
-                                                currentStep.status === 'fail' ? 'bg-rose-500/10 border border-rose-500/20' :
-                                                    'bg-slate-800/50 border border-slate-700'
+                                            currentStep.status === 'fail' ? 'bg-rose-500/10 border border-rose-500/20' :
+                                                'bg-slate-800/50 border border-slate-700'
                                             }`}>
                                             <div className={`text-xs uppercase tracking-widest mb-2 font-bold ${currentStep.status === 'pass' ? 'text-emerald-400' :
-                                                    currentStep.status === 'fail' ? 'text-rose-400' :
-                                                        'text-slate-400'
+                                                currentStep.status === 'fail' ? 'text-rose-400' :
+                                                    'text-slate-400'
                                                 }`}>
                                                 🔍 The Check
                                             </div>
@@ -396,8 +405,8 @@ export default function ConsensusDebuggerPage() {
                                     }
                                 }}
                                 className={`py-3 px-6 rounded-xl font-medium transition-all ${isAutoPlaying
-                                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                                        : 'bg-violet-500/20 text-violet-400 border border-violet-500/30 hover:bg-violet-500/30'
+                                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                    : 'bg-violet-500/20 text-violet-400 border border-violet-500/30 hover:bg-violet-500/30'
                                     }`}
                             >
                                 {isAutoPlaying ? '⏸ Stop' : '▶ Auto-Run'}
@@ -419,14 +428,14 @@ export default function ConsensusDebuggerPage() {
                                     key={step.id}
                                     onClick={() => setCurrentStepIndex(idx)}
                                     className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${idx === currentStepIndex
-                                            ? 'bg-cyan-500 text-white scale-110'
-                                            : idx < currentStepIndex
-                                                ? step.status === 'pass'
-                                                    ? 'bg-emerald-500/30 text-emerald-400'
-                                                    : step.status === 'fail'
-                                                        ? 'bg-rose-500/30 text-rose-400'
-                                                        : 'bg-blue-500/30 text-blue-400'
-                                                : 'bg-slate-800 text-slate-500 hover:bg-slate-700'
+                                        ? 'bg-cyan-500 text-white scale-110'
+                                        : idx < currentStepIndex
+                                            ? step.status === 'pass'
+                                                ? 'bg-emerald-500/30 text-emerald-400'
+                                                : step.status === 'fail'
+                                                    ? 'bg-rose-500/30 text-rose-400'
+                                                    : 'bg-blue-500/30 text-blue-400'
+                                            : 'bg-slate-800 text-slate-500 hover:bg-slate-700'
                                         }`}
                                     title={step.name}
                                 >

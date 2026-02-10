@@ -261,9 +261,9 @@ function DecoderContent() {
                         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm">
                             <h2 className="text-xs text-slate-500 uppercase tracking-widest mb-4">Transaction Overview</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div>
+                                <div className="min-w-0 overflow-hidden">
                                     <div className="text-[10px] text-slate-600 mb-1">TXID</div>
-                                    <div className="text-xs text-cyan-300 break-all select-all">{result.txid}</div>
+                                    <div className="text-xs text-cyan-300 truncate md:break-all md:whitespace-normal select-all max-w-[300px] md:max-w-none">{result.txid}</div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>

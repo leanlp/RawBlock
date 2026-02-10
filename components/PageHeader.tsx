@@ -40,7 +40,7 @@ export default function PageHeader({
                         {title}
                     </h1>
                     {subtitle && (
-                        <p className="mt-2 text-slate-400 text-sm max-w-2xl">
+                        <p className="mt-2 text-slate-400 text-sm max-w-2xl truncate md:whitespace-normal md:overflow-visible">
                             {subtitle}
                         </p>
                     )}
