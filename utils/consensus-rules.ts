@@ -213,7 +213,6 @@ export function validateBlock(block: BlockData): ValidationStep[] {
 
     // ... (Timestamp Check omitted for brevity, assumes ok) ...
     // Step 1.3: Timestamp Check
-    const now = Math.floor(Date.now() / 1000);
     const timeTooFarFuture = block.header.time > now + MAX_FUTURE_BLOCK_TIME;
     const timeValid = !timeTooFarFuture;
     steps.push({
