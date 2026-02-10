@@ -164,12 +164,12 @@ export default function VitalsPage() {
                             {hasDifficulty ? (
                                 <div className="space-y-6">
                                     <div>
-                                        <div className="text-3xl font-black text-white">{formatHashrate(data.difficulty!.networkHashps)}</div>
+                                        <div className="text-2xl md:text-3xl font-black text-white">{formatHashrate(data.difficulty!.networkHashps)}</div>
                                         <div className="text-sm text-slate-400">Global Hashrate</div>
                                     </div>
                                     <div className="h-px bg-slate-800" />
                                     <div>
-                                        <div className="text-2xl font-bold text-slate-200 tabular-nums">{(data.difficulty!.current / 1e12).toFixed(2)} T</div>
+                                        <div className="text-xl md:text-2xl font-bold text-slate-200 tabular-nums">{(data.difficulty!.current / 1e12).toFixed(2)} T</div>
                                         <div className="text-sm text-slate-400">Mining Difficulty</div>
                                     </div>
                                 </div>
