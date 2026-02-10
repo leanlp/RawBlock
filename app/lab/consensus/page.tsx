@@ -64,60 +64,95 @@ export default function ConsensusDebuggerPage() {
     const loadBlock = useCallback(async (query?: string) => {
         setLoading(true);
         setError(null);
+        setBlock(null);
+        setSteps([]);  // Use setSteps here instead of setValidationSteps to match state
         setUseDemo(false);
 
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-            let endpoint = '';
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.41:4000';
 
-            if (query) {
-                endpoint = `${baseUrl}/api/block/${query}`;
-            } else {
-                // Fetch latest height first
-                const statsRes = await fetch(`${baseUrl}/api/network-stats`);
-                if (!statsRes.ok) throw new Error('Failed to fetch network stats');
-                const stats = await statsRes.json();
-                if (!stats.blocks) throw new Error('Network stats missing block height');
-                endpoint = `${baseUrl}/api/block/${stats.blocks}`;
-            }
-
-            const res = await fetch(endpoint);
-            if (!res.ok) throw new Error('Failed to fetch block');
-
-            const data = await res.json();
-
-            // Transform API response to our BlockData format
-            const blockData: BlockData = {
-                header: {
-                    version: data.version,
-                    previousblockhash: data.previousblockhash || '0'.repeat(64),
-                    merkleroot: data.merkleroot,
-                    time: data.time,
-                    bits: data.bits,
-                    nonce: data.nonce,
-                    hash: data.hash,
-                    height: data.height
-                },
-                transactions: data.tx || [],
-                txCount: data.nTx || data.tx?.length || 0,
-                size: data.size,
-                weight: data.weight,
-                strippedsize: data.strippedsize
+            // Helper for RPC calls to bypass limited API
+            const rpcCall = async (method: string, params: any[] = []) => {
+                const res = await fetch(`${baseUrl}/api/rpc-playground`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ method, params })
+                });
+                if (!res.ok) throw new Error(`RPC ${method} failed`);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                return data.result;
             };
 
-            setBlock(blockData);
-            const validationSteps = validateBlock(blockData);
+            let blockHash = '';
+
+            // 1. Determine Block Hash
+            if (query) {
+                if (/^[0-9]+$/.test(query)) {
+                    // It's a height, get hash
+                    blockHash = await rpcCall('getblockhash', [parseInt(query)]);
+                } else {
+                    // It's already a hash
+                    blockHash = query;
+                }
+            } else {
+                // Fetch latest block hash
+                blockHash = await rpcCall('getbestblockhash');
+            }
+
+            // 2. Fetch Full Block (Verbosity 2 for TX details)
+            const blockData = await rpcCall('getblock', [blockHash, 2]);
+
+            // 3. Map raw RPC data to Consensus Rules BlockData format
+            const mappedBlock: BlockData = {
+                header: {
+                    version: blockData.version,
+                    previousblockhash: blockData.previousblockhash || '',
+                    merkleroot: blockData.merkleroot,
+                    time: blockData.time,
+                    bits: blockData.bits,
+                    nonce: blockData.nonce,
+                    hash: blockData.hash,
+                    height: blockData.height
+                },
+                transactions: blockData.tx.map((tx: any) => ({
+                    txid: tx.txid,
+                    hash: tx.hash,
+                    size: tx.size,
+                    vsize: tx.vsize,
+                    weight: tx.weight,
+                    vin: tx.vin.map((v: any) => ({
+                        txid: v.txid,
+                        vout: v.vout,
+                        coinbase: v.coinbase,
+                        sequence: v.sequence,
+                        scriptSig: v.scriptSig
+                    })),
+                    vout: tx.vout.map((v: any) => ({
+                        value: v.value,
+                        n: v.n,
+                        scriptPubKey: v.scriptPubKey
+                    }))
+                })),
+                txCount: blockData.nTx,
+                size: blockData.size,
+                weight: blockData.weight,
+                strippedsize: blockData.strippedsize
+            };
+
+            setBlock(mappedBlock);
+
+            // Run Validation Rules
+            const validationSteps = validateBlock(mappedBlock);
             setSteps(validationSteps);
             setCurrentStepIndex(0);
-        } catch (err) {
-            console.error("Block load error:", err);
-            // Use demo data
-            setBlock(DEMO_BLOCK);
-            const validationSteps = validateBlock(DEMO_BLOCK);
-            setSteps(validationSteps);
-            setCurrentStepIndex(0);
-            setError("Using demo block data (API Unreachable)");
+
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || 'Failed to load block data');
             setUseDemo(true);
+            setBlock(DEMO_BLOCK);
+            setSteps(validateBlock(DEMO_BLOCK));
         } finally {
             setLoading(false);
         }
