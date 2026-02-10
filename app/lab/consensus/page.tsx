@@ -65,91 +65,88 @@ export default function ConsensusDebuggerPage() {
         setLoading(true);
         setError(null);
         setBlock(null);
-        setSteps([]);  // Use setSteps here instead of setValidationSteps to match state
+        setSteps([]);
         setUseDemo(false);
 
         try {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.41:4000';
+            let targetBlock = query;
 
-            // Helper for RPC calls to bypass limited API
-            const rpcCall = async (method: string, params: any[] = []) => {
-                const res = await fetch(`${baseUrl}/api/rpc-playground`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ method, params })
-                });
-                if (!res.ok) throw new Error(`RPC ${method} failed`);
-                const data = await res.json();
-                if (data.error) throw new Error(data.error);
-                return data.result;
-            };
-
-            let blockHash = '';
-
-            // 1. Determine Block Hash
-            if (query) {
-                if (/^[0-9]+$/.test(query)) {
-                    // It's a height, get hash
-                    blockHash = await rpcCall('getblockhash', [parseInt(query)]);
-                } else {
-                    // It's already a hash
-                    blockHash = query;
+            // If no query, we need to find the latest block height first
+            if (!targetBlock) {
+                try {
+                    const statsRes = await fetch(`${baseUrl}/api/network-stats`);
+                    if (statsRes.ok) {
+                        const stats = await statsRes.json();
+                        if (stats.blocks) {
+                            targetBlock = stats.blocks.toString();
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Failed to fetch network stats for latest block:", e);
                 }
-            } else {
-                // Fetch latest block hash
-                blockHash = await rpcCall('getbestblockhash');
             }
 
-            // 2. Fetch Full Block (Verbosity 2 for TX details)
-            const blockData = await rpcCall('getblock', [blockHash, 2]);
+            if (!targetBlock) {
+                throw new Error("Could not determine block to load. Please enter a height or hash.");
+            }
 
-            // 3. Map raw RPC data to Consensus Rules BlockData format
+            // Use the standard /api/block endpoint which works in production
+            const res = await fetch(`${baseUrl}/api/block/${targetBlock}`);
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Failed to fetch block: ${res.status}`);
+            }
+
+            const data = await res.json();
+
+            // Map the flat API response to our nested BlockData structure
+            // We provide safe defaults (0 or empty string) for fields that the API might strip
+            // The updated consensus-rules.ts will handle these "missing" fields gracefully (ValidationStatus: Info)
             const mappedBlock: BlockData = {
                 header: {
-                    version: blockData.version,
-                    previousblockhash: blockData.previousblockhash || '',
-                    merkleroot: blockData.merkleroot,
-                    time: blockData.time,
-                    bits: blockData.bits,
-                    nonce: blockData.nonce,
-                    hash: blockData.hash,
-                    height: blockData.height
+                    version: data.version || 0,
+                    previousblockhash: data.previousblockhash || '0'.repeat(64),
+                    merkleroot: data.merkleroot || '0'.repeat(64),
+                    time: data.time || Math.floor(Date.now() / 1000),
+                    bits: data.bits || '0',
+                    nonce: data.nonce || 0,
+                    hash: data.hash || '',
+                    height: data.height || 0
                 },
-                transactions: blockData.tx.map((tx: any) => ({
-                    txid: tx.txid,
-                    hash: tx.hash,
-                    size: tx.size,
-                    vsize: tx.vsize,
-                    weight: tx.weight,
-                    vin: tx.vin.map((v: any) => ({
-                        txid: v.txid,
+                transactions: (data.transactions || []).map((tx: any) => ({
+                    txid: tx.txid || '',
+                    hash: tx.hash || tx.txid || '',
+                    size: tx.size || 0,
+                    vsize: tx.vsize || 0,
+                    weight: tx.weight || 0,
+                    vin: (tx.vin || []).map((v: any) => ({
+                        txid: v.txid || '',
                         vout: v.vout,
                         coinbase: v.coinbase,
-                        sequence: v.sequence,
+                        sequence: v.sequence || 0,
                         scriptSig: v.scriptSig
                     })),
-                    vout: tx.vout.map((v: any) => ({
-                        value: v.value,
+                    vout: (tx.vout || []).map((v: any) => ({
+                        value: v.value || 0,
                         n: v.n,
-                        scriptPubKey: v.scriptPubKey
+                        scriptPubKey: v.scriptPubKey || { hex: '', type: '' }
                     }))
                 })),
-                txCount: blockData.nTx,
-                size: blockData.size,
-                weight: blockData.weight,
-                strippedsize: blockData.strippedsize
+                txCount: data.txCount || data.transactions?.length || 0,
+                size: data.size || 0,
+                weight: data.weight || 0,
+                strippedsize: data.strippedsize || 0
             };
 
             setBlock(mappedBlock);
-
-            // Run Validation Rules
             const validationSteps = validateBlock(mappedBlock);
             setSteps(validationSteps);
             setCurrentStepIndex(0);
 
         } catch (err: any) {
-            console.error(err);
-            setError(err.message || 'Failed to load block data');
+            console.error("Block load error:", err);
+            setError(err.message || "Failed to load block data");
             setUseDemo(true);
             setBlock(DEMO_BLOCK);
             setSteps(validateBlock(DEMO_BLOCK));
@@ -258,7 +255,9 @@ export default function ConsensusDebuggerPage() {
                                 </div>
                                 <div>
                                     <div className="text-xs text-slate-500 uppercase">Hash</div>
-                                    <div className="text-sm font-mono text-slate-300 truncate">{block.header.hash.substring(0, 16)}...</div>
+                                    <div className="text-sm font-mono text-slate-300 truncate" title={block.header.hash}>
+                                        {block.header.hash.substring(0, 8)}...{block.header.hash.substring(block.header.hash.length - 8)}
+                                    </div>
                                 </div>
                                 <div>
                                     <div className="text-xs text-slate-500 uppercase">Time</div>
