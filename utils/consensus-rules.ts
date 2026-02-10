@@ -167,15 +167,19 @@ export function validateBlock(block: BlockData): ValidationStep[] {
     const version = block.header.version || 0;
     const versionValid = version >= BLOCK_VERSION_MIN && 
                          version <= BLOCK_VERSION_MAX;
+    const hasVersion = version !== 0;
+
     steps.push({
         id: '1.1',
         stage: 1,
         name: 'Version Check',
         description: 'Verify block version is valid',
         rule: `Block version must be between ${BLOCK_VERSION_MIN} and ${BLOCK_VERSION_MAX.toString(16)}`,
-        check: `Version is ${version} (0x${version.toString(16)})`,
+        check: hasVersion 
+            ? `Version is ${version} (0x${version.toString(16)})`
+            : `⚠️ Version data not provided by API`,
         explanation: 'The version field signals which consensus rules the block follows. Version bits (BIP9) allow soft fork signaling.',
-        status: versionValid ? 'pass' : 'fail',
+        status: hasVersion ? (versionValid ? 'pass' : 'fail') : 'info',
         details: {
             version: version,
             versionHex: '0x' + version.toString(16),
@@ -185,8 +189,10 @@ export function validateBlock(block: BlockData): ValidationStep[] {
     
     // Step 1.2: Previous Block Hash
     const prevHash = block.header.previousblockhash || '';
+    const hasPrevHash = prevHash !== '' && prevHash !== '0'.repeat(64);
     const prevHashValid = prevHash.length === 64 &&
                           (block.header.height === 0 || prevHash !== '0'.repeat(64));
+    
     steps.push({
         id: '1.2',
         stage: 1,
@@ -195,17 +201,19 @@ export function validateBlock(block: BlockData): ValidationStep[] {
         rule: 'The previousblockhash must reference an existing valid block (except genesis)',
         check: block.header.height === 0 
             ? 'Genesis block - no previous block required'
-            : `References block: ${prevHash.substring(0, 16)}...`,
+            : (hasPrevHash ? `References block: ${prevHash.substring(0, 16)}...` : '⚠️ Previous hash not provided by API'),
         explanation: 'This creates the chain! Each block commits to its parent, making modification of historical blocks require re-doing all subsequent proof of work.',
-        status: prevHashValid ? 'pass' : 'fail',
+        status: hasPrevHash ? (prevHashValid ? 'pass' : 'fail') : 'info',
         details: {
             previousblockhash: prevHash,
             height: block.header.height,
             isGenesis: block.header.height === 0
         }
     });
-    
+
+    // ... (Timestamp Check omitted for brevity, assumes ok) ...
     // Step 1.3: Timestamp Check
+    const now = Math.floor(Date.now() / 1000);
     const timeTooFarFuture = block.header.time > now + MAX_FUTURE_BLOCK_TIME;
     const timeValid = !timeTooFarFuture;
     steps.push({
@@ -214,7 +222,7 @@ export function validateBlock(block: BlockData): ValidationStep[] {
         name: 'Timestamp Validation',
         description: 'Block timestamp must be reasonable',
         rule: `Block time must not be more than 2 hours in the future. Also must be > median of last 11 blocks.`,
-        check: `Block time: ${new Date(block.header.time * 1000).toISOString()}, Current: ${new Date(now * 1000).toISOString()}`,
+        check: `Block time: ${new Date(block.header.time * 1000).toISOString()}`,
         explanation: 'Timestamps prevent miners from manipulating difficulty by lying about when blocks were mined. The 2-hour future limit gives network clock tolerance.',
         status: timeValid ? 'pass' : 'fail',
         details: {
@@ -226,19 +234,29 @@ export function validateBlock(block: BlockData): ValidationStep[] {
     });
     
     // Step 1.4: nBits / Difficulty Target
-    const target = nbitsToTarget(block.header.bits);
-    const difficulty = calculateDifficulty(block.header.bits);
+    const bits = block.header.bits || '0';
+    const hasBits = bits !== '0';
+    let target = '0'.repeat(64);
+    let difficulty = 0;
+    
+    if (hasBits) {
+        target = nbitsToTarget(bits);
+        difficulty = calculateDifficulty(bits);
+    }
+
     steps.push({
         id: '1.4',
         stage: 1,
         name: 'Difficulty Target (nBits)',
         description: 'Verify the difficulty target is correct for this height',
         rule: 'nBits must match expected difficulty based on previous 2016 blocks',
-        check: `nBits: ${block.header.bits} → Difficulty: ${difficulty.toLocaleString()}`,
+        check: hasBits 
+            ? `nBits: ${bits} → Difficulty: ${difficulty.toLocaleString()}`
+            : '⚠️ nBits data not provided by API',
         explanation: 'Difficulty adjusts every 2016 blocks (~2 weeks) to maintain 10-minute average block times. Higher difficulty = smaller target = harder to find valid hash.',
-        status: 'pass', // Would need previous blocks to verify
+        status: hasBits ? 'pass' : 'info',
         details: {
-            nbits: block.header.bits,
+            nbits: bits,
             target: target.substring(0, 32) + '...',
             difficulty: difficulty,
             leadingZeros: target.match(/^0*/)?.[0].length || 0
@@ -253,11 +271,13 @@ export function validateBlock(block: BlockData): ValidationStep[] {
         name: '⚡ Proof of Work',
         description: 'THE core consensus rule - verify mining work was done',
         rule: 'SHA256d(block_header) must be less than target',
-        check: powValid 
-            ? `✅ ${block.header.hash.substring(0, 20)}... < ${target.substring(0, 20)}...`
-            : `❌ Hash is NOT less than target!`,
+        check: hasBits
+            ? (powValid 
+                ? `✅ ${block.header.hash.substring(0, 20)}... < ${target.substring(0, 20)}...`
+                : `❌ Hash is NOT less than target!`)
+            : '⚠️ Cannot check PoW without nBits',
         explanation: 'This is Bitcoin\'s security foundation! The miner tried ~2^74 nonces to find a hash with enough leading zeros. Without this work, blocks could be created instantly, enabling infinite inflation.',
-        status: powValid ? 'pass' : 'fail',
+        status: hasBits ? (powValid ? 'pass' : 'fail') : 'info',
         details: {
             blockHash: block.header.hash,
             target: target,
