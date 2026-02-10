@@ -164,20 +164,21 @@ export function validateBlock(block: BlockData): ValidationStep[] {
     // ═══════════════════════════════════════════════════════════════
     
     // Step 1.1: Version Check
-    const versionValid = block.header.version >= BLOCK_VERSION_MIN && 
-                         block.header.version <= BLOCK_VERSION_MAX;
+    const version = block.header.version || 0;
+    const versionValid = version >= BLOCK_VERSION_MIN && 
+                         version <= BLOCK_VERSION_MAX;
     steps.push({
         id: '1.1',
         stage: 1,
         name: 'Version Check',
         description: 'Verify block version is valid',
         rule: `Block version must be between ${BLOCK_VERSION_MIN} and ${BLOCK_VERSION_MAX.toString(16)}`,
-        check: `Version is ${block.header.version} (0x${block.header.version.toString(16)})`,
+        check: `Version is ${version} (0x${version.toString(16)})`,
         explanation: 'The version field signals which consensus rules the block follows. Version bits (BIP9) allow soft fork signaling.',
         status: versionValid ? 'pass' : 'fail',
         details: {
-            version: block.header.version,
-            versionHex: '0x' + block.header.version.toString(16),
+            version: version,
+            versionHex: '0x' + version.toString(16),
             valid: versionValid
         }
     });
