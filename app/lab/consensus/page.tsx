@@ -157,360 +157,356 @@ export default function ConsensusDebuggerPage() {
             setLoading(false);
         }
     }, []);
-} finally {
-    setLoading(false);
-}
-    }, []);
 
-// Auto-play through steps
-useEffect(() => {
-    if (!isAutoPlaying || currentStepIndex >= steps.length - 1) {
-        setIsAutoPlaying(false);
-        return;
-    }
+    // Auto-play through steps
+    useEffect(() => {
+        if (!isAutoPlaying || currentStepIndex >= steps.length - 1) {
+            setIsAutoPlaying(false);
+            return;
+        }
 
-    const timer = setTimeout(() => {
-        setCurrentStepIndex(prev => prev + 1);
-    }, 1500);
+        const timer = setTimeout(() => {
+            setCurrentStepIndex(prev => prev + 1);
+        }, 1500);
 
-    return () => clearTimeout(timer);
-}, [isAutoPlaying, currentStepIndex, steps.length]);
+        return () => clearTimeout(timer);
+    }, [isAutoPlaying, currentStepIndex, steps.length]);
 
-const currentStep = steps[currentStepIndex];
-const stageInfo = currentStep ? getStageInfo(currentStep.stage) : null;
+    const currentStep = steps[currentStepIndex];
+    const stageInfo = currentStep ? getStageInfo(currentStep.stage) : null;
 
-// Group steps by stage for progress bar
-const stageProgress = [1, 2, 3, 4, 5].map(stage => {
-    const stageSteps = steps.filter(s => s.stage === stage);
-    const completedSteps = stageSteps.filter((_, idx) => {
-        const globalIdx = steps.findIndex(s => s.id === stageSteps[idx].id);
-        return globalIdx <= currentStepIndex;
+    // Group steps by stage for progress bar
+    const stageProgress = [1, 2, 3, 4, 5].map(stage => {
+        const stageSteps = steps.filter(s => s.stage === stage);
+        const completedSteps = stageSteps.filter((_, idx) => {
+            const globalIdx = steps.findIndex(s => s.id === stageSteps[idx].id);
+            return globalIdx <= currentStepIndex;
+        });
+        return {
+            stage,
+            info: getStageInfo(stage),
+            total: stageSteps.length,
+            completed: completedSteps.length,
+            allPass: completedSteps.every(s => s.status === 'pass' || s.status === 'info')
+        };
     });
-    return {
-        stage,
-        info: getStageInfo(stage),
-        total: stageSteps.length,
-        completed: completedSteps.length,
-        allPass: completedSteps.every(s => s.status === 'pass' || s.status === 'info')
-    };
-});
 
-return (
-    <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans">
-        <div className="max-w-6xl mx-auto space-y-6">
-            <Header />
+    return (
+        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans">
+            <div className="max-w-6xl mx-auto space-y-6">
+                <Header />
 
-            {/* Title */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end pb-4 border-b border-slate-800">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                        ⚙️ Consensus Rules Debugger
-                    </h1>
-                    <p className="mt-1 text-slate-400 text-sm">
-                        Step through block validation like a Bitcoin Core developer
-                    </p>
-                </div>
-                {useDemo && (
-                    <div className="mt-2 md:mt-0 text-xs text-amber-400 bg-amber-500/10 px-3 py-1 rounded">
-                        ⚠️ Using demo block
+                {/* Title */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end pb-4 border-b border-slate-800">
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+                            ⚙️ Consensus Rules Debugger
+                        </h1>
+                        <p className="mt-1 text-slate-400 text-sm">
+                            Step through block validation like a Bitcoin Core developer
+                        </p>
                     </div>
-                )}
-            </div>
-
-            {/* Block Input */}
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                        type="text"
-                        value={blockInput}
-                        onChange={(e) => setBlockInput(e.target.value)}
-                        placeholder="Enter block height or hash..."
-                        className="flex-1 bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                    />
-                    <button
-                        onClick={() => loadBlock(blockInput)}
-                        disabled={loading}
-                        className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-lg transition-all disabled:opacity-50"
-                    >
-                        {loading ? 'Loading...' : 'Load Block'}
-                    </button>
-                    <button
-                        onClick={() => loadBlock()}
-                        disabled={loading}
-                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 font-medium rounded-lg transition-all disabled:opacity-50"
-                    >
-                        Latest
-                    </button>
+                    {useDemo && (
+                        <div className="mt-2 md:mt-0 text-xs text-amber-400 bg-amber-500/10 px-3 py-1 rounded">
+                            ⚠️ Using demo block
+                        </div>
+                    )}
                 </div>
-                {error && !useDemo && (
-                    <p className="mt-2 text-xs text-rose-400">{error}</p>
-                )}
-            </div>
 
-            {block && steps.length > 0 && (
-                <>
-                    {/* Block Info Banner */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-xl p-4"
-                    >
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                            <div>
-                                <div className="text-xs text-slate-500 uppercase">Height</div>
-                                <div className="text-lg font-bold text-cyan-400">{block.header.height.toLocaleString()}</div>
+                {/* Block Input */}
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <input
+                            type="text"
+                            value={blockInput}
+                            onChange={(e) => setBlockInput(e.target.value)}
+                            placeholder="Enter block height or hash..."
+                            className="flex-1 bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                        />
+                        <button
+                            onClick={() => loadBlock(blockInput)}
+                            disabled={loading}
+                            className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-lg transition-all disabled:opacity-50"
+                        >
+                            {loading ? 'Loading...' : 'Load Block'}
+                        </button>
+                        <button
+                            onClick={() => loadBlock()}
+                            disabled={loading}
+                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 font-medium rounded-lg transition-all disabled:opacity-50"
+                        >
+                            Latest
+                        </button>
+                    </div>
+                    {error && !useDemo && (
+                        <p className="mt-2 text-xs text-rose-400">{error}</p>
+                    )}
+                </div>
+
+                {block && steps.length > 0 && (
+                    <>
+                        {/* Block Info Banner */}
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-xl p-4"
+                        >
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div>
+                                    <div className="text-xs text-slate-500 uppercase">Height</div>
+                                    <div className="text-lg font-bold text-cyan-400">{block.header.height.toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500 uppercase">Hash</div>
+                                    <div className="text-sm font-mono text-slate-300 truncate">{block.header.hash.substring(0, 16)}...</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500 uppercase">Time</div>
+                                    <div className="text-sm text-slate-300">{new Date(block.header.time * 1000).toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500 uppercase">Transactions</div>
+                                    <div className="text-lg font-bold text-emerald-400">{block.txCount.toLocaleString()}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div className="text-xs text-slate-500 uppercase">Hash</div>
-                                <div className="text-sm font-mono text-slate-300 truncate">{block.header.hash.substring(0, 16)}...</div>
+                        </motion.div>
+
+                        {/* Progress Bar */}
+                        <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-xs text-slate-500 uppercase tracking-wider">Validation Progress</span>
+                                <span className="text-xs text-slate-400">
+                                    Step {currentStepIndex + 1} of {steps.length}
+                                </span>
                             </div>
-                            <div>
-                                <div className="text-xs text-slate-500 uppercase">Time</div>
-                                <div className="text-sm text-slate-300">{new Date(block.header.time * 1000).toLocaleString()}</div>
+
+                            {/* Stage Pills */}
+                            <div className="flex gap-2 flex-wrap">
+                                {stageProgress.map((sp) => (
+                                    <div
+                                        key={sp.stage}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${sp.completed === sp.total && sp.allPass
+                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                            : sp.completed > 0
+                                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                                                : 'bg-slate-800/50 text-slate-500 border border-slate-700'
+                                            }`}
+                                    >
+                                        <span>{sp.info.icon}</span>
+                                        <span>{sp.info.name}</span>
+                                        {sp.completed === sp.total && sp.allPass && (
+                                            <span className="text-emerald-400">✓</span>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-                            <div>
-                                <div className="text-xs text-slate-500 uppercase">Transactions</div>
-                                <div className="text-lg font-bold text-emerald-400">{block.txCount.toLocaleString()}</div>
+
+                            {/* Progress Bar Line */}
+                            <div className="mt-4 h-2 bg-slate-800 rounded-full overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
+                                    transition={{ duration: 0.3 }}
+                                />
                             </div>
                         </div>
-                    </motion.div>
 
-                    {/* Progress Bar */}
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs text-slate-500 uppercase tracking-wider">Validation Progress</span>
-                            <span className="text-xs text-slate-400">
-                                Step {currentStepIndex + 1} of {steps.length}
-                            </span>
-                        </div>
-
-                        {/* Stage Pills */}
-                        <div className="flex gap-2 flex-wrap">
-                            {stageProgress.map((sp) => (
-                                <div
-                                    key={sp.stage}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${sp.completed === sp.total && sp.allPass
-                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                        : sp.completed > 0
-                                            ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                                            : 'bg-slate-800/50 text-slate-500 border border-slate-700'
+                        {/* Current Step Card */}
+                        <AnimatePresence mode="wait">
+                            {currentStep && (
+                                <motion.div
+                                    key={currentStep.id}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className={`bg-slate-900/70 border rounded-2xl overflow-hidden ${currentStep.status === 'pass' ? 'border-emerald-500/30' :
+                                        currentStep.status === 'fail' ? 'border-rose-500/30' :
+                                            currentStep.status === 'info' ? 'border-blue-500/30' :
+                                                'border-slate-700'
                                         }`}
                                 >
-                                    <span>{sp.info.icon}</span>
-                                    <span>{sp.info.name}</span>
-                                    {sp.completed === sp.total && sp.allPass && (
-                                        <span className="text-emerald-400">✓</span>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Progress Bar Line */}
-                        <div className="mt-4 h-2 bg-slate-800 rounded-full overflow-hidden">
-                            <motion.div
-                                className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500"
-                                initial={{ width: 0 }}
-                                animate={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
-                                transition={{ duration: 0.3 }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Current Step Card */}
-                    <AnimatePresence mode="wait">
-                        {currentStep && (
-                            <motion.div
-                                key={currentStep.id}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                                className={`bg-slate-900/70 border rounded-2xl overflow-hidden ${currentStep.status === 'pass' ? 'border-emerald-500/30' :
-                                    currentStep.status === 'fail' ? 'border-rose-500/30' :
-                                        currentStep.status === 'info' ? 'border-blue-500/30' :
-                                            'border-slate-700'
-                                    }`}
-                            >
-                                {/* Step Header */}
-                                <div className={`px-6 py-4 border-b ${currentStep.status === 'pass' ? 'bg-emerald-500/10 border-emerald-500/20' :
-                                    currentStep.status === 'fail' ? 'bg-rose-500/10 border-rose-500/20' :
-                                        currentStep.status === 'info' ? 'bg-blue-500/10 border-blue-500/20' :
-                                            'bg-slate-800/50 border-slate-700'
-                                    }`}>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold ${currentStep.status === 'pass' ? 'bg-emerald-500/20 text-emerald-400' :
+                                    {/* Step Header */}
+                                    <div className={`px-6 py-4 border-b ${currentStep.status === 'pass' ? 'bg-emerald-500/10 border-emerald-500/20' :
+                                        currentStep.status === 'fail' ? 'bg-rose-500/10 border-rose-500/20' :
+                                            currentStep.status === 'info' ? 'bg-blue-500/10 border-blue-500/20' :
+                                                'bg-slate-800/50 border-slate-700'
+                                        }`}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold ${currentStep.status === 'pass' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                    currentStep.status === 'fail' ? 'bg-rose-500/20 text-rose-400' :
+                                                        currentStep.status === 'info' ? 'bg-blue-500/20 text-blue-400' :
+                                                            'bg-slate-700 text-slate-400'
+                                                    }`}>
+                                                    {stageInfo?.icon}
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs text-slate-500 uppercase tracking-wider">
+                                                        Stage {currentStep.stage} • Step {currentStep.id}
+                                                    </div>
+                                                    <h2 className="text-xl font-bold text-white">{currentStep.name}</h2>
+                                                </div>
+                                            </div>
+                                            <div className={`px-4 py-2 rounded-lg font-bold uppercase tracking-wider text-sm ${currentStep.status === 'pass' ? 'bg-emerald-500/20 text-emerald-400' :
                                                 currentStep.status === 'fail' ? 'bg-rose-500/20 text-rose-400' :
                                                     currentStep.status === 'info' ? 'bg-blue-500/20 text-blue-400' :
                                                         'bg-slate-700 text-slate-400'
                                                 }`}>
-                                                {stageInfo?.icon}
+                                                {currentStep.status === 'pass' && '✅ PASS'}
+                                                {currentStep.status === 'fail' && '❌ FAIL'}
+                                                {currentStep.status === 'info' && 'ℹ️ INFO'}
+                                                {currentStep.status === 'pending' && '⏳ PENDING'}
                                             </div>
-                                            <div>
-                                                <div className="text-xs text-slate-500 uppercase tracking-wider">
-                                                    Stage {currentStep.stage} • Step {currentStep.id}
+                                        </div>
+                                    </div>
+
+                                    {/* Step Content */}
+                                    <div className="p-6 space-y-5">
+                                        {/* Description */}
+                                        <p className="text-slate-400">{currentStep.description}</p>
+
+                                        {/* The Rule */}
+                                        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                                            <div className="text-xs text-cyan-400 uppercase tracking-widest mb-2 font-bold">
+                                                📜 The Rule
+                                            </div>
+                                            <p className="text-sm text-slate-200 font-mono">{currentStep.rule}</p>
+                                        </div>
+
+                                        {/* The Check */}
+                                        <div className={`rounded-xl p-4 ${currentStep.status === 'pass' ? 'bg-emerald-500/10 border border-emerald-500/20' :
+                                            currentStep.status === 'fail' ? 'bg-rose-500/10 border border-rose-500/20' :
+                                                'bg-slate-800/50 border border-slate-700'
+                                            }`}>
+                                            <div className={`text-xs uppercase tracking-widest mb-2 font-bold ${currentStep.status === 'pass' ? 'text-emerald-400' :
+                                                currentStep.status === 'fail' ? 'text-rose-400' :
+                                                    'text-slate-400'
+                                                }`}>
+                                                🔍 The Check
+                                            </div>
+                                            <p className="text-sm font-mono text-white break-all">{currentStep.check}</p>
+                                        </div>
+
+                                        {/* Details Grid */}
+                                        {currentStep.details && Object.keys(currentStep.details).length > 0 && (
+                                            <div className="bg-slate-800/30 rounded-xl p-4">
+                                                <div className="text-xs text-slate-500 uppercase tracking-widest mb-3">
+                                                    📊 Technical Details
                                                 </div>
-                                                <h2 className="text-xl font-bold text-white">{currentStep.name}</h2>
-                                            </div>
-                                        </div>
-                                        <div className={`px-4 py-2 rounded-lg font-bold uppercase tracking-wider text-sm ${currentStep.status === 'pass' ? 'bg-emerald-500/20 text-emerald-400' :
-                                            currentStep.status === 'fail' ? 'bg-rose-500/20 text-rose-400' :
-                                                currentStep.status === 'info' ? 'bg-blue-500/20 text-blue-400' :
-                                                    'bg-slate-700 text-slate-400'
-                                            }`}>
-                                            {currentStep.status === 'pass' && '✅ PASS'}
-                                            {currentStep.status === 'fail' && '❌ FAIL'}
-                                            {currentStep.status === 'info' && 'ℹ️ INFO'}
-                                            {currentStep.status === 'pending' && '⏳ PENDING'}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Step Content */}
-                                <div className="p-6 space-y-5">
-                                    {/* Description */}
-                                    <p className="text-slate-400">{currentStep.description}</p>
-
-                                    {/* The Rule */}
-                                    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-                                        <div className="text-xs text-cyan-400 uppercase tracking-widest mb-2 font-bold">
-                                            📜 The Rule
-                                        </div>
-                                        <p className="text-sm text-slate-200 font-mono">{currentStep.rule}</p>
-                                    </div>
-
-                                    {/* The Check */}
-                                    <div className={`rounded-xl p-4 ${currentStep.status === 'pass' ? 'bg-emerald-500/10 border border-emerald-500/20' :
-                                        currentStep.status === 'fail' ? 'bg-rose-500/10 border border-rose-500/20' :
-                                            'bg-slate-800/50 border border-slate-700'
-                                        }`}>
-                                        <div className={`text-xs uppercase tracking-widest mb-2 font-bold ${currentStep.status === 'pass' ? 'text-emerald-400' :
-                                            currentStep.status === 'fail' ? 'text-rose-400' :
-                                                'text-slate-400'
-                                            }`}>
-                                            🔍 The Check
-                                        </div>
-                                        <p className="text-sm font-mono text-white break-all">{currentStep.check}</p>
-                                    </div>
-
-                                    {/* Details Grid */}
-                                    {currentStep.details && Object.keys(currentStep.details).length > 0 && (
-                                        <div className="bg-slate-800/30 rounded-xl p-4">
-                                            <div className="text-xs text-slate-500 uppercase tracking-widest mb-3">
-                                                📊 Technical Details
-                                            </div>
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                                                {Object.entries(currentStep.details).map(([key, value]) => (
-                                                    <div key={key} className="bg-slate-900/50 rounded-lg p-2">
-                                                        <div className="text-xs text-slate-500 capitalize">{key.replace(/([A-Z])/g, ' $1')}</div>
-                                                        <div className="font-mono text-slate-200 text-xs truncate">
-                                                            {typeof value === 'boolean' ? (value ? '✅ Yes' : '❌ No') : String(value)}
+                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                                                    {Object.entries(currentStep.details).map(([key, value]) => (
+                                                        <div key={key} className="bg-slate-900/50 rounded-lg p-2">
+                                                            <div className="text-xs text-slate-500 capitalize">{key.replace(/([A-Z])/g, ' $1')}</div>
+                                                            <div className="font-mono text-slate-200 text-xs truncate">
+                                                                {typeof value === 'boolean' ? (value ? '✅ Yes' : '❌ No') : String(value)}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* Why It Matters */}
-                                    <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-xl p-4">
-                                        <div className="text-xs text-violet-400 uppercase tracking-widest mb-2 font-bold">
-                                            🎓 Why This Matters
+                                        {/* Why It Matters */}
+                                        <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-xl p-4">
+                                            <div className="text-xs text-violet-400 uppercase tracking-widest mb-2 font-bold">
+                                                🎓 Why This Matters
+                                            </div>
+                                            <p className="text-sm text-slate-300 leading-relaxed">{currentStep.explanation}</p>
                                         </div>
-                                        <p className="text-sm text-slate-300 leading-relaxed">{currentStep.explanation}</p>
                                     </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                    {/* Navigation */}
-                    <div className="flex items-center justify-between gap-4">
-                        <button
-                            onClick={() => setCurrentStepIndex(prev => Math.max(0, prev - 1))}
-                            disabled={currentStepIndex === 0}
-                            className="flex-1 py-3 px-6 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-700 rounded-xl font-medium transition-all"
-                        >
-                            ← Previous Step
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                if (isAutoPlaying) {
-                                    setIsAutoPlaying(false);
-                                } else {
-                                    setCurrentStepIndex(0);
-                                    setIsAutoPlaying(true);
-                                }
-                            }}
-                            className={`py-3 px-6 rounded-xl font-medium transition-all ${isAutoPlaying
-                                ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                                : 'bg-violet-500/20 text-violet-400 border border-violet-500/30 hover:bg-violet-500/30'
-                                }`}
-                        >
-                            {isAutoPlaying ? '⏸ Stop' : '▶ Auto-Run'}
-                        </button>
-
-                        <button
-                            onClick={() => setCurrentStepIndex(prev => Math.min(steps.length - 1, prev + 1))}
-                            disabled={currentStepIndex === steps.length - 1}
-                            className="flex-1 py-3 px-6 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl font-medium transition-all"
-                        >
-                            Next Step →
-                        </button>
-                    </div>
-
-                    {/* Mini Step Navigator */}
-                    <div className="flex flex-wrap gap-1 justify-center">
-                        {steps.map((step, idx) => (
+                        {/* Navigation */}
+                        <div className="flex items-center justify-between gap-4">
                             <button
-                                key={step.id}
-                                onClick={() => setCurrentStepIndex(idx)}
-                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${idx === currentStepIndex
-                                    ? 'bg-cyan-500 text-white scale-110'
-                                    : idx < currentStepIndex
-                                        ? step.status === 'pass'
-                                            ? 'bg-emerald-500/30 text-emerald-400'
-                                            : step.status === 'fail'
-                                                ? 'bg-rose-500/30 text-rose-400'
-                                                : 'bg-blue-500/30 text-blue-400'
-                                        : 'bg-slate-800 text-slate-500 hover:bg-slate-700'
-                                    }`}
-                                title={step.name}
+                                onClick={() => setCurrentStepIndex(prev => Math.max(0, prev - 1))}
+                                disabled={currentStepIndex === 0}
+                                className="flex-1 py-3 px-6 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-700 rounded-xl font-medium transition-all"
                             >
-                                {step.id}
+                                ← Previous Step
                             </button>
-                        ))}
+
+                            <button
+                                onClick={() => {
+                                    if (isAutoPlaying) {
+                                        setIsAutoPlaying(false);
+                                    } else {
+                                        setCurrentStepIndex(0);
+                                        setIsAutoPlaying(true);
+                                    }
+                                }}
+                                className={`py-3 px-6 rounded-xl font-medium transition-all ${isAutoPlaying
+                                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                    : 'bg-violet-500/20 text-violet-400 border border-violet-500/30 hover:bg-violet-500/30'
+                                    }`}
+                            >
+                                {isAutoPlaying ? '⏸ Stop' : '▶ Auto-Run'}
+                            </button>
+
+                            <button
+                                onClick={() => setCurrentStepIndex(prev => Math.min(steps.length - 1, prev + 1))}
+                                disabled={currentStepIndex === steps.length - 1}
+                                className="flex-1 py-3 px-6 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl font-medium transition-all"
+                            >
+                                Next Step →
+                            </button>
+                        </div>
+
+                        {/* Mini Step Navigator */}
+                        <div className="flex flex-wrap gap-1 justify-center">
+                            {steps.map((step, idx) => (
+                                <button
+                                    key={step.id}
+                                    onClick={() => setCurrentStepIndex(idx)}
+                                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${idx === currentStepIndex
+                                        ? 'bg-cyan-500 text-white scale-110'
+                                        : idx < currentStepIndex
+                                            ? step.status === 'pass'
+                                                ? 'bg-emerald-500/30 text-emerald-400'
+                                                : step.status === 'fail'
+                                                    ? 'bg-rose-500/30 text-rose-400'
+                                                    : 'bg-blue-500/30 text-blue-400'
+                                            : 'bg-slate-800 text-slate-500 hover:bg-slate-700'
+                                        }`}
+                                    title={step.name}
+                                >
+                                    {step.id}
+                                </button>
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {/* Empty State */}
+                {!block && !loading && (
+                    <div className="text-center py-16">
+                        <div className="text-6xl mb-4">⚙️</div>
+                        <h3 className="text-xl font-bold text-slate-400 mb-2">Load a Block to Begin</h3>
+                        <p className="text-sm text-slate-500 max-w-md mx-auto">
+                            Enter a block height or hash above, or click &quot;Latest&quot; to load the most recent block
+                            and step through its validation.
+                        </p>
+                        <button
+                            onClick={() => loadBlock()}
+                            className="mt-6 px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl transition-all"
+                        >
+                            Load Latest Block
+                        </button>
                     </div>
-                </>
-            )}
+                )}
 
-            {/* Empty State */}
-            {!block && !loading && (
-                <div className="text-center py-16">
-                    <div className="text-6xl mb-4">⚙️</div>
-                    <h3 className="text-xl font-bold text-slate-400 mb-2">Load a Block to Begin</h3>
-                    <p className="text-sm text-slate-500 max-w-md mx-auto">
-                        Enter a block height or hash above, or click &quot;Latest&quot; to load the most recent block
-                        and step through its validation.
-                    </p>
-                    <button
-                        onClick={() => loadBlock()}
-                        className="mt-6 px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl transition-all"
-                    >
-                        Load Latest Block
-                    </button>
-                </div>
-            )}
-
-            {/* Loading State */}
-            {loading && (
-                <div className="text-center py-16 animate-pulse">
-                    <div className="text-6xl mb-4">🔄</div>
-                    <div className="text-slate-500">Loading block data...</div>
-                </div>
-            )}
-        </div>
-    </main>
-);
+                {/* Loading State */}
+                {loading && (
+                    <div className="text-center py-16 animate-pulse">
+                        <div className="text-6xl mb-4">🔄</div>
+                        <div className="text-slate-500">Loading block data...</div>
+                    </div>
+                )}
+            </div>
+        </main>
+    );
 }
