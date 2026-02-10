@@ -255,7 +255,9 @@ export default function ConsensusDebuggerPage() {
                                 </div>
                                 <div>
                                     <div className="text-xs text-slate-500 uppercase">Hash</div>
-                                    <div className="text-sm font-mono text-slate-300 truncate">{block.header.hash.substring(0, 16)}...</div>
+                                    <div className="text-sm font-mono text-slate-300 truncate" title={block.header.hash}>
+                                        {block.header.hash.substring(0, 8)}...{block.header.hash.substring(block.header.hash.length - 8)}
+                                    </div>
                                 </div>
                                 <div>
                                     <div className="text-xs text-slate-500 uppercase">Time</div>
