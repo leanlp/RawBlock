@@ -121,7 +121,7 @@ function DecoderContent() {
                     <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400">
                         {result && isAddress(result) ? 'Address Inspector' : 'Transaction Decoder'}
                     </h1>
-                    <a href="/" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors">
+                    <a href="/" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors inline-flex items-center min-h-11">
                         ← Back to Dashboard
                     </a>
                 </div>
@@ -263,9 +263,9 @@ function DecoderContent() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <div className="min-w-0 overflow-hidden">
                                     <div className="text-[10px] text-slate-600 mb-1">TXID</div>
-                                    <div className="text-xs text-cyan-300 truncate md:break-all md:whitespace-normal select-all max-w-[300px] md:max-w-none">{result.txid}</div>
+                                    <div className="text-xs text-cyan-300 truncate md:break-all md:whitespace-normal select-all max-w-[75vw] lg:max-w-xl md:max-w-none">{result.txid}</div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
                                         <div className="text-[10px] text-slate-600 mb-1">SIZE</div>
                                         <div className="text-xl text-slate-200">{result.size} <span className="text-xs text-slate-600">B</span></div>
@@ -296,7 +296,7 @@ function DecoderContent() {
                         </div>
 
                         {/* 2. Flow Visualization (Inputs -> Outputs) */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                             {/* Inputs */}
                             <div className="space-y-4">
@@ -398,4 +398,3 @@ export default function DecoderPage() {
         </Suspense>
     );
 }
-

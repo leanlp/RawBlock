@@ -145,7 +145,7 @@ export default function KeyAggregator() {
                             </span>
                         </div>
                     </div>
-                    <button onClick={addSigner} className="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded text-slate-300">
+                    <button onClick={addSigner} className="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2.5 min-h-11 rounded text-slate-300">
                         + Add Participant
                     </button>
                 </div>
@@ -169,7 +169,7 @@ export default function KeyAggregator() {
                                                 ✓ Signed
                                             </span>
                                         )}
-                                        <button onClick={() => removeSigner(s.id)} className="text-slate-600 hover:text-red-500">×</button>
+                                        <button onClick={() => removeSigner(s.id)} className="text-slate-600 hover:text-red-500 min-h-11 min-w-11 inline-flex items-center justify-center">×</button>
                                     </div>
                                 </div>
                                 <div className="font-mono text-[10px] text-slate-500 space-y-1">

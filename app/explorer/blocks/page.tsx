@@ -96,7 +96,7 @@ export default function BlocksIndexPage() {
                                             <span className="text-2xl font-bold text-cyan-400 font-mono">
                                                 #{block.height}
                                             </span>
-                                            <span className="px-2 py-0.5 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700 max-w-[100px] truncate">
+                                            <span className="px-2 py-0.5 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700 max-w-24 truncate">
                                                 {block.miner}
                                             </span>
                                         </div>

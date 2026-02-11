@@ -127,9 +127,9 @@ export default function MiningSimPage() {
                         <p className="mt-2 text-slate-400 text-sm">Target: 10 mins (600s). Epoch: 20 blocks (Demo Mode).</p>
                     </div>
                     <div className="flex gap-4">
-                        <button onClick={() => setHashrate(50)} className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/50 rounded hover:bg-red-500/30 text-xs">China Ban (-50%)</button>
-                        <button onClick={() => setHashrate(300)} className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 rounded hover:bg-emerald-500/30 text-xs">ASIC Boom (+300%)</button>
-                        <button onClick={() => { setHashrate(100); setDifficulty(100); }} className="px-3 py-1 bg-slate-800 text-slate-400 border border-slate-700 rounded hover:bg-slate-700 text-xs">Reset</button>
+                        <button onClick={() => setHashrate(50)} className="px-3 py-2.5 min-h-11 bg-red-500/20 text-red-400 border border-red-500/50 rounded hover:bg-red-500/30 text-xs">China Ban (-50%)</button>
+                        <button onClick={() => setHashrate(300)} className="px-3 py-2.5 min-h-11 bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 rounded hover:bg-emerald-500/30 text-xs">ASIC Boom (+300%)</button>
+                        <button onClick={() => { setHashrate(100); setDifficulty(100); }} className="px-3 py-2.5 min-h-11 bg-slate-800 text-slate-400 border border-slate-700 rounded hover:bg-slate-700 text-xs">Reset</button>
                     </div>
                 </div>
 

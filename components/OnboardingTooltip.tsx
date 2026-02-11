@@ -202,7 +202,7 @@ export function RestartTourButton({ tourId, label = "How to use" }: { tourId: st
     return (
         <button
             onClick={handleRestart}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-cyan-400 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 min-h-11 text-xs text-slate-400 hover:text-cyan-400 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all"
         >
             <span>❓</span>
             <span>{label}</span>

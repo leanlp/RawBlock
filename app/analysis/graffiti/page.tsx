@@ -49,7 +49,7 @@ export default function GraffitiPage() {
                     <h1 className="text-2xl font-bold tracking-tighter uppercase glitch-text">
                         Graffiti_Wall <span className="animate-pulse">_</span>
                     </h1>
-                    <a href="/" className="text-xs hover:text-green-300 hover:underline">[ RETURN_TO_HOME ]</a>
+                    <a href="/" className="text-xs hover:text-green-300 hover:underline inline-flex items-center min-h-11">[ RETURN_TO_HOME ]</a>
                 </div>
 
                 <div className="bg-black/90 border border-green-800 rounded-sm p-4 h-[80vh] overflow-y-auto shadow-[0_0_20px_rgba(0,255,0,0.1)] custom-scrollbar relative">

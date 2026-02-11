@@ -118,7 +118,7 @@ export default function UTXOExplorerPage() {
                 ) : (
                     <>
                         {/* Hero Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -168,7 +168,7 @@ export default function UTXOExplorerPage() {
                         </div>
 
                         {/* Charts Row */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                             {/* Address Type Distribution */}
                             <motion.div
@@ -205,7 +205,7 @@ export default function UTXOExplorerPage() {
                                     </ResponsiveContainer>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-2 mt-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
                                     {distribution?.addressTypes.map((type, i) => (
                                         <div key={i} className="flex items-center gap-2 text-xs">
                                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }} />

@@ -181,14 +181,14 @@ export default function Header() {
     }, []);
 
     return (
-        <header className="py-6 border-b border-slate-800/50 mb-8 flex flex-col md:flex-row justify-between items-center gap-4 relative">
+        <header className="py-6 border-b border-slate-800/50 mb-8 flex flex-col md:flex-row justify-between md:items-center gap-4 relative">
 
             <Link href="/" className="flex items-center gap-3 group">
                 <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800 group-hover:border-slate-700 transition-colors shadow-xl shadow-black/20">
                     <span className="text-xl">⚡</span>
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-slate-200 tracking-tight group-hover:text-white transition-colors">
+                    <h1 className="text-[clamp(1.125rem,1.8vw,1.5rem)] font-bold text-slate-200 tracking-tight group-hover:text-white transition-colors leading-tight">
                         Raw <span className="text-cyan-400">Block</span>
                     </h1>
                     <div className="flex items-center gap-2">
@@ -205,7 +205,7 @@ export default function Header() {
                         key={item.path}
                         href={item.path}
                         className={`
-                            px-4 py-1.5 rounded-full text-xs font-semibold transition-all
+                            px-4 py-1.5 min-h-11 rounded-full text-xs font-semibold transition-all inline-flex items-center
                             ${pathname === item.path
                                 ? 'bg-slate-800 text-white shadow-lg'
                                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
@@ -219,7 +219,7 @@ export default function Header() {
             </nav>
 
             {/* Enhanced Omni-Search with Autocomplete */}
-            <div className="relative w-full md:w-72">
+            <div className="relative w-full md:w-80 lg:w-96">
                 <form onSubmit={handleSearch} className="relative group">
                     <input
                         ref={inputRef}
@@ -233,7 +233,7 @@ export default function Header() {
                         }}
                         onFocus={() => setShowDropdown(true)}
                         onKeyDown={handleKeyDown}
-                        className="w-full bg-slate-900/50 border border-slate-800 rounded-full py-2 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder:text-slate-600"
+                        className="w-full bg-slate-900/50 border border-slate-800 rounded-full py-2.5 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder:text-slate-600 min-h-11"
                     />
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-cyan-500 transition-colors">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,19 +255,19 @@ export default function Header() {
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => setSearchQuery("800000")}
-                                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-cyan-500/50 rounded-full text-xs text-slate-300 transition-all flex items-center gap-1.5"
+                                        className="px-3 py-1.5 min-h-11 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-cyan-500/50 rounded-full text-xs text-slate-300 transition-all flex items-center gap-1.5"
                                     >
                                         <span>📦</span> Block Height
                                     </button>
                                     <button
                                         onClick={() => setSearchQuery("bc1q")}
-                                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-cyan-500/50 rounded-full text-xs text-slate-300 transition-all flex items-center gap-1.5"
+                                        className="px-3 py-1.5 min-h-11 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-cyan-500/50 rounded-full text-xs text-slate-300 transition-all flex items-center gap-1.5"
                                     >
                                         <span>🏠</span> Address
                                     </button>
                                     <button
                                         onClick={() => setSearchQuery("00000000")}
-                                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-cyan-500/50 rounded-full text-xs text-slate-300 transition-all flex items-center gap-1.5"
+                                        className="px-3 py-1.5 min-h-11 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-cyan-500/50 rounded-full text-xs text-slate-300 transition-all flex items-center gap-1.5"
                                     >
                                         <span>📄</span> TxID / Hash
                                     </button>
@@ -280,8 +280,8 @@ export default function Header() {
                             <button
                                 key={`${suggestion.type}-${suggestion.label}`}
                                 onClick={() => handleSelectSuggestion(suggestion.href, suggestion.label)}
-                                className={`
-                                    w-full px-4 py-3 flex items-center justify-between text-left transition-colors
+                                    className={`
+                                    w-full px-4 py-3 min-h-11 flex items-center justify-between text-left transition-colors
                                     ${index === selectedIndex ? 'bg-slate-800' : 'hover:bg-slate-800/50'}
                                 `}
                             >
@@ -289,7 +289,7 @@ export default function Header() {
                                     <span className="text-slate-500">
                                         {suggestion.isRecent ? '🕐' : suggestion.type === 'Block Height' ? '📦' : suggestion.type === 'Transaction' ? '📄' : '🏠'}
                                     </span>
-                                    <span className="text-sm text-slate-200 font-mono truncate max-w-[180px]">
+                                    <span className="text-sm text-slate-200 font-mono truncate max-w-[60vw] md:max-w-[12rem] lg:max-w-[14rem]">
                                         {suggestion.label}
                                     </span>
                                 </div>
@@ -315,4 +315,3 @@ export default function Header() {
         </header>
     );
 }
-

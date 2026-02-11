@@ -180,7 +180,7 @@ export default function VitalsPage() {
                         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm">
                             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-6">Local Node Health</h3>
                             {hasNode ? (
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="p-4 bg-slate-800/50 rounded-lg">
                                         <div className="text-xs text-slate-400 mb-1">Uptime</div>
                                         <div className="text-lg font-mono text-emerald-400">{formatUptime(data.node!.uptime)}</div>

@@ -55,7 +55,7 @@ const TxNode = ({ data }: { data: { label: string, value: string, risk: number }
 
     return (
         <div className={`
-      group relative min-w-[180px] md:min-w-[240px] ${bgClass} backdrop-blur-xl rounded-xl border border-slate-700/50 shadow-2xl 
+      group relative min-w-44 md:min-w-56 ${bgClass} backdrop-blur-xl rounded-xl border border-slate-700/50 shadow-2xl 
       transition-all duration-700 ease-out
       md:hover:scale-125 hover:z-50 hover:shadow-[0_0_40px_-5px_rgba(56,189,248,0.5)]
       ${isRisky ? 'border-red-500/30' : 'hover:border-cyan-500/50'}
@@ -64,7 +64,7 @@ const TxNode = ({ data }: { data: { label: string, value: string, risk: number }
             <div className={`absolute -inset-0.5 bg-gradient-to-r ${isRisky ? 'from-red-500 to-orange-600' : 'from-cyan-500 to-blue-600'} rounded-xl opacity-0 group-hover:opacity-20 transition duration-1000 blur`}></div>
 
             {/* HOVER CARD OVERLAY (Appears on top) */}
-            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-[300px] hidden group-hover:block z-[60] pointer-events-none">
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-[80vw] max-w-md hidden group-hover:block z-[60] pointer-events-none">
                 <div className="bg-slate-900/95 backdrop-blur-md border border-slate-600 p-3 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.5)] text-center animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Full Transaction ID</div>
                     <div className="text-xs font-mono text-cyan-300 break-all leading-tight select-all">{data.label}</div>
@@ -79,7 +79,7 @@ const TxNode = ({ data }: { data: { label: string, value: string, risk: number }
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col">
                         <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-0.5">Transaction</span>
-                        <span className="text-xs font-mono text-slate-200 truncate max-w-[140px]" title={data.label}>
+                        <span className="text-xs font-mono text-slate-200 truncate max-w-36" title={data.label}>
                             {data.label.substring(0, 8)}...{data.label.substring(data.label.length - 8)}
                         </span>
                     </div>
@@ -91,7 +91,7 @@ const TxNode = ({ data }: { data: { label: string, value: string, risk: number }
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div className="bg-slate-950/50 rounded-lg p-2 border border-slate-800/50">
                         <div className="text-[10px] text-slate-500">Value</div>
                         <div className="text-sm font-bold text-white font-mono">{data.value} <span className="text-[10px] text-slate-500">BTC</span></div>
@@ -124,13 +124,13 @@ const AddressNode = ({ data }: { data: { label: string, balance: string, tag?: s
 
     return (
         <div className={`group
-        relative min-w-[180px] md:min-w-[220px] ${bgClass} backdrop-blur rounded-full border border-slate-700 shadow-xl flex items-center gap-3 p-1.5 pr-6 
+        relative min-w-44 md:min-w-56 ${bgClass} backdrop-blur rounded-full border border-slate-700 shadow-xl flex items-center gap-3 p-1.5 pr-6 
         transition-all duration-700 ease-out
         hover:border-purple-500/50 hover:shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)]
         md:hover:scale-125 hover:z-50
       `}>
             {/* HOVER CARD OVERLAY */}
-            <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-[280px] hidden group-hover:block z-[60] pointer-events-none">
+            <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-[75vw] max-w-sm hidden group-hover:block z-[60] pointer-events-none">
                 <div className="bg-slate-900/95 backdrop-blur-md border border-slate-600 p-3 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.5)] text-center animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Wallet Address</div>
                     <div className="text-xs font-mono text-purple-300 break-all leading-tight select-all">{data.label}</div>
@@ -155,7 +155,7 @@ const AddressNode = ({ data }: { data: { label: string, balance: string, tag?: s
                         {data.tag || "Wallet"}
                     </span>
                 </div>
-                <div className="text-xs font-mono text-slate-200 truncate max-w-[120px]">{data.label.substring(0, 6)}...{data.label.substring(data.label.length - 6)}</div>
+                <div className="text-xs font-mono text-slate-200 truncate max-w-32">{data.label.substring(0, 6)}...{data.label.substring(data.label.length - 6)}</div>
                 <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                     Bal: <span className="text-emerald-400 font-bold">{data.balance} BTC</span>
                 </div>
@@ -190,7 +190,7 @@ const DotNode = ({ data }: { data: { value: string, risk?: number } }) => {
 // 4. Block Group Node (Container)
 const BlockGroupNode = ({ data }: { data: { label: string, height: number } }) => {
     return (
-        <div className="min-w-[300px] h-full bg-slate-900/40 border-2 border-dashed border-slate-700/50 rounded-xl p-4 flex flex-col justify-end relative group transition-all hover:bg-slate-900/60 hover:border-slate-600">
+        <div className="min-w-[80vw] max-w-md h-full bg-slate-900/40 border-2 border-dashed border-slate-700/50 rounded-xl p-4 flex flex-col justify-end relative group transition-all hover:bg-slate-900/60 hover:border-slate-600">
             <div className="absolute -top-3 left-4 bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-400 font-mono border border-slate-700 shadow-sm flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
                 Block #{data.height}
@@ -1395,7 +1395,7 @@ export default function ForensicsPage() {
             )}
 
             {/* Case Studies Floating Dock (Adjusted Top) */}
-            <div className="absolute top-48 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+            <div className="hidden md:block absolute top-48 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 <div className="flex flex-col gap-2 p-2">
                     <div className="text-[10px] uppercase font-bold text-slate-400 mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2 pt-2">
                         Case Files
@@ -1420,16 +1420,16 @@ export default function ForensicsPage() {
 
 
             {/* Main Content: Flex Row */}
-            <div className="flex-1 flex flex-row h-full overflow-hidden relative mt-0 border-t border-slate-900 text-white">
+            <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden relative mt-0 border-t border-slate-900 text-white">
 
                 {/* 1. Graph Container (Left / Center) */}
                 <div className="flex-1 h-full relative bg-slate-950">
 
                     {/* Command Center (Relocated to Top Right) */}
-                    <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-3 w-[95%] md:w-auto pointer-events-none">
+                    <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-3 w-[calc(100%-2rem)] md:w-auto pointer-events-none">
 
                         {/* 1. Search Bar */}
-                        <div className="flex gap-2 w-full md:w-[400px] pointer-events-auto shadow-2xl shadow-cyan-900/20">
+                        <div className="flex gap-2 w-full md:w-full md:max-w-md pointer-events-auto shadow-2xl shadow-cyan-900/20">
                             <input
                                 type="text"
                                 value={searchQuery}
@@ -1497,10 +1497,10 @@ export default function ForensicsPage() {
 
                             <div className="hidden md:block w-px h-4 bg-slate-700 mx-0.5"></div>
 
-                            <button onClick={handleExportCSV} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Export CSV"><FileText size={16} /></button>
-                            <button onClick={handleExportImage} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-indigo-400 transition-colors" title="Export Image"><Camera size={16} /></button>
-                            <button className="p-2 hover:bg-slate-800 rounded-md text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
-                            <button onClick={saveEvidence} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Save Evidence"><Save size={16} /></button>
+                            <button onClick={handleExportCSV} className="p-2 min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Export CSV"><FileText size={16} /></button>
+                            <button onClick={handleExportImage} className="p-2 min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-slate-800 rounded-full text-slate-400 hover:text-indigo-400 transition-colors" title="Export Image"><Camera size={16} /></button>
+                            <button className="p-2 min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-slate-800 rounded-md text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
+                            <button onClick={saveEvidence} className="p-2 min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Save Evidence"><Save size={16} /></button>
                         </div>
                     </div>
                     <ReactFlow
@@ -1557,7 +1557,7 @@ export default function ForensicsPage() {
                         {/* Context Menu */}
                         {menu && (
                             <div
-                                className="absolute z-50 bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden min-w-[160px]"
+                                className="absolute z-50 bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden min-w-40"
                                 style={{ top: menu.top, left: menu.left, bottom: menu.bottom as any, right: menu.right as any }}
                             >
                                 <div className="p-2 text-xs text-slate-500 border-b border-slate-800 font-mono">
@@ -1634,7 +1634,7 @@ export default function ForensicsPage() {
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-xs font-bold uppercase text-slate-500">{selectedNode.type === 'tx' ? 'Transaction' : 'Address'}</span>
-                                        <button onClick={() => setSelectedNode(null)} className="text-slate-400 hover:text-white"><X size={16} /></button>
+                                        <button onClick={() => setSelectedNode(null)} className="text-slate-400 hover:text-white min-h-11 min-w-11 inline-flex items-center justify-center"><X size={16} /></button>
                                     </div>
                                     <h2 className="text-sm font-mono text-white break-all bg-slate-950 p-2 rounded border border-slate-800 select-all">
                                         {selectedNode.id}
@@ -1642,7 +1642,7 @@ export default function ForensicsPage() {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     <button
                                         onClick={() => expandTxNode(selectedNode, selectedNodeData, 'in')}
                                         className="bg-slate-800 hover:bg-blue-600 text-slate-200 text-xs py-2 rounded flex items-center justify-center gap-1 transition-colors"
@@ -1757,4 +1757,3 @@ export default function ForensicsPage() {
         </main>
     );
 }
-

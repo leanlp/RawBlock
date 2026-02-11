@@ -173,7 +173,7 @@ export default function MempoolVisualizer() {
             </div>
 
             {/* Stats Bar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 text-xs font-mono bg-slate-900/50 px-4 py-3 rounded-lg border border-slate-800">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 text-xs font-mono bg-slate-900/50 px-4 py-3 rounded-lg border border-slate-800">
                 <div className="flex items-center gap-2">
                     <span className="text-slate-500">Height:</span>
                     <span className="text-cyan-400 font-bold">{data.height.toLocaleString()}</span>

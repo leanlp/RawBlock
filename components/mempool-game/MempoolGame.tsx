@@ -145,7 +145,7 @@ export default function MempoolGame() {
             <div className="md:col-span-7 flex flex-col gap-4">
 
                 {/* HUD */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 text-center">
                         <div className="text-[10px] text-slate-500 uppercase">Time Left</div>
                         <div className={`text-2xl font-mono font-bold ${timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>

@@ -143,7 +143,7 @@ export default function WhaleDetailPage() {
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-8 text-center">
                         <div className="text-red-400 text-lg mb-4">❌ Whale #{rank} not found</div>
-                        <Link href="/explorer/rich-list" className="text-cyan-400 hover:underline">
+                        <Link href="/explorer/rich-list" className="text-cyan-400 hover:underline inline-flex items-center min-h-11">
                             ← Back to Whale Watch
                         </Link>
                     </div>
@@ -165,13 +165,13 @@ export default function WhaleDetailPage() {
                             {whale.address}
                         </p>
                     </div>
-                    <Link href="/explorer/rich-list" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors whitespace-nowrap">
+                    <Link href="/explorer/rich-list" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors whitespace-nowrap inline-flex items-center min-h-11">
                         ← Back to Whale Watch
                     </Link>
                 </div>
 
                 {/* Stats Cards - Fixed Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-slate-900 border border-amber-500/40 rounded-xl p-4 md:p-5">
                         <div className="text-2xl md:text-3xl font-bold text-amber-400 truncate">
                             {whale.balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}

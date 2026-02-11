@@ -90,7 +90,7 @@ const CustomTooltip = ({ active, payload, isXRay }: any) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-            <div className="bg-slate-950/90 backdrop-blur-xl border border-cyan-500/30 ring-1 ring-cyan-500/20 p-4 rounded-lg shadow-2xl text-xs z-50 min-w-[220px] max-w-[90vw] break-words">
+            <div className="bg-slate-950/90 backdrop-blur-xl border border-cyan-500/30 ring-1 ring-cyan-500/20 p-4 rounded-lg shadow-2xl text-xs z-50 min-w-56 max-w-[90vw] break-words">
                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
                     <div className={`w-2 h-2 rounded-full animate-pulse ${data.isSegwit ? 'bg-teal-400' : 'bg-orange-500'}`}></div>
                     <p className="font-mono text-cyan-100 truncate w-full" title={data.txid}>{data.txid}</p>
@@ -168,13 +168,13 @@ export default function BlockVisualizer() {
                     {/* Toggle Switch */}
                     <button
                         onClick={() => setIsXRay(!isXRay)}
-                        className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all duration-300 ${isXRay ? 'bg-teal-500/20 border-teal-500 text-teal-300' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}
+                        className={`text-[10px] font-bold px-3 py-2.5 min-h-11 rounded-full border transition-all duration-300 ${isXRay ? 'bg-teal-500/20 border-teal-500 text-teal-300' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}
                     >
                         {isXRay ? "🔍 X-RAY: ON" : "👁️ X-RAY: OFF"}
                     </button>
 
                     {/* Decoder Link (New) */}
-                    <a href="/explorer/decoder" className="text-[10px] font-bold px-3 py-1 rounded-full border bg-slate-900 border-slate-700 text-slate-400 hover:text-indigo-400 hover:border-indigo-400 transition-all flex items-center gap-1">
+                    <a href="/explorer/decoder" className="text-[10px] font-bold px-3 py-2.5 min-h-11 rounded-full border bg-slate-900 border-slate-700 text-slate-400 hover:text-indigo-400 hover:border-indigo-400 transition-all inline-flex items-center gap-1">
                         🛠️ DECODER
                     </a>
                 </div>

@@ -91,7 +91,7 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
                                 className={`bg-slate-800/50 p-3 rounded border transition-all cursor-pointer group ${expandedNodeIndex === i ? 'border-emerald-500/50 bg-slate-800' : 'border-slate-700/50 hover:border-emerald-500/30'}`}
                             >
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className="text-xs text-slate-400 font-mono truncate max-w-[150px] group-hover:text-emerald-400 transition-colors">{node.addr}</span>
+                                    <span className="text-xs text-slate-400 font-mono truncate max-w-[55vw] md:max-w-40 group-hover:text-emerald-400 transition-colors">{node.addr}</span>
                                     <span className="text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">
                                         {node.subver ? node.subver.replace(/\//g, '').substring(0, 15) : 'Unknown'}
                                     </span>
