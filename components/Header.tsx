@@ -118,12 +118,19 @@ export default function Header() {
         setShowDropdown(false);
 
         // Route based on input type
+        // Route based on input type
         if (/^\d+$/.test(q)) {
             router.push(`/explorer/block/${q}`);
         } else if (q.startsWith('00000') && q.length === 64) {
             router.push(`/explorer/block/${q}`);
-        } else {
+        } else if (/^[a-fA-F0-9]{64}$/.test(q)) {
             router.push(`/explorer/decoder?query=${encodeURIComponent(q)}`);
+        } else if (/^(1|3|bc1|tb1)[a-zA-Z0-9]{20,}$/.test(q)) {
+            router.push(`/explorer/decoder?query=${encodeURIComponent(q)}`);
+        } else {
+            // Fallback for invalid search -> Go to specific block
+            // Toast could be added here if we had a toast context, for now just redirect
+            router.push(`/explorer/block/000000000000000000006b03d76401467ebd608cd78a839a932c466fc2c14467`);
         }
     };
 

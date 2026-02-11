@@ -8,6 +8,7 @@ interface PageHeaderProps {
     subtitle?: string;
     icon?: string | ReactNode;
     actions?: ReactNode;
+    copyText?: string;
     gradient?: string;
 }
 
@@ -20,8 +21,16 @@ export default function PageHeader({
     subtitle,
     icon,
     actions,
+    copyText,
     gradient = "from-cyan-400 to-blue-500"
 }: PageHeaderProps) {
+    const handleCopy = () => {
+        if (copyText) {
+            navigator.clipboard.writeText(copyText);
+            // Optional: You could add a temporary toast here or change icon state
+        }
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -40,9 +49,23 @@ export default function PageHeader({
                         {title}
                     </h1>
                     {subtitle && (
-                        <p className="mt-2 text-slate-400 text-sm max-w-2xl truncate md:whitespace-normal md:overflow-visible">
-                            {subtitle}
-                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                            <p className="text-slate-400 text-sm max-w-2xl truncate md:whitespace-normal md:overflow-visible">
+                                {subtitle}
+                            </p>
+                            {copyText && (
+                                <button
+                                    onClick={handleCopy}
+                                    title="Copy to Clipboard"
+                                    className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-cyan-400 transition-colors group"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    <span className="sr-only">Copy</span>
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
 
