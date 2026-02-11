@@ -87,7 +87,7 @@ export default function MinersPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Chart Section */}
                         {data.distribution && data.distribution.length > 0 && (
-                            <Card variant="panel" accent="orange" className="h flex flex-col">
+                            <Card variant="panel" accent="orange" className="min-h-[400px] flex flex-col">
                                 <div className="mb-6">
                                     <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
                                         Hashrate Distribution (Last {data.blocks?.length || 0} Blocks)

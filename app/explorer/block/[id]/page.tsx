@@ -135,6 +135,7 @@ export default function BlockPage() {
                         <PageHeader
                             title={`Block #${block.height}`}
                             subtitle={block.hash}
+                            copyText={block.hash}
                             icon="📦"
                             gradient="from-blue-400 to-indigo-500"
                             actions={
