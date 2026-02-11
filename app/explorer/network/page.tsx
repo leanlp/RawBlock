@@ -203,14 +203,18 @@ export default function NetworkPage() {
                                         <tbody className="divide-y divide-slate-800/50">
                                             {peers.slice(0, 20).map((peer) => (
                                                 <tr key={peer.id} className="hover:bg-slate-800/30 transition-colors">
-                                                    <td className="px-6 py-4 font-mono text-cyan-300/80">{peer.addr}</td>
-                                                    <td className="px-6 py-4">
+                                                    <td className="px-6 py-4 font-mono text-cyan-300/80 max-w-[160px] truncate" title={peer.addr}>
+                                                        {peer.addr}
+                                                    </td>
+                                                    <td className="px-6 py-4 max-w-[180px] truncate">
                                                         {peer.location ? (
-                                                            <span>{peer.location.city}, {peer.location.country}</span>
+                                                            <span title={`${peer.location.city}, ${peer.location.country}`}>
+                                                                {peer.location.city}, {peer.location.country}
+                                                            </span>
                                                         ) : <span className="text-slate-600 italic">Unknown</span>}
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-300 whitespace-nowrap">
+                                                        <span className="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-300 whitespace-nowrap inline-block max-w-[160px] truncate align-middle" title={peer.subver}>
                                                             {peer.subver.replace(/\//g, '')}
                                                         </span>
                                                     </td>
