@@ -1394,10 +1394,10 @@ export default function ForensicsPage() {
                 </div>
             )}
 
-            {/* Case Studies Floating Dock (Adjusted Top) */}
-            <div className="hidden md:block absolute top-48 left-4 z-40 w-12 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+            {/* Case Studies Floating Dock */}
+            <div className="hidden md:block absolute top-48 left-4 z-40 w-16 hover:w-64 transition-all duration-300 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 <div className="flex flex-col gap-2 p-2">
-                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2 pt-2">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-2 opacity-100 md:opacity-70 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2 pt-2">
                         Case Files
                     </div>
                     {CASE_STUDIES.map(study => (
@@ -1407,7 +1407,7 @@ export default function ForensicsPage() {
                             className="flex items-center justify-center md:justify-start gap-3 p-2 min-h-11 min-w-11 rounded-lg hover:bg-white/5 text-slate-400 hover:text-cyan-400 transition-all whitespace-nowrap"
                             title={study.label}
                         >
-                            <span className="text-lg filter drop-shadow-lg">{study.label.split(' ')[0]}</span>
+                            <span className="text-lg filter drop-shadow-lg opacity-100">{study.label.split(' ')[0]}</span>
                             <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 {study.label.substring(study.label.indexOf(' ') + 1)}
                             </span>
