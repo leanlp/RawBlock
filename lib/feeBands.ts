@@ -10,6 +10,12 @@ export type RawFeeBlock = {
   feeRange: number[];
 };
 
+type OrderedBand = {
+  low: number;
+  median: number;
+  high: number;
+};
+
 export function normalizeSatVb(value: number | null | undefined): number | null {
   if (value === null || value === undefined || !Number.isFinite(value)) return null;
   // Keep actual precision visible (e.g., 0.2 sat/vB) without forcing integer rounding.
@@ -19,6 +25,13 @@ export function normalizeSatVb(value: number | null | undefined): number | null 
 export function formatSatVb(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "Data temporarily unavailable";
   return value.toFixed(2).replace(/\.?0+$/, "");
+}
+
+export function ensureOrderedBand(low: number, median: number, high: number): OrderedBand {
+  const safeLow = Math.max(0, low);
+  const safeMedian = Math.max(safeLow, median);
+  const safeHigh = Math.max(safeMedian, high);
+  return { low: safeLow, median: safeMedian, high: safeHigh };
 }
 
 export function toFeeBands(blocks: RawFeeBlock[], maxPoints = 8): FeeBandPoint[] {
@@ -36,12 +49,13 @@ export function toFeeBands(blocks: RawFeeBlock[], maxPoints = 8): FeeBandPoint[]
     const low = normalizeSatVb(lowRaw) ?? 0;
     const median = normalizeSatVb(medianRaw) ?? low;
     const high = normalizeSatVb(highRaw) ?? median;
+    const ordered = ensureOrderedBand(low, median, high);
 
     return {
       bucket: `Next ${idx + 1}`,
-      low,
-      median,
-      high: Math.max(high, median),
+      low: ordered.low,
+      median: ordered.median,
+      high: ordered.high,
     };
   });
 }

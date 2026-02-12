@@ -52,29 +52,29 @@ export default function FeesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">
+              <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest text-center mb-2">
                 Economy (Low Priority)
               </h3>
-              <div className="text-4xl font-black text-slate-200">{formatFee(cardFees.economy)}</div>
-              <p className="text-xs text-slate-400 mt-2">~1 Hour Confirmation</p>
+              <div className="text-center break-words text-3xl md:text-4xl font-black text-slate-200 leading-tight">{formatFee(cardFees.economy)}</div>
+              <p className="text-xs text-slate-400 text-center mt-2">~1 Hour Confirmation</p>
             </div>
 
             <div className="bg-slate-900/50 border border-amber-500/20 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">
+              <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest text-center mb-2">
                 Standard (Recommended)
               </h3>
-              <div className="text-5xl font-black text-amber-400">{formatFee(cardFees.standard)}</div>
-              <p className="text-xs text-slate-400 mt-2">~30 Min Confirmation</p>
+              <div className="text-center break-words text-3xl md:text-4xl font-black text-amber-400 leading-tight">{formatFee(cardFees.standard)}</div>
+              <p className="text-xs text-slate-400 text-center mt-2">~30 Min Confirmation</p>
             </div>
 
             <div className="bg-slate-900/50 border border-red-500/20 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">
+              <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest text-center mb-2">
                 Express (Next Block)
               </h3>
-              <div className="text-4xl font-black text-red-400">{formatFee(cardFees.fast)}</div>
-              <p className="text-xs text-slate-400 mt-2">~10 Min Confirmation</p>
+              <div className="text-center break-words text-3xl md:text-4xl font-black text-red-400 leading-tight">{formatFee(cardFees.fast)}</div>
+              <p className="text-xs text-slate-400 text-center mt-2">~10 Min Confirmation</p>
             </div>
 
             <div className="md:col-span-3 bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm min-h-[420px]">
