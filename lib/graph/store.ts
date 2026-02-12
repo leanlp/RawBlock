@@ -1,5 +1,6 @@
 import { graphEdges } from "@/data/graph/edges";
 import { graphNodes } from "@/data/graph/nodes";
+import { verifyGraphIntegrity } from "@/lib/graph/validation";
 import type { Edge, GraphNode } from "@/lib/graph/types";
 
 interface GraphIndexes {
@@ -24,26 +25,12 @@ function indexGraph(nodes: GraphNode[], edges: Edge[]): GraphIndexes {
   const incoming = new Map<string, Edge[]>();
 
   for (const node of nodes) {
-    if (byId.has(node.id)) {
-      throw new Error(`Duplicate graph node id: ${node.id}`);
-    }
     byId.set(node.id, node);
     outgoing.set(node.id, []);
     incoming.set(node.id, []);
   }
 
   for (const edge of edges) {
-    const fromNode = byId.get(edge.from);
-    const toNode = byId.get(edge.to);
-
-    if (!fromNode) {
-      throw new Error(`Edge source does not exist: ${edge.from}`);
-    }
-
-    if (!toNode) {
-      throw new Error(`Edge target does not exist: ${edge.to}`);
-    }
-
     outgoing.get(edge.from)?.push(edge);
     incoming.get(edge.to)?.push(edge);
   }
@@ -57,6 +44,7 @@ export function createGraphStore(
 ): GraphStore {
   const graphNodesCopy = [...nodes];
   const graphEdgesCopy = [...edges];
+  verifyGraphIntegrity(graphNodesCopy, graphEdgesCopy);
   const indexes = indexGraph(graphNodesCopy, graphEdgesCopy);
 
   return {

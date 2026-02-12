@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getAttackModelsForNode } from "@/lib/graph/attackSimulation";
+import { getSecurityAssumptionsForNode } from "@/lib/graph/assumptionRegistry";
+import { getValidationRulesForNode } from "@/lib/graph/policyConsensusEngine";
+import { getVulnerabilitiesForNode } from "@/lib/graph/securityRegistry";
 import { graphStore } from "@/lib/graph/store";
 
 type AcademyNodePageProps = {
@@ -31,6 +35,16 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
   const incoming = graphStore.getIncomingEdges(node.id);
   const outgoing = graphStore.getOutgoingEdges(node.id);
   const neighbors = graphStore.getNeighbors(node.id);
+  const relatedVulnerabilities = getVulnerabilitiesForNode(node.id);
+  const relatedAttacks = getAttackModelsForNode(node.id);
+  const relatedAssumptions = getSecurityAssumptionsForNode(node.id);
+  const nodeRules = getValidationRulesForNode(node.id);
+  const consensusRules = nodeRules.filter((rule) => rule.layer === "consensus");
+  const policyRules = nodeRules.filter((rule) => rule.layer === "policy");
+  const policyConsensusDistinctions = [...incoming, ...outgoing].filter(
+    (edge) =>
+      edge.type === "POLICY_ONLY" || edge.type === "NOT_CONSENSUS_CRITICAL",
+  );
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-4 py-10 md:px-8">
@@ -88,6 +102,116 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
               ))}
             </ul>
           )}
+        </section>
+
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+          <h2 className="mb-3 text-lg font-semibold">Node Security Panel</h2>
+          <div className="space-y-3">
+            <details className="rounded-lg border border-slate-800 bg-slate-950/70 p-3" open>
+              <summary className="cursor-pointer select-none text-sm font-medium text-cyan-300">
+                Related Vulnerabilities ({relatedVulnerabilities.length})
+              </summary>
+              {relatedVulnerabilities.length === 0 ? (
+                <p className="mt-3 text-sm text-slate-400">No linked vulnerabilities.</p>
+              ) : (
+                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                  {relatedVulnerabilities.map((vulnerability) => (
+                    <li key={vulnerability.id} className="rounded border border-slate-800 p-2">
+                      <p className="font-medium text-slate-100">{vulnerability.title}</p>
+                      <p className="text-xs text-slate-400">
+                        {vulnerability.year} · {vulnerability.severity}
+                        {vulnerability.cve ? ` · ${vulnerability.cve}` : ""}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </details>
+
+            <details className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+              <summary className="cursor-pointer select-none text-sm font-medium text-cyan-300">
+                Related Attacks ({relatedAttacks.length})
+              </summary>
+              {relatedAttacks.length === 0 ? (
+                <p className="mt-3 text-sm text-slate-400">No linked attack models.</p>
+              ) : (
+                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                  {relatedAttacks.map((attack) => (
+                    <li key={attack.id} className="rounded border border-slate-800 p-2">
+                      <p className="font-medium text-slate-100">{attack.title}</p>
+                      <p className="text-xs text-slate-400">
+                        Layer: {attack.targetLayer} · Observed: {attack.realWorldObserved ? "Yes" : "No"}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </details>
+
+            <details className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+              <summary className="cursor-pointer select-none text-sm font-medium text-cyan-300">
+                Related Assumptions ({relatedAssumptions.length})
+              </summary>
+              {relatedAssumptions.length === 0 ? (
+                <p className="mt-3 text-sm text-slate-400">No linked security assumptions.</p>
+              ) : (
+                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                  {relatedAssumptions.map((assumption) => (
+                    <li key={assumption.id} className="rounded border border-slate-800 p-2">
+                      <p className="font-medium text-slate-100">{assumption.statement}</p>
+                      <p className="text-xs text-slate-400">Category: {assumption.category}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </details>
+
+            <details className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+              <summary className="cursor-pointer select-none text-sm font-medium text-cyan-300">
+                Policy vs Consensus Distinctions
+              </summary>
+              <div className="mt-3 space-y-3 text-sm">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Consensus Rules</p>
+                  {consensusRules.length === 0 ? (
+                    <p className="text-slate-400">None linked.</p>
+                  ) : (
+                    <ul className="list-disc pl-5 text-slate-300">
+                      {consensusRules.map((rule) => (
+                        <li key={rule.id}>{rule.description}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Policy Rules</p>
+                  {policyRules.length === 0 ? (
+                    <p className="text-slate-400">None linked.</p>
+                  ) : (
+                    <ul className="list-disc pl-5 text-slate-300">
+                      {policyRules.map((rule) => (
+                        <li key={rule.id}>{rule.description}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Distinction Edges</p>
+                  {policyConsensusDistinctions.length === 0 ? (
+                    <p className="text-slate-400">No explicit policy/consensus distinction edges.</p>
+                  ) : (
+                    <ul className="list-disc pl-5 text-slate-300">
+                      {policyConsensusDistinctions.map((edge) => (
+                        <li key={`${edge.from}-${edge.to}-${edge.type}`}>
+                          {edge.type}: {edge.from} → {edge.to}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </details>
+          </div>
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">

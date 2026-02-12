@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ReactFlow,
@@ -19,6 +19,8 @@ const TYPE_ORDER = [
   "mechanism",
   "upgrade",
   "attack",
+  "vulnerability",
+  "assumption",
   "property",
 ] as const;
 
@@ -28,6 +30,8 @@ const TYPE_COLORS: Record<(typeof TYPE_ORDER)[number], string> = {
   mechanism: "#3b82f6",
   upgrade: "#a855f7",
   attack: "#ef4444",
+  vulnerability: "#f43f5e",
+  assumption: "#14b8a6",
   property: "#f59e0b",
 };
 
@@ -41,11 +45,53 @@ function lanePosition(type: string, row: number): { x: number; y: number } {
 
 export default function BitcoinMapPage() {
   const router = useRouter();
+  const [showOnlyVulnerabilities, setShowOnlyVulnerabilities] = useState(false);
+  const [showOnlyAttackEdges, setShowOnlyAttackEdges] = useState(false);
+  const [showOnlyAssumptions, setShowOnlyAssumptions] = useState(false);
+  const threatMode =
+    showOnlyVulnerabilities || showOnlyAttackEdges || showOnlyAssumptions;
 
   const { nodes, edges } = useMemo(() => {
+    const attackEdgeTypes = new Set(["EXPLOITS", "MITIGATED_BY"]);
     const rowByType = new Map<string, number>();
 
-    const flowNodes: FlowNode[] = graphStore.nodes.map((node) => {
+    const baseEdges = graphStore.edges;
+    const attackEdges = baseEdges.filter((edge) => attackEdgeTypes.has(edge.type));
+
+    const modeEnabled =
+      showOnlyVulnerabilities || showOnlyAttackEdges || showOnlyAssumptions;
+
+    const nodeIdSet = new Set<string>();
+
+    if (!modeEnabled) {
+      graphStore.nodes.forEach((node) => nodeIdSet.add(node.id));
+    }
+
+    if (showOnlyVulnerabilities) {
+      graphStore.nodes
+        .filter((node) => node.type === "vulnerability")
+        .forEach((node) => nodeIdSet.add(node.id));
+    }
+
+    if (showOnlyAssumptions) {
+      graphStore.nodes
+        .filter((node) => node.type === "assumption")
+        .forEach((node) => nodeIdSet.add(node.id));
+    }
+
+    if (showOnlyAttackEdges) {
+      attackEdges.forEach((edge) => {
+        nodeIdSet.add(edge.from);
+        nodeIdSet.add(edge.to);
+      });
+    }
+
+    const visibleNodes = graphStore.nodes.filter((node) => nodeIdSet.has(node.id));
+    const visibleEdges = (showOnlyAttackEdges ? attackEdges : baseEdges).filter(
+      (edge) => nodeIdSet.has(edge.from) && nodeIdSet.has(edge.to),
+    );
+
+    const flowNodes: FlowNode[] = visibleNodes.map((node) => {
       const row = rowByType.get(node.type) ?? 0;
       rowByType.set(node.type, row + 1);
       const position = lanePosition(node.type, row);
@@ -76,25 +122,30 @@ export default function BitcoinMapPage() {
       };
     });
 
-    const flowEdges: FlowEdge[] = graphStore.edges.map((edge, i) => ({
+    const flowEdges: FlowEdge[] = visibleEdges.map((edge, i) => ({
       id: `${edge.type}-${edge.from}-${edge.to}-${i}`,
       source: edge.from,
       target: edge.to,
       label: edge.type,
       style: { stroke: "#475569", strokeWidth: 1.2 },
       labelStyle: { fill: "#94a3b8", fontSize: 10 },
-      animated: edge.type === "STRENGTHENS" || edge.type === "WEAKENS",
+      animated:
+        edge.type === "STRENGTHENS" ||
+        edge.type === "WEAKENS" ||
+        edge.type === "EXPLOITS",
     }));
 
     return { nodes: flowNodes, edges: flowEdges };
-  }, []);
+  }, [showOnlyVulnerabilities, showOnlyAttackEdges, showOnlyAssumptions]);
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-4 py-8 md:px-8">
       <div className="mx-auto max-w-[1600px] space-y-5">
         <header className="space-y-2">
           <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Bitcoin Map</p>
-          <h1 className="text-3xl font-semibold md:text-4xl">Protocol Knowledge Graph</h1>
+          <h1 className="text-3xl font-semibold md:text-4xl">
+            {threatMode ? "Bitcoin Threat Map" : "Protocol Knowledge Graph"}
+          </h1>
           <p className="text-sm text-slate-400">
             Click any node to open its Academy page. Graph is rendered directly from structured node and edge data.
           </p>
@@ -111,6 +162,33 @@ export default function BitcoinMapPage() {
             </span>
           ))}
         </div>
+
+        <section className="grid gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-4 text-sm md:grid-cols-3">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showOnlyVulnerabilities}
+              onChange={(event) => setShowOnlyVulnerabilities(event.target.checked)}
+            />
+            Show only vulnerabilities
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showOnlyAttackEdges}
+              onChange={(event) => setShowOnlyAttackEdges(event.target.checked)}
+            />
+            Show only attack edges
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showOnlyAssumptions}
+              onChange={(event) => setShowOnlyAssumptions(event.target.checked)}
+            />
+            Show only security assumptions
+          </label>
+        </section>
 
         <div className="h-[78vh] rounded-xl border border-slate-800 bg-slate-900/40">
           <ReactFlow
