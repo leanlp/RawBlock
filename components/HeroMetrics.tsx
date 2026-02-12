@@ -3,6 +3,9 @@
 import Link from "next/link";
 import Card, { MetricValue, PanelHeader } from "./Card";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
+import { useBitcoinFeeBands } from "@/hooks/useBitcoinFeeBands";
+import { Area, AreaChart, Tooltip, XAxis, YAxis } from "recharts";
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 function renderMetricValue(value: number | null, suffix = "", fallback = "Data temporarily unavailable") {
   if (value === null) return fallback;
@@ -11,6 +14,7 @@ function renderMetricValue(value: number | null, suffix = "", fallback = "Data t
 
 export default function HeroMetrics() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
+  const { bands: feeBands } = useBitcoinFeeBands(30_000);
 
   const liveBadge = status === "ready" && metrics ? "Live from public sources" : status === "loading" ? "Loading network data" : "Data temporarily unavailable";
 
@@ -102,6 +106,23 @@ export default function HeroMetrics() {
                 <span className="font-mono text-emerald-400 font-bold">{renderMetricValue(metrics?.feeHour ?? null, "", "Data temporarily unavailable")}</span>
               </div>
             </div>
+            {feeBands.length > 0 ? (
+              <div className="mt-3 h-20 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-1">
+                <SafeResponsiveContainer width="100%" height="100%" minHeight={64}>
+                  <AreaChart data={feeBands}>
+                    <XAxis dataKey="bucket" hide />
+                    <YAxis hide domain={[0, "auto"]} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155", color: "#f1f5f9" }}
+                      labelStyle={{ color: "#94a3b8" }}
+                    />
+                    <Area type="monotone" dataKey="high" stroke="#ef4444" fill="#ef444433" strokeWidth={1.5} />
+                    <Area type="monotone" dataKey="median" stroke="#f59e0b" fill="#f59e0b22" strokeWidth={1.5} />
+                    <Area type="monotone" dataKey="low" stroke="#10b981" fill="#10b98122" strokeWidth={1.5} />
+                  </AreaChart>
+                </SafeResponsiveContainer>
+              </div>
+            ) : null}
           </Card>
         </Link>
 

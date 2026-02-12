@@ -1,87 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Header from "../../../components/Header";
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 import { ErrorState, LoadingState } from "../../../components/EmptyState";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
+import { useBitcoinFeeBands } from "@/hooks/useBitcoinFeeBands";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
-
-type FeeBandPoint = {
-  bucket: string;
-  low: number;
-  median: number;
-  high: number;
-};
-
-type FeeBlockResponse = {
-  ok: boolean;
-  error?: string;
-  blocks?: Array<{
-    medianFee: number;
-    feeRange: number[];
-  }>;
-};
-
-function normalizeSatVb(value: number | null | undefined): number | null {
-  if (value === null || value === undefined || !Number.isFinite(value)) return null;
-  return Number(value.toFixed(2));
-}
+import { normalizeSatVb } from "@/lib/feeBands";
 
 export default function FeesPage() {
   const { metrics, status, error, retry } = useBitcoinLiveMetrics(30_000);
-  const [feeBands, setFeeBands] = useState<FeeBandPoint[]>([]);
-  const [bandsLoading, setBandsLoading] = useState(true);
-  const [bandsError, setBandsError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchFeeBands = async () => {
-      setBandsLoading(true);
-      setBandsError(null);
-      try {
-        const response = await fetch("/api/bitcoin/fee-blocks", { cache: "no-store" });
-        const payload = (await response.json()) as FeeBlockResponse;
-
-        if (!response.ok || !payload.ok || !payload.blocks?.length) {
-          throw new Error(payload.error ?? "Unable to fetch fee blocks");
-        }
-
-        const nextBands = payload.blocks.slice(0, 8).map((block, idx) => {
-          const range = block.feeRange ?? [];
-          const lowRaw = range[0] ?? block.medianFee ?? 0;
-          const highRaw = range.length ? range[range.length - 1] : block.medianFee ?? 0;
-          const medianRaw = block.medianFee ?? lowRaw;
-
-          return {
-            bucket: `Next ${idx + 1}`,
-            low: Number(lowRaw.toFixed(2)),
-            median: Number(medianRaw.toFixed(2)),
-            high: Number(highRaw.toFixed(2)),
-          };
-        });
-
-        if (mounted) setFeeBands(nextBands);
-      } catch (fetchError) {
-        if (mounted) {
-          setBandsError(
-            fetchError instanceof Error ? fetchError.message : "Unable to fetch fee bands",
-          );
-          setFeeBands([]);
-        }
-      } finally {
-        if (mounted) setBandsLoading(false);
-      }
-    };
-
-    fetchFeeBands();
-    const timer = window.setInterval(fetchFeeBands, 30_000);
-    return () => {
-      mounted = false;
-      window.clearInterval(timer);
-    };
-  }, []);
+  const { bands: feeBands, loading: bandsLoading, error: bandsError, retry: retryBands } = useBitcoinFeeBands(30_000);
 
   const cardFees = useMemo(
     () => ({
@@ -169,7 +99,7 @@ export default function FeesPage() {
                 {bandsLoading && feeBands.length === 0 ? (
                   <LoadingState message="Loading live fee bands..." />
                 ) : bandsError && feeBands.length === 0 ? (
-                  <ErrorState message={bandsError} onRetry={() => window.location.reload()} />
+                  <ErrorState message={bandsError} onRetry={retryBands} />
                 ) : (
                   <SafeResponsiveContainer width="100%" height="100%">
                     <AreaChart data={feeBands}>
