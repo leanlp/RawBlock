@@ -6,6 +6,7 @@ import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
 import { useBitcoinFeeBands } from "@/hooks/useBitcoinFeeBands";
 import { Area, AreaChart, Tooltip, XAxis, YAxis } from "recharts";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
+import { formatSatVb } from "@/lib/feeBands";
 
 function renderMetricValue(value: number | null, suffix = "", fallback = "Data temporarily unavailable") {
   if (value === null) return fallback;
@@ -15,6 +16,9 @@ function renderMetricValue(value: number | null, suffix = "", fallback = "Data t
 export default function HeroMetrics() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
   const { bands: feeBands } = useBitcoinFeeBands(30_000);
+  const cardFeeFast = feeBands[0]?.high ?? metrics?.feeFast ?? null;
+  const cardFeeHalfHour = feeBands[0]?.median ?? metrics?.feeHalfHour ?? null;
+  const cardFeeHour = feeBands[0]?.low ?? metrics?.feeHour ?? null;
 
   const liveBadge = status === "ready" && metrics ? "Live from public sources" : status === "loading" ? "Loading network data" : "Data temporarily unavailable";
 
@@ -95,15 +99,21 @@ export default function HeroMetrics() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-400">Fast</span>
-                <span className="font-mono text-red-400 font-bold">{renderMetricValue(metrics?.feeFast ?? null, "", "Data temporarily unavailable")}</span>
+                <span className="font-mono text-red-400 font-bold">
+                  {formatSatVb(cardFeeFast)}{cardFeeFast !== null ? " sat/vB" : ""}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-400">30 min</span>
-                <span className="font-mono text-amber-400 font-bold">{renderMetricValue(metrics?.feeHalfHour ?? null, "", "Data temporarily unavailable")}</span>
+                <span className="font-mono text-amber-400 font-bold">
+                  {formatSatVb(cardFeeHalfHour)}{cardFeeHalfHour !== null ? " sat/vB" : ""}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-400">60 min</span>
-                <span className="font-mono text-emerald-400 font-bold">{renderMetricValue(metrics?.feeHour ?? null, "", "Data temporarily unavailable")}</span>
+                <span className="font-mono text-emerald-400 font-bold">
+                  {formatSatVb(cardFeeHour)}{cardFeeHour !== null ? " sat/vB" : ""}
+                </span>
               </div>
             </div>
             {feeBands.length > 0 ? (

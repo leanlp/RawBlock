@@ -7,7 +7,7 @@ import { ErrorState, LoadingState } from "../../../components/EmptyState";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
 import { useBitcoinFeeBands } from "@/hooks/useBitcoinFeeBands";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
-import { normalizeSatVb } from "@/lib/feeBands";
+import { formatSatVb, normalizeSatVb } from "@/lib/feeBands";
 
 export default function FeesPage() {
   const { metrics, status, error, retry } = useBitcoinLiveMetrics(30_000);
@@ -15,14 +15,18 @@ export default function FeesPage() {
 
   const cardFees = useMemo(
     () => ({
-      fast: normalizeSatVb(metrics?.feeFast),
-      standard: normalizeSatVb(metrics?.feeHalfHour),
-      economy: normalizeSatVb(metrics?.feeHour),
+      // Prefer first mempool-block fee band (real-time pressure), fallback to recommended fees.
+      fast: feeBands[0]?.high ?? normalizeSatVb(metrics?.feeFast),
+      standard: feeBands[0]?.median ?? normalizeSatVb(metrics?.feeHalfHour),
+      economy: feeBands[0]?.low ?? normalizeSatVb(metrics?.feeHour),
     }),
-    [metrics?.feeFast, metrics?.feeHalfHour, metrics?.feeHour],
+    [feeBands, metrics?.feeFast, metrics?.feeHalfHour, metrics?.feeHour],
   );
 
-  const formatFee = (value: number | null) => (value === null ? "Data temporarily unavailable" : `${value} sat/vB`);
+  const formatFee = (value: number | null) => {
+    const formatted = formatSatVb(value);
+    return formatted === "Data temporarily unavailable" ? formatted : `${formatted} sat/vB`;
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-sans">

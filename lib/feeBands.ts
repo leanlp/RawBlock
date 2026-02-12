@@ -16,6 +16,11 @@ export function normalizeSatVb(value: number | null | undefined): number | null 
   return Number(value.toFixed(2));
 }
 
+export function formatSatVb(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "Data temporarily unavailable";
+  return value.toFixed(2).replace(/\.?0+$/, "");
+}
+
 export function toFeeBands(blocks: RawFeeBlock[], maxPoints = 8): FeeBandPoint[] {
   return blocks.slice(0, maxPoints).map((block, idx) => {
     const range = block.feeRange ?? [];
