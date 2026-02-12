@@ -4,7 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Twitter, Linkedin } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+    GUIDED_LESSONS,
+    GUIDED_LEARNING_UPDATED_EVENT,
+    LESSON_STATE_KEY,
+    parseGuidedLearningState,
+} from "../../data/guided-learning";
 
 const NAV_ITEMS = [
     {
@@ -60,6 +66,32 @@ export default function Sidebar() {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [guidedState, setGuidedState] = useState(() => ({
+        currentLessonIndex: 0,
+        completedLessons: [] as number[],
+    }));
+
+    useEffect(() => {
+        const refreshGuidedState = () => {
+            setGuidedState(parseGuidedLearningState(localStorage.getItem(LESSON_STATE_KEY)));
+        };
+
+        refreshGuidedState();
+        window.addEventListener("storage", refreshGuidedState);
+        window.addEventListener(GUIDED_LEARNING_UPDATED_EVENT, refreshGuidedState);
+
+        return () => {
+            window.removeEventListener("storage", refreshGuidedState);
+            window.removeEventListener(GUIDED_LEARNING_UPDATED_EVENT, refreshGuidedState);
+        };
+    }, []);
+
+    const progressPercent = useMemo(
+        () => Math.round((guidedState.completedLessons.length / GUIDED_LESSONS.length) * 100),
+        [guidedState.completedLessons.length]
+    );
+    const lessonNumber = Math.min(guidedState.currentLessonIndex + 1, GUIDED_LESSONS.length);
+    const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
 
     const SidebarContent = () => (
         <>
@@ -76,6 +108,44 @@ export default function Sidebar() {
                     )}
                 </div>
             </div>
+
+            {collapsed ? (
+                <div className="border-b border-slate-800/50 px-2 py-3">
+                    <Link
+                        href="/"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex flex-col items-center justify-center gap-1 rounded-lg border border-slate-800 bg-slate-900/40 px-2 py-2 text-center hover:border-cyan-400/50 transition-colors"
+                    >
+                        <span className="text-lg">🎯</span>
+                        <span className="text-[10px] font-semibold text-cyan-300">{progressPercent}%</span>
+                    </Link>
+                </div>
+            ) : (
+                <div className="border-b border-slate-800/50 px-3 py-3">
+                    <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+                        <p className="text-[10px] uppercase tracking-widest text-slate-500">Learning Journey</p>
+                        <p className="text-xs text-slate-300 mt-1">
+                            Step {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
+                        </p>
+                        <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden mt-2">
+                            <div
+                                className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </div>
+                        <div className="mt-2 flex items-center justify-between">
+                            <span className="text-[11px] text-cyan-300">{progressPercent}% complete</span>
+                            <Link
+                                href="/"
+                                onClick={() => setMobileOpen(false)}
+                                className="text-[11px] text-slate-300 hover:text-cyan-300 transition-colors"
+                            >
+                                Resume
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-6 custom-scrollbar">
