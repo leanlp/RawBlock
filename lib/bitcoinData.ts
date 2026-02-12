@@ -59,8 +59,8 @@ async function fetchFees(): Promise<{
 }> {
   const normalizeFee = (value: number | null | undefined): number | null => {
     if (value === null || value === undefined || !Number.isFinite(value)) return null;
-    // Keep UI consistent in sat/vB terms and avoid sub-1 fallback noise.
-    return Math.max(1, Math.ceil(value));
+    // Preserve actual fee precision (e.g., 0.2 sat/vB) for low-fee market conditions.
+    return Number(value.toFixed(2));
   };
 
   try {

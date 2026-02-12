@@ -12,7 +12,8 @@ export type RawFeeBlock = {
 
 export function normalizeSatVb(value: number | null | undefined): number | null {
   if (value === null || value === undefined || !Number.isFinite(value)) return null;
-  return Math.max(1, Math.ceil(value));
+  // Keep actual precision visible (e.g., 0.2 sat/vB) without forcing integer rounding.
+  return Number(value.toFixed(2));
 }
 
 export function toFeeBands(blocks: RawFeeBlock[], maxPoints = 8): FeeBandPoint[] {
