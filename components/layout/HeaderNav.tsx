@@ -14,7 +14,7 @@ const researchItems = [
 const topLevelItems = [
   { label: "Explorer", href: "/explorer/blocks" },
   { label: "Academy", href: "/academy" },
-  { label: "Threat Map", href: "/graph" },
+  { label: "Knowledge Graph", href: "/graph" },
 ];
 
 function isResearchPath(pathname: string): boolean {

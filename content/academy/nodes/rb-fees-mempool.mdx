@@ -1,0 +1,108 @@
+---
+id: rb-fees-mempool
+title: Fees and the Mempool
+type: mechanism
+difficulty: 2
+lessonId: 2
+pathIds:
+  - bitcoin-foundations
+summary: The fee market prioritizes scarce block space; mempools hold valid pending transactions under local relay policy.
+story: >-
+  A small merchant receives two payments at once. One confirms in minutes; the other sits
+  for hours. Same amount, different fee rates. She learns that Bitcoin does not price by
+  transferred value but by transaction weight and market congestion. Mempools are waiting
+  rooms, and each node’s room differs slightly based on policy and timing. When demand rises,
+  low-fee transactions get pushed down the queue unless users bump fees or wait. This is not
+  a bug. It is the market mechanism that allocates finite block space. Once she understands
+  mempool pressure, she stops reading delays as “network broken” and starts treating them as
+  normal market signals.
+keyTakeaways:
+  - Fee rate (sat/vB), not payment amount, drives inclusion priority.
+  - Mempools are local policy-governed views, not one global queue.
+  - RBF/CPFP are practical tools for stuck transactions.
+securityNotes:
+  - Congestion increases incentives for replacement abuse against weak 0-conf flows.
+  - Fee volatility can alter short-term miner behavior and reorg incentives.
+linkedVulnerabilities:
+  - pre-segwit-tx-malleability
+linkedAttacks:
+  - replace-by-fee-abuse
+  - fee-sniping
+linkedAssumptions:
+  - economic-incentives-assumption
+  - network-propagation-assumption
+policyVsConsensus:
+  consensusRules:
+    - Valid transactions can be mined regardless of mempool origin path.
+    - Block validity does not require universal mempool agreement.
+  policyRules:
+    - Min relay fee, eviction logic, and replacement policy are local.
+    - Standardness filters can exclude otherwise consensus-valid transactions from relay.
+  explanation: Consensus governs mined validity; policy governs pre-confirmation market behavior and visibility.
+caseStudies:
+  - title: Peak Congestion Periods
+    year: 2021
+    whatHappened: Fee rates spiked dramatically during demand surges.
+    whyItMatters: Fee strategy and confirmation policy become critical operational controls.
+explorerDeepLinks:
+  - label: Mempool Visual Queue
+    url: https://mempool.space/mempool
+  - label: Fee Recommendations API Docs
+    url: https://mempool.space/docs/api/rest#get-recommended-fees
+  - label: RBF Policy Document
+    url: https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md
+claimSources:
+  - claim: Fee rate determines transaction priority under block space constraints.
+    sources:
+      - title: Bitcoin Core policy docs
+        url: https://github.com/bitcoin/bitcoin/tree/master/doc/policy
+        type: core-docs
+      - title: Developer Guide Transactions
+        url: https://developer.bitcoin.org/devguide/transactions.html
+        type: dev-guide
+  - claim: RBF and CPFP are fee-bump mechanisms in practical use.
+    sources:
+      - title: BIP 125
+        url: https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+        type: BIP
+      - title: Mempool replacement doc
+        url: https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md
+        type: core-docs
+  - claim: Mempool state is local and can differ across nodes.
+    sources:
+      - title: Developer Guide P2P Network
+        url: https://developer.bitcoin.org/devguide/p2p_network.html
+        type: dev-guide
+      - title: Bitcoin Core codebase
+        url: https://github.com/bitcoin/bitcoin/tree/master/src/txmempool
+        type: core-docs
+furtherReading:
+  - title: Mempool.space Docs
+    url: https://mempool.space/docs/api/rest
+  - title: Bitcoin Core policy docs
+    url: https://github.com/bitcoin/bitcoin/tree/master/doc/policy
+  - title: BIP 125
+    url: https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Mempool policy manages admission and replacement for unconfirmed transactions. Miners select from mempool under fee and policy constraints.
+
+**Real Data:** Show `fast/half-hour/hour fee estimates` and `mempool virtual size`. These explain confirmation delays and bumping decisions.
+
+## Walkthrough
+1. Transaction arrives at node.
+2. Node applies policy and stores/rejects.
+3. Miners select high-fee candidates.
+4. Congestion changes market-clearing fee.
+
+## Common Misconceptions
+- “Low amount means low fee needed.” False.
+- “One mempool state exists globally.” False.
+- “RBF means protocol weakness.” It is policy behavior.
+
+## Check Yourself (Questions)
+- Why is sat/vB the key metric?
+- How can CPFP rescue a stuck parent transaction?
+- Which layer controls replacement behavior?

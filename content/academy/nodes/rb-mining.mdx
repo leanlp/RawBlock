@@ -1,0 +1,115 @@
+---
+id: rb-mining
+title: Mining and Block Subsidy
+type: mechanism
+difficulty: 2
+lessonId: 5
+pathIds:
+  - bitcoin-foundations
+summary: Mining orders transactions through proof-of-work and earns coinbase payout composed of subsidy plus fees.
+story: >-
+  Alice watches two dashboards: customer payments and electricity prices. Her team runs a
+  small mining operation, and profit can flip quickly when fees drop or power costs rise.
+  She explains to Bob that miners are not “printing coins whenever they want.” They compete
+  to find valid blocks, and nodes reject invalid work instantly. Revenue comes from two
+  parts: protocol subsidy and transaction fees. Over time, subsidy halves while fee market
+  importance grows. This matters for everyone, not just miners. If block space is scarce,
+  users feel it through confirmation delays and higher fees. Mining is where cryptography,
+  energy cost, and market incentives meet. Once you understand miner economics, many security
+  ideas become clearer: why deep reorgs are expensive, why centralization risk matters, and
+  why confirmation policies should scale with value-at-risk.
+keyTakeaways:
+  - Coinbase payout equals subsidy plus included transaction fees.
+  - Proof-of-work makes historical rewrite economically costly.
+  - Hashrate distribution affects censorship and reorg risk.
+securityNotes:
+  - Concentrated hashpower weakens censorship resistance assumptions.
+  - Fee spikes can create short-term incentive distortions (e.g., fee sniping pressure).
+linkedVulnerabilities:
+  - value-overflow-2010
+linkedAttacks:
+  - selfish-mining
+  - fee-sniping
+linkedAssumptions:
+  - honest-majority-hashpower
+  - economic-incentives-assumption
+policyVsConsensus:
+  consensusRules:
+    - Block must satisfy target and include valid coinbase payout limits.
+    - Invalid blocks are rejected regardless of miner identity.
+  policyRules:
+    - Transaction selection and ordering in templates are miner policy choices.
+    - Relay policy influences transaction visibility to miners.
+  explanation: Consensus constrains validity; policy determines which valid transactions miners prioritize.
+caseStudies:
+  - title: Selfish Mining Publication
+    year: 2014
+    whatHappened: Researchers modeled strategic withholding that can outperform honest mining at thresholds.
+    whyItMatters: Incentive design and propagation quality are part of practical security.
+  - title: Fee Spike Reorg Concerns
+    year: 2023
+    whatHappened: Extreme fee events revived discussions around fee-sniping incentives.
+    whyItMatters: Confirmation policy should consider market regime, not just static rules.
+explorerDeepLinks:
+  - label: Mining Overview
+    url: https://mempool.space/mining
+  - label: Latest Blocks
+    url: https://mempool.space/blocks
+  - label: Mining Dev Guide
+    url: https://developer.bitcoin.org/devguide/mining.html
+claimSources:
+  - claim: Coinbase payout is subsidy plus fees, bounded by consensus.
+    sources:
+      - title: Developer Reference Block Subsidy
+        url: https://developer.bitcoin.org/reference/block_chain.html#block-subsidy
+        type: dev-guide
+      - title: Bitcoin Core consensus constants
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/consensus/consensus.h
+        type: core-docs
+  - claim: Subsidy schedule halves every 210,000 blocks.
+    sources:
+      - title: BIP 42
+        url: https://github.com/bitcoin/bips/blob/master/bip-0042.mediawiki
+        type: BIP
+      - title: Bitcoin Whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+  - claim: Selfish mining is a recognized strategic threat model.
+    sources:
+      - title: Majority is not Enough
+        url: https://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf
+        type: reference
+      - title: Bitcoin-dev discussion group
+        url: https://groups.google.com/g/bitcoindev
+        type: mailing-list
+furtherReading:
+  - title: Developer Guide Mining
+    url: https://developer.bitcoin.org/devguide/mining.html
+  - title: BIP 42
+    url: https://github.com/bitcoin/bips/blob/master/bip-0042.mediawiki
+  - title: Mempool.space REST API docs
+    url: https://mempool.space/docs/api/rest
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Mining is a repeated hash search over candidate headers. The successful miner earns a coinbase payout if and only if the block is consensus-valid and accepted by nodes.
+
+**Real Data:** Show `network hashrate`, `blocks until halving`, and `fee-rate distribution`. These reveal security budget conditions and changing miner revenue mix.
+
+## Walkthrough
+1. Build candidate template from mempool.
+2. Iterate nonce/extra nonce for target hit.
+3. Broadcast found block.
+4. Nodes validate and accept/reject.
+5. Coinbase payout matures after required depth.
+
+## Common Misconceptions
+- “Miners control consensus rules.” Full nodes do.
+- “Subsidy equals total miner revenue forever.” Fees matter increasingly.
+- “High hashrate means zero risk.” It means higher cost, not zero risk.
+
+## Check Yourself (Questions)
+- What are the two components of miner payout?
+- Why can an invalid high-work block still be rejected?
+- Which live metric indicates approaching subsidy epoch changes?

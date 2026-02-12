@@ -1,0 +1,117 @@
+---
+id: rb-what-is-bitcoin
+title: What Is Bitcoin?
+type: property
+difficulty: 1
+lessonId: 1
+pathIds:
+  - bitcoin-foundations
+summary: Bitcoin is a decentralized monetary network where independent nodes verify rules and share one public ledger without central control.
+story: >-
+  Alice runs a small export shop in Buenos Aires. Her suppliers are in three countries,
+  and bank wires take days, sometimes longer, with unpredictable fees. A friend suggests
+  she try Bitcoin for settlement. At first she thinks Bitcoin is just an app or a coin
+  price chart. But when she opens a block explorer, she sees something different: a global
+  ledger updated by many participants who do not trust each other yet still agree on one
+  chain of history. No single company can rewrite balances, and no bank clerk can freeze
+  a transaction because of office hours. She realizes the real product is not a token but
+  a protocol: open rules, verifiable history, and independent validation. That shift in
+  perspective matters. If Bitcoin is a protocol, then security comes from rules and
+  incentives, not from branding. That is the right starting point for everything else.
+keyTakeaways:
+  - Bitcoin is a protocol and network, not a company-run database.
+  - Full nodes enforce shared validity rules independently.
+  - Monetary issuance is constrained by consensus and halving epochs.
+securityNotes:
+  - Security depends on broad independent validation and robust peer connectivity.
+  - Finality is probabilistic; deeper confirmations reduce reversal risk.
+linkedVulnerabilities:
+  - value-overflow-2010
+  - cve-2018-17144
+linkedAttacks:
+  - selfish-mining
+  - eclipse-attack
+linkedAssumptions:
+  - honest-majority-hashpower
+  - network-propagation-assumption
+  - economic-incentives-assumption
+policyVsConsensus:
+  consensusRules:
+    - Valid blocks and transactions must satisfy deterministic consensus checks.
+    - New issuance is only allowed through valid coinbase construction and schedule rules.
+  policyRules:
+    - Nodes may apply relay policies (fees/standardness) without changing global validity.
+    - Miners choose transaction template policy while still bound by consensus validity.
+  explanation: Consensus defines what can exist on-chain; policy defines what a node relays before confirmation.
+caseStudies:
+  - title: 2010 Value Overflow Incident
+    year: 2010
+    whatHappened: A consensus bug allowed invalid inflation in an early block.
+    whyItMatters: It demonstrated why strict validation and rapid coordinated patching are essential.
+  - title: CVE-2018-17144
+    year: 2018
+    whatHappened: Duplicate-input validation regression created inflation risk.
+    whyItMatters: It reinforced the critical nature of consensus code review and release discipline.
+explorerDeepLinks:
+  - label: Latest Blocks
+    url: https://mempool.space/blocks
+  - label: Mempool Overview
+    url: https://mempool.space/mempool
+  - label: Difficulty and Hashrate Charts
+    url: https://mempool.space/mining
+claimSources:
+  - claim: Bitcoin is a peer-to-peer electronic cash system without trusted intermediaries.
+    sources:
+      - title: Bitcoin Whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+      - title: Bitcoin Developer Guide Introduction
+        url: https://developer.bitcoin.org/devguide/index.html
+        type: dev-guide
+  - claim: Consensus validation is performed by full nodes, not delegated to miners.
+    sources:
+      - title: Bitcoin Developer Guide P2P Network
+        url: https://developer.bitcoin.org/devguide/p2p_network.html
+        type: dev-guide
+      - title: Bitcoin Core validation source
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+        type: core-docs
+  - claim: Issuance is constrained by protocol schedule and halving epochs.
+    sources:
+      - title: Bitcoin Core consensus constants
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/consensus/consensus.h
+        type: core-docs
+      - title: BIP 42
+        url: https://github.com/bitcoin/bips/blob/master/bip-0042.mediawiki
+        type: BIP
+furtherReading:
+  - title: Bitcoin Whitepaper
+    url: https://bitcoin.org/bitcoin.pdf
+  - title: Developer Guide Block Chain
+    url: https://developer.bitcoin.org/devguide/block_chain.html
+  - title: Bitcoin Core Documentation
+    url: https://github.com/bitcoin/bitcoin/tree/master/doc
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Bitcoin combines a public transaction ledger, digital signatures, and proof-of-work chain selection. A full node accepts data only if each rule passes: syntax, signatures, spending constraints, and block validity.
+
+**Real Data:** Show `block height`, `days to halving`, and `network hashrate`. These metrics tell learners where the network is in monetary time and how much work currently protects recent history.
+
+## Walkthrough
+1. Wallet creates a transaction proposal.
+2. Peers relay it through mempools.
+3. A miner includes it in a valid block.
+4. Nodes validate and extend best chain by accumulated work.
+5. Confirmations increase reversal cost over time.
+
+## Common Misconceptions
+- “Miners decide consensus rules.” They do not; nodes enforce rules.
+- “Bitcoin is anonymous by default.” It is pseudonymous, with public traceable flows.
+- “One confirmation equals absolute finality.” Finality is probabilistic.
+
+## Check Yourself (Questions)
+- Why is independent node validation central to Bitcoin’s trust model?
+- What is the difference between policy and consensus in one sentence?
+- Which live metric best reflects current settlement security posture?

@@ -1,35 +1,36 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useMemo } from "react";
+import { useGuidedLearning } from "@/components/providers/GuidedLearningProvider";
 import { graphStore } from "@/lib/graph/store";
 import {
   getMissingPrerequisites,
   getPathById,
-  getPathProgress,
   validatePathPrerequisites,
 } from "@/lib/graph/pathEngine";
 
-type PathPageProps = {
-  params: Promise<{
-    pathId: string;
-  }>;
-  searchParams: Promise<{
-    step?: string;
-  }>;
-};
-
-function parseStep(rawStep: string | undefined): number {
-  if (!rawStep) return 0;
-  const parsed = Number.parseInt(rawStep, 10);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-export default async function PathPage({ params, searchParams }: PathPageProps) {
-  const { pathId } = await params;
-  const { step } = await searchParams;
-  const path = getPathById(pathId);
+export default function PathPage() {
+  const params = useParams<{ pathId: string }>();
+  const path = getPathById(params.pathId);
+  const {
+    getPathStepIndex,
+    setPathStepIndex,
+    markPathStepComplete,
+    getCompletedPathStepIndexes,
+    getCompletedPathNodeIds,
+  } = useGuidedLearning();
 
   if (!path) {
-    notFound();
+    return (
+      <main className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100 md:px-8">
+        <div className="mx-auto max-w-4xl rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+          <h1 className="text-2xl font-semibold">Path not found</h1>
+          <p className="mt-2 text-sm text-slate-400">The requested learning path does not exist.</p>
+        </div>
+      </main>
+    );
   }
 
   const pathValidation = validatePathPrerequisites(path);
@@ -39,26 +40,36 @@ export default async function PathPage({ params, searchParams }: PathPageProps) 
     );
   }
 
-  const progress = getPathProgress(path, parseStep(step));
-  const currentNodeId = progress.currentNodeId;
+  const total = path.orderedNodes.length;
+  const stepIndex = Math.max(0, Math.min(getPathStepIndex(path.id), total - 1));
+  const completedStepIndexes = getCompletedPathStepIndexes(path.id);
+  const completedNodeIds = getCompletedPathNodeIds(path.id);
+  const completed = completedStepIndexes.length;
+  const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
+  const currentNodeId = path.orderedNodes[stepIndex] ?? null;
   if (!currentNodeId) {
-    notFound();
+    return null;
   }
 
   const currentNode = graphStore.getNode(currentNodeId);
   if (!currentNode) {
-    notFound();
+    return null;
   }
 
-  const completedNodeIds = path.orderedNodes.slice(0, progress.currentIndex);
   const currentMissingPrereqs = getMissingPrerequisites(currentNode.id, completedNodeIds);
-  const nextNodeId = progress.nextNodeId;
+  const nextNodeId = path.orderedNodes[stepIndex + 1] ?? null;
   const nextNode = nextNodeId ? graphStore.getNode(nextNodeId) : null;
-  const completedPlusCurrent = [...completedNodeIds, currentNode.id];
-  const nextMissingPrereqs = nextNode ? getMissingPrerequisites(nextNode.id, completedPlusCurrent) : [];
+  const nextMissingPrereqs = nextNode
+    ? getMissingPrerequisites(nextNode.id, [...completedNodeIds, currentNode.id])
+    : [];
   const canAdvance = Boolean(nextNode) && nextMissingPrereqs.length === 0;
-  const nextStepHref = canAdvance ? `/paths/${path.id}?step=${progress.currentIndex + 1}` : null;
+
+  const linkedPrereqTitles = useMemo(
+    () =>
+      currentMissingPrereqs.map((id) => graphStore.getNode(id)?.title ?? id),
+    [currentMissingPrereqs],
+  );
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100 md:px-8">
@@ -75,14 +86,17 @@ export default async function PathPage({ params, searchParams }: PathPageProps) 
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Progress</h2>
             <p className="text-sm text-slate-300">
-              {progress.completed}/{progress.total} completed ({progress.percent}%)
+              {completed}/{total} completed ({percent}%)
             </p>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-            <div className="h-full bg-cyan-500" style={{ width: `${progress.percent}%` }} />
+            <div className="h-full bg-cyan-500" style={{ width: `${percent}%` }} />
           </div>
           <p className="mt-3 text-sm text-slate-400">
             Current concept: <span className="text-slate-200">{currentNode.title}</span>
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Completion only updates when you click <span className="text-emerald-300">Mark Complete</span>.
           </p>
         </section>
 
@@ -99,14 +113,14 @@ export default async function PathPage({ params, searchParams }: PathPageProps) 
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
           <h2 className="mb-3 text-lg font-semibold">Prerequisite Validation</h2>
-          {currentMissingPrereqs.length === 0 ? (
+          {linkedPrereqTitles.length === 0 ? (
             <p className="text-sm text-emerald-300">Current concept prerequisites satisfied.</p>
           ) : (
             <div className="space-y-2 text-sm text-amber-300">
               <p>Current concept is blocked by missing prerequisites:</p>
               <ul className="list-disc pl-5">
-                {currentMissingPrereqs.map((id) => (
-                  <li key={id}>{graphStore.getNode(id)?.title ?? id}</li>
+                {linkedPrereqTitles.map((title) => (
+                  <li key={title}>{title}</li>
                 ))}
               </ul>
             </div>
@@ -118,8 +132,11 @@ export default async function PathPage({ params, searchParams }: PathPageProps) 
           <ol className="space-y-2">
             {path.orderedNodes.map((nodeId, index) => {
               const node = graphStore.getNode(nodeId);
-              const status =
-                index < progress.currentIndex ? "Completed" : index === progress.currentIndex ? "Current" : "Upcoming";
+              const status = completedStepIndexes.includes(index)
+                ? "Completed"
+                : index === stepIndex
+                  ? "Current"
+                  : "Upcoming";
               return (
                 <li
                   key={nodeId}
@@ -154,24 +171,37 @@ export default async function PathPage({ params, searchParams }: PathPageProps) 
                   </ul>
                 </div>
               )}
-              {nextStepHref ? (
-                <Link
-                  href={nextStepHref}
-                  className="inline-flex rounded-lg border border-cyan-600 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-500/20"
-                >
-                  Next concept
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex cursor-not-allowed rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-slate-500"
-                >
-                  Next concept
-                </button>
-              )}
             </div>
           )}
+        </section>
+
+        <section className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setPathStepIndex(path.id, Math.max(stepIndex - 1, 0))}
+            disabled={stepIndex === 0}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            onClick={() => markPathStepComplete(path.id, stepIndex, currentNode.id)}
+            className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300"
+          >
+            Mark Complete
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!canAdvance) return;
+              setPathStepIndex(path.id, stepIndex + 1);
+            }}
+            disabled={!canAdvance}
+            className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next Concept
+          </button>
         </section>
       </div>
     </main>

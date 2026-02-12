@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import AppShell from "../components/layout/AppShell";
+import { validateContentSchemas } from "@/lib/content/validate";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,6 +21,8 @@ export const metadata: Metadata = {
 };
 
 import { Analytics } from "@vercel/analytics/react";
+
+validateContentSchemas();
 
 export default function RootLayout({
   children,

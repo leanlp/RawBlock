@@ -1,0 +1,114 @@
+---
+id: rb-wallets-keys
+title: Wallets and Keys
+type: primitive
+difficulty: 1
+lessonId: 2
+pathIds:
+  - bitcoin-foundations
+summary: Wallets store and protect keys, while coins remain on-chain as spendable UTXOs controlled by scripts.
+story: >-
+  Alice tells Bob she "keeps bitcoin in her wallet," and Bob imagines digital coins sitting inside an app.
+  Then her phone dies, and she restores everything from a seed phrase on a new device. Bob is confused:
+  if the coins were in the old phone, how did they return? Carol explains the key idea: wallets do not hold
+  coins, they hold secrets that prove spending rights on the blockchain. The UTXOs never left the chain.
+  The wallet is a key manager, transaction constructor, and backup interface. Once Bob sees this model,
+  common mistakes become obvious: sharing seed phrases, reusing addresses, and trusting custody without
+  understanding who controls keys. The phrase "not your keys, not your coins" stops sounding like a slogan
+  and starts sounding like an operational rule.
+keyTakeaways:
+  - Wallets manage private keys and signing, not coin storage.
+  - Recovery phrases are key backups, not account passwords.
+  - Custody model determines who can authorize spending.
+securityNotes:
+  - Seed phrase exposure enables full wallet takeover.
+  - Hardware isolation and backup hygiene materially reduce key-compromise risk.
+linkedVulnerabilities:
+  - cve-2018-17144
+linkedAttacks:
+  - eclipse-attack
+linkedAssumptions:
+  - cryptographic-assumption
+policyVsConsensus:
+  consensusRules:
+    - Only valid signatures and script conditions authorize UTXO spending.
+    - Ownership is enforced by consensus validation of witness/script data.
+  policyRules:
+    - Wallet software chooses derivation paths, coin selection, and UX defaults.
+    - Services define withdrawal limits and security workflows as operational policy.
+  explanation: Consensus determines whether a spend is valid; wallet policy determines how users generate, protect, and broadcast that spend.
+caseStudies:
+  - title: Exchange Custody Failures
+    year: 2014
+    whatHappened: Custodial losses showed users can lose funds despite protocol integrity.
+    whyItMatters: Security of keys and operational controls is as important as protocol design.
+  - title: Hardware Wallet Adoption Wave
+    year: 2017
+    whatHappened: Hardware signing devices became mainstream for self-custody.
+    whyItMatters: Isolated key storage reduced malware-related signing risk for many users.
+explorerDeepLinks:
+  - label: Address Explorer
+    url: https://mempool.space/address/
+  - label: Raw Transaction Decoder
+    url: https://mempool.space/tx/
+  - label: Raw Block Decoder Tool
+    url: https://www.rawblock.net/explorer/decoder
+  - label: BIP 32 (HD Wallets)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+claimSources:
+  - claim: Wallets hold keys and metadata while UTXOs remain on-chain.
+    sources:
+      - title: Bitcoin Developer Guide - Wallets
+        url: https://developer.bitcoin.org/devguide/wallets.html
+        type: dev-guide
+      - title: Bitcoin Developer Guide - Transactions
+        url: https://developer.bitcoin.org/devguide/transactions.html
+        type: dev-guide
+  - claim: Hierarchical deterministic wallets derive many keys from one seed.
+    sources:
+      - title: BIP 32
+        url: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+        type: BIP
+      - title: BIP 39
+        url: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
+        type: BIP
+  - claim: SegWit and Taproot destination formats are standardized for wallet interoperability.
+    sources:
+      - title: BIP 173
+        url: https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki
+        type: BIP
+      - title: BIP 350
+        url: https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki
+        type: BIP
+furtherReading:
+  - title: Bitcoin Core Wallet Docs
+    url: https://github.com/bitcoin/bitcoin/tree/master/doc/wallet
+  - title: BIP 32
+    url: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+  - title: BIP 39
+    url: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+A wallet is a key-management and transaction-authoring system. It discovers UTXOs for controlled scripts, selects coins, builds a transaction, and signs with private keys.
+
+### Real Data
+Show `new block height`, `recommended fees`, and `address activity` for a selected receive address. This helps learners see that balances are derived from chain state, not stored in the wallet app.
+
+## Walkthrough
+1. Generate seed and derive account keys.
+2. Derive receive address and monitor matching UTXOs.
+3. Build spend transaction from selected inputs.
+4. Sign and broadcast through peers.
+5. Confirm on-chain and update wallet state.
+
+## Common Misconceptions
+- "My bitcoin sits in my phone." The phone holds keys, not coins.
+- "A seed phrase is like a password reset email." It is full key material.
+- "Custodial and self-custody are equivalent." They are different trust models.
+
+## Check Yourself (Questions)
+- What exactly is recovered when restoring a wallet from seed?
+- Why does address reuse increase privacy risk?
+- Which part is consensus-critical: wallet UI or signature validity?

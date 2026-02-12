@@ -1,0 +1,113 @@
+---
+id: rb-signatures-schnorr-ecdsa
+title: Signatures: ECDSA and Schnorr
+type: mechanism
+difficulty: 3
+lessonId: 4
+pathIds:
+  - bitcoin-foundations
+summary: Bitcoin uses digital signatures to authorize spending; ECDSA remains valid while Schnorr enables newer Taproot capabilities.
+story: >-
+  Carol runs an operations desk where multiple approvals are required for treasury movements. In the early setup,
+  multisig transactions were larger and more revealing on-chain than she liked. After learning Taproot, she sees
+  that cooperative participants can use Schnorr-based key-path spending with better efficiency and cleaner on-chain
+  footprints. But she also keeps legacy compatibility in mind: ECDSA still secures vast existing outputs, and both
+  schemes coexist under consensus rules. Her team updates signing policy carefully, tests hardware compatibility,
+  and audits every recovery path. The lesson is not "new cryptography is automatically safer." The lesson is that
+  signature systems are security-critical interfaces between keys and consensus validity, and migration must be
+  deliberate.
+keyTakeaways:
+  - Digital signatures prove spend authorization without revealing private keys.
+  - ECDSA and Schnorr coexist in Bitcoin under defined script contexts.
+  - Taproot key-path spending benefits from Schnorr properties.
+securityNotes:
+  - Poor nonce generation or key leakage can irreversibly compromise funds.
+  - Implementation errors in signing stacks are high-impact even if consensus rules are correct.
+linkedVulnerabilities:
+  - cve-2018-17144
+linkedAttacks:
+  - eclipse-attack
+linkedAssumptions:
+  - cryptographic-assumption
+policyVsConsensus:
+  consensusRules:
+    - Signature verification semantics are enforced by script/witness consensus rules.
+    - Taproot spends must satisfy BIP 340/341/342 validation requirements.
+  policyRules:
+    - Wallet policy selects which script type and signature path to use by default.
+    - Hardware/software signing flows add operational checks beyond consensus.
+  explanation: Consensus decides if a signature is valid on-chain; policy decides how and when signatures are produced in practice.
+caseStudies:
+  - title: Taproot Activation
+    year: 2021
+    whatHappened: Schnorr-based Taproot rules activated as a soft fork.
+    whyItMatters: It expanded signing expressiveness while preserving backward compatibility.
+  - title: ECDSA Nonce Failure Incidents (Industry-Wide)
+    year: 2013
+    whatHappened: Poor randomness in signing systems has repeatedly exposed private keys in cryptographic systems.
+    whyItMatters: Signature security depends on implementation quality, not just protocol math.
+explorerDeepLinks:
+  - label: Taproot Adoption Chart
+    url: https://mempool.space/graphs/bitcoin/taproot
+  - label: BIP 340 (Schnorr)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
+  - label: BIP 341 (Taproot)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
+  - label: BIP 342 (Tapscript)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki
+claimSources:
+  - claim: Bitcoin signatures authorize UTXO spending through script validation.
+    sources:
+      - title: Bitcoin Developer Guide - Transactions
+        url: https://developer.bitcoin.org/devguide/transactions.html
+        type: dev-guide
+      - title: Bitcoin Script Reference
+        url: https://developer.bitcoin.org/reference/scripts.html
+        type: dev-guide
+  - claim: Schnorr signatures for Bitcoin are specified in BIP 340.
+    sources:
+      - title: BIP 340
+        url: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
+        type: BIP
+      - title: BIP 341
+        url: https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
+        type: BIP
+  - claim: Taproot/Tapscript behavior is consensus-defined by BIP 341 and BIP 342.
+    sources:
+      - title: BIP 341
+        url: https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
+        type: BIP
+      - title: BIP 342
+        url: https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki
+        type: BIP
+furtherReading:
+  - title: BIP 340
+    url: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
+  - title: Bitcoin Core secp256k1 library
+    url: https://github.com/bitcoin-core/secp256k1
+  - title: Developer Guide - Transactions
+    url: https://developer.bitcoin.org/devguide/transactions.html
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Signatures bind a transaction digest to a private key so nodes can verify authorization. Legacy paths use ECDSA; Taproot key-path spends use Schnorr semantics.
+
+### Real Data
+Show `Taproot usage share` and `transaction fee range`. This helps explain where Schnorr-enabled spending is appearing in real network traffic.
+
+## Walkthrough
+1. Wallet constructs signing preimage for each input context.
+2. Signer generates signature with private key.
+3. Transaction includes witness/script data.
+4. Nodes verify signatures during validation.
+
+## Common Misconceptions
+- "Schnorr replaced all Bitcoin signatures." Legacy ECDSA remains widely used.
+- "A signature encrypts transaction data." It proves authorization; it does not encrypt the chain.
+- "Cryptography removes operational risk." Poor key handling still breaks security.
+
+## Check Yourself (Questions)
+- Why can valid signatures exist under different script eras?
+- What changed for Taproot key-path spends versus legacy multisig patterns?
+- Which failures are protocol-level vs implementation-level?

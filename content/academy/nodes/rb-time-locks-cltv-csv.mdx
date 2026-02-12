@@ -1,0 +1,113 @@
+---
+id: rb-time-locks-cltv-csv
+title: Time Locks (CLTV and CSV)
+type: mechanism
+difficulty: 3
+lessonId: 5
+pathIds:
+  - bitcoin-foundations
+summary: Time locks restrict when outputs can be spent, enabling secure delayed settlement patterns and Lightning channel safety.
+story: >-
+  Alice and Bob run a recurring supplier relationship and want a payment setup that is flexible but safe.
+  They need a mechanism where one branch can be spent immediately with cooperation, while another branch
+  only becomes spendable after a delay if a dispute appears. Carol introduces time locks: absolute locks
+  for date/height constraints and relative locks for delays after confirmation. Suddenly, they can design
+  contracts where cheating windows exist long enough for monitoring, and honest paths remain efficient.
+  What looked like a rigid payment rail becomes programmable enough for practical safety engineering.
+  This is the bridge between simple transfers and layered protocols like Lightning.
+keyTakeaways:
+  - CLTV enforces absolute lock conditions; CSV enforces relative delays.
+  - Time locks are core building blocks for Layer 2 safety.
+  - Timelock semantics are consensus-critical script behavior.
+securityNotes:
+  - Incorrect timelock parameters can make funds unspendable or insecure.
+  - Watchtower and monitoring assumptions are essential in adversarial channel settings.
+linkedVulnerabilities:
+  - pre-segwit-tx-malleability
+linkedAttacks:
+  - eclipse-attack
+linkedAssumptions:
+  - network-propagation-assumption
+  - economic-incentives-assumption
+policyVsConsensus:
+  consensusRules:
+    - CLTV and CSV script checks must evaluate true for valid spending.
+    - Sequence and locktime fields are interpreted under consensus-defined rules.
+  policyRules:
+    - Wallets decide default locktime usage and safety margins.
+    - Services choose operational monitoring and dispute-response procedures.
+  explanation: Consensus enforces lock conditions; policy determines practical parameter choices and response playbooks.
+caseStudies:
+  - title: CLTV Activation
+    year: 2015
+    whatHappened: OP_CHECKLOCKTIMEVERIFY activated to support absolute time-locked scripts.
+    whyItMatters: It enabled safer delayed-spend constructions in Bitcoin scripts.
+  - title: CSV Activation
+    year: 2016
+    whatHappened: OP_CHECKSEQUENCEVERIFY enabled relative timelock contracts.
+    whyItMatters: It became foundational for robust payment-channel designs.
+explorerDeepLinks:
+  - label: BIP 65 (CLTV)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki
+  - label: BIP 68 (Sequence semantics)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0068.mediawiki
+  - label: BIP 112 (CSV)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0112.mediawiki
+  - label: Lightning BOLTs
+    url: https://github.com/lightning/bolts
+claimSources:
+  - claim: CLTV provides absolute locktime script constraints.
+    sources:
+      - title: BIP 65
+        url: https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki
+        type: BIP
+      - title: Script reference
+        url: https://developer.bitcoin.org/reference/scripts.html
+        type: dev-guide
+  - claim: CSV relies on relative locktime semantics introduced with sequence rules.
+    sources:
+      - title: BIP 68
+        url: https://github.com/bitcoin/bips/blob/master/bip-0068.mediawiki
+        type: BIP
+      - title: BIP 112
+        url: https://github.com/bitcoin/bips/blob/master/bip-0112.mediawiki
+        type: BIP
+  - claim: Timelocks are foundational to Lightning dispute mechanisms.
+    sources:
+      - title: Lightning BOLTs
+        url: https://github.com/lightning/bolts
+        type: reference
+      - title: Mastering Lightning
+        url: https://github.com/lnbook/lnbook
+        type: reference
+furtherReading:
+  - title: BIP 65
+    url: https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki
+  - title: BIP 112
+    url: https://github.com/bitcoin/bips/blob/master/bip-0112.mediawiki
+  - title: Lightning BOLTs
+    url: https://github.com/lightning/bolts
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Time locks constrain spendability by block height/time (absolute) or by elapsed confirmations (relative). They enable contract safety windows and conditional control flow.
+
+### Real Data
+Show `current block height`, `median block interval`, and `recommended fees`. Learners can map lock durations to expected real-world waiting time under changing conditions.
+
+## Walkthrough
+1. Create output with timelock condition in script path.
+2. Broadcast funding transaction.
+3. Spend via cooperative path, or wait for lock expiry.
+4. Enforce fallback/dispute branch if needed.
+
+## Common Misconceptions
+- "Timelocks freeze coins forever." They constrain spend timing, not ownership forever.
+- "Absolute and relative locks are interchangeable." They solve different contract needs.
+- "Lightning does not depend on L1 script." It critically depends on L1 enforceability.
+
+## Check Yourself (Questions)
+- When would you prefer CSV over CLTV?
+- Why are monitoring assumptions part of timelock security?
+- Which fields carry lock semantics in transaction data?

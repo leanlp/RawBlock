@@ -1,0 +1,106 @@
+---
+id: rb-taproot
+title: Taproot
+type: upgrade
+difficulty: 3
+lessonId: 4
+pathIds:
+  - bitcoin-foundations
+summary: Taproot introduced Schnorr signatures and Tapscript paths, improving efficiency, privacy characteristics, and multisig flexibility.
+story: >-
+  Bob’s company runs a treasury wallet with complex signing policies. Before Taproot, many
+  cooperative spends revealed more structure than needed on-chain and consumed extra weight.
+  Taproot changed the default experience: cooperative key-path spends can look simple, while
+  script-path options stay available when needed. That means better efficiency and improved
+  privacy characteristics in common cases, not invisibility. Bob learns Taproot is a careful
+  soft-fork extension, not a rewrite of Bitcoin’s trust model. The same conservative activation
+  philosophy applies: broad review, explicit semantics, and compatibility.
+keyTakeaways:
+  - Taproot added Schnorr and Tapscript capabilities via soft fork.
+  - Cooperative spend paths can be more efficient and less revealing.
+  - Taproot builds on, not replaces, Bitcoin’s base security model.
+securityNotes:
+  - Incorrect script-path assumptions can still create wallet implementation errors.
+  - Privacy benefits are contextual and depend on usage patterns.
+linkedVulnerabilities:
+  - pre-segwit-tx-malleability
+linkedAttacks:
+  - eclipse-attack
+linkedAssumptions:
+  - cryptographic-assumption
+policyVsConsensus:
+  consensusRules:
+    - Schnorr and tapscript validation rules are consensus-enforced post-activation.
+    - Taproot output semantics must satisfy active script constraints.
+  policyRules:
+    - Wallet defaults decide when Taproot outputs are used.
+    - Relay policy may influence early adoption behavior.
+  explanation: Taproot semantics are consensus; deployment pace and default usage are policy/product choices.
+caseStudies:
+  - title: Taproot Activation
+    year: 2021
+    whatHappened: Taproot activated through coordinated soft-fork deployment.
+    whyItMatters: It expanded signature/script capability while preserving conservative upgrade norms.
+explorerDeepLinks:
+  - label: Taproot Adoption Chart
+    url: https://mempool.space/graphs/bitcoin/taproot
+  - label: BIP 340
+    url: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
+  - label: BIP 341
+    url: https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
+  - label: BIP 342
+    url: https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki
+claimSources:
+  - claim: Taproot introduced Schnorr signatures and new spending semantics.
+    sources:
+      - title: BIP 340
+        url: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
+        type: BIP
+      - title: BIP 341
+        url: https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
+        type: BIP
+  - claim: Tapscript rules are defined in BIP 342.
+    sources:
+      - title: BIP 342
+        url: https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki
+        type: BIP
+      - title: Bitcoin Core release notes
+        url: https://bitcoincore.org/en/releases/
+        type: core-docs
+  - claim: Taproot activation followed conservative soft-fork governance practices.
+    sources:
+      - title: bitcoin-dev Taproot proposal thread
+        url: https://groups.google.com/g/bitcoindev
+        type: mailing-list
+      - title: BIP process overview
+        url: https://github.com/bitcoin/bips
+        type: BIP
+furtherReading:
+  - title: BIP 340
+    url: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
+  - title: BIP 341
+    url: https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
+  - title: BIP 342
+    url: https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Taproot combines Schnorr key aggregation semantics and tapscript execution paths under consensus rules activated in 2021.
+
+**Real Data:** Show `Taproot adoption percentage` and `average fee pressure`. This reveals when efficiency/privacy improvements are actually used in production.
+
+## Walkthrough
+1. Create Taproot output (key-path dominant).
+2. Spend cooperatively via key-path when possible.
+3. Use script-path only when policy conditions require fallback.
+
+## Common Misconceptions
+- “Taproot makes transactions anonymous.” It does not.
+- “Taproot removed script complexity.” It reorganized how it appears on-chain.
+- “Taproot is a hard fork.” It was a soft fork.
+
+## Check Yourself (Questions)
+- Which BIPs define Taproot and Tapscript?
+- Why does key-path spending matter operationally?
+- What metric indicates real-world Taproot usage?

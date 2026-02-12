@@ -1,0 +1,116 @@
+---
+id: rb-transactions
+title: Transactions
+type: mechanism
+difficulty: 1
+lessonId: 2
+pathIds:
+  - bitcoin-foundations
+summary: Bitcoin transactions consume prior outputs and create new outputs, then move through relay, mempool, mining, and confirmation stages.
+story: >-
+  Bob receives payment for a design contract and checks his wallet. It says “unconfirmed,”
+  and he is unsure whether the money is final. Minutes later, fee rates spike and his
+  transaction remains pending. He learns a hard truth: a transaction is not one moment,
+  it is a lifecycle. First it is constructed and signed. Then peers relay it. Then miners
+  choose whether to include it based on fee pressure and policy. Only after block inclusion
+  does it begin accumulating confirmations. Bob also discovers fee bumping and replacement
+  policy matter in practice. A transaction can be valid yet delayed, or seen by one node
+  earlier than another. Understanding this lifecycle turns wallet notifications into
+  meaningful risk signals instead of guesswork. That mindset is essential for merchants,
+  exchanges, and anyone handling time-sensitive settlement.
+keyTakeaways:
+  - Mempool presence is not final settlement.
+  - Fee rate strongly affects inclusion speed in congestion.
+  - Confirmation depth is a practical risk-control parameter.
+securityNotes:
+  - Zero-confirmation acceptance is exposed to double-spend patterns.
+  - Policy differences across nodes can change propagation and replacement behavior.
+linkedVulnerabilities:
+  - pre-segwit-tx-malleability
+  - cve-2018-17144
+linkedAttacks:
+  - replace-by-fee-abuse
+  - eclipse-attack
+linkedAssumptions:
+  - network-propagation-assumption
+  - economic-incentives-assumption
+policyVsConsensus:
+  consensusRules:
+    - Inputs must reference valid unspent outputs and satisfy locking conditions.
+    - Transaction format and signatures must pass deterministic verification.
+  policyRules:
+    - Relay may reject low-fee or non-standard transactions.
+    - RBF acceptance follows local policy and mempool replacement logic.
+  explanation: Consensus says whether a transaction is valid on-chain; policy decides whether it is relayed before mining.
+caseStudies:
+  - title: Pre-SegWit Malleability Era
+    year: 2014
+    whatHappened: Txid mutation created tracking and accounting failures in unconfirmed workflows.
+    whyItMatters: It motivated SegWit architecture and better transaction state handling.
+  - title: RBF Merchant Misconfiguration Incidents
+    year: 2018
+    whatHappened: Some services accepted unconfirmed payments without replacement monitoring.
+    whyItMatters: Operational policy must match protocol reality under fee pressure.
+explorerDeepLinks:
+  - label: Recent Transactions
+    url: https://mempool.space/
+  - label: Mempool Blocks View
+    url: https://mempool.space/mempool-block/0
+  - label: Transaction Decoder Reference
+    url: https://developer.bitcoin.org/reference/transactions.html
+claimSources:
+  - claim: Bitcoin uses UTXO-based transaction spending rather than account balances.
+    sources:
+      - title: Developer Guide Transactions
+        url: https://developer.bitcoin.org/devguide/transactions.html
+        type: dev-guide
+      - title: Bitcoin Whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+  - claim: Relay policy and RBF handling are node policy, not consensus validity.
+    sources:
+      - title: BIP 125
+        url: https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+        type: BIP
+      - title: Bitcoin Core mempool replacements doc
+        url: https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md
+        type: core-docs
+  - claim: Confirmation depth increases confidence against reversal.
+    sources:
+      - title: Developer Guide Confirmations
+        url: https://developer.bitcoin.org/devguide/block_chain.html#confirmations
+        type: dev-guide
+      - title: Bitcoin Whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: reference
+furtherReading:
+  - title: Developer Guide Transactions
+    url: https://developer.bitcoin.org/devguide/transactions.html
+  - title: BIP 125
+    url: https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+  - title: Mempool Policy Docs
+    url: https://github.com/bitcoin/bitcoin/tree/master/doc/policy
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+A transaction has inputs, outputs, lock conditions, and signatures. Nodes validate structure and scripts, then decide relay under local policy. Miners prioritize by fee density and template constraints.
+
+**Real Data:** Show `recommended fees` (fast/half-hour/hour) and `mempool size`. This explains why one valid transaction confirms quickly while another waits.
+
+## Walkthrough
+1. Wallet selects UTXOs and computes fee.
+2. Transaction is signed and broadcast.
+3. Peers validate and relay to mempool.
+4. Miner includes tx in candidate block.
+5. Tx confirms and gains depth.
+
+## Common Misconceptions
+- “If my wallet broadcast it, it is final.” False.
+- “RBF is a bug.” No, it is policy behavior.
+- “All nodes have identical mempool contents.” Not always.
+
+## Check Yourself (Questions)
+- Which part is consensus and which part is policy in transaction relay?
+- Why can two valid transactions have very different confirmation times?
+- What risk remains after one confirmation?

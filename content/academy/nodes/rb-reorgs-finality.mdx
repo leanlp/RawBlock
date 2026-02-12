@@ -1,0 +1,114 @@
+---
+id: rb-reorgs-finality
+title: Reorgs and Finality
+type: property
+difficulty: 3
+lessonId: 8
+pathIds:
+  - bitcoin-foundations
+summary: Bitcoin finality is probabilistic; reorg risk falls as cumulative proof-of-work and confirmations increase.
+story: >-
+  Bob ships high-value electronics and accepts Bitcoin payments. One morning he sees a transaction with one
+  confirmation and wants to release inventory immediately. Carol stops him: "One confirmation is better than
+  zero, but not the same as final settlement for this risk size." She explains that short chain reorganizations
+  can happen naturally from block race conditions, and adversarial reorg attempts become harder with each added
+  block. Bob creates a confirmation policy by amount tier: low-value orders can move faster, large transfers wait
+  deeper. Later, during a volatile fee period, that policy prevents a costly mistake. He learns finality on Bitcoin
+  is not binary; it is a risk function tied to depth, hashpower environment, and business tolerance.
+keyTakeaways:
+  - Reorgs are possible; confirmation depth reduces reversal probability.
+  - Finality policy should match value-at-risk and threat model.
+  - Network propagation quality affects short-range fork behavior.
+securityNotes:
+  - Accepting zero or shallow confirmations raises reversal risk.
+  - Monitoring competing tips and unusual stale patterns improves operational safety.
+linkedVulnerabilities:
+  - value-overflow-2010
+linkedAttacks:
+  - selfish-mining
+  - fee-sniping
+  - eclipse-attack
+linkedAssumptions:
+  - honest-majority-hashpower
+  - network-propagation-assumption
+  - economic-incentives-assumption
+policyVsConsensus:
+  consensusRules:
+    - Nodes follow the valid chain with the most accumulated proof-of-work.
+    - Invalid blocks are rejected regardless of competing chain length.
+  policyRules:
+    - Businesses choose confirmation thresholds per risk policy.
+    - Exchanges and merchants define deposit crediting delays operationally.
+  explanation: Consensus provides chain selection rules; policy sets how much depth an application demands before considering settlement final enough.
+caseStudies:
+  - title: Regular Short Forks
+    year: 2013
+    whatHappened: Competing near-simultaneous blocks occasionally caused 1-block reorgs.
+    whyItMatters: Reorgs are a normal statistical property, not always an attack.
+  - title: March 2013 Chain Split Event
+    year: 2013
+    whatHappened: A client-version incompatibility triggered a temporary chain split and coordinated response.
+    whyItMatters: Operational coordination and conservative upgrade strategy are critical.
+explorerDeepLinks:
+  - label: Recent Blocks
+    url: https://mempool.space/blocks
+  - label: Mining Dashboard
+    url: https://mempool.space/mining
+  - label: Bitcoin Core Chainwork Reference
+    url: https://github.com/bitcoin/bitcoin/blob/master/src/chain.h
+claimSources:
+  - claim: Bitcoin finality is probabilistic and improves with additional confirmations.
+    sources:
+      - title: Bitcoin Whitepaper (Section 11)
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+      - title: Developer Guide - Block Chain
+        url: https://developer.bitcoin.org/devguide/block_chain.html
+        type: dev-guide
+  - claim: Chain selection is based on the most accumulated proof-of-work among valid candidates.
+    sources:
+      - title: Bitcoin Whitepaper (Section 4)
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+      - title: Bitcoin Core validation logic
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+        type: core-docs
+  - claim: Propagation and miner incentives influence short-range reorg dynamics.
+    sources:
+      - title: BIP 152 Compact Blocks
+        url: https://github.com/bitcoin/bips/blob/master/bip-0152.mediawiki
+        type: BIP
+      - title: Developer Guide - Mining
+        url: https://developer.bitcoin.org/devguide/mining.html
+        type: dev-guide
+furtherReading:
+  - title: Bitcoin Whitepaper
+    url: https://bitcoin.org/bitcoin.pdf
+  - title: Developer Guide - Block Chain
+    url: https://developer.bitcoin.org/devguide/block_chain.html
+  - title: Bitcoin Optech Topic: Reorgs
+    url: https://bitcoinops.org/en/topics/chain-reorganization/
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+A reorg occurs when a node switches to another valid branch with higher accumulated work. Most reorgs are shallow; deep adversarial reorgs require substantial sustained hashpower.
+
+### Real Data
+Show `recent stale/orphan indicators`, `network hashrate`, and `current fee pressure`. These metrics help learners reason about near-term confirmation risk.
+
+## Walkthrough
+1. Two miners find competing blocks near the same time.
+2. Different peers see different tips briefly.
+3. One branch gains additional work and becomes best chain.
+4. Transactions from the losing block return to mempool if still valid.
+
+## Common Misconceptions
+- "Six confirmations is a protocol guarantee." It is a common policy heuristic.
+- "Any reorg means attack." Many are natural race conditions.
+- "One confirmation is final for all use cases." Risk tolerance varies by amount.
+
+## Check Yourself (Questions)
+- What distinguishes consensus finality from business finality policy?
+- Why can fast propagation reduce reorg frequency?
+- Which attack models become easier if a node is eclipsed?

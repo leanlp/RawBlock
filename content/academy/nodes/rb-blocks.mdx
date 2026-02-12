@@ -1,0 +1,110 @@
+---
+id: rb-blocks
+title: Blocks and Headers
+type: primitive
+difficulty: 1
+lessonId: 4
+pathIds:
+  - bitcoin-foundations
+summary: Blocks package validated transactions, while headers provide cryptographic commitments linking history into a tamper-evident chain.
+story: >-
+  A new node comes online and receives thousands of data messages. It cannot trust any
+  sender, so it starts with structure. Each block header points to a previous block hash,
+  commits to a merkle root, and proves enough work for the current target. This compact
+  metadata acts like a chain of receipts: change one historical detail and future hashes
+  no longer match. Dave, a developer on Alice’s team, initially thought blocks were just
+  containers. Then he saw that headers are the security spine. Transactions matter, but
+  headers make history auditable at scale. He also learned short stale races can happen
+  naturally during propagation, which is why “latest” may briefly differ across peers.
+  Understanding block anatomy turns explorer screens into meaningful protocol diagnostics.
+keyTakeaways:
+  - Headers commit to ancestry and transaction set metadata.
+  - Merkle roots make transaction tampering detectable.
+  - Chain selection follows accumulated work, not simple count.
+securityNotes:
+  - Deep unexpected reorgs are high-priority operational signals.
+  - Header validation is fast, but full transaction validation remains mandatory.
+linkedVulnerabilities:
+  - value-overflow-2010
+linkedAttacks:
+  - selfish-mining
+  - fee-sniping
+linkedAssumptions:
+  - network-propagation-assumption
+  - honest-majority-hashpower
+policyVsConsensus:
+  consensusRules:
+    - Header hash must satisfy target encoded by nBits.
+    - Block must reference valid previous block and pass transaction checks.
+  policyRules:
+    - Node relay and orphan handling can differ without altering consensus validity.
+    - Propagation optimization policies affect local view timing.
+  explanation: Consensus defines valid blocks; policy affects how quickly and from whom nodes receive candidate data.
+caseStudies:
+  - title: March 2013 Chain Split Event
+    year: 2013
+    whatHappened: Version and database behavior differences caused temporary chain divergence.
+    whyItMatters: Demonstrated the importance of compatibility discipline and coordinated response.
+explorerDeepLinks:
+  - label: Blocks List
+    url: https://mempool.space/blocks
+  - label: Mining Dashboard
+    url: https://mempool.space/mining
+  - label: Block Chain Reference
+    url: https://developer.bitcoin.org/reference/block_chain.html
+claimSources:
+  - claim: Block headers include previous hash and merkle root commitments.
+    sources:
+      - title: Developer Reference Block Headers
+        url: https://developer.bitcoin.org/reference/block_chain.html#block-headers
+        type: dev-guide
+      - title: Bitcoin Whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+  - claim: Chain selection follows cumulative proof-of-work.
+    sources:
+      - title: Developer Guide Block Chain
+        url: https://developer.bitcoin.org/devguide/block_chain.html
+        type: dev-guide
+      - title: Bitcoin Core validation source
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+        type: core-docs
+  - claim: Stale/orphan races are expected under propagation latency.
+    sources:
+      - title: Developer Guide Block Chain
+        url: https://developer.bitcoin.org/devguide/block_chain.html
+        type: reference
+      - title: BIP 152
+        url: https://github.com/bitcoin/bips/blob/master/bip-0152.mediawiki
+        type: BIP
+furtherReading:
+  - title: Developer Block Chain Guide
+    url: https://developer.bitcoin.org/devguide/block_chain.html
+  - title: BIP 34
+    url: https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki
+  - title: BIP 152
+    url: https://github.com/bitcoin/bips/blob/master/bip-0152.mediawiki
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+A block contains transactions and a header. The header includes version, previous block hash, merkle root, timestamp, nBits, and nonce. Nodes verify both header and full transaction set.
+
+**Real Data:** Show `latest block height`, `average block interval`, and `recent stale/reorg count`. This helps learners connect structure to real operational behavior.
+
+## Walkthrough
+1. Miner builds candidate block.
+2. Miner finds valid nonce for target.
+3. Block propagates to peers.
+4. Nodes validate header and transactions.
+5. Chainwork comparison chooses best tip.
+
+## Common Misconceptions
+- “A longer chain by block count always wins.” Chainwork wins.
+- “Header validation is enough for security.” Full validation is still required.
+- “Any reorg means attack.” Short reorgs can be normal.
+
+## Check Yourself (Questions)
+- Which header field commits transaction set integrity?
+- Why can two honest nodes briefly disagree on tip?
+- What metric tells you whether a block is economically expensive to replace?

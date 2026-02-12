@@ -18,6 +18,8 @@ export default function AcademyProgressSync({ nodeId }: { nodeId: string }) {
         goToNext,
         markLessonComplete,
         syncNodeProgress,
+        markNodeComplete,
+        isNodeComplete,
     } = useGuidedLearning();
 
     useEffect(() => {
@@ -25,6 +27,7 @@ export default function AcademyProgressSync({ nodeId }: { nodeId: string }) {
     }, [nodeId, syncNodeProgress]);
 
     const mappedLessonIndex = getLessonIndexForNodeId(nodeId);
+    const nodeCompleted = isNodeComplete(nodeId);
 
     return (
         <section className="rounded-2xl border border-cyan-800/50 bg-cyan-950/20 p-5">
@@ -54,6 +57,9 @@ export default function AcademyProgressSync({ nodeId }: { nodeId: string }) {
             ) : (
                 <p className="mt-2 text-xs text-slate-500">This node is not part of the guided sequence.</p>
             )}
+            <p className={`mt-1 text-xs ${nodeCompleted ? "text-emerald-300" : "text-slate-500"}`}>
+                Node status: {nodeCompleted ? "Completed" : "Not completed"}
+            </p>
 
             <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/70 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Current Guided Lesson</p>
@@ -78,6 +84,13 @@ export default function AcademyProgressSync({ nodeId }: { nodeId: string }) {
                     className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300"
                 >
                     Mark Complete
+                </button>
+                <button
+                    type="button"
+                    onClick={() => markNodeComplete(nodeId)}
+                    className="rounded-lg border border-violet-500/40 bg-violet-500/10 px-3 py-2 text-xs text-violet-300"
+                >
+                    Mark Node Complete
                 </button>
                 <button
                     type="button"

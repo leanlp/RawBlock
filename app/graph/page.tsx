@@ -373,6 +373,7 @@ export default function BitcoinMapPage() {
   const [showOnlyAssumptions, setShowOnlyAssumptions] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const threatMode =
     showFullGraph &&
     (showOnlyVulnerabilities || showOnlyAttackEdges || showOnlyAssumptions);
@@ -456,9 +457,18 @@ export default function BitcoinMapPage() {
       Array.from(canonicalStepPairs).map((edge) => edge),
     );
 
-    const sourceNodes = showFullGraph
+    const query = searchQuery.trim().toLowerCase();
+    const sourceNodes = (showFullGraph
       ? graphStore.nodes
-      : graphStore.nodes.filter((node) => canonicalNodeSet.has(node.id));
+      : graphStore.nodes.filter((node) => canonicalNodeSet.has(node.id)))
+      .filter((node) => {
+        if (!query) return true;
+        return (
+          node.title.toLowerCase().includes(query) ||
+          node.id.toLowerCase().includes(query) ||
+          NODE_TYPE_PRESENTATION[node.type].label.toLowerCase().includes(query)
+        );
+      });
     const baseEdges = showFullGraph
       ? graphStore.edges
       : graphStore.edges.filter((edge) =>
@@ -648,6 +658,7 @@ export default function BitcoinMapPage() {
     theme.nodeMeta,
     theme.nodeText,
     theme.textSubtle,
+    searchQuery,
   ]);
   const graphFitVersion = useMemo(
     () =>
@@ -679,10 +690,8 @@ export default function BitcoinMapPage() {
     >
       <div className="mx-auto max-w-[1600px] space-y-5">
         <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Bitcoin Map</p>
-          <h1 className="text-3xl font-semibold md:text-4xl">
-            {threatMode ? "Bitcoin Threat Map" : "Protocol Knowledge Graph"}
-          </h1>
+          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Knowledge Graph</p>
+          <h1 className="text-3xl font-semibold md:text-4xl">Protocol Knowledge Graph</h1>
           <p className="text-sm" style={{ color: theme.textMuted }}>
             {effectiveFocusMode
               ? "Focus Mode is active. Click a node to isolate it with direct prerequisites and dependents."
@@ -722,6 +731,22 @@ export default function BitcoinMapPage() {
           className="grid gap-2 rounded-xl p-4 text-sm md:grid-cols-3"
           style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
         >
+          <label className="md:col-span-3 flex flex-col gap-1">
+            <span className="text-xs font-medium" style={{ color: theme.textMuted }}>
+              Search Concepts
+            </span>
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search by title, id, or type..."
+              className="w-full rounded-lg border px-3 py-2 text-sm"
+              style={{
+                borderColor: theme.sectionBorder,
+                background: theme.sectionBg,
+                color: theme.textPrimary,
+              }}
+            />
+          </label>
           <button
             type="button"
             onClick={() => {
@@ -922,6 +947,9 @@ export default function BitcoinMapPage() {
             >
               <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>
                 {hoveredNode.title}
+              </p>
+              <p className="mt-1 text-[11px]" style={{ color: theme.textSubtle }}>
+                {NODE_TYPE_PRESENTATION[hoveredNode.type].label} · difficulty {hoveredNode.difficulty}/4
               </p>
               <p className="mt-1 text-xs leading-relaxed" style={{ color: theme.textMuted }}>
                 {hoveredNode.summary}
