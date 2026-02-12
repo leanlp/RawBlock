@@ -59,7 +59,7 @@ export default function EducationPanel({ pageType, tx, nodeIds }: EducationPanel
   const detectedNodeIds = nodeIds && nodeIds.length > 0 ? nodeIds : detectNodeIds(pageType, tx);
   const nodes = detectedNodeIds
     .map((nodeId) => graphStore.getNode(nodeId))
-    .filter((node) => Boolean(node));
+    .filter((node): node is NonNullable<typeof node> => node !== undefined);
 
   if (nodes.length === 0) {
     return null;
