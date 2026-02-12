@@ -9,7 +9,6 @@ import {
     useEdgesState,
     addEdge,
     Background,
-    Controls,
     MiniMap,
     Connection,
     Handle,
@@ -279,6 +278,19 @@ export default function ForensicsPage() {
     // --- Context Menu State ---
     const [menu, setMenu] = useState<{ id: string, top: number, left: number, bottom?: number, right?: number } | null>(null);
     const ref = useMemo(() => ({ current: null as HTMLDivElement | null }), []);
+    const [flowInstance, setFlowInstance] = useState<any>(null);
+
+    const handleZoomIn = useCallback(() => {
+        flowInstance?.zoomIn?.({ duration: 0 });
+    }, [flowInstance]);
+
+    const handleZoomOut = useCallback(() => {
+        flowInstance?.zoomOut?.({ duration: 0 });
+    }, [flowInstance]);
+
+    const handleFitView = useCallback(() => {
+        flowInstance?.fitView?.({ padding: 0.3, duration: 0 });
+    }, [flowInstance]);
 
     // --- Touch Long-Press State for Mobile Context Menu ---
     const touchStartRef = React.useRef<{ x: number; y: number; nodeId: string; timeout: NodeJS.Timeout | null }>({ x: 0, y: 0, nodeId: '', timeout: null });
@@ -1412,6 +1424,23 @@ export default function ForensicsPage() {
                 </div>
             </div>
 
+            {/* Mobile Case Buttons */}
+            <div className="md:hidden px-4 pb-3">
+                <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl p-2 flex items-center justify-center gap-2 overflow-x-auto no-scrollbar">
+                    {CASE_STUDIES.map(study => (
+                        <button
+                            key={study.id}
+                            onClick={() => loadCaseStudy(study.id)}
+                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg bg-slate-800/50 hover:bg-cyan-500/15 border border-slate-700/50 hover:border-cyan-500/40 text-slate-300 hover:text-cyan-300 transition-all flex-shrink-0"
+                            title={study.label}
+                            aria-label={study.label}
+                        >
+                            <span className="text-lg filter drop-shadow-lg">{study.label.split(' ')[0]}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
 
 
 
@@ -1493,13 +1522,14 @@ export default function ForensicsPage() {
 
                             <div className="hidden md:block w-px h-4 bg-slate-700 mx-0.5"></div>
 
-                            <button onClick={handleExportCSV} className="p-2 min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Export CSV"><FileText size={16} /></button>
-                            <button onClick={handleExportImage} className="p-2 min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-slate-800 rounded-full text-slate-400 hover:text-indigo-400 transition-colors" title="Export Image"><Camera size={16} /></button>
                             <button className="p-2 min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-slate-800 rounded-md text-slate-400 hover:text-cyan-400 transition-colors" title="Add Node"><Plus size={18} /></button>
-                            <button onClick={saveEvidence} className="p-2 min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Save Evidence"><Save size={16} /></button>
+                            <button onClick={saveEvidence} className="hidden md:inline-flex p-2 min-h-11 min-w-11 items-center justify-center hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Save Evidence"><Save size={16} /></button>
+                            <button onClick={handleExportCSV} className="hidden md:inline-flex p-2 min-h-11 min-w-11 items-center justify-center hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Export CSV"><FileText size={16} /></button>
+                            <button onClick={handleExportImage} className="hidden md:inline-flex p-2 min-h-11 min-w-11 items-center justify-center hover:bg-slate-800 rounded-full text-slate-400 hover:text-indigo-400 transition-colors" title="Export Image"><Camera size={16} /></button>
                         </div>
                     </div>
                     <ReactFlow
+                        onInit={setFlowInstance}
                         nodes={nodes}
                         edges={edges}
                         onNodesChange={onNodesChange}
@@ -1517,12 +1547,34 @@ export default function ForensicsPage() {
                         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#1e293b" />
                         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
 
-                        {/* Controls Bottom-Left */}
+                        {/* Custom Zoom Controls Bottom-Left */}
                         <div className="absolute bottom-4 left-4 z-50">
-                            <Controls
-                                showInteractive={false}
-                                className="!bg-slate-900 !border-slate-700 shadow-xl [&>button]:!bg-slate-900 [&>button]:!border-slate-700 [&>button]:!fill-slate-400 hover:[&>button]:!fill-white hover:[&>button]:!bg-slate-800"
-                            />
+                            <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
+                                <button
+                                    onClick={handleZoomIn}
+                                    className="w-11 h-11 inline-flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 border-b border-slate-700 transition-colors"
+                                    title="Zoom In"
+                                    aria-label="Zoom In"
+                                >
+                                    +
+                                </button>
+                                <button
+                                    onClick={handleZoomOut}
+                                    className="w-11 h-11 inline-flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 border-b border-slate-700 transition-colors"
+                                    title="Zoom Out"
+                                    aria-label="Zoom Out"
+                                >
+                                    −
+                                </button>
+                                <button
+                                    onClick={handleFitView}
+                                    className="w-11 h-11 inline-flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-xs font-bold"
+                                    title="Fit View"
+                                    aria-label="Fit View"
+                                >
+                                    FIT
+                                </button>
+                            </div>
                         </div>
 
                         {/* Mobile Node Actions Button (Visible when node is selected) */}
