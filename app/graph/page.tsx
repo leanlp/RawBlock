@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import {
   ReactFlow,
   Background,
-  Controls,
   MiniMap,
   Panel,
   useReactFlow,
@@ -137,6 +136,13 @@ function GraphZoomPanel({
   const canZoomOut = zoomLevel > MIN_GRAPH_ZOOM + 0.001;
   const canZoomIn = zoomLevel < MAX_GRAPH_ZOOM - 0.001;
 
+  const applyZoomValue = (raw: number) => {
+    const nextZoom = clampZoom(raw);
+    const current = getViewport();
+    onZoomLabelChange(nextZoom);
+    setViewport({ ...current, zoom: nextZoom }, { duration: ZOOM_TRANSITION_MS });
+  };
+
   const handleZoomIn = () => {
     if (!canZoomIn) return;
     const current = getViewport();
@@ -240,11 +246,11 @@ function GraphZoomPanel({
           max={MAX_GRAPH_ZOOM}
           step={0.01}
           value={zoomLevel}
+          onInput={(event) => {
+            applyZoomValue(Number((event.target as HTMLInputElement).value));
+          }}
           onChange={(event) => {
-            const nextZoom = clampZoom(Number(event.target.value));
-            const current = getViewport();
-            onZoomLabelChange(nextZoom);
-            setViewport({ ...current, zoom: nextZoom }, { duration: ZOOM_TRANSITION_MS });
+            applyZoomValue(Number(event.target.value));
           }}
           className="mt-2 w-full"
           aria-label="Graph zoom level"
@@ -844,7 +850,6 @@ export default function BitcoinMapPage() {
               }}
               maskColor={theme.minimapMask}
             />
-            <Controls />
             <Background gap={20} size={1} color="#1e293b" />
           </ReactFlow>
           {hoveredNode ? (
