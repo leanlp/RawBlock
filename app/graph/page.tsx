@@ -16,6 +16,7 @@ import {
   MiniMap,
   Panel,
   useReactFlow,
+  useNodesInitialized,
   type Edge as FlowEdge,
   type Node as FlowNode,
   type Viewport,
@@ -47,7 +48,8 @@ const TYPE_COLORS: Record<(typeof TYPE_ORDER)[number], string> = {
 };
 
 const MIN_GRAPH_ZOOM = 0.5;
-const MAX_GRAPH_ZOOM = 4;
+const MAX_GRAPH_ZOOM = 3;
+const ZOOM_TRANSITION_MS = 300;
 
 const DIFFICULTY_COLORS: Record<1 | 2 | 3 | 4, string> = {
   1: "#22c55e",
@@ -131,7 +133,55 @@ function GraphZoomPanel({
   onZoomLabelChange: (zoom: number) => void;
   theme: GraphThemePalette;
 }) {
-  const { zoomIn, zoomOut, fitView, getViewport, setViewport } = useReactFlow();
+  const { getViewport, setViewport, setCenter, getNodes } = useReactFlow();
+  const canZoomOut = zoomLevel > MIN_GRAPH_ZOOM + 0.001;
+  const canZoomIn = zoomLevel < MAX_GRAPH_ZOOM - 0.001;
+
+  const handleZoomIn = () => {
+    if (!canZoomIn) return;
+    const current = getViewport();
+    const nextZoom = clampZoom(current.zoom * 1.2);
+    onZoomLabelChange(nextZoom);
+    setViewport({ ...current, zoom: nextZoom }, { duration: ZOOM_TRANSITION_MS });
+  };
+
+  const handleZoomOut = () => {
+    if (!canZoomOut) return;
+    const current = getViewport();
+    const nextZoom = clampZoom(current.zoom / 1.2);
+    onZoomLabelChange(nextZoom);
+    setViewport({ ...current, zoom: nextZoom }, { duration: ZOOM_TRANSITION_MS });
+  };
+
+  const handleReset = () => {
+    const nodes = getNodes();
+    if (nodes.length === 0) {
+      onZoomLabelChange(1);
+      setViewport({ x: 0, y: 0, zoom: 1 }, { duration: ZOOM_TRANSITION_MS });
+      return;
+    }
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    nodes.forEach((node) => {
+      const width = node.measured?.width ?? 240;
+      const height = node.measured?.height ?? 72;
+      minX = Math.min(minX, node.position.x);
+      minY = Math.min(minY, node.position.y);
+      maxX = Math.max(maxX, node.position.x + width);
+      maxY = Math.max(maxY, node.position.y + height);
+    });
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const nextZoom = 1;
+
+    onZoomLabelChange(nextZoom);
+    setCenter(centerX, centerY, { zoom: nextZoom, duration: ZOOM_TRANSITION_MS });
+  };
 
   return (
     <Panel position="top-right">
@@ -145,8 +195,9 @@ function GraphZoomPanel({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => zoomOut({ duration: 120 })}
-            className="h-7 w-7 rounded border hover:border-cyan-500/60"
+            onClick={handleZoomOut}
+            disabled={!canZoomOut}
+            className="h-7 w-7 rounded border hover:border-cyan-500/60 disabled:cursor-not-allowed disabled:opacity-45"
             style={{
               borderColor: theme.sectionBorder,
               background: theme.sectionBg,
@@ -158,8 +209,9 @@ function GraphZoomPanel({
           </button>
           <button
             type="button"
-            onClick={() => zoomIn({ duration: 120 })}
-            className="h-7 w-7 rounded border hover:border-cyan-500/60"
+            onClick={handleZoomIn}
+            disabled={!canZoomIn}
+            className="h-7 w-7 rounded border hover:border-cyan-500/60 disabled:cursor-not-allowed disabled:opacity-45"
             style={{
               borderColor: theme.sectionBorder,
               background: theme.sectionBg,
@@ -171,7 +223,7 @@ function GraphZoomPanel({
           </button>
           <button
             type="button"
-            onClick={() => fitView({ duration: 180, padding: 0.2 })}
+            onClick={handleReset}
             className="flex-1 rounded border px-2 py-1 text-[11px] hover:border-cyan-500/60"
             style={{
               borderColor: theme.sectionBorder,
@@ -192,7 +244,7 @@ function GraphZoomPanel({
             const nextZoom = clampZoom(Number(event.target.value));
             const current = getViewport();
             onZoomLabelChange(nextZoom);
-            setViewport({ ...current, zoom: nextZoom }, { duration: 120 });
+            setViewport({ ...current, zoom: nextZoom }, { duration: ZOOM_TRANSITION_MS });
           }}
           className="mt-2 w-full"
           aria-label="Graph zoom level"
@@ -209,32 +261,70 @@ function GraphFitController({
   containerRef,
   fitVersion,
   suspendAutoFit,
+  allowAutoFit,
+  onAutoFitApplied,
 }: {
   containerRef: React.RefObject<HTMLDivElement | null>;
   fitVersion: string;
   suspendAutoFit: boolean;
+  allowAutoFit: boolean;
+  onAutoFitApplied?: () => void;
 }) {
-  const { fitView } = useReactFlow();
+  const { getNodes, setViewport } = useReactFlow();
+  const nodesInitialized = useNodesInitialized();
 
-  const fitToContent = useCallback(
-    (duration = 220) => {
-      requestAnimationFrame(() => {
-        fitView({
-          padding: 0.1,
-          duration,
-        });
-      });
-    },
-    [fitView],
-  );
+  const fitToContent = useCallback((duration = 220) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const nodes = getNodes();
+    if (nodes.length === 0) return;
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    nodes.forEach((node) => {
+      const width = node.measured?.width ?? 240;
+      const height = node.measured?.height ?? 72;
+      minX = Math.min(minX, node.position.x);
+      minY = Math.min(minY, node.position.y);
+      maxX = Math.max(maxX, node.position.x + width);
+      maxY = Math.max(maxY, node.position.y + height);
+    });
+
+    const boundsWidth = Math.max(maxX - minX, 1);
+    const boundsHeight = Math.max(maxY - minY, 1);
+    const viewportWidth = Math.max(container.clientWidth, 1);
+    const viewportHeight = Math.max(container.clientHeight, 1);
+
+    const computedZoom = clampZoom(
+      0.9 /
+        Math.max(
+          boundsWidth / viewportWidth,
+          boundsHeight / viewportHeight,
+        ),
+    );
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const tx = viewportWidth / 2 - computedZoom * centerX;
+    const ty = viewportHeight / 2 - computedZoom * centerY;
+
+    requestAnimationFrame(() => {
+      setViewport({ x: tx, y: ty, zoom: computedZoom }, { duration });
+      onAutoFitApplied?.();
+    });
+  }, [containerRef, getNodes, onAutoFitApplied, setViewport]);
 
   useEffect(() => {
-    if (suspendAutoFit) return;
+    if (suspendAutoFit || !allowAutoFit || !nodesInitialized) return;
     fitToContent(260);
-  }, [fitToContent, fitVersion, suspendAutoFit]);
+  }, [fitToContent, fitVersion, suspendAutoFit, allowAutoFit, nodesInitialized]);
 
   useEffect(() => {
-    if (suspendAutoFit) return;
+    if (suspendAutoFit || !allowAutoFit || !nodesInitialized) return;
     const container = containerRef.current;
     if (!container) return;
 
@@ -256,7 +346,7 @@ function GraphFitController({
         cancelAnimationFrame(rafId);
       }
     };
-  }, [containerRef, fitToContent, suspendAutoFit]);
+  }, [containerRef, fitToContent, suspendAutoFit, allowAutoFit, nodesInitialized]);
 
   return null;
 }
@@ -543,7 +633,6 @@ export default function BitcoinMapPage() {
       edges.length,
     ],
   );
-
   return (
     <main
       className="min-h-screen px-4 py-8 md:px-8"
@@ -692,6 +781,7 @@ export default function BitcoinMapPage() {
             maxZoom={MAX_GRAPH_ZOOM}
             zoomOnPinch
             zoomOnScroll
+            zoomOnScrollSpeed={0.3}
             panOnScroll={false}
             zoomOnDoubleClick={false}
             preventScrolling
@@ -738,6 +828,7 @@ export default function BitcoinMapPage() {
               containerRef={graphContainerRef}
               fitVersion={graphFitVersion}
               suspendAutoFit={isNodeDragging}
+              allowAutoFit
             />
             <GraphZoomPanel
               zoomLevel={zoomLevel}
