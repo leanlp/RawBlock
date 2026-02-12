@@ -2,15 +2,11 @@
 
 import { motion } from "framer-motion";
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from "react";
 import HeroMetrics from "./HeroMetrics";
 import Card from "./Card";
-import {
-    GUIDED_LESSONS,
-    GUIDED_LEARNING_UPDATED_EVENT,
-    LESSON_STATE_KEY,
-    parseGuidedLearningState,
-} from "../data/guided-learning";
+import { GUIDED_LESSONS } from "../data/guided-learning";
+import { useGuidedLearning } from "./providers/GuidedLearningProvider";
+import { CANONICAL_PATH_ID } from "@/lib/graph/pathEngine";
 
 // Feature categories for organized navigation
 const categories = {
@@ -292,69 +288,18 @@ function PrimaryActionCard({
 }
 
 export default function DashboardHome() {
-    const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
-    const [completedLessons, setCompletedLessons] = useState<number[]>([]);
-    const [resumedFromSession, setResumedFromSession] = useState(false);
-    const [isRestored, setIsRestored] = useState(false);
-
-    useEffect(() => {
-        const { currentLessonIndex: safeIndex, completedLessons: safeCompleted } =
-            parseGuidedLearningState(localStorage.getItem(LESSON_STATE_KEY));
-        setCurrentLessonIndex(safeIndex);
-        setCompletedLessons(safeCompleted);
-        setResumedFromSession(safeIndex > 0 || safeCompleted.length > 0);
-        setIsRestored(true);
-    }, []);
-
-    useEffect(() => {
-        if (!isRestored) {
-            return;
-        }
-
-        localStorage.setItem(
-            LESSON_STATE_KEY,
-            JSON.stringify({
-                currentLessonIndex,
-                completedLessons,
-            })
-        );
-        window.dispatchEvent(new Event(GUIDED_LEARNING_UPDATED_EVENT));
-    }, [currentLessonIndex, completedLessons, isRestored]);
-
-    const progressPercent = useMemo(
-        () => Math.round((completedLessons.length / GUIDED_LESSONS.length) * 100),
-        [completedLessons.length]
-    );
-
-    const currentLesson = GUIDED_LESSONS[currentLessonIndex];
-    const maxUnlockedLesson = Math.min(completedLessons.length, GUIDED_LESSONS.length - 1);
-
-    const markLessonComplete = (index: number) => {
-        setCompletedLessons((prev) => {
-            if (prev.includes(index)) {
-                return prev;
-            }
-            return [...prev, index].sort((a, b) => a - b);
-        });
-    };
-
-    const goToLesson = (index: number) => {
-        if (index > maxUnlockedLesson) {
-            return;
-        }
-        setCurrentLessonIndex(index);
-    };
-
-    const goToNext = () => {
-        markLessonComplete(currentLessonIndex);
-        if (currentLessonIndex < GUIDED_LESSONS.length - 1) {
-            setCurrentLessonIndex(currentLessonIndex + 1);
-        }
-    };
-
-    const goToPrevious = () => {
-        setCurrentLessonIndex((prev) => Math.max(prev - 1, 0));
-    };
+    const {
+        currentLessonIndex,
+        completedLessons,
+        resumedFromSession,
+        progressPercent,
+        currentLesson,
+        maxUnlockedLesson,
+        goToLesson,
+        markLessonComplete,
+        goToNext,
+        goToPrevious,
+    } = useGuidedLearning();
 
     return (
         <div className="flex flex-col items-center justify-start py-8 relative z-10 max-w-7xl w-full mx-auto px-3 sm:px-4">
@@ -416,9 +361,17 @@ export default function DashboardHome() {
                                 Follow a step-by-step journey to deeply understand Bitcoin.
                             </p>
                         </div>
-                        <div className="text-right">
-                            <p className="text-xs uppercase tracking-wide text-slate-400">Progress</p>
-                            <p className="text-lg font-semibold text-cyan-400">{progressPercent}%</p>
+                        <div className="text-right flex flex-col items-end gap-2">
+                            <div>
+                                <p className="text-xs uppercase tracking-wide text-slate-400">Progress</p>
+                                <p className="text-lg font-semibold text-cyan-400">{progressPercent}%</p>
+                            </div>
+                            <Link
+                                href={`/paths/${CANONICAL_PATH_ID}`}
+                                className="inline-flex rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200 hover:bg-cyan-500/20 transition-colors"
+                            >
+                                Open Canonical Path
+                            </Link>
                         </div>
                     </div>
                     <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">

@@ -11,6 +11,7 @@ import {
     type BlockData,
     type ValidationStep
 } from "../../../utils/consensus-rules";
+import { BITCOIN_BLOCK_TIME_SECONDS } from "../../../lib/constants/bitcoinProtocol";
 
 // Demo block data for when API is unavailable
 const DEMO_BLOCK: BlockData = {
@@ -18,7 +19,7 @@ const DEMO_BLOCK: BlockData = {
         version: 536870912,
         previousblockhash: "0000000000000000000234567890abcdef1234567890abcdef1234567890abcd",
         merkleroot: "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-        time: Math.floor(Date.now() / 1000) - 600,
+        time: Math.floor(Date.now() / 1000) - BITCOIN_BLOCK_TIME_SECONDS,
         bits: "17034219",
         nonce: 2083236893,
         hash: "0000000000000000000156789abcdef0123456789abcdef0123456789abcdef0",

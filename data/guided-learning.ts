@@ -15,6 +15,10 @@ export type GuidedLearningState = {
 
 export const LESSON_STATE_KEY = "rawblock-guided-learning-v1";
 export const GUIDED_LEARNING_UPDATED_EVENT = "rawblock-guided-learning-updated";
+export const DEFAULT_GUIDED_LEARNING_STATE: GuidedLearningState = {
+    currentLessonIndex: 0,
+    completedLessons: [],
+};
 
 export const GUIDED_LESSONS: GuidedLesson[] = [
     {
@@ -87,7 +91,7 @@ export const GUIDED_LESSONS: GuidedLesson[] = [
 
 export function parseGuidedLearningState(raw: string | null): GuidedLearningState {
     if (!raw) {
-        return { currentLessonIndex: 0, completedLessons: [] };
+        return DEFAULT_GUIDED_LEARNING_STATE;
     }
 
     try {
@@ -108,6 +112,35 @@ export function parseGuidedLearningState(raw: string | null): GuidedLearningStat
 
         return { currentLessonIndex, completedLessons };
     } catch {
-        return { currentLessonIndex: 0, completedLessons: [] };
+        return DEFAULT_GUIDED_LEARNING_STATE;
     }
+}
+
+const NODE_TO_LESSON_ID: Record<string, string> = {
+    "what-is-bitcoin": "what-is-bitcoin",
+    "transactions-lifecycle": "transactions",
+    "utxo-model": "utxo-model",
+    "blocks-and-headers": "blocks",
+    "mining-and-subsidy": "mining",
+    "difficulty-adjustment-2016": "difficulty",
+    "consensus-rules-vs-policy": "consensus",
+    "pseudonymity-not-anonymity": "security-and-attacks",
+    "wallets-hold-keys-not-coins": "security-and-attacks",
+    "address-vs-public-key": "security-and-attacks",
+    "lightning-network-maturity": "security-and-attacks",
+    "segwit-and-taproot-upgrades": "security-and-attacks",
+};
+
+const LESSON_INDEX_BY_ID = new Map(
+    GUIDED_LESSONS.map((lesson, index) => [lesson.id, index]),
+);
+
+export function getLessonIndexForNodeId(nodeId: string): number | null {
+    const lessonId = NODE_TO_LESSON_ID[nodeId];
+    if (!lessonId) {
+        return null;
+    }
+
+    const index = LESSON_INDEX_BY_ID.get(lessonId);
+    return index === undefined ? null : index;
 }

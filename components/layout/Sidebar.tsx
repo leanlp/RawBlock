@@ -4,13 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Twitter, Linkedin } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import {
-    GUIDED_LESSONS,
-    GUIDED_LEARNING_UPDATED_EVENT,
-    LESSON_STATE_KEY,
-    parseGuidedLearningState,
-} from "../../data/guided-learning";
+import { useState } from "react";
+import { GUIDED_LESSONS } from "../../data/guided-learning";
+import { useGuidedLearning } from "../providers/GuidedLearningProvider";
 
 const NAV_ITEMS = [
     {
@@ -66,34 +62,11 @@ export default function Sidebar() {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [guidedState, setGuidedState] = useState(() => ({
-        currentLessonIndex: 0,
-        completedLessons: [] as number[],
-    }));
-
-    useEffect(() => {
-        const refreshGuidedState = () => {
-            setGuidedState(parseGuidedLearningState(localStorage.getItem(LESSON_STATE_KEY)));
-        };
-
-        refreshGuidedState();
-        window.addEventListener("storage", refreshGuidedState);
-        window.addEventListener(GUIDED_LEARNING_UPDATED_EVENT, refreshGuidedState);
-
-        return () => {
-            window.removeEventListener("storage", refreshGuidedState);
-            window.removeEventListener(GUIDED_LEARNING_UPDATED_EVENT, refreshGuidedState);
-        };
-    }, []);
-
-    const progressPercent = useMemo(
-        () => Math.round((guidedState.completedLessons.length / GUIDED_LESSONS.length) * 100),
-        [guidedState.completedLessons.length]
-    );
-    const lessonNumber = Math.min(guidedState.currentLessonIndex + 1, GUIDED_LESSONS.length);
+    const { progressPercent, currentLessonIndex } = useGuidedLearning();
+    const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
     const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
 
-    const SidebarContent = () => (
+    const sidebarContent = (
         <>
             {/* Logo */}
             <div className="h-16 flex items-center justify-center border-b border-slate-800/50">
@@ -263,7 +236,7 @@ export default function Sidebar() {
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
                         className="md:hidden fixed left-0 top-0 bottom-0 z-[80] w-64 bg-slate-950/98 backdrop-blur-xl border-r border-slate-900 flex flex-col"
                     >
-                        <SidebarContent />
+                        {sidebarContent}
                     </motion.aside>
                 )}
             </AnimatePresence>
@@ -280,7 +253,7 @@ export default function Sidebar() {
                     hidden md:flex flex-col
                 `}
             >
-                <SidebarContent />
+                {sidebarContent}
             </motion.aside>
         </>
     );

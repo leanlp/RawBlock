@@ -1,4 +1,10 @@
 import type { GraphNode } from "@/lib/graph/types";
+import { NODE_CLAIM_IDS } from "@/data/content/claims";
+import {
+  BITCOIN_BASE_LAYER_TPS_ESTIMATE,
+  BITCOIN_HALVING_INTERVAL_BLOCKS,
+  BITCOIN_MAX_SUPPLY_BTC,
+} from "@/lib/constants/bitcoinProtocol";
 
 export const graphNodes: GraphNode[] = [
   {
@@ -141,6 +147,102 @@ export const graphNodes: GraphNode[] = [
     title: "Taproot",
     summary: "Upgrade enabling Schnorr signatures and more private script paths.",
     difficulty: 3,
+  },
+  {
+    id: "what-is-bitcoin",
+    type: "property",
+    title: "What is Bitcoin",
+    summary: `Decentralized peer-to-peer monetary network with a fixed supply of ${BITCOIN_MAX_SUPPLY_BTC.toLocaleString()} BTC enforced by consensus rules.`,
+    difficulty: 1,
+    claimIds: NODE_CLAIM_IDS["what-is-bitcoin"],
+  },
+  {
+    id: "transactions-lifecycle",
+    type: "mechanism",
+    title: "Transactions Lifecycle",
+    summary: "Lifecycle from wallet construction and signing, to mempool relay, mining inclusion, and confirmation depth growth.",
+    difficulty: 1,
+    claimIds: NODE_CLAIM_IDS["transactions-lifecycle"],
+  },
+  {
+    id: "utxo-model",
+    type: "mechanism",
+    title: "UTXO Model",
+    summary: "State model where transactions consume prior outputs and create new outputs instead of updating account balances.",
+    difficulty: 1,
+    claimIds: NODE_CLAIM_IDS["utxo-model"],
+  },
+  {
+    id: "blocks-and-headers",
+    type: "primitive",
+    title: "Blocks and Headers",
+    summary: "Block headers commit to previous block hash, merkle root, and difficulty metadata, making history tamper-evident.",
+    difficulty: 1,
+    claimIds: NODE_CLAIM_IDS["blocks-and-headers"],
+  },
+  {
+    id: "mining-and-subsidy",
+    type: "mechanism",
+    title: "Mining and Subsidy",
+    summary: `Miners perform proof-of-work and receive subsidy plus fees, with subsidy halving every ${BITCOIN_HALVING_INTERVAL_BLOCKS.toLocaleString()} blocks.`,
+    difficulty: 2,
+    claimIds: NODE_CLAIM_IDS["mining-and-subsidy"],
+  },
+  {
+    id: "difficulty-adjustment-2016",
+    type: "rule",
+    title: "Difficulty Adjustment (2016)",
+    summary: "Difficulty retargets every 2016 blocks to keep block production near a 10-minute average despite hashrate shocks.",
+    difficulty: 2,
+    claimIds: NODE_CLAIM_IDS["difficulty-adjustment-2016"],
+  },
+  {
+    id: "consensus-rules-vs-policy",
+    type: "rule",
+    title: "Consensus Rules vs Policy",
+    summary: "Consensus invalidates blocks/transactions network-wide; policy governs local relay and mempool behavior.",
+    difficulty: 2,
+    claimIds: NODE_CLAIM_IDS["consensus-rules-vs-policy"],
+  },
+  {
+    id: "pseudonymity-not-anonymity",
+    type: "property",
+    title: "Pseudonymity, Not Anonymity",
+    summary: "Bitcoin addresses are not real names, but public transaction graphs enable tracing, clustering, and attribution.",
+    difficulty: 1,
+    claimIds: NODE_CLAIM_IDS["pseudonymity-not-anonymity"],
+  },
+  {
+    id: "wallets-hold-keys-not-coins",
+    type: "mechanism",
+    title: "Wallets Hold Keys, Not Coins",
+    summary: "Wallets store private keys and signing material that control UTXOs recorded on-chain; coins are never stored inside the wallet app.",
+    difficulty: 1,
+    claimIds: NODE_CLAIM_IDS["wallets-hold-keys-not-coins"],
+  },
+  {
+    id: "address-vs-public-key",
+    type: "primitive",
+    title: "Address vs Public Key",
+    summary: "Addresses are encoded script destinations; they are not identical to raw public keys, especially for SegWit and Taproot outputs.",
+    difficulty: 2,
+    claimIds: NODE_CLAIM_IDS["address-vs-public-key"],
+  },
+  {
+    id: "lightning-network-maturity",
+    type: "mechanism",
+    title: "Lightning Network Maturity",
+    summary: `Production-ready Layer 2 for fast, low-fee payments. Best for small/medium flow while base layer (~${BITCOIN_BASE_LAYER_TPS_ESTIMATE} TPS) remains final settlement.`,
+    difficulty: 2,
+    claimIds: NODE_CLAIM_IDS["lightning-network-maturity"],
+  },
+  {
+    id: "segwit-and-taproot-upgrades",
+    type: "upgrade",
+    title: "SegWit and Taproot Upgrades",
+    summary: "Major soft-fork upgrades improving malleability resistance, efficiency, and script/signature capabilities without changing Bitcoin's monetary policy.",
+    difficulty: 2,
+    claimIds: NODE_CLAIM_IDS["segwit-and-taproot-upgrades"],
   },
   {
     id: "double-spend",
@@ -322,7 +424,7 @@ export const graphNodes: GraphNode[] = [
     id: "halving",
     type: "rule",
     title: "Halving",
-    summary: "Periodic reduction of block subsidy every 210,000 blocks.",
+    summary: `Periodic reduction of block subsidy every ${BITCOIN_HALVING_INTERVAL_BLOCKS.toLocaleString()} blocks.`,
     difficulty: 1,
   },
   {

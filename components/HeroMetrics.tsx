@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Card, { MetricValue, PanelHeader } from "./Card";
+import { BITCOIN_BLOCK_TIME_MINUTES } from "../lib/constants/bitcoinProtocol";
 
 interface NetworkStats {
     blockHeight: number;
@@ -45,7 +46,7 @@ export default function HeroMetrics() {
 
     // Calculate days from blocksRemaining (avg 10 min per block)
     const blocksToDays = (blocks: number) => {
-        const minutes = blocks * 10;
+        const minutes = blocks * BITCOIN_BLOCK_TIME_MINUTES;
         return Math.floor(minutes / 60 / 24);
     };
 

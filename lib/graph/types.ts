@@ -14,6 +14,7 @@ export interface GraphNode {
   title: string;
   summary: string;
   difficulty: 1 | 2 | 3 | 4;
+  claimIds?: string[];
   explorerLinks?: string[];
   securityNotes?: string[];
   securityCaseStudies?: {

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Header from "../../../components/Header";
 import { motion, AnimatePresence } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { BITCOIN_BLOCK_TIME_MINUTES, BITCOIN_BLOCK_TIME_SECONDS } from "../../../lib/constants/bitcoinProtocol";
 
 interface Block {
     height: number;
@@ -31,9 +32,9 @@ export default function MiningSimPage() {
         if (isPaused) return;
 
         const interval = setInterval(() => {
-            // Expected time for 1 block at baseline = 600s
-            // Actual time = 600 * (Difficulty / Hashrate)
-            const expectedInterval = 600 * (difficulty / hashrate);
+            // Expected time for 1 block at baseline = BITCOIN_BLOCK_TIME_SECONDS
+            // Actual time = blockTime * (Difficulty / Hashrate)
+            const expectedInterval = BITCOIN_BLOCK_TIME_SECONDS * (difficulty / hashrate);
 
             // Random variance (Exponential distribution for mining)
             // -ln(U) * expectedInterval
@@ -65,7 +66,7 @@ export default function MiningSimPage() {
         const tickRate = 100; // ms
         const timer = setInterval(() => {
             const timePassed = (tickRate / 1000) * simSpeed;
-            const expectedMeanTime = 600 * (difficulty / hashrate);
+            const expectedMeanTime = BITCOIN_BLOCK_TIME_SECONDS * (difficulty / hashrate);
 
             // Poisson process probability
             const probability = 1 - Math.exp(-timePassed / expectedMeanTime);
@@ -90,7 +91,7 @@ export default function MiningSimPage() {
                     const next = prev + 1;
                     if (next >= 20) { // Mini-epoch of 20 blocks for demo (instead of 2016)
                         // RE-TARGET
-                        // Ideal time for 20 blocks = 20 * 600 = 12,000s
+                        // Ideal time for 20 blocks = 20 * blockTime
                         // Actual time... we need to track sum of intervals.
                         // For this demo, simply set Difficulty = Hashrate to stabilize.
                         // Or calculate adjustment factor.
@@ -109,10 +110,10 @@ export default function MiningSimPage() {
 
 
     // Stats
-    const currentBlockTime = blocks.length > 0 ? blocks[blocks.length - 1].interval : 600;
+    const currentBlockTime = blocks.length > 0 ? blocks[blocks.length - 1].interval : BITCOIN_BLOCK_TIME_SECONDS;
     const avgBlockTime = blocks.length > 0
         ? blocks.reduce((acc, b) => acc + b.interval, 0) / blocks.length
-        : 600;
+        : BITCOIN_BLOCK_TIME_SECONDS;
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
@@ -124,7 +125,7 @@ export default function MiningSimPage() {
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500">
                             Mining Simulator ⛏️
                         </h1>
-                        <p className="mt-2 text-slate-400 text-sm">Target: 10 mins (600s). Epoch: 20 blocks (Demo Mode).</p>
+                        <p className="mt-2 text-slate-400 text-sm">Target: {BITCOIN_BLOCK_TIME_MINUTES} mins ({BITCOIN_BLOCK_TIME_SECONDS}s). Epoch: 20 blocks (Demo Mode).</p>
                     </div>
                     <div className="flex gap-4">
                         <button onClick={() => setHashrate(50)} className="px-3 py-2.5 min-h-11 bg-red-500/20 text-red-400 border border-red-500/50 rounded hover:bg-red-500/30 text-xs">China Ban (-50%)</button>
@@ -160,10 +161,10 @@ export default function MiningSimPage() {
 
                     <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl">
                         <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-4">Avg Block Time</h3>
-                        <div className={`text-4xl font-black mb-2 ${Math.abs(avgBlockTime - 600) < 60 ? 'text-emerald-500' : 'text-red-500'}`}>
+                        <div className={`text-4xl font-black mb-2 ${Math.abs(avgBlockTime - BITCOIN_BLOCK_TIME_SECONDS) < 60 ? 'text-emerald-500' : 'text-red-500'}`}>
                             {(avgBlockTime / 60).toFixed(1)}m
                         </div>
-                        <p className="text-xs text-slate-500">Target: 10.0m</p>
+                        <p className="text-xs text-slate-500">Target: {BITCOIN_BLOCK_TIME_MINUTES.toFixed(1)}m</p>
                     </div>
                 </div>
 
@@ -177,7 +178,7 @@ export default function MiningSimPage() {
                                 contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}
                                 labelFormatter={(label) => `Block ${label}`}
                             />
-                            <ReferenceLine y={600} stroke="#10b981" strokeDasharray="3 3" label="Target (10m)" />
+                            <ReferenceLine y={BITCOIN_BLOCK_TIME_SECONDS} stroke="#10b981" strokeDasharray="3 3" label={`Target (${BITCOIN_BLOCK_TIME_MINUTES}m)`} />
                             <Line type="monotone" dataKey="interval" stroke="#f59e0b" strokeWidth={2} dot={false} isAnimationActive={false} />
                         </LineChart>
                     </ResponsiveContainer>
