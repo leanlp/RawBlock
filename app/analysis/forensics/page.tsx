@@ -1451,7 +1451,7 @@ export default function ForensicsPage() {
                 <div className="flex-1 h-full relative bg-slate-950">
 
                     {/* Command Center (Relocated to Top Right) */}
-                    <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-3 w-[calc(100%-2rem)] md:w-auto pointer-events-none">
+                    <div className="absolute top-4 right-4 z-30 md:z-50 flex flex-col items-end gap-3 w-[calc(100%-2rem)] md:w-auto pointer-events-none">
 
                         {/* 1. Search Bar */}
                         <div className="flex gap-2 w-full md:w-full md:max-w-md pointer-events-auto shadow-2xl shadow-cyan-900/20">
@@ -1473,7 +1473,7 @@ export default function ForensicsPage() {
                         </div>
 
                         {/* 2. Toolbar (Controls) */}
-                        <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl md:rounded-full p-2 md:p-1.5 flex flex-wrap md:flex-nowrap justify-center gap-2 md:gap-1 shadow-xl pointer-events-auto items-center max-w-full overflow-x-auto no-scrollbar">
+                        <div className="hidden md:flex bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl md:rounded-full p-2 md:p-1.5 flex-wrap md:flex-nowrap justify-center gap-2 md:gap-1 shadow-xl pointer-events-auto items-center max-w-full overflow-x-auto no-scrollbar">
                             <div className="flex bg-slate-800/50 rounded-full p-1 mr-2 gap-1">
                                 <button
                                     onClick={() => handleAutoLayout('horizontal')}
@@ -1502,7 +1502,7 @@ export default function ForensicsPage() {
 
                             <button
                                 onClick={toggleHeatmap}
-                                className={`p-2 rounded-full transition-all ${heatmapMode ? 'bg-red-500/20 text-red-500 ring-1 ring-red-500/50' : 'text-slate-400 hover:bg-slate-800 hover:text-red-400'}`}
+                                className={`min-h-11 min-w-11 inline-flex items-center justify-center p-2 rounded-full transition-all ${heatmapMode ? 'bg-red-500/20 text-red-500 ring-1 ring-red-500/50' : 'text-slate-400 hover:bg-slate-800 hover:text-red-400'}`}
                                 title="Risk Heatmap"
                             >
                                 <ShieldAlert size={16} />
@@ -1514,7 +1514,7 @@ export default function ForensicsPage() {
                                     // setEdges(layout.edges);
                                     setTimeout(() => document.querySelector<HTMLElement>('.react-flow__controls-fitview')?.click(), 200);
                                 }}
-                                className={`p-2 rounded-full transition-all text-slate-400 hover:bg-slate-800 hover:text-blue-400`}
+                                className="min-h-11 min-w-11 inline-flex items-center justify-center p-2 rounded-full transition-all text-slate-400 hover:bg-slate-800 hover:text-blue-400"
                                 title="Timeline View (Block Height)"
                             >
                                 <Clock size={16} />
@@ -1529,6 +1529,7 @@ export default function ForensicsPage() {
                         </div>
                     </div>
                     <ReactFlow
+                        proOptions={{ hideAttribution: true }}
                         onInit={setFlowInstance}
                         nodes={nodes}
                         edges={edges}
@@ -1548,7 +1549,7 @@ export default function ForensicsPage() {
                         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
 
                         {/* Custom Zoom Controls Bottom-Left */}
-                        <div className="absolute bottom-4 left-4 z-50">
+                        <div className="absolute bottom-4 left-4 z-30 md:z-50">
                             <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
                                 <button
                                     onClick={handleZoomIn}
@@ -1579,7 +1580,7 @@ export default function ForensicsPage() {
 
                         {/* Mobile Node Actions Button (Visible when node is selected) */}
                         {selectedNode && (
-                            <div className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-30 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                 <button
                                     onClick={() => {
                                         // Open context menu at bottom center
@@ -1605,7 +1606,7 @@ export default function ForensicsPage() {
                         {/* Context Menu */}
                         {menu && (
                             <div
-                                className="absolute z-50 bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden min-w-40"
+                                className="absolute z-30 md:z-50 bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden min-w-40"
                                 style={{ top: menu.top, left: menu.left, bottom: menu.bottom as any, right: menu.right as any }}
                             >
                                 <div className="p-2 text-xs text-slate-500 border-b border-slate-800 font-mono">
