@@ -131,7 +131,7 @@ export default function DIndexPage() {
                                 </ResponsiveContainer>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 mt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                                 <div className="bg-slate-800/30 p-3 rounded">
                                     <div className="text-[10px] text-slate-500 uppercase">Mining Resilience</div>
                                     <div className="text-xl font-bold text-slate-200">{result.metrics.miningResilience}/100</div>

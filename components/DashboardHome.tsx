@@ -226,8 +226,8 @@ function CategorySection({ category, categoryKey }: { category: typeof categorie
                 <p className="text-sm text-slate-400 mt-1">{category.subtitle}</p>
             </div>
             <div className={`grid gap-4 ${categoryKey === 'play' || categoryKey === 'tools'
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'
-                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
+                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
                 }`}>
                 {category.features.map((feature, i) => (
                     <FeatureCard key={feature.href} feature={feature} index={i} />
@@ -309,7 +309,7 @@ export default function DashboardHome() {
 
             {/* ===== PRIMARY ACTIONS ROW ===== */}
             <div className="w-full mb-12">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <PrimaryActionCard
                         href="/explorer/blocks"
                         icon="📦"

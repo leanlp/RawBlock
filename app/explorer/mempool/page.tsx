@@ -118,7 +118,7 @@ export default function MempoolPage() {
             {/* Header */}
             <Header />
 
-            <div className="flex justify-between items-center pb-6 border-b border-slate-800">
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 pb-6 border-b border-slate-800">
                 <div>
                     <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
                         Live Mempool Feed
@@ -187,7 +187,7 @@ export default function MempoolPage() {
             {/* Content */}
             <div className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-2xl">
                 {/* Table Header */}
-                <div className="grid grid-cols-12 gap-4 p-4 border-b border-slate-800 bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <div className="hidden md:grid grid-cols-12 gap-4 p-4 border-b border-slate-800 bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
                     <div className="col-span-6 md:col-span-7">Transaction ID</div>
                     <div className="col-span-3 md:col-span-2 text-right">Fee (BTC)</div>
                     <div className="col-span-3 md:col-span-3 text-right">Size (vB)</div>
@@ -201,15 +201,30 @@ export default function MempoolPage() {
                         </div>
                     ) : (
                         data.map((tx) => (
-                            <div key={tx.txid} className="grid grid-cols-12 gap-4 p-4 hover:bg-slate-800/30 transition-colors duration-150 group code-font text-sm items-center animate-in fade-in slide-in-from-top-1 duration-300">
-                                <div className="col-span-6 md:col-span-7 font-mono text-cyan-300 truncate opacity-90 group-hover:opacity-100">
-                                    {tx.txid}
+                            <div key={tx.txid}>
+                                <div className="md:hidden p-4 hover:bg-slate-800/30 transition-colors duration-150 group code-font text-sm animate-in fade-in slide-in-from-top-1 duration-300">
+                                    <div className="font-mono text-cyan-300 truncate opacity-90 group-hover:opacity-100 mb-2">
+                                        {tx.txid}
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs font-mono">
+                                        <span className="text-slate-500">Fee (BTC)</span>
+                                        <span className="text-slate-300">{tx.fee.toFixed(8)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs font-mono mt-1">
+                                        <span className="text-slate-500">Size (vB)</span>
+                                        <span className="text-slate-400">{tx.size.toLocaleString()}</span>
+                                    </div>
                                 </div>
-                                <div className="col-span-3 md:col-span-2 text-right font-mono text-slate-300">
-                                    {tx.fee.toFixed(8)}
-                                </div>
-                                <div className="col-span-3 md:col-span-3 text-right font-mono text-slate-400">
-                                    {tx.size.toLocaleString()}
+                                <div className="hidden md:grid grid-cols-12 gap-4 p-4 hover:bg-slate-800/30 transition-colors duration-150 group code-font text-sm items-center animate-in fade-in slide-in-from-top-1 duration-300">
+                                    <div className="col-span-7 font-mono text-cyan-300 truncate opacity-90 group-hover:opacity-100">
+                                        {tx.txid}
+                                    </div>
+                                    <div className="col-span-2 text-right font-mono text-slate-300">
+                                        {tx.fee.toFixed(8)}
+                                    </div>
+                                    <div className="col-span-3 text-right font-mono text-slate-400">
+                                        {tx.size.toLocaleString()}
+                                    </div>
                                 </div>
                             </div>
                         ))
@@ -218,10 +233,17 @@ export default function MempoolPage() {
                     {loading && data.length === 0 && (
                         /* Skeleton Loader */
                         Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="grid grid-cols-12 gap-4 p-4 animate-pulse">
-                                <div className="col-span-7 h-4 bg-slate-800 rounded w-3/4"></div>
-                                <div className="col-span-2 h-4 bg-slate-800 rounded w-full"></div>
-                                <div className="col-span-3 h-4 bg-slate-800 rounded w-1/2 ml-auto"></div>
+                            <div key={i} className="animate-pulse">
+                                <div className="md:hidden p-4 space-y-2">
+                                    <div className="h-4 bg-slate-800 rounded w-4/5"></div>
+                                    <div className="h-3 bg-slate-800 rounded w-2/3"></div>
+                                    <div className="h-3 bg-slate-800 rounded w-1/2"></div>
+                                </div>
+                                <div className="hidden md:grid grid-cols-12 gap-4 p-4">
+                                    <div className="col-span-7 h-4 bg-slate-800 rounded w-3/4"></div>
+                                    <div className="col-span-2 h-4 bg-slate-800 rounded w-full"></div>
+                                    <div className="col-span-3 h-4 bg-slate-800 rounded w-1/2 ml-auto"></div>
+                                </div>
                             </div>
                         ))
                     )}

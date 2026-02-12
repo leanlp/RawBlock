@@ -141,7 +141,7 @@ export default function HeroMetrics() {
             </div>
 
             {/* Main Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr">
                 {/* Block Height */}
                 <Link href="/explorer/blocks">
                     <Card variant="metric" accent="cyan" onClick={() => { }}>

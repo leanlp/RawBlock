@@ -126,9 +126,9 @@ export default function HashingPage() {
                         <div className="text-right">
                             <div className="text-[10px] text-slate-500 uppercase tracking-widest">Target Difficulty</div>
                             <div className="flex items-center gap-2">
-                                <button onClick={() => setTargetZeros(Math.max(1, targetZeros - 1))} className="text-slate-500 hover:text-white">-</button>
+                                <button onClick={() => setTargetZeros(Math.max(1, targetZeros - 1))} className="text-slate-500 hover:text-white min-h-11 min-w-11 inline-flex items-center justify-center">-</button>
                                 <span className="font-bold text-xl text-rose-500">{targetZeros} Zeros</span>
-                                <button onClick={() => setTargetZeros(Math.min(64, targetZeros + 1))} className="text-slate-500 hover:text-white">+</button>
+                                <button onClick={() => setTargetZeros(Math.min(64, targetZeros + 1))} className="text-slate-500 hover:text-white min-h-11 min-w-11 inline-flex items-center justify-center">+</button>
                             </div>
                         </div>
                     </div>
@@ -138,7 +138,7 @@ export default function HashingPage() {
 
                     {/* INPUTS */}
                     <div className="space-y-6 bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-[10px] text-slate-500 uppercase mb-1">Version</label>
                                 <input type="number" value={version} onChange={e => setVersion(parseInt(e.target.value))} className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-sm font-mono text-blue-400" />
@@ -159,7 +159,7 @@ export default function HashingPage() {
                             <input type="text" value={merkleRoot} onChange={e => setMerkleRoot(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-xs font-mono text-slate-400" />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-[10px] text-slate-500 uppercase mb-1">Bits (Diff)</label>
                                 <input type="number" value={bits} onChange={e => setBits(parseInt(e.target.value))} className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-sm font-mono text-slate-400" />

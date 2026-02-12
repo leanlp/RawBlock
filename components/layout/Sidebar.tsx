@@ -96,8 +96,8 @@ export default function Sidebar() {
                                         key={item.path}
                                         href={item.path}
                                         onClick={() => setMobileOpen(false)}
-                                        className={`
-                                            group relative flex items-center gap-3 px-3 py-2.5 rounded-lg
+                                    className={`
+                                            group relative flex items-center gap-3 px-3 py-2.5 min-h-11 rounded-lg
                                             transition-all duration-200
                                             ${isActive
                                                 ? 'bg-cyan-500/10 text-cyan-400'
@@ -132,7 +132,7 @@ export default function Sidebar() {
                             href="https://x.com/rawblocknet"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-cyan-400 transition-colors"
+                            className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center min-h-11 min-w-11"
                         >
                             <Twitter size={16} />
                         </Link>
@@ -140,7 +140,7 @@ export default function Sidebar() {
                             href="https://linkedin.com/company/rawblock"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-cyan-400 transition-colors"
+                            className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center min-h-11 min-w-11"
                         >
                             <Linkedin size={16} />
                         </Link>
@@ -158,7 +158,7 @@ export default function Sidebar() {
             {/* Mobile Hamburger Button */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden fixed top-4 left-4 z-[60] w-10 h-10 bg-slate-900/90 backdrop-blur-sm border border-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:text-cyan-400 transition-colors"
+                className="md:hidden fixed top-4 left-4 z-[80] w-11 h-11 bg-slate-900/90 backdrop-blur-sm border border-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:text-cyan-400 transition-colors"
                 aria-label="Toggle menu"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +178,7 @@ export default function Sidebar() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setMobileOpen(false)}
-                        className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                        className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[70]"
                     />
                 )}
             </AnimatePresence>
@@ -191,7 +191,7 @@ export default function Sidebar() {
                         animate={{ x: 0 }}
                         exit={{ x: -300 }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="md:hidden fixed left-0 top-0 bottom-0 z-50 w-64 bg-slate-950/98 backdrop-blur-xl border-r border-slate-900 flex flex-col"
+                        className="md:hidden fixed left-0 top-0 bottom-0 z-[80] w-64 bg-slate-950/98 backdrop-blur-xl border-r border-slate-900 flex flex-col"
                     >
                         <SidebarContent />
                     </motion.aside>

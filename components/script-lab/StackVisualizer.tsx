@@ -12,7 +12,7 @@ interface StackVisualizerProps {
 
 export default function StackVisualizer({ stack, altStack }: StackVisualizerProps) {
     return (
-        <div className="grid grid-cols-2 gap-4 h-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
             {/* Main Stack */}
             <StackColumn items={stack} title="Main Stack" color="blue" />
 

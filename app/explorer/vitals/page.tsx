@@ -93,7 +93,7 @@ export default function VitalsPage() {
     const hasNode = !!data?.node;
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-sans">
+        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans">
             <div className="max-w-6xl mx-auto space-y-8">
                 <Header />
 
@@ -123,32 +123,32 @@ export default function VitalsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* HALVING COUNTDOWN HERO */}
                         {hasHalving ? (
-                            <div className="md:col-span-2 bg-slate-900/50 border border-slate-800 rounded-2xl p-10 relative overflow-hidden backdrop-blur-sm group">
+                            <div className="md:col-span-2 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-10 relative overflow-hidden backdrop-blur-sm group">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 blur-[100px] rounded-full" />
-                                <h2 className="text-slate-500 text-sm font-bold uppercase tracking-[0.2em] mb-8 text-center">Next Halving Event</h2>
+                                <h2 className="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-[0.2em] mb-6 md:mb-8 text-center">Next Halving Event</h2>
 
-                                <div className="flex justify-center items-start gap-4 md:gap-12 text-center">
-                                    <div>
-                                        <div className="text-5xl md:text-7xl font-black text-slate-100 tabular-nums">{countdown.days}</div>
+                                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] justify-center items-start gap-3 md:gap-8 text-center">
+                                    <div className="min-w-0">
+                                        <div className="text-[clamp(2.5rem,12vw,4.5rem)] font-black text-slate-100 tabular-nums leading-none">{countdown.days}</div>
                                         <div className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Days</div>
                                     </div>
-                                    <div className="text-5xl md:text-7xl font-thin text-slate-700 leading-none pt-1">:</div>
-                                    <div>
-                                        <div className="text-5xl md:text-7xl font-black text-slate-100 tabular-nums">{countdown.hours}</div>
+                                    <div className="hidden md:block text-5xl md:text-7xl font-thin text-slate-700 leading-none pt-1">:</div>
+                                    <div className="min-w-0">
+                                        <div className="text-[clamp(2.5rem,12vw,4.5rem)] font-black text-slate-100 tabular-nums leading-none">{countdown.hours}</div>
                                         <div className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Hours</div>
                                     </div>
-                                    <div className="text-5xl md:text-7xl font-thin text-slate-700 leading-none pt-1">:</div>
-                                    <div>
-                                        <div className="text-5xl md:text-7xl font-black text-slate-100 tabular-nums">{countdown.minutes}</div>
+                                    <div className="hidden md:block text-5xl md:text-7xl font-thin text-slate-700 leading-none pt-1">:</div>
+                                    <div className="min-w-0">
+                                        <div className="text-[clamp(2.5rem,12vw,4.5rem)] font-black text-slate-100 tabular-nums leading-none">{countdown.minutes}</div>
                                         <div className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Minutes</div>
                                     </div>
                                 </div>
 
                                 <div className="mt-8 text-center">
-                                    <div className="inline-block px-4 py-2 bg-slate-800 rounded-full text-xs font-mono text-purple-300">
-                                        Target Block: <span className="text-white font-bold">{data.halving!.nextHeight.toLocaleString()}</span>
-                                        <span className="mx-2 text-slate-600">|</span>
-                                        Remaining: <span className="text-white font-bold">{data.halving!.blocksRemaining.toLocaleString()}</span>
+                                    <div className="inline-flex flex-col md:flex-row items-center gap-1 md:gap-0 w-full md:w-auto max-w-full px-4 py-2 bg-slate-800 rounded-2xl md:rounded-full text-xs font-mono text-purple-300">
+                                        <span>Target Block: <span className="text-white font-bold">{data.halving!.nextHeight.toLocaleString()}</span></span>
+                                        <span className="hidden md:inline mx-2 text-slate-600">|</span>
+                                        <span>Remaining: <span className="text-white font-bold">{data.halving!.blocksRemaining.toLocaleString()}</span></span>
                                     </div>
                                 </div>
                             </div>
@@ -180,7 +180,7 @@ export default function VitalsPage() {
                         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm">
                             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-6">Local Node Health</h3>
                             {hasNode ? (
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="p-4 bg-slate-800/50 rounded-lg">
                                         <div className="text-xs text-slate-400 mb-1">Uptime</div>
                                         <div className="text-lg font-mono text-emerald-400">{formatUptime(data.node!.uptime)}</div>

@@ -82,7 +82,7 @@ export default function RichListPage() {
                             Top 20 Bitcoin Holders • Static Node Data
                         </p>
                     </div>
-                    <Link href="/" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors self-start md:self-auto">
+                    <Link href="/" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors self-start md:self-auto inline-flex items-center min-h-11">
                         ← Back to Dashboard
                     </Link>
                 </div>
@@ -116,7 +116,7 @@ export default function RichListPage() {
                 {/* Leaderboard */}
                 <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm shadow-2xl">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse min-w-[600px]">
+                        <table className="w-full text-left border-collapse min-w-full">
                             <thead>
                                 <tr className="border-b border-slate-800 bg-slate-900/80 text-xs font-bold text-slate-500 uppercase tracking-wider">
                                     <th className="p-2 md:p-4 w-20 text-center">Rank</th>

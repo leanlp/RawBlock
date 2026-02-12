@@ -160,7 +160,7 @@ export default function MempoolVisualizer() {
                         <button
                             key={m.id}
                             onClick={() => setMode(m.id)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${mode === m.id
+                            className={`flex items-center justify-center gap-2 px-3 py-2 min-h-11 min-w-11 rounded-md text-xs font-bold transition-all ${mode === m.id
                                 ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/50'
                                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                                 }`}
@@ -173,7 +173,7 @@ export default function MempoolVisualizer() {
             </div>
 
             {/* Stats Bar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 text-xs font-mono bg-slate-900/50 px-4 py-3 rounded-lg border border-slate-800">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 text-xs font-mono bg-slate-900/50 px-4 py-3 rounded-lg border border-slate-800">
                 <div className="flex items-center gap-2">
                     <span className="text-slate-500">Height:</span>
                     <span className="text-cyan-400 font-bold">{data.height.toLocaleString()}</span>

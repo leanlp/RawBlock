@@ -161,7 +161,7 @@ export default function BlockPage() {
 
                         {/* Block Details Card */}
                         <Card variant="panel" className="mb-8">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-2">
                                 <div>
                                     <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Mined By</div>
                                     <div className="text-slate-200 font-mono text-sm truncate" title={block.miner}>{block.miner}</div>

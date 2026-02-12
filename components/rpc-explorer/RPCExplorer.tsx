@@ -164,7 +164,7 @@ export default function RPCExplorer() {
                                                 }, 50);
                                             }
                                         }}
-                                        className="w-full text-left px-2 py-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-300 transition-colors group"
+                                        className="w-full text-left px-2 py-2 min-h-11 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-300 transition-colors group"
                                     >
                                         <div className="font-bold">{c.cmd}</div>
                                         <div className="text-[10px] text-slate-600 group-hover:text-slate-500">{c.desc}</div>
@@ -227,7 +227,7 @@ export default function RPCExplorer() {
                     />
                     <button
                         onClick={() => executeCommand(input)}
-                        className="bg-slate-800 hover:bg-slate-700 px-4 py-1 rounded text-xs text-slate-300 transition-colors"
+                        className="bg-slate-800 hover:bg-slate-700 px-4 py-2 min-h-11 rounded text-xs text-slate-300 transition-colors"
                     >
                         EXEC
                     </button>

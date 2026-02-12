@@ -47,7 +47,7 @@ export default function Card({
 
     const variantClasses = {
         default: '',
-        metric: 'text-center flex flex-col justify-center min-h-[110px] sm:min-h-[120px] p-3 sm:p-4 lg:p-5',
+        metric: 'text-center flex flex-col justify-center min-h-28 sm:min-h-32 p-3 sm:p-4 lg:p-5',
         panel: 'p-4',
     };
 
@@ -92,7 +92,7 @@ export function MetricValue({
     return (
         <>
             <div className="text-lg sm:text-xl lg:text-2xl mb-1">{icon}</div>
-            <div className={`text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 transition-colors truncate ${textColors[accent]}`}>
+            <div className={`text-[clamp(1.25rem,2.2vw,1.875rem)] font-black text-white mb-1 transition-colors truncate ${textColors[accent]}`}>
                 {value}
             </div>
             <div className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider">{label}</div>
