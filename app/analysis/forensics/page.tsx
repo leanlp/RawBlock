@@ -281,15 +281,21 @@ export default function ForensicsPage() {
     const [flowInstance, setFlowInstance] = useState<any>(null);
 
     const handleZoomIn = useCallback(() => {
-        flowInstance?.zoomIn?.({ duration: 0 });
+        if (!flowInstance) return;
+        const currentZoom = flowInstance.getZoom?.() ?? 1;
+        const nextZoom = Math.min(2, currentZoom * 1.2);
+        flowInstance.zoomTo?.(nextZoom, { duration: 150 });
     }, [flowInstance]);
 
     const handleZoomOut = useCallback(() => {
-        flowInstance?.zoomOut?.({ duration: 0 });
+        if (!flowInstance) return;
+        const currentZoom = flowInstance.getZoom?.() ?? 1;
+        const nextZoom = Math.max(0.2, currentZoom / 1.2);
+        flowInstance.zoomTo?.(nextZoom, { duration: 150 });
     }, [flowInstance]);
 
     const handleFitView = useCallback(() => {
-        flowInstance?.fitView?.({ padding: 0.3, duration: 0 });
+        flowInstance?.fitView?.({ padding: 0.3, duration: 150 });
     }, [flowInstance]);
 
     // --- Touch Long-Press State for Mobile Context Menu ---
