@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getValidationRules } from "@/lib/graph/policyConsensusEngine";
 import {
@@ -9,7 +9,7 @@ import {
   type ResearchQuery,
 } from "@/lib/research/query";
 
-export default function PolicyVsConsensusResearchPage() {
+function PolicyVsConsensusResearchContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -132,5 +132,19 @@ export default function PolicyVsConsensusResearchPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function PolicyVsConsensusResearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100 md:px-8">
+          <div className="mx-auto max-w-7xl text-slate-400">Loading policy research...</div>
+        </main>
+      }
+    >
+      <PolicyVsConsensusResearchContent />
+    </Suspense>
   );
 }

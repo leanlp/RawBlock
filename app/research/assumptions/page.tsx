@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getSecurityAssumptions } from "@/lib/graph/assumptionRegistry";
 import {
@@ -9,7 +9,7 @@ import {
   type ResearchQuery,
 } from "@/lib/research/query";
 
-export default function AssumptionsResearchPage() {
+function AssumptionsResearchContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -132,5 +132,19 @@ export default function AssumptionsResearchPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function AssumptionsResearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100 md:px-8">
+          <div className="mx-auto max-w-7xl text-slate-400">Loading research assumptions...</div>
+        </main>
+      }
+    >
+      <AssumptionsResearchContent />
+    </Suspense>
   );
 }

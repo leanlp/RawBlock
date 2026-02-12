@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getAttackModels } from "@/lib/graph/attackSimulation";
 import {
@@ -9,7 +9,7 @@ import {
   type ResearchQuery,
 } from "@/lib/research/query";
 
-export default function AttacksResearchPage() {
+function AttacksResearchContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -139,5 +139,19 @@ export default function AttacksResearchPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function AttacksResearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100 md:px-8">
+          <div className="mx-auto max-w-7xl text-slate-400">Loading research attacks...</div>
+        </main>
+      }
+    >
+      <AttacksResearchContent />
+    </Suspense>
   );
 }

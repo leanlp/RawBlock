@@ -29,15 +29,17 @@ export function parseResearchQuery(
   const layerRaw = searchParams.get("layer");
   const affectedVersionRaw = searchParams.get("affectedVersion");
 
-  const severity = severityRaw && validSeverities.has(severityRaw as ResearchQuery["severity"])
-    ? (severityRaw as ResearchQuery["severity"])
+  const severityCandidate = severityRaw as NonNullable<ResearchQuery["severity"]> | null;
+  const severity = severityCandidate && validSeverities.has(severityCandidate)
+    ? severityCandidate
     : undefined;
 
   const parsedYear = yearRaw ? Number.parseInt(yearRaw, 10) : undefined;
   const year = Number.isFinite(parsedYear) ? parsedYear : undefined;
 
-  const layer = layerRaw && validLayers.has(layerRaw as ResearchQuery["layer"])
-    ? (layerRaw as ResearchQuery["layer"])
+  const layerCandidate = layerRaw as NonNullable<ResearchQuery["layer"]> | null;
+  const layer = layerCandidate && validLayers.has(layerCandidate)
+    ? layerCandidate
     : undefined;
 
   const affectedVersion = affectedVersionRaw?.trim() || undefined;
