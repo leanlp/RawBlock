@@ -781,7 +781,6 @@ export default function BitcoinMapPage() {
             maxZoom={MAX_GRAPH_ZOOM}
             zoomOnPinch
             zoomOnScroll
-            zoomOnScrollSpeed={0.3}
             panOnScroll={false}
             zoomOnDoubleClick={false}
             preventScrolling
