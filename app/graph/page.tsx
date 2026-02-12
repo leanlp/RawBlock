@@ -1,14 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type WheelEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   ReactFlow,
   Background,
   Controls,
   MiniMap,
+  Panel,
+  useReactFlow,
   type Edge as FlowEdge,
   type Node as FlowNode,
+  type Viewport,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { graphStore } from "@/lib/graph/store";
@@ -36,11 +46,68 @@ const TYPE_COLORS: Record<(typeof TYPE_ORDER)[number], string> = {
   property: "#f59e0b",
 };
 
+const MIN_GRAPH_ZOOM = 0.5;
+const MAX_GRAPH_ZOOM = 4;
+
 const DIFFICULTY_COLORS: Record<1 | 2 | 3 | 4, string> = {
   1: "#22c55e",
   2: "#84cc16",
   3: "#f59e0b",
   4: "#ef4444",
+};
+
+type GraphThemePalette = {
+  pageBg: string;
+  sectionBg: string;
+  sectionBorder: string;
+  textPrimary: string;
+  textMuted: string;
+  textSubtle: string;
+  nodeBg: string;
+  nodeText: string;
+  nodeMeta: string;
+  nodeChipBg: string;
+  nodeChipBorder: string;
+  edgeDefault: string;
+  tooltipBg: string;
+  tooltipBorder: string;
+  minimapMask: string;
+};
+
+const DARK_THEME: GraphThemePalette = {
+  pageBg: "#020617",
+  sectionBg: "rgba(15, 23, 42, 0.5)",
+  sectionBorder: "#1e293b",
+  textPrimary: "#e2e8f0",
+  textMuted: "#94a3b8",
+  textSubtle: "#64748b",
+  nodeBg: "#020617",
+  nodeText: "#f8fafc",
+  nodeMeta: "#94a3b8",
+  nodeChipBg: "rgba(15, 23, 42, 0.8)",
+  nodeChipBorder: "rgba(51, 65, 85, 0.95)",
+  edgeDefault: "#475569",
+  tooltipBg: "rgba(2, 6, 23, 0.95)",
+  tooltipBorder: "rgba(51, 65, 85, 0.8)",
+  minimapMask: "rgba(2,6,23,0.65)",
+};
+
+const LIGHT_THEME: GraphThemePalette = {
+  pageBg: "#f8fafc",
+  sectionBg: "rgba(255, 255, 255, 0.95)",
+  sectionBorder: "#cbd5e1",
+  textPrimary: "#0f172a",
+  textMuted: "#334155",
+  textSubtle: "#475569",
+  nodeBg: "#ffffff",
+  nodeText: "#0f172a",
+  nodeMeta: "#334155",
+  nodeChipBg: "rgba(241, 245, 249, 0.95)",
+  nodeChipBorder: "rgba(148, 163, 184, 0.8)",
+  edgeDefault: "#64748b",
+  tooltipBg: "rgba(255, 255, 255, 0.98)",
+  tooltipBorder: "rgba(148, 163, 184, 0.75)",
+  minimapMask: "rgba(226,232,240,0.72)",
 };
 
 function lanePosition(type: string, row: number): { x: number; y: number } {
@@ -51,20 +118,168 @@ function lanePosition(type: string, row: number): { x: number; y: number } {
   };
 }
 
+function clampZoom(zoom: number): number {
+  return Math.min(Math.max(zoom, MIN_GRAPH_ZOOM), MAX_GRAPH_ZOOM);
+}
+
+function GraphZoomPanel({
+  zoomLevel,
+  onZoomLabelChange,
+  theme,
+}: {
+  zoomLevel: number;
+  onZoomLabelChange: (zoom: number) => void;
+  theme: GraphThemePalette;
+}) {
+  const { zoomIn, zoomOut, fitView, getViewport, setViewport } = useReactFlow();
+
+  return (
+    <Panel position="top-right">
+      <div
+        className="w-44 rounded-lg border p-2 shadow-xl"
+        style={{ borderColor: theme.sectionBorder, background: theme.sectionBg }}
+      >
+        <p className="mb-2 text-[10px] uppercase tracking-wide" style={{ color: theme.textMuted }}>
+          Zoom
+        </p>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => zoomOut({ duration: 120 })}
+            className="h-7 w-7 rounded border hover:border-cyan-500/60"
+            style={{
+              borderColor: theme.sectionBorder,
+              background: theme.sectionBg,
+              color: theme.textPrimary,
+            }}
+            aria-label="Zoom out"
+          >
+            -
+          </button>
+          <button
+            type="button"
+            onClick={() => zoomIn({ duration: 120 })}
+            className="h-7 w-7 rounded border hover:border-cyan-500/60"
+            style={{
+              borderColor: theme.sectionBorder,
+              background: theme.sectionBg,
+              color: theme.textPrimary,
+            }}
+            aria-label="Zoom in"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => fitView({ duration: 180, padding: 0.2 })}
+            className="flex-1 rounded border px-2 py-1 text-[11px] hover:border-cyan-500/60"
+            style={{
+              borderColor: theme.sectionBorder,
+              background: theme.sectionBg,
+              color: theme.textMuted,
+            }}
+          >
+            Reset
+          </button>
+        </div>
+        <input
+          type="range"
+          min={MIN_GRAPH_ZOOM}
+          max={MAX_GRAPH_ZOOM}
+          step={0.01}
+          value={zoomLevel}
+          onChange={(event) => {
+            const nextZoom = clampZoom(Number(event.target.value));
+            const current = getViewport();
+            onZoomLabelChange(nextZoom);
+            setViewport({ ...current, zoom: nextZoom }, { duration: 120 });
+          }}
+          className="mt-2 w-full"
+          aria-label="Graph zoom level"
+        />
+        <p className="mt-1 text-[10px]" style={{ color: theme.textMuted }}>
+          {Math.round(zoomLevel * 100)}%
+        </p>
+      </div>
+    </Panel>
+  );
+}
+
+function GraphFitController({
+  containerRef,
+  fitVersion,
+  suspendAutoFit,
+}: {
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  fitVersion: string;
+  suspendAutoFit: boolean;
+}) {
+  const { fitView } = useReactFlow();
+
+  const fitToContent = useCallback(
+    (duration = 220) => {
+      requestAnimationFrame(() => {
+        fitView({
+          padding: 0.1,
+          duration,
+        });
+      });
+    },
+    [fitView],
+  );
+
+  useEffect(() => {
+    if (suspendAutoFit) return;
+    fitToContent(260);
+  }, [fitToContent, fitVersion, suspendAutoFit]);
+
+  useEffect(() => {
+    if (suspendAutoFit) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    let rafId: number | null = null;
+    const observer = new ResizeObserver(() => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        fitToContent(160);
+      });
+    });
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, [containerRef, fitToContent, suspendAutoFit]);
+
+  return null;
+}
+
 export default function BitcoinMapPage() {
   const router = useRouter();
+  const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const [showFullGraph, setShowFullGraph] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [isNodeDragging, setIsNodeDragging] = useState(false);
   const [showOnlyVulnerabilities, setShowOnlyVulnerabilities] = useState(false);
   const [showOnlyAttackEdges, setShowOnlyAttackEdges] = useState(false);
   const [showOnlyAssumptions, setShowOnlyAssumptions] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
   const threatMode =
     showFullGraph &&
     (showOnlyVulnerabilities || showOnlyAttackEdges || showOnlyAssumptions);
   const canonicalPath = getCanonicalPath();
+  const theme = isDarkTheme ? DARK_THEME : LIGHT_THEME;
   const canonicalNodeSet = useMemo(
     () => new Set(canonicalPath.orderedNodes),
     [canonicalPath.orderedNodes],
@@ -79,6 +294,32 @@ export default function BitcoinMapPage() {
     return pairs;
   }, [canonicalPath.orderedNodes]);
   const hoveredNode = hoveredNodeId ? graphStore.getNode(hoveredNodeId) : null;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncTheme = () => {
+      setIsDarkTheme(media.matches);
+    };
+
+    syncTheme();
+    media.addEventListener("change", syncTheme);
+    return () => media.removeEventListener("change", syncTheme);
+  }, []);
+
+  const handleViewportChange = useCallback((_: unknown, viewport: Viewport) => {
+    setZoomLevel(viewport.zoom);
+  }, []);
+
+  const handleZoomLabelChange = useCallback((nextZoom: number) => {
+    setZoomLevel(clampZoom(nextZoom));
+  }, []);
+
+  const handleCanvasWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
 
   const { nodes, edges } = useMemo(() => {
     const attackEdgeTypes = new Set(["EXPLOITS", "MITIGATED_BY"]);
@@ -153,7 +394,8 @@ export default function BitcoinMapPage() {
         )
       : visibleEdges;
 
-    const flowNodes: FlowNode[] = activeNodes.map((node) => {
+    const shouldStagger = activeNodes.length <= 120;
+    const flowNodes: FlowNode[] = activeNodes.map((node, index) => {
       const row = rowByType.get(node.type) ?? 0;
       rowByType.set(node.type, row + 1);
       const position = lanePosition(node.type, row);
@@ -169,9 +411,15 @@ export default function BitcoinMapPage() {
           label: (
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <div className="font-semibold text-slate-100">{node.title}</div>
+                <div className="font-semibold" style={{ color: theme.nodeText }}>
+                  {node.title}
+                </div>
                 <div
-                  className="inline-flex items-center gap-1 rounded-full border border-slate-700/90 bg-slate-900/80 px-1.5 py-0.5"
+                  className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5"
+                  style={{
+                    borderColor: theme.nodeChipBorder,
+                    background: theme.nodeChipBg,
+                  }}
                   title={`Difficulty ${node.difficulty}/4`}
                 >
                   {[1, 2, 3, 4].map((level) => (
@@ -189,7 +437,7 @@ export default function BitcoinMapPage() {
                   ))}
                 </div>
               </div>
-              <div className="text-[11px] uppercase tracking-wide text-slate-400">
+              <div className="text-[11px] uppercase tracking-wide" style={{ color: theme.nodeMeta }}>
                 {node.type} · d{node.difficulty}
               </div>
             </div>
@@ -201,9 +449,9 @@ export default function BitcoinMapPage() {
             : isPathNode
               ? "2px solid #22d3ee"
               : `1px solid ${TYPE_COLORS[node.type] ?? "#64748b"}`,
-          background: "#020617",
+          background: theme.nodeBg,
           borderRadius: 10,
-          color: "#e2e8f0",
+          color: theme.nodeText,
           width: 240,
           padding: 10,
           boxShadow: isFocusedNode
@@ -213,6 +461,12 @@ export default function BitcoinMapPage() {
               : "0 6px 24px rgba(2, 6, 23, 0.45)",
           cursor: "pointer",
           opacity: muted ? 0.45 : 1,
+          transition: isNodeDragging
+            ? "none"
+            : "opacity 380ms ease-out, box-shadow 220ms ease-out, border-color 220ms ease-out",
+          animation: isNodeDragging
+            ? "none"
+            : `rawblockNodeFadeIn 380ms ease-out ${shouldStagger ? Math.min(index * 12, 180) : 0}ms both`,
         },
       };
     });
@@ -227,19 +481,22 @@ export default function BitcoinMapPage() {
         target: edge.to,
         label: edge.type,
         style: {
-          stroke: isPathEdge ? "#22d3ee" : "#475569",
+          stroke: isPathEdge ? "#22d3ee" : theme.edgeDefault,
           strokeWidth: isPathEdge ? 2.6 : 1.2,
           opacity: muted ? 0.22 : 0.9,
+          transition: "opacity 420ms ease-out, stroke 220ms ease-out",
+          animation: `rawblockEdgeFadeIn 420ms ease-out ${Math.min(i * 4, 140)}ms both`,
         },
         labelStyle: {
-          fill: isPathEdge ? "#67e8f9" : "#94a3b8",
+          fill: isPathEdge ? "#0891b2" : theme.textSubtle,
           fontSize: isPathEdge ? 11 : 10,
         },
         animated:
-          isPathEdge ||
-          edge.type === "STRENGTHENS" ||
-          edge.type === "WEAKENS" ||
-          edge.type === "EXPLOITS",
+          !isNodeDragging &&
+          (isPathEdge ||
+            edge.type === "STRENGTHENS" ||
+            edge.type === "WEAKENS" ||
+            edge.type === "EXPLOITS"),
       };
     });
 
@@ -254,17 +511,51 @@ export default function BitcoinMapPage() {
     showOnlyAttackEdges,
     showOnlyAssumptions,
     threatMode,
+    isNodeDragging,
+    theme.edgeDefault,
+    theme.nodeBg,
+    theme.nodeChipBg,
+    theme.nodeChipBorder,
+    theme.nodeMeta,
+    theme.nodeText,
+    theme.textSubtle,
   ]);
+  const graphFitVersion = useMemo(
+    () =>
+      [
+        showFullGraph,
+        focusMode,
+        focusedNodeId ?? "none",
+        showOnlyVulnerabilities,
+        showOnlyAttackEdges,
+        showOnlyAssumptions,
+        nodes.length,
+        edges.length,
+      ].join("|"),
+    [
+      showFullGraph,
+      focusMode,
+      focusedNodeId,
+      showOnlyVulnerabilities,
+      showOnlyAttackEdges,
+      showOnlyAssumptions,
+      nodes.length,
+      edges.length,
+    ],
+  );
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 px-4 py-8 md:px-8">
+    <main
+      className="min-h-screen px-4 py-8 md:px-8"
+      style={{ background: theme.pageBg, color: theme.textPrimary }}
+    >
       <div className="mx-auto max-w-[1600px] space-y-5">
         <header className="space-y-2">
           <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Bitcoin Map</p>
           <h1 className="text-3xl font-semibold md:text-4xl">
             {threatMode ? "Bitcoin Threat Map" : "Protocol Knowledge Graph"}
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm" style={{ color: theme.textMuted }}>
             {focusMode
               ? "Focus Mode is active. Click a node to isolate it with direct prerequisites and dependents."
               : "Click any node to open its Academy page. Graph is rendered directly from structured node and edge data."}
@@ -291,12 +582,18 @@ export default function BitcoinMapPage() {
               {type}
             </span>
           ))}
-          <span className="ml-2 rounded-full border border-slate-700 px-2 py-1 text-slate-300">
+          <span
+            className="ml-2 rounded-full border px-2 py-1"
+            style={{ borderColor: theme.sectionBorder, color: theme.textMuted }}
+          >
             Difficulty: 1 easy → 4 advanced
           </span>
         </div>
 
-        <section className="grid gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-4 text-sm md:grid-cols-3">
+        <section
+          className="grid gap-2 rounded-xl p-4 text-sm md:grid-cols-3"
+          style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
+        >
           <button
             type="button"
             onClick={() => {
@@ -382,11 +679,23 @@ export default function BitcoinMapPage() {
           </label>
         </section>
 
-        <div className="relative h-[78vh] rounded-xl border border-slate-800 bg-slate-900/40">
+        <div
+          ref={graphContainerRef}
+          className="relative h-[78vh] overflow-hidden rounded-xl"
+          style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
+          onWheel={handleCanvasWheel}
+        >
           <ReactFlow
             nodes={nodes}
             edges={edges}
-            fitView
+            minZoom={MIN_GRAPH_ZOOM}
+            maxZoom={MAX_GRAPH_ZOOM}
+            zoomOnPinch
+            zoomOnScroll
+            panOnScroll={false}
+            zoomOnDoubleClick={false}
+            preventScrolling
+            onMove={handleViewportChange}
             onNodeClick={(_, node) => {
               if (focusMode) {
                 setFocusedNodeId(node.id);
@@ -413,10 +722,28 @@ export default function BitcoinMapPage() {
             onNodeMouseLeave={() => {
               setHoveredNodeId(null);
             }}
+            onNodeDragStart={() => {
+              setIsNodeDragging(true);
+              setHoveredNodeId(null);
+            }}
+            onNodeDragStop={() => {
+              window.setTimeout(() => {
+                setIsNodeDragging(false);
+              }, 110);
+            }}
             nodesDraggable
-            panOnScroll
             attributionPosition="bottom-left"
           >
+            <GraphFitController
+              containerRef={graphContainerRef}
+              fitVersion={graphFitVersion}
+              suspendAutoFit={isNodeDragging}
+            />
+            <GraphZoomPanel
+              zoomLevel={zoomLevel}
+              onZoomLabelChange={handleZoomLabelChange}
+              theme={theme}
+            />
             <MiniMap
               nodeStrokeWidth={2}
               nodeColor={(node) => {
@@ -425,25 +752,50 @@ export default function BitcoinMapPage() {
                 if (!threatMode && canonicalNodeSet.has(raw.id)) return "#22d3ee";
                 return TYPE_COLORS[raw.type] ?? "#64748b";
               }}
-              maskColor="rgba(2,6,23,0.65)"
+              maskColor={theme.minimapMask}
             />
             <Controls />
             <Background gap={20} size={1} color="#1e293b" />
           </ReactFlow>
           {hoveredNode ? (
             <div
-              className="pointer-events-none fixed z-50 max-w-xs rounded-lg border border-slate-700/80 bg-slate-950/95 p-3 shadow-2xl"
+              className="pointer-events-none fixed z-50 max-w-xs rounded-lg border p-3 shadow-2xl"
               style={{
                 left: tooltipPosition.x + 14,
                 top: tooltipPosition.y + 14,
+                borderColor: theme.tooltipBorder,
+                background: theme.tooltipBg,
               }}
             >
-              <p className="text-sm font-semibold text-slate-100">{hoveredNode.title}</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-300">{hoveredNode.summary}</p>
+              <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>
+                {hoveredNode.title}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed" style={{ color: theme.textMuted }}>
+                {hoveredNode.summary}
+              </p>
             </div>
           ) : null}
         </div>
       </div>
+      <style jsx global>{`
+        @keyframes rawblockNodeFadeIn {
+          0% {
+            opacity: 0.05;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+
+        @keyframes rawblockEdgeFadeIn {
+          0% {
+            opacity: 0.01;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+      `}</style>
     </main>
   );
 }
