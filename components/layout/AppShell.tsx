@@ -1,5 +1,6 @@
 "use client";
 
+import HeaderNav from "./HeaderNav";
 import Sidebar from "./Sidebar";
 
 import Footer from "./Footer";
@@ -17,6 +18,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 opacity-80 pointer-events-none -z-10" />
                 <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay pointer-events-none -z-10"></div>
 
+                <HeaderNav />
 
                 <div className="flex-1 px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
                     <div className="mx-auto w-full max-w-screen-2xl min-w-0">
