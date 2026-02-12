@@ -9,6 +9,9 @@ export type BitcoinLiveMetrics = {
   feeHalfHour: number | null;
   feeHour: number | null;
   hashrateEh: number | null;
+  mempoolTxCount: number | null;
+  mempoolVsizeMb: number | null;
+  recentTxIds: string[];
   blocksUntilHalving: number | null;
   daysUntilHalving: number | null;
   lastUpdated: string;
@@ -121,6 +124,37 @@ async function fetchHashrateEh(): Promise<{ hashrateEh: number | null; source: "
   }
 }
 
+async function fetchMempoolSnapshot(): Promise<{
+  mempoolTxCount: number | null;
+  mempoolVsizeMb: number | null;
+  recentTxIds: string[];
+  source: "mempool" | "unavailable";
+}> {
+  try {
+    const [mempool, recent] = await Promise.all([
+      fetchJsonWithRevalidate<{ count: number; vsize: number }>(`${MEMPOOL_API}/mempool`),
+      fetchJsonWithRevalidate<Array<{ txid: string }>>(`${MEMPOOL_API}/mempool/recent`),
+    ]);
+
+    const mempoolTxCount = Number.isFinite(mempool.count) ? mempool.count : null;
+    const mempoolVsizeMb =
+      Number.isFinite(mempool.vsize) ? Number((mempool.vsize / 1_000_000).toFixed(0)) : null;
+    const recentTxIds = (recent ?? [])
+      .map((item) => item.txid)
+      .filter((txid): txid is string => typeof txid === "string" && txid.length > 12)
+      .slice(0, 5);
+
+    return { mempoolTxCount, mempoolVsizeMb, recentTxIds, source: "mempool" };
+  } catch {
+    return {
+      mempoolTxCount: null,
+      mempoolVsizeMb: null,
+      recentTxIds: [],
+      source: "unavailable",
+    };
+  }
+}
+
 function resolveSource(...sources: Array<BitcoinLiveMetrics["source"] | "blockstream" | "mempool" | "unavailable">): BitcoinLiveMetrics["source"] {
   const uniq = new Set(sources.filter((source) => source !== "unavailable"));
   if (uniq.size === 0) return "unavailable";
@@ -129,7 +163,8 @@ function resolveSource(...sources: Array<BitcoinLiveMetrics["source"] | "blockst
 }
 
 export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
-  const [heightData, feeData, hashrateData] = await Promise.all([
+  const [mempoolData, heightData, feeData, hashrateData] = await Promise.all([
+    fetchMempoolSnapshot(),
     fetchBlockHeight(),
     fetchFees(),
     fetchHashrateEh(),
@@ -151,9 +186,12 @@ export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
     feeHalfHour: feeData.feeHalfHour,
     feeHour: feeData.feeHour,
     hashrateEh: hashrateData.hashrateEh,
+    mempoolTxCount: mempoolData.mempoolTxCount,
+    mempoolVsizeMb: mempoolData.mempoolVsizeMb,
+    recentTxIds: mempoolData.recentTxIds,
     blocksUntilHalving,
     daysUntilHalving,
     lastUpdated: new Date().toISOString(),
-    source: resolveSource(heightData.source, feeData.source, hashrateData.source),
+    source: resolveSource(mempoolData.source, heightData.source, feeData.source, hashrateData.source),
   };
 }

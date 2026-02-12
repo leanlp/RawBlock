@@ -59,13 +59,13 @@ export default function HeroMetrics() {
           </Card>
         </Link>
 
-        <Link href="/explorer/fees">
+        <Link href="/explorer/mempool">
           <Card variant="metric" accent="blue" onClick={() => {}}>
             <MetricValue
-              icon="💸"
-              value={renderMetricValue(metrics?.feeFast ?? null, " sat/vB")}
-              label="Fast Fee"
-              sublabel={metrics?.feeHalfHour !== null && metrics?.feeHalfHour !== undefined ? `30 min: ${metrics.feeHalfHour} sat/vB` : ""}
+              icon="🌊"
+              value={metrics?.mempoolTxCount?.toLocaleString() ?? "Data temporarily unavailable"}
+              label="Pending TXs"
+              sublabel={metrics?.mempoolVsizeMb !== null && metrics?.mempoolVsizeMb !== undefined ? `${metrics.mempoolVsizeMb} MB` : ""}
               accent="blue"
             />
           </Card>
@@ -105,13 +105,16 @@ export default function HeroMetrics() {
           </Card>
         </Link>
 
-        <Link href="/explorer/vitals" className="block w-full h-full">
+        <Link href="/explorer/mempool" className="block w-full h-full">
           <Card variant="panel" className="h-full" onClick={() => {}}>
-            <PanelHeader>Network Snapshot</PanelHeader>
-            {metrics ? (
+            <PanelHeader>Live Mempool Stream</PanelHeader>
+            {metrics?.recentTxIds?.length ? (
               <div className="space-y-1 text-xs text-slate-300">
-                <p>Source: {metrics.source}</p>
-                <p>Last updated: {new Date(metrics.lastUpdated).toLocaleString()}</p>
+                {metrics.recentTxIds.map((txid) => (
+                  <p key={txid} className="font-mono text-cyan-400">
+                    TX: {txid.slice(0, 8)}...{txid.slice(-4)}
+                  </p>
+                ))}
               </div>
             ) : (
               <div className="text-xs text-slate-400">{error ?? "Data temporarily unavailable"}</div>
