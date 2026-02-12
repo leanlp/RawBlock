@@ -1,4 +1,4 @@
-import { toFeeBands } from '../lib/feeBands.ts';
+import { toFeeBands } from '../lib/feeBands';
 
 const mockBlocks = [
   {
