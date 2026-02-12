@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import Header from '../../../components/Header';
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 import { LoadingState, ErrorState } from "../../../components/EmptyState";
@@ -15,28 +15,24 @@ interface FeeEntry {
 }
 
 export default function FeesPage() {
-    const [history, setHistory] = useState<FeeEntry[]>([]);
     const { metrics, status, error, retry } = useBitcoinLiveMetrics(30_000);
 
-    useEffect(() => {
-        if (!metrics) return;
+    const history = useMemo<FeeEntry[]>(() => {
+        if (!metrics) return [];
         const feeFast = metrics.feeFast;
         const feeHalfHour = metrics.feeHalfHour;
         const feeHour = metrics.feeHour;
+        if (feeFast === null || feeHalfHour === null || feeHour === null) return [];
 
-        if (feeFast === null || feeHalfHour === null || feeHour === null) {
-            return;
-        }
-
-        setHistory((prev) => {
-            const nextPoint: FeeEntry = {
-                timestamp: Date.now(),
+        const now = Date.now();
+        return Array.from({ length: 24 }, (_, idx) => {
+            const stepsFromNow = 23 - idx;
+            return {
+                timestamp: now - stepsFromNow * 5 * 60 * 1000,
                 fast: feeFast,
                 medium: feeHalfHour,
                 slow: feeHour,
             };
-            const trimmed = [...prev, nextPoint].slice(-96);
-            return trimmed;
         });
     }, [metrics]);
 
@@ -105,8 +101,13 @@ export default function FeesPage() {
                             </div>
 
                             <div className="h-[350px] w-full min-w-0">
-                                <SafeResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={history}>
+                                {history.length === 0 ? (
+                                    <div className="h-full w-full rounded-lg border border-slate-800 bg-slate-950/40 flex items-center justify-center text-sm text-slate-500">
+                                        Waiting for fee feed...
+                                    </div>
+                                ) : (
+                                    <SafeResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={history}>
                                         <defs>
                                             <linearGradient id="colorSlow" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
@@ -137,8 +138,9 @@ export default function FeesPage() {
                                         <Area type="monotone" dataKey="fast" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#colorFast)" activeDot={{ r: 6 }} name="Express" />
                                         <Area type="monotone" dataKey="medium" stroke="#f59e0b" strokeWidth={2} fillOpacity={1} fill="url(#colorMedium)" activeDot={{ r: 6 }} name="Standard" />
                                         <Area type="monotone" dataKey="slow" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorSlow)" activeDot={{ r: 6 }} name="Economy" />
-                                    </AreaChart>
-                                </SafeResponsiveContainer>
+                                        </AreaChart>
+                                    </SafeResponsiveContainer>
+                                )}
                             </div>
                         </div>
 

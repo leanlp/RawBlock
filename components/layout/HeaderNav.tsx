@@ -23,21 +23,13 @@ function isResearchPath(pathname: string): boolean {
 
 export default function HeaderNav() {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [researchMenuOpen, setResearchMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur">
+    <header className="sticky top-0 z-40 hidden md:block border-b border-slate-800/60 bg-slate-950/90 backdrop-blur">
       <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-4 py-3 md:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="text-sm font-semibold text-slate-100 md:hidden"
-          aria-label="Go to home"
-        >
-          RawBlock
-        </Link>
-
-        <nav className="hidden items-center gap-2 md:flex">
+        <div />
+        <nav className="flex items-center gap-2">
           {topLevelItems.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -96,63 +88,8 @@ export default function HeaderNav() {
           </div>
         </nav>
 
-        <button
-          type="button"
-          onClick={() => setMobileOpen((open) => !open)}
-          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-slate-700 text-slate-200 md:hidden"
-          aria-expanded={mobileOpen}
-          aria-controls="global-mobile-nav"
-          aria-label="Toggle navigation"
-        >
-          {mobileOpen ? "×" : "☰"}
-        </button>
+        <div />
       </div>
-
-      {mobileOpen ? (
-        <nav
-          id="global-mobile-nav"
-          className="border-t border-slate-800/70 bg-slate-950 px-4 py-3 md:hidden"
-        >
-          <div className="space-y-1">
-            {topLevelItems.map((item) => {
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`block rounded px-3 py-2 text-sm ${
-                    active ? "bg-cyan-500/15 text-cyan-300" : "text-slate-300"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-            <Link
-              href="/research"
-              onClick={() => setMobileOpen(false)}
-              className={`block rounded px-3 py-2 text-sm ${
-                pathname === "/research" ? "bg-cyan-500/15 text-cyan-300" : "text-slate-300"
-              }`}
-            >
-              Research Overview
-            </Link>
-            {researchItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`block rounded px-3 py-2 text-sm ${
-                  pathname === item.href ? "bg-cyan-500/15 text-cyan-300" : "text-slate-300"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
-      ) : null}
     </header>
   );
 }
