@@ -352,7 +352,10 @@ export default function DashboardHome() {
             </div>
 
             {/* Guided Learning Mode */}
-            <section className="w-full mb-12 rounded-2xl border border-cyan-500/20 bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6">
+            <section
+                id="guided-learning-mode"
+                className="w-full mb-12 rounded-2xl border border-cyan-500/20 bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6"
+            >
                 <div className="flex flex-col gap-4 mb-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>

@@ -7,9 +7,9 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    Tooltip,
-    ResponsiveContainer
+    Tooltip
 } from 'recharts';
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface BalanceChartProps {
     utxos: Array<{
@@ -63,7 +63,7 @@ export default function BalanceChart({ utxos }: BalanceChartProps) {
                 Balance Evolution (HODL Wave)
             </h3>
             <div className="w-full h-[240px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <SafeResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
                         <defs>
                             <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
@@ -100,7 +100,7 @@ export default function BalanceChart({ utxos }: BalanceChartProps) {
                             fill="url(#colorBalance)"
                         />
                     </AreaChart>
-                </ResponsiveContainer>
+                </SafeResponsiveContainer>
             </div>
         </div>
     );

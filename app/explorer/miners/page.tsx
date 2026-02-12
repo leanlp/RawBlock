@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from 'next/navigation';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import Header from '../../../components/Header';
 import Card, { CardRow } from '../../../components/Card';
 import EmptyState, { LoadingState, ErrorState } from '../../../components/EmptyState';
 import PageHeader from '../../../components/PageHeader';
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface BlockInfo {
     height: number;
@@ -94,7 +95,7 @@ export default function MinersPage() {
                                     </h3>
                                 </div>
                                 <div className="h-[300px] w-full flex-1">
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <SafeResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
                                                 data={data.distribution}
@@ -116,7 +117,7 @@ export default function MinersPage() {
                                             />
                                             <Legend />
                                         </PieChart>
-                                    </ResponsiveContainer>
+                                    </SafeResponsiveContainer>
                                 </div>
                             </Card>
                         )}

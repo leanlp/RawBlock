@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import Header from "../../../components/Header";
 import { motion, AnimatePresence } from "framer-motion";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts';
 import { BITCOIN_BLOCK_TIME_MINUTES, BITCOIN_BLOCK_TIME_SECONDS } from "../../../lib/constants/bitcoinProtocol";
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface Block {
     height: number;
@@ -170,7 +171,7 @@ export default function MiningSimPage() {
 
                 {/* GRAPH */}
                 <div className="h-64 bg-slate-900/30 border border-slate-800 rounded-xl p-4">
-                    <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+                    <SafeResponsiveContainer width="100%" height="100%" minHeight={200}>
                         <LineChart data={blocks}>
                             <XAxis dataKey="height" hide />
                             <YAxis domain={[0, 'auto']} hide />
@@ -181,7 +182,7 @@ export default function MiningSimPage() {
                             <ReferenceLine y={BITCOIN_BLOCK_TIME_SECONDS} stroke="#10b981" strokeDasharray="3 3" label={`Target (${BITCOIN_BLOCK_TIME_MINUTES}m)`} />
                             <Line type="monotone" dataKey="interval" stroke="#f59e0b" strokeWidth={2} dot={false} isAnimationActive={false} />
                         </LineChart>
-                    </ResponsiveContainer>
+                    </SafeResponsiveContainer>
                 </div>
 
                 {/* STRATUM V2 DEMO */}

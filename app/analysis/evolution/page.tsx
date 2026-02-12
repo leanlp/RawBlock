@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Header from "../../../components/Header";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { motion } from "framer-motion";
 import io from "socket.io-client";
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface EvolutionData {
     distribution: {
@@ -72,7 +73,7 @@ export default function EvolutionPage() {
                             <h2 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">The Gene Pool (Script Types)</h2>
 
                             <div className="h-[300px] w-full flex items-center justify-center">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <SafeResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
                                             data={chartData}
@@ -92,7 +93,7 @@ export default function EvolutionPage() {
                                         />
                                         <Legend verticalAlign="bottom" height={36} />
                                     </PieChart>
-                                </ResponsiveContainer>
+                                </SafeResponsiveContainer>
                             </div>
 
                             <div className="mt-4 p-4 bg-slate-800/30 rounded-lg text-center">

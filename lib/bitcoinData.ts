@@ -89,18 +89,32 @@ async function fetchFees(): Promise<{
   }
 }
 
+type MempoolHashrateResponse =
+  | Array<{ timestamp: number; avgHashrate: number }>
+  | {
+      hashrates?: Array<{ timestamp: number; avgHashrate: number }>;
+      currentHashrate?: number;
+    };
+
 async function fetchHashrateEh(): Promise<{ hashrateEh: number | null; source: "mempool" | "unavailable" }> {
   try {
-    const series = await fetchJsonWithRevalidate<Array<{ timestamp: number; avgHashrate: number }>>(
+    const payload = await fetchJsonWithRevalidate<MempoolHashrateResponse>(
       `${MEMPOOL_API}/v1/mining/hashrate/3d`,
     );
 
-    if (!series.length) {
+    const series = Array.isArray(payload) ? payload : payload.hashrates ?? [];
+    const latestFromSeries = series.length ? series[series.length - 1]?.avgHashrate : null;
+    const currentHashrate =
+      !Array.isArray(payload) && typeof payload.currentHashrate === "number"
+        ? payload.currentHashrate
+        : null;
+
+    const hashrate = latestFromSeries ?? currentHashrate;
+    if (hashrate === null || !Number.isFinite(hashrate)) {
       return { hashrateEh: null, source: "unavailable" };
     }
 
-    const latest = series[series.length - 1];
-    const eh = latest.avgHashrate / 1e18;
+    const eh = hashrate / 1e18;
     return { hashrateEh: Number.isFinite(eh) ? Number(eh.toFixed(2)) : null, source: "mempool" };
   } catch {
     return { hashrateEh: null, source: "unavailable" };

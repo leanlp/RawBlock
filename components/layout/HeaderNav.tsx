@@ -29,7 +29,11 @@ export default function HeaderNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur">
       <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-4 py-3 md:px-6 lg:px-8">
-        <Link href="/" className="text-sm font-semibold text-slate-100">
+        <Link
+          href="/"
+          className="text-sm font-semibold text-slate-100 md:hidden"
+          aria-label="Go to home"
+        >
           RawBlock
         </Link>
 

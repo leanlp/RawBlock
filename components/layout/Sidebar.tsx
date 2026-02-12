@@ -117,7 +117,7 @@ export default function Sidebar() {
                         <div className="mt-2 flex items-center justify-between">
                             <span className="text-[11px] text-cyan-300">{progressPercent}% complete</span>
                             <Link
-                                href="/"
+                                href="/#guided-learning-mode"
                                 onClick={() => setMobileOpen(false)}
                                 className="text-[11px] text-slate-300 hover:text-cyan-300 transition-colors"
                             >

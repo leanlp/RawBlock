@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { Treemap, Tooltip } from 'recharts';
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface BlockTransaction {
     [key: string]: any;
@@ -201,7 +202,7 @@ export default function BlockVisualizer() {
             <div className="relative group">
                 <div className={`absolute -inset-0.5 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-1000 ${isXRay ? 'bg-gradient-to-r from-teal-500/20 to-orange-500/20' : 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20'}`}></div>
                 <div className="relative h-[320px] w-full bg-slate-950/50 backdrop-blur-md border border-cyan-500/10 rounded-xl overflow-hidden shadow-2xl">
-                    <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                    <SafeResponsiveContainer width="100%" height="100%" minHeight={300}>
                         <Treemap
                             data={vizData}
                             dataKey="value"
@@ -214,7 +215,7 @@ export default function BlockVisualizer() {
                         >
                             <Tooltip content={<CustomTooltip isXRay={isXRay} />} cursor={false} />
                         </Treemap>
-                    </ResponsiveContainer>
+                    </SafeResponsiveContainer>
 
                     {vizData.length === 0 && (
                         <div className="absolute inset-0 flex items-center justify-center text-slate-500 font-mono">

@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 import { LoadingState, ErrorState } from "../../../components/EmptyState";
+import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface FeeEntry {
     timestamp: number; // API returns 'timestamp', not 'time'
@@ -14,27 +16,18 @@ interface FeeEntry {
     slow: number;   // 144 blocks
 }
 
-interface CurrentFees {
-    fast: string | number;
-    medium: string | number;
-    slow: string | number;
-}
-
 export default function FeesPage() {
     const [history, setHistory] = useState<FeeEntry[]>([]);
-    const [current, setCurrent] = useState<CurrentFees | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { metrics } = useBitcoinLiveMetrics(30_000);
 
     const fetchData = async () => {
         setLoading(true);
         setError(null);
         try {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-            const [historyRes, currentRes] = await Promise.allSettled([
-                fetch(`${baseUrl}/api/fee-history`),
-                fetch(`${baseUrl}/api/network-stats`)
-            ]);
+            const [historyRes] = await Promise.allSettled([fetch(`${baseUrl}/api/fee-history`)]);
 
             if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
                 const data = await historyRes.value.json();
@@ -44,13 +37,6 @@ export default function FeesPage() {
                     timestamp: entry.timestamp || entry.time
                 }));
                 setHistory(normalized);
-            }
-
-            if (currentRes.status === 'fulfilled' && currentRes.value.ok) {
-                const data = await currentRes.value.json();
-                setCurrent(data.fees);
-            } else if (currentRes.status === 'rejected') {
-                throw new Error("Failed to fetch fee data");
             }
 
             setLoading(false);
@@ -63,16 +49,6 @@ export default function FeesPage() {
 
     useEffect(() => {
         fetchData();
-
-        const interval = setInterval(() => {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-            fetch(`${baseUrl}/api/network-stats`)
-                .then(res => res.json())
-                .then(data => setCurrent(data.fees))
-                .catch(() => { });
-        }, 10000);
-
-        return () => clearInterval(interval);
     }, []);
 
     // Format time for chart
@@ -81,7 +57,7 @@ export default function FeesPage() {
     };
 
     // Helper to format fee value safely
-    const formatFee = (val: string | number | undefined) => {
+    const formatFee = (val: number | null | undefined) => {
         if (val === undefined || val === null) return "---";
         return val;
     };
@@ -110,21 +86,21 @@ export default function FeesPage() {
                         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Economy (Low Priority)</h3>
-                            <div className="text-4xl font-black text-slate-200">{formatFee(current?.slow)} <span className="text-lg font-medium text-slate-500">sat/vB</span></div>
+                            <div className="text-4xl font-black text-slate-200">{formatFee(metrics?.feeHour)} <span className="text-lg font-medium text-slate-500">sat/vB</span></div>
                             <p className="text-xs text-slate-400 mt-2">~1 Hour Confirmation</p>
                         </div>
 
                         <div className="bg-slate-900/50 border border-amber-500/20 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Standard (Recommended)</h3>
-                            <div className="text-5xl font-black text-amber-400">{formatFee(current?.medium)} <span className="text-lg font-medium text-amber-500/70">sat/vB</span></div>
+                            <div className="text-5xl font-black text-amber-400">{formatFee(metrics?.feeHalfHour)} <span className="text-lg font-medium text-amber-500/70">sat/vB</span></div>
                             <p className="text-xs text-slate-400 mt-2">~30 Min Confirmation</p>
                         </div>
 
                         <div className="bg-slate-900/50 border border-red-500/20 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Express (Next Block)</h3>
-                            <div className="text-4xl font-black text-red-400">{formatFee(current?.fast)} <span className="text-lg font-medium text-red-500/70">sat/vB</span></div>
+                            <div className="text-4xl font-black text-red-400">{formatFee(metrics?.feeFast)} <span className="text-lg font-medium text-red-500/70">sat/vB</span></div>
                             <p className="text-xs text-slate-400 mt-2">~10 Min Confirmation</p>
                         </div>
 
@@ -140,7 +116,7 @@ export default function FeesPage() {
                             </div>
 
                             <div className="h-[350px] w-full min-w-0">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <SafeResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={history}>
                                         <defs>
                                             <linearGradient id="colorSlow" x1="0" y1="0" x2="0" y2="1">
@@ -173,7 +149,7 @@ export default function FeesPage() {
                                         <Area type="monotone" dataKey="medium" stroke="#f59e0b" strokeWidth={2} fillOpacity={1} fill="url(#colorMedium)" activeDot={{ r: 6 }} name="Standard" />
                                         <Area type="monotone" dataKey="slow" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorSlow)" activeDot={{ r: 6 }} name="Economy" />
                                     </AreaChart>
-                                </ResponsiveContainer>
+                                </SafeResponsiveContainer>
                             </div>
                         </div>
 
@@ -183,4 +159,3 @@ export default function FeesPage() {
         </main>
     );
 }
-
