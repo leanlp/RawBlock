@@ -2,61 +2,62 @@
   {
     "id": "cve-2018-17144",
     "title": "CVE-2018-17144 Duplicate Input Inflation Bug",
-    "category": "consensus-validation",
-    "severity": "critical",
     "year": 2018,
-    "summary": "A regression in duplicate-input checks created a potential inflation and denial-of-service risk.",
-    "details": "Certain Bitcoin Core versions could accept transactions with duplicate inputs in a way that threatened consensus safety. If exploited in a mined block, this could have created invalid inflation or destabilized node behavior.",
-    "impact": "Potential inflation and consensus instability if exploited on chain.",
-    "mitigations": [
-      "Upgrade to patched Bitcoin Core releases (0.16.3+).",
-      "Maintain conservative node upgrade and review procedures.",
-      "Use defense-in-depth testing for transaction validation paths."
+    "severity": "critical",
+    "category": "consensus-validation",
+    "linkedNodeIds": [
+      "utxo-model",
+      "transactions-lifecycle",
+      "consensus-rules-vs-policy",
+      "security-and-attacks"
     ],
-    "relatedNodeIds": [
-      "rb-utxo-model",
-      "rb-transactions",
-      "rb-consensus-policy",
-      "rb-security-attacks"
+    "summary": "A regression in duplicate-input checks introduced potential inflation and denial-of-service risk in vulnerable Bitcoin Core versions.",
+    "cve": "CVE-2018-17144",
+    "affectedVersions": [
+      "Bitcoin Core 0.14.0",
+      "Bitcoin Core 0.15.0",
+      "Bitcoin Core 0.16.0",
+      "Bitcoin Core 0.16.1",
+      "Bitcoin Core 0.16.2"
     ],
+    "impact": "If exploited in a block, nodes could accept invalid state transitions or crash, threatening consensus safety.",
+    "mitigation": "Upgrade to patched Bitcoin Core releases and follow conservative release/validation practices for consensus code.",
     "sources": [
       {
-        "title": "Bitcoin Core Security Advisory (2018-09-20)",
+        "title": "Bitcoin Core Security Notice (2018-09-20)",
         "url": "https://bitcoincore.org/en/2018/09/20/notice/",
         "type": "core-docs"
+      },
+      {
+        "title": "Bitcoin Optech Topic: CVE-2018-17144",
+        "url": "https://bitcoinops.org/en/topics/cve-2018-17144/",
+        "type": "reference"
       },
       {
         "title": "NVD CVE-2018-17144",
         "url": "https://nvd.nist.gov/vuln/detail/CVE-2018-17144",
         "type": "reference"
-      },
-      {
-        "title": "Bitcoin Core PR discussion context",
-        "url": "https://github.com/bitcoin/bitcoin/pull/14247",
-        "type": "core-docs"
       }
     ]
   },
   {
     "id": "pre-segwit-tx-malleability",
     "title": "Pre-SegWit Transaction Malleability",
-    "category": "transaction-integrity",
-    "severity": "high",
     "year": 2014,
-    "summary": "Before SegWit, txid-sensitive workflows were vulnerable to third-party transaction ID mutation.",
-    "details": "Legacy transaction serialization allowed mutations in signature-related fields that changed txid without changing economic intent. This complicated unconfirmed tracking and protocol overlays dependent on txid stability.",
-    "impact": "Operational failures, accounting confusion, and higher complexity for second-layer protocol design.",
-    "mitigations": [
-      "Adopt SegWit transaction formats.",
-      "Use wtxid-aware tooling and robust confirmation logic.",
-      "Avoid relying on unconfirmed txid assumptions in critical flows."
+    "severity": "high",
+    "category": "transaction-integrity",
+    "linkedNodeIds": [
+      "transactions-lifecycle",
+      "segwit-and-taproot-upgrades",
+      "fees-mempool",
+      "security-and-attacks"
     ],
-    "relatedNodeIds": [
-      "rb-transactions",
-      "rb-segwit",
-      "rb-fees-mempool",
-      "rb-security-attacks"
+    "summary": "Before SegWit, third parties could mutate transaction identifiers without changing spend intent, breaking txid-sensitive workflows.",
+    "affectedVersions": [
+      "Pre-SegWit transaction formats"
     ],
+    "impact": "Operational systems depending on unconfirmed txid stability could fail, and second-layer protocol design became more fragile.",
+    "mitigation": "Use SegWit transaction formats and avoid critical dependence on mutable unconfirmed txids in production workflows.",
     "sources": [
       {
         "title": "BIP 141: Segregated Witness",
@@ -64,7 +65,7 @@
         "type": "BIP"
       },
       {
-        "title": "BIP 143: New transaction digest for witness programs",
+        "title": "BIP 143: New digest algorithm for witness programs",
         "url": "https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki",
         "type": "BIP"
       },
@@ -78,26 +79,25 @@
   {
     "id": "value-overflow-2010",
     "title": "2010 Value Overflow Incident",
-    "category": "inflation-bug",
-    "severity": "critical",
     "year": 2010,
-    "summary": "An integer overflow bug allowed creation of an invalid inflation transaction.",
-    "details": "A validation bug in early Bitcoin software failed to reject a transaction whose outputs exceeded valid monetary bounds due to integer overflow behavior. The incident was corrected via emergency patching and chain rollback coordination.",
-    "impact": "Temporary supply-rule violation and urgent ecosystem intervention.",
-    "mitigations": [
-      "Strict monetary range checks in validation code.",
-      "Comprehensive consensus test vectors.",
-      "Conservative release engineering for consensus-critical code."
+    "severity": "critical",
+    "category": "inflation-bug",
+    "linkedNodeIds": [
+      "what-is-bitcoin",
+      "mining-and-subsidy",
+      "consensus-rules-vs-policy",
+      "security-and-attacks"
     ],
-    "relatedNodeIds": [
-      "rb-what-is-bitcoin",
-      "rb-mining",
-      "rb-consensus-policy",
-      "rb-security-attacks"
+    "summary": "An integer overflow bug in early Bitcoin software allowed an invalid inflation transaction to be mined.",
+    "cve": "CVE-2010-5139",
+    "affectedVersions": [
+      "Bitcoin 0.3.9 and earlier"
     ],
+    "impact": "The incident temporarily violated supply rules and required urgent ecosystem coordination to restore valid chain history.",
+    "mitigation": "Apply strict monetary range checks and maintain extensive consensus test coverage with conservative release engineering.",
     "sources": [
       {
-        "title": "Bitcoin Wiki: Value Overflow Incident",
+        "title": "Value overflow incident (historical record)",
         "url": "https://en.bitcoin.it/wiki/Value_overflow_incident",
         "type": "reference"
       },

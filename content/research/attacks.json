@@ -2,64 +2,70 @@
   {
     "id": "eclipse-attack",
     "title": "Eclipse Attack",
-    "category": "network-isolation",
-    "severity": "high",
     "year": 2015,
-    "summary": "An attacker isolates a node's peer connections to bias its view of network state.",
-    "details": "By controlling inbound and outbound peers around a target node, an attacker can delay block/transaction visibility and influence decisions that depend on timely propagation.",
-    "impact": "Increased reorg risk perception, degraded node reliability, and easier setup for other attack classes.",
+    "severity": "high",
+    "category": "network-isolation",
+    "linkedNodeIds": [
+      "consensus-rules-vs-policy",
+      "spv-vs-full-node",
+      "security-and-attacks",
+      "reorgs-finality"
+    ],
+    "summary": "An attacker isolates a target node's peer connections to control its view of blocks and transactions.",
+    "targetLayer": "network",
+    "attackerCapabilities": [
+      "Control or influence many peer connections around the victim",
+      "Sustain isolation long enough to bias chain/mempool visibility"
+    ],
     "mitigations": [
-      "Diversify peers and connection paths.",
-      "Use modern Bitcoin Core networking protections and updates.",
-      "Monitor peers and chain tip anomalies operationally."
+      "Diversify peer connectivity and avoid single-homing network paths",
+      "Run updated Bitcoin Core versions and monitor for tip/peer anomalies"
     ],
-    "relatedNodeIds": [
-      "rb-consensus-policy",
-      "rb-spv-vs-full-node",
-      "rb-security-attacks",
-      "rb-reorgs-finality"
-    ],
+    "observedInWild": false,
     "sources": [
       {
-        "title": "Eclipse Attacks on Bitcoin’s Peer-to-Peer Network (USENIX Security 2015)",
+        "title": "Eclipse Attacks on Bitcoin's Peer-to-Peer Network (USENIX 2015)",
         "url": "https://www.usenix.org/conference/usenixsecurity15/technical-sessions/presentation/heilman",
         "type": "reference"
-      },
-      {
-        "title": "Bitcoin Core source tree",
-        "url": "https://github.com/bitcoin/bitcoin/tree/master/src",
-        "type": "core-docs"
       },
       {
         "title": "Bitcoin Developer Guide: P2P Network",
         "url": "https://developer.bitcoin.org/devguide/p2p_network.html",
         "type": "dev-guide"
+      },
+      {
+        "title": "Bitcoin Core source tree",
+        "url": "https://github.com/bitcoin/bitcoin/tree/master/src",
+        "type": "core-docs"
       }
     ]
   },
   {
     "id": "selfish-mining",
     "title": "Selfish Mining",
-    "category": "mining-strategy",
-    "severity": "high",
     "year": 2014,
-    "summary": "A miner withholds found blocks to gain strategic revenue advantage over honest miners.",
-    "details": "Instead of immediately publishing valid blocks, an attacker attempts to privately extend a hidden chain and release it strategically to invalidate honest work.",
-    "impact": "Potentially worsened decentralization incentives and increased stale/orphan dynamics.",
+    "severity": "high",
+    "category": "mining-strategy",
+    "linkedNodeIds": [
+      "mining-and-subsidy",
+      "difficulty-adjustment-2016",
+      "reorgs-finality",
+      "security-and-attacks"
+    ],
+    "summary": "A miner withholds valid blocks strategically to increase expected revenue over fully honest publication.",
+    "targetLayer": "mining",
+    "attackerCapabilities": [
+      "Sufficient hashpower share to make withholding strategy viable",
+      "Fast private relay and timing control for strategic release"
+    ],
     "mitigations": [
-      "Improve block propagation speed and relay infrastructure.",
-      "Promote hashrate distribution across independent operators.",
-      "Track orphan/stale patterns for suspicious dynamics."
+      "Improve propagation performance to reduce stale-block arbitrage",
+      "Maintain hashrate decentralization across independent operators"
     ],
-    "relatedNodeIds": [
-      "rb-mining",
-      "rb-difficulty",
-      "rb-reorgs-finality",
-      "rb-security-attacks"
-    ],
+    "observedInWild": false,
     "sources": [
       {
-        "title": "Majority is not Enough (Eyal & Sirer)",
+        "title": "Majority is not Enough: Bitcoin Mining is Vulnerable",
         "url": "https://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf",
         "type": "reference"
       },
@@ -69,7 +75,7 @@
         "type": "whitepaper"
       },
       {
-        "title": "FIBRE Project",
+        "title": "FIBRE project",
         "url": "https://bitcoinfibre.org/",
         "type": "reference"
       }
@@ -78,23 +84,26 @@
   {
     "id": "fee-sniping",
     "title": "Fee Sniping",
-    "category": "economic-reorg",
-    "severity": "med",
     "year": 2016,
-    "summary": "A miner may attempt a short reorg to capture unusually large recent transaction fees.",
-    "details": "When fee spikes are extreme, miners can face incentive edge cases where trying to replace the previous tip appears profitable under some assumptions.",
-    "impact": "Higher short-range reorg pressure during unusual fee events.",
+    "severity": "medium",
+    "category": "economic-reorg",
+    "linkedNodeIds": [
+      "fees-mempool",
+      "mining-and-subsidy",
+      "reorgs-finality",
+      "security-and-attacks"
+    ],
+    "summary": "During extreme fee spikes, miners may have incentive to attempt short reorgs to capture recent fee-rich blocks.",
+    "targetLayer": "economic",
+    "attackerCapabilities": [
+      "Ability to mine on alternate short branches",
+      "Economic tolerance for temporary orphan-risk losses"
+    ],
     "mitigations": [
-      "Deeper confirmation requirements for high-value settlement.",
-      "Healthy fee market and hashrate competition.",
-      "Operational detection of abnormal reorg frequency."
+      "Use deeper confirmation policies for high-value settlements",
+      "Monitor unusual reorg behavior during abnormal fee regimes"
     ],
-    "relatedNodeIds": [
-      "rb-fees-mempool",
-      "rb-mining",
-      "rb-reorgs-finality",
-      "rb-security-attacks"
-    ],
+    "observedInWild": false,
     "sources": [
       {
         "title": "Bitcoin Developer Guide: Mining",
@@ -102,13 +111,13 @@
         "type": "dev-guide"
       },
       {
-        "title": "bitcoin-dev mailing list archive",
-        "url": "https://lists.linuxfoundation.org/pipermail/bitcoin-dev/",
+        "title": "Bitcoin-dev discussion group",
+        "url": "https://groups.google.com/g/bitcoindev",
         "type": "mailing-list"
       },
       {
-        "title": "Mempool.space Mining Dashboard",
-        "url": "https://mempool.space/mining",
+        "title": "Mempool.space API docs",
+        "url": "https://mempool.space/docs/api/rest",
         "type": "reference"
       }
     ]
@@ -116,23 +125,26 @@
   {
     "id": "replace-by-fee-abuse",
     "title": "Replace-by-Fee Abuse Pattern",
-    "category": "mempool-policy-abuse",
-    "severity": "med",
     "year": 2016,
-    "summary": "RBF can be abused against zero-confirmation acceptance assumptions in weak merchant flows.",
-    "details": "An attacker may broadcast a low-fee transaction and later replace it with a higher-fee conflicting transaction under opt-in/full-RBF policy conditions.",
-    "impact": "Payment reversal risk for recipients relying on unconfirmed acceptance without controls.",
+    "severity": "medium",
+    "category": "mempool-policy-abuse",
+    "linkedNodeIds": [
+      "transactions-lifecycle",
+      "fees-mempool",
+      "consensus-rules-vs-policy",
+      "security-and-attacks"
+    ],
+    "summary": "Zero-confirmation recipients can be harmed when an attacker replaces a pending transaction with a higher-fee conflict.",
+    "targetLayer": "mempool",
+    "attackerCapabilities": [
+      "Broadcast a replaceable low-fee transaction accepted by the recipient",
+      "Issue a higher-fee conflicting replacement before confirmation"
+    ],
     "mitigations": [
-      "Avoid zero-conf settlement for sensitive amounts.",
-      "Use explicit confirmation policies and mempool monitoring.",
-      "Understand local node RBF policy behavior."
+      "Avoid zero-confirmation acceptance for sensitive payment values",
+      "Use explicit confirmation and mempool monitoring policies"
     ],
-    "relatedNodeIds": [
-      "rb-transactions",
-      "rb-fees-mempool",
-      "rb-consensus-policy",
-      "rb-security-attacks"
-    ],
+    "observedInWild": true,
     "sources": [
       {
         "title": "BIP 125: Opt-in Full Replace-by-Fee",
@@ -140,7 +152,7 @@
         "type": "BIP"
       },
       {
-        "title": "Bitcoin Core mempool replacement policy doc",
+        "title": "Bitcoin Core mempool replacements policy",
         "url": "https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md",
         "type": "core-docs"
       },

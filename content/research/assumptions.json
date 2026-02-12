@@ -2,22 +2,24 @@
   {
     "id": "honest-majority-hashpower",
     "title": "Honest-Majority Hashpower Assumption",
-    "category": "economic-security",
-    "severity": "critical",
     "year": 2009,
-    "summary": "Bitcoin assumes a majority of active hashpower follows protocol-valid chain selection over time.",
-    "details": "Proof-of-work security requires that adversarial hashpower remains below a sustained majority threshold; otherwise censorship and reorg capabilities increase materially.",
-    "impact": "If broken, deep reorg resistance and censorship resistance degrade.",
-    "mitigations": [
-      "Promote hashrate decentralization.",
-      "Use confirmation-depth policies proportionate to value-at-risk.",
-      "Monitor mining concentration trends."
+    "severity": "critical",
+    "category": "economic-security",
+    "linkedNodeIds": [
+      "what-is-bitcoin",
+      "mining-and-subsidy",
+      "difficulty-adjustment-2016",
+      "security-and-attacks"
     ],
-    "relatedNodeIds": [
-      "rb-what-is-bitcoin",
-      "rb-mining",
-      "rb-difficulty",
-      "rb-security-attacks"
+    "summary": "Bitcoin assumes a majority of effective hashpower follows consensus-valid chain extension over time.",
+    "assumptionType": "economic",
+    "dependsOn": [
+      "mining rewards and fees remain economically meaningful",
+      "hashpower is not persistently dominated by adversarial coordination"
+    ],
+    "weakenedBy": [
+      "hashrate concentration",
+      "long-duration subsidy/fee incentive misalignment"
     ],
     "sources": [
       {
@@ -31,8 +33,8 @@
         "type": "dev-guide"
       },
       {
-        "title": "Mempool.space Mining",
-        "url": "https://mempool.space/mining",
+        "title": "Mempool.space Mining API docs",
+        "url": "https://mempool.space/docs/api/rest",
         "type": "reference"
       }
     ]
@@ -40,22 +42,24 @@
   {
     "id": "network-propagation-assumption",
     "title": "Network Propagation Assumption",
-    "category": "p2p-network",
-    "severity": "high",
     "year": 2009,
-    "summary": "Bitcoin assumes timely, sufficiently connected propagation of blocks and transactions across peers.",
-    "details": "When propagation quality degrades, stale rates and attack windows can increase, affecting miner incentives and finality confidence.",
-    "impact": "Higher stale/orphan rates and improved conditions for withholding or isolation attacks.",
-    "mitigations": [
-      "Use robust relay infrastructure and diverse peering.",
-      "Stay updated with modern networking improvements.",
-      "Monitor unusual latency and fork-rate signals."
+    "severity": "high",
+    "category": "p2p-network",
+    "linkedNodeIds": [
+      "transactions-lifecycle",
+      "fees-mempool",
+      "reorgs-finality",
+      "spv-vs-full-node"
     ],
-    "relatedNodeIds": [
-      "rb-transactions",
-      "rb-fees-mempool",
-      "rb-reorgs-finality",
-      "rb-spv-vs-full-node"
+    "summary": "Security and usability assume blocks and transactions propagate across peers quickly enough to limit stale/fork windows.",
+    "assumptionType": "network",
+    "dependsOn": [
+      "sufficiently connected peer topology",
+      "reasonable latency and bandwidth for relay"
+    ],
+    "weakenedBy": [
+      "eclipse-style isolation",
+      "regional outages and severe network partitioning"
     ],
     "sources": [
       {
@@ -69,7 +73,7 @@
         "type": "BIP"
       },
       {
-        "title": "FIBRE Relay",
+        "title": "FIBRE project",
         "url": "https://bitcoinfibre.org/",
         "type": "reference"
       }
@@ -78,22 +82,24 @@
   {
     "id": "economic-incentives-assumption",
     "title": "Economic Incentives Assumption",
-    "category": "game-theory",
-    "severity": "high",
     "year": 2009,
-    "summary": "Bitcoin assumes most participants follow economically rational strategies aligned with long-term network value.",
-    "details": "Miner and node behavior is guided by expected profitability, cost structure, and market confidence. Incentive misalignment can create temporary attack opportunities or policy tensions.",
-    "impact": "If incentives diverge sharply, security margins and user expectations can be stressed.",
-    "mitigations": [
-      "Transparent fee market signals and healthy competition.",
-      "Diverse ecosystem participants and independent validation.",
-      "Operational risk controls for high-value settlement."
+    "severity": "high",
+    "category": "game-theory",
+    "linkedNodeIds": [
+      "mining-and-subsidy",
+      "fees-mempool",
+      "lightning-network-maturity",
+      "security-and-attacks"
     ],
-    "relatedNodeIds": [
-      "rb-mining",
-      "rb-fees-mempool",
-      "rb-lightning-basics",
-      "rb-security-attacks"
+    "summary": "Bitcoin assumes most participants prefer strategies that preserve long-term network value over short-term destructive behavior.",
+    "assumptionType": "game-theory",
+    "dependsOn": [
+      "honest operation remains economically competitive",
+      "users and miners respond to fee and confirmation signals"
+    ],
+    "weakenedBy": [
+      "extreme fee spikes",
+      "cross-market incentives not aligned with chain health"
     ],
     "sources": [
       {
@@ -107,8 +113,8 @@
         "type": "dev-guide"
       },
       {
-        "title": "bitcoin-dev archive",
-        "url": "https://lists.linuxfoundation.org/pipermail/bitcoin-dev/",
+        "title": "Bitcoin-dev discussion group",
+        "url": "https://groups.google.com/g/bitcoindev",
         "type": "mailing-list"
       }
     ]
@@ -116,22 +122,23 @@
   {
     "id": "cryptographic-assumption",
     "title": "Cryptographic Assumption",
-    "category": "cryptography",
-    "severity": "critical",
     "year": 2009,
-    "summary": "Bitcoin security assumes SHA-256 and signature schemes remain computationally secure against practical adversaries.",
-    "details": "Proof-of-work and transaction authorization rely on hash preimage resistance and signature unforgeability. If these assumptions fail at scale, consensus and ownership guarantees are threatened.",
-    "impact": "Potential breakage of chain security or key-ownership integrity.",
-    "mitigations": [
-      "Conservative cryptographic engineering and review.",
-      "Ongoing monitoring of cryptanalytic advances.",
-      "Planned upgrade pathways through BIPs if needed."
+    "severity": "critical",
+    "category": "cryptography",
+    "linkedNodeIds": [
+      "signatures-schnorr-ecdsa",
+      "segwit-and-taproot-upgrades",
+      "security-and-attacks"
     ],
-    "relatedNodeIds": [
-      "rb-signatures-schnorr-ecdsa",
-      "rb-segwit",
-      "rb-taproot",
-      "rb-security-attacks"
+    "summary": "Bitcoin security assumes practical resistance of SHA-256 hashing and signature schemes against forgery and collision attacks.",
+    "assumptionType": "cryptographic",
+    "dependsOn": [
+      "hash preimage and collision resistance remain computationally hard",
+      "signature forgery remains infeasible under current threat models"
+    ],
+    "weakenedBy": [
+      "major cryptanalytic breakthrough",
+      "large-scale implementation flaws in cryptographic libraries"
     ],
     "sources": [
       {
@@ -140,14 +147,14 @@
         "type": "whitepaper"
       },
       {
-        "title": "NIST FIPS 180-4 (SHA)",
-        "url": "https://csrc.nist.gov/publications/detail/fips/180/4/final",
-        "type": "reference"
-      },
-      {
-        "title": "BIP 340 (Schnorr Signatures)",
+        "title": "BIP 340: Schnorr Signatures",
         "url": "https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki",
         "type": "BIP"
+      },
+      {
+        "title": "NIST FIPS 180-4",
+        "url": "https://csrc.nist.gov/publications/detail/fips/180/4/final",
+        "type": "reference"
       }
     ]
   }
