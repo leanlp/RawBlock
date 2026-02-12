@@ -132,7 +132,7 @@ export default function Sidebar() {
                             href="https://x.com/rawblocknet"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-cyan-400 transition-colors"
+                            className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center min-h-11 min-w-11"
                         >
                             <Twitter size={16} />
                         </Link>
@@ -140,7 +140,7 @@ export default function Sidebar() {
                             href="https://linkedin.com/company/rawblock"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-cyan-400 transition-colors"
+                            className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center min-h-11 min-w-11"
                         >
                             <Linkedin size={16} />
                         </Link>

@@ -160,7 +160,7 @@ export default function MempoolVisualizer() {
                         <button
                             key={m.id}
                             onClick={() => setMode(m.id)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${mode === m.id
+                            className={`flex items-center justify-center gap-2 px-3 py-2 min-h-11 min-w-11 rounded-md text-xs font-bold transition-all ${mode === m.id
                                 ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/50'
                                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                                 }`}

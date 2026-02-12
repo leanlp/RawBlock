@@ -1404,7 +1404,7 @@ export default function ForensicsPage() {
                         <button
                             key={study.id}
                             onClick={() => loadCaseStudy(study.id)}
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-cyan-400 transition-all whitespace-nowrap"
+                            className="flex items-center justify-center md:justify-start gap-3 p-2 min-h-11 min-w-11 rounded-lg hover:bg-white/5 text-slate-400 hover:text-cyan-400 transition-all whitespace-nowrap"
                             title={study.label}
                         >
                             <span className="text-lg filter drop-shadow-lg">{study.label.split(' ')[0]}</span>
@@ -1452,21 +1452,21 @@ export default function ForensicsPage() {
                             <div className="flex bg-slate-800/50 rounded-full p-1 mr-2 gap-1">
                                 <button
                                     onClick={() => handleAutoLayout('horizontal')}
-                                    className={`p-1.5 rounded-full transition-all ${layoutMode === 'horizontal' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                                    className={`p-2 min-h-11 min-w-11 inline-flex items-center justify-center rounded-full transition-all ${layoutMode === 'horizontal' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
                                     title="Horizontal Layout"
                                 >
                                     <ArrowRight size={14} />
                                 </button>
                                 <button
                                     onClick={() => handleAutoLayout('vertical')}
-                                    className={`p-1.5 rounded-full transition-all ${layoutMode === 'vertical' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                                    className={`p-2 min-h-11 min-w-11 inline-flex items-center justify-center rounded-full transition-all ${layoutMode === 'vertical' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
                                     title="Vertical Layout"
                                 >
                                     <ArrowRight size={14} className="rotate-90" />
                                 </button>
                                 <button
                                     onClick={() => handleAutoLayout('radial')}
-                                    className={`p-1.5 rounded-full transition-all ${layoutMode === 'radial' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                                    className={`p-2 min-h-11 min-w-11 inline-flex items-center justify-center rounded-full transition-all ${layoutMode === 'radial' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
                                     title="Radial Layout"
                                 >
                                     <Network size={14} />
