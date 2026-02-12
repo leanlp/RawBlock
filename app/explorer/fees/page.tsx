@@ -1,172 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Header from "../../../components/Header";
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 import { ErrorState, LoadingState } from "../../../components/EmptyState";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import { formatSatVb } from "@/lib/feeBands";
-
-type FeeHistoryPoint = {
-  timestamp: number;
-  fast: number;
-  medium: number;
-  slow: number;
-};
-
-type FeeSnapshot = {
-  fast: number;
-  medium: number;
-  slow: number;
-};
-
-type NetworkStatsResponse = {
-  fees?: {
-    fast?: number | string;
-    medium?: number | string;
-    slow?: number | string;
-  };
-};
-
-function parseFee(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return Number(value.toFixed(2));
-  if (typeof value === "string") {
-    const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? Number(parsed.toFixed(2)) : null;
-  }
-  return null;
-}
-
-function normalizeOrderedFees(fast: unknown, medium: unknown, slow: unknown): FeeSnapshot | null {
-  const parsedFast = parseFee(fast);
-  const parsedMedium = parseFee(medium);
-  const parsedSlow = parseFee(slow);
-
-  if (parsedFast === null || parsedMedium === null || parsedSlow === null) {
-    return null;
-  }
-
-  // Preserve logical ordering even if upstream feed momentarily reports out-of-order values.
-  const ordered = [parsedSlow, parsedMedium, parsedFast].sort((a, b) => a - b);
-  return {
-    slow: ordered[0],
-    medium: ordered[1],
-    fast: ordered[2],
-  };
-}
-
-function toHistoryPoint(entry: unknown): FeeHistoryPoint | null {
-  if (!entry || typeof entry !== "object") return null;
-
-  const raw = entry as {
-    timestamp?: unknown;
-    time?: unknown;
-    fast?: unknown;
-    medium?: unknown;
-    slow?: unknown;
-  };
-
-  const timestampValue =
-    typeof raw.timestamp === "number"
-      ? raw.timestamp
-      : typeof raw.time === "number"
-        ? raw.time
-        : null;
-
-  if (!timestampValue || !Number.isFinite(timestampValue)) return null;
-
-  const normalized = normalizeOrderedFees(raw.fast, raw.medium, raw.slow);
-  if (!normalized) return null;
-
-  return {
-    timestamp: timestampValue,
-    fast: normalized.fast,
-    medium: normalized.medium,
-    slow: normalized.slow,
-  };
-}
-
-function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
+import { formatFeeTime, useFeeMarketData } from "@/hooks/useFeeMarketData";
 
 export default function FeesPage() {
-  const [history, setHistory] = useState<FeeHistoryPoint[]>([]);
-  const [current, setCurrent] = useState<FeeSnapshot | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
-      const [historyRes, currentRes] = await Promise.allSettled([
-        fetch(`${baseUrl}/api/fee-history`, { cache: "no-store" }),
-        fetch(`${baseUrl}/api/network-stats`, { cache: "no-store" }),
-      ]);
-
-      if (historyRes.status === "fulfilled" && historyRes.value.ok) {
-        const payload = (await historyRes.value.json()) as unknown;
-        const entries = Array.isArray(payload) ? payload : [];
-        const normalizedHistory = entries
-          .map((entry) => toHistoryPoint(entry))
-          .filter((point): point is FeeHistoryPoint => point !== null)
-          .sort((a, b) => a.timestamp - b.timestamp);
-
-        setHistory(normalizedHistory);
-      }
-
-      if (currentRes.status === "fulfilled" && currentRes.value.ok) {
-        const payload = (await currentRes.value.json()) as NetworkStatsResponse;
-        const normalizedCurrent = normalizeOrderedFees(
-          payload.fees?.fast,
-          payload.fees?.medium,
-          payload.fees?.slow,
-        );
-        setCurrent(normalizedCurrent);
-      }
-
-      if (
-        (historyRes.status === "rejected" || !historyRes.value.ok) &&
-        (currentRes.status === "rejected" || !currentRes.value.ok)
-      ) {
-        throw new Error("Unable to load fee market data.");
-      }
-    } catch (fetchError) {
-      const message = fetchError instanceof Error ? fetchError.message : "Unable to load fee market data.";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    const interval = window.setInterval(fetchData, 30_000);
-    return () => window.clearInterval(interval);
-  }, []);
-
-  const cardFees = useMemo(() => {
-    const latest = history.length > 0 ? history[history.length - 1] : null;
-    if (latest) {
-      return {
-        fast: latest.fast,
-        medium: latest.medium,
-        slow: latest.slow,
-      };
-    }
-
-    return {
-      fast: current?.fast ?? null,
-      medium: current?.medium ?? null,
-      slow: current?.slow ?? null,
-    };
-  }, [current, history]);
-
-  const hasData = history.length > 0 || cardFees.fast !== null || cardFees.medium !== null || cardFees.slow !== null;
+  const { history, cardFees, loading, error, hasData, retry } = useFeeMarketData(30_000);
 
   const renderFee = (value: number | null) => {
     const formatted = formatSatVb(value);
@@ -190,7 +32,7 @@ export default function FeesPage() {
         </div>
 
         {loading && !hasData && <LoadingState message="Analyzing mempool dynamics..." />}
-        {!loading && error && !hasData && <ErrorState message={error} onRetry={fetchData} />}
+        {!loading && error && !hasData && <ErrorState message={error} onRetry={retry} />}
 
         {hasData ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -246,7 +88,7 @@ export default function FeesPage() {
                 {history.length === 0 ? (
                   <ErrorState
                     message="Historical fee data is temporarily unavailable."
-                    onRetry={fetchData}
+                    onRetry={retry}
                   />
                 ) : (
                   <SafeResponsiveContainer width="100%" height="100%" minHeight={300}>
@@ -269,7 +111,7 @@ export default function FeesPage() {
                       <CartesianGrid strokeDasharray="2 4" stroke="#1e293b" vertical={false} />
                       <XAxis
                         dataKey="timestamp"
-                        tickFormatter={formatTime}
+                        tickFormatter={formatFeeTime}
                         stroke="#475569"
                         tick={{ fontSize: 12 }}
                         minTickGap={48}
@@ -283,7 +125,7 @@ export default function FeesPage() {
                       />
                       <Tooltip
                         cursor={{ stroke: "#94a3b8", strokeDasharray: "6 6", strokeWidth: 1 }}
-                        labelFormatter={(value) => formatTime(Number(value))}
+                        labelFormatter={(value) => formatFeeTime(Number(value))}
                         formatter={(value, name) => [
                           `${formatSatVb(Number(value))} sat/vB`,
                           String(name),
