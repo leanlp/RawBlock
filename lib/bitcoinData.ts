@@ -57,6 +57,12 @@ async function fetchFees(): Promise<{
   feeHour: number | null;
   source: "mempool" | "blockstream" | "unavailable";
 }> {
+  const normalizeFee = (value: number | null | undefined): number | null => {
+    if (value === null || value === undefined || !Number.isFinite(value)) return null;
+    // Keep UI consistent in sat/vB terms and avoid sub-1 fallback noise.
+    return Math.max(1, Math.ceil(value));
+  };
+
   try {
     const fees = await fetchJsonWithRevalidate<{
       fastestFee: number;
@@ -65,9 +71,9 @@ async function fetchFees(): Promise<{
     }>(`${MEMPOOL_API}/v1/fees/recommended`);
 
     return {
-      feeFast: fees.fastestFee,
-      feeHalfHour: fees.halfHourFee,
-      feeHour: fees.hourFee,
+      feeFast: normalizeFee(fees.fastestFee),
+      feeHalfHour: normalizeFee(fees.halfHourFee),
+      feeHour: normalizeFee(fees.hourFee),
       source: "mempool",
     };
   } catch {
@@ -76,9 +82,9 @@ async function fetchFees(): Promise<{
         `${BLOCKSTREAM_API}/fee-estimates`,
       );
       return {
-        feeFast: estimates["1"] ?? null,
-        feeHalfHour: estimates["3"] ?? estimates["2"] ?? null,
-        feeHour: estimates["6"] ?? null,
+        feeFast: normalizeFee(estimates["1"] ?? null),
+        feeHalfHour: normalizeFee(estimates["3"] ?? estimates["2"] ?? null),
+        feeHour: normalizeFee(estimates["6"] ?? null),
         source: "blockstream",
       };
     } catch {
