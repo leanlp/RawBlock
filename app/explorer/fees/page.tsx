@@ -20,20 +20,20 @@ export default function FeesPage() {
 
     useEffect(() => {
         if (!metrics) return;
-        if (
-            metrics.feeFast === null ||
-            metrics.feeHalfHour === null ||
-            metrics.feeHour === null
-        ) {
+        const feeFast = metrics.feeFast;
+        const feeHalfHour = metrics.feeHalfHour;
+        const feeHour = metrics.feeHour;
+
+        if (feeFast === null || feeHalfHour === null || feeHour === null) {
             return;
         }
 
         setHistory((prev) => {
             const nextPoint: FeeEntry = {
                 timestamp: Date.now(),
-                fast: metrics.feeFast,
-                medium: metrics.feeHalfHour,
-                slow: metrics.feeHour,
+                fast: feeFast,
+                medium: feeHalfHour,
+                slow: feeHour,
             };
             const trimmed = [...prev, nextPoint].slice(-96);
             return trimmed;
