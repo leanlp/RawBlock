@@ -6,6 +6,7 @@ import { io, Socket } from "socket.io-client";
 import MempoolVisualizer from "../../../components/MempoolVisualizer";
 import NetworkHud from "../../../components/NetworkHud";
 import Header from "../../../components/Header";
+import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
 
 // Types
 interface Transaction {
@@ -19,8 +20,9 @@ export default function MempoolPage() {
     const [data, setData] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [connected, setConnected] = useState<boolean>(false);
-    const [mempoolCount, setMempoolCount] = useState<number>(0);
+    const [socketMempoolCount, setSocketMempoolCount] = useState<number>(0);
     const [error, setError] = useState<string | null>(null);
+    const { metrics: liveMetrics } = useBitcoinLiveMetrics(30_000);
 
     // Use ref for socket to avoid re-creation
     const socketRef = useRef<Socket | null>(null);
@@ -96,7 +98,7 @@ export default function MempoolPage() {
         });
 
         socket.on("mempool:stats", (stats: { count: number }) => {
-            setMempoolCount(stats.count);
+            setSocketMempoolCount(stats.count);
         });
 
         socket.on("rbf:conflict", (event: { txid: string, replacedTxid: string, feeDiff: string }) => {
@@ -112,6 +114,7 @@ export default function MempoolPage() {
     }, []);
 
     const [rbfAlert, setRbfAlert] = useState<{ txid: string, replacedTxid: string, feeDiff: string } | null>(null);
+    const canonicalMempoolCount = liveMetrics?.mempoolTxCount ?? socketMempoolCount;
 
     return (
         <>
@@ -141,9 +144,9 @@ export default function MempoolPage() {
                                 <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">Disconnected</span>
                             )}
                         </div>
-                        {mempoolCount > 0 && (
+                        {canonicalMempoolCount > 0 && (
                             <div className="text-slate-500">
-                                <span className="font-mono text-slate-300">{mempoolCount.toLocaleString()}</span> txs in mempool
+                                <span className="font-mono text-slate-300">{canonicalMempoolCount.toLocaleString()}</span> txs in mempool
                             </div>
                         )}
                     </div>

@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 import { LoadingState, ErrorState } from "../../../components/EmptyState";
@@ -18,38 +16,29 @@ interface FeeEntry {
 
 export default function FeesPage() {
     const [history, setHistory] = useState<FeeEntry[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const { metrics } = useBitcoinLiveMetrics(30_000);
-
-    const fetchData = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-            const [historyRes] = await Promise.allSettled([fetch(`${baseUrl}/api/fee-history`)]);
-
-            if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
-                const data = await historyRes.value.json();
-                const normalized = data.map((entry: any) => ({
-                    ...entry,
-                    time: entry.time || entry.timestamp,
-                    timestamp: entry.timestamp || entry.time
-                }));
-                setHistory(normalized);
-            }
-
-            setLoading(false);
-        } catch (err) {
-            console.error(err);
-            setError("Unable to load fee market data. The API might be offline.");
-            setLoading(false);
-        }
-    };
+    const { metrics, status, error, retry } = useBitcoinLiveMetrics(30_000);
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (!metrics) return;
+        if (
+            metrics.feeFast === null ||
+            metrics.feeHalfHour === null ||
+            metrics.feeHour === null
+        ) {
+            return;
+        }
+
+        setHistory((prev) => {
+            const nextPoint: FeeEntry = {
+                timestamp: Date.now(),
+                fast: metrics.feeFast,
+                medium: metrics.feeHalfHour,
+                slow: metrics.feeHour,
+            };
+            const trimmed = [...prev, nextPoint].slice(-96);
+            return trimmed;
+        });
+    }, [metrics]);
 
     // Format time for chart
     const formatTime = (time: number) => {
@@ -72,15 +61,15 @@ export default function FeesPage() {
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">
                             Fee Market Intelligence
                         </h1>
-                        <p className="mt-2 text-slate-400 text-sm">Real-time estimation and historical trend analysis.</p>
+                        <p className="mt-2 text-slate-400 text-sm">Real-time estimation from the same live feed used in Home metrics.</p>
                     </div>
                 </div>
 
-                {loading && <LoadingState message="Analyzing mempool dynamics..." />}
+                {status === "loading" && !metrics && <LoadingState message="Analyzing mempool dynamics..." />}
 
-                {!loading && error && <ErrorState message={error} onRetry={fetchData} />}
+                {status === "error" && !metrics && <ErrorState message={error ?? "Unable to load fee market data."} onRetry={retry} />}
 
-                {!loading && !error && (
+                {!(status === "loading" && !metrics) && !(status === "error" && !metrics) && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Priority Cards */}
                         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
@@ -107,7 +96,7 @@ export default function FeesPage() {
                         {/* Chart Section */}
                         <div className="md:col-span-3 bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm min-h-[400px]">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">24-Hour Fee Trend (The "Purge" Graph)</h3>
+                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Live Fee Trend (Canonical Feed)</h3>
                                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-mono">
                                     <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-emerald-500"></span>Economy</span>
                                     <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-amber-500"></span>Standard</span>
