@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Header from "../../../components/Header";
-import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import { ErrorState, LoadingState } from "../../../components/EmptyState";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
 import { useBitcoinFeeBands } from "@/hooks/useBitcoinFeeBands";
@@ -106,39 +106,63 @@ export default function FeesPage() {
                   <ErrorState message={bandsError} onRetry={retryBands} />
                 ) : (
                   <SafeResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={feeBands}>
-                      <defs>
-                        <linearGradient id="colorLow" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorMedian" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorHigh" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                    <LineChart data={feeBands} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="2 4" stroke="#1e293b" vertical={false} />
                       <XAxis dataKey="bucket" stroke="#475569" tick={{ fontSize: 12 }} />
                       <YAxis
                         stroke="#475569"
                         tick={{ fontSize: 12 }}
                         label={{ value: "sat/vB", angle: -90, position: "insideLeft", fill: "#475569" }}
                       />
+                      <ReferenceLine
+                        y={cardFees.standard ?? undefined}
+                        stroke="#e2e8f0"
+                        strokeDasharray="8 6"
+                        strokeOpacity={0.75}
+                      />
                       <Tooltip
+                        cursor={{ stroke: "#94a3b8", strokeDasharray: "6 6", strokeWidth: 1 }}
+                        formatter={(value, name) => [
+                          `${formatSatVb(Number(value))} sat/vB`,
+                          String(name),
+                        ]}
+                        labelFormatter={(label) => `${label}`}
                         contentStyle={{
-                          backgroundColor: "#0f172a",
+                          backgroundColor: "#020617",
                           borderColor: "#334155",
                           color: "#f1f5f9",
+                          borderRadius: "12px",
+                          boxShadow: "0 8px 30px rgba(0,0,0,0.35)",
                         }}
                       />
-                      <Area type="monotone" dataKey="high" stroke="#ef4444" strokeWidth={2} fill="url(#colorHigh)" name="High" />
-                      <Area type="monotone" dataKey="median" stroke="#f59e0b" strokeWidth={2} fill="url(#colorMedian)" name="Median" />
-                      <Area type="monotone" dataKey="low" stroke="#10b981" strokeWidth={2} fill="url(#colorLow)" name="Low" />
-                    </AreaChart>
+                      <Line
+                        type="monotone"
+                        dataKey="high"
+                        stroke="#ef4444"
+                        strokeWidth={2.5}
+                        dot={false}
+                        activeDot={{ r: 4, strokeWidth: 0 }}
+                        name="High"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="median"
+                        stroke="#f59e0b"
+                        strokeWidth={3}
+                        dot={false}
+                        activeDot={{ r: 5, strokeWidth: 0 }}
+                        name="Median"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="low"
+                        stroke="#10b981"
+                        strokeWidth={2.5}
+                        dot={false}
+                        activeDot={{ r: 4, strokeWidth: 0 }}
+                        name="Low"
+                      />
+                    </LineChart>
                   </SafeResponsiveContainer>
                 )}
               </div>
