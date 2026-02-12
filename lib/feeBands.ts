@@ -24,11 +24,16 @@ export function formatSatVb(value: number | null | undefined): string {
 export function toFeeBands(blocks: RawFeeBlock[], maxPoints = 8): FeeBandPoint[] {
   return blocks.slice(0, maxPoints).map((block, idx) => {
     const range = block.feeRange ?? [];
-    const lowRaw = range[1] ?? range[0] ?? block.medianFee ?? 0;
-    const medianRaw = block.medianFee ?? range[3] ?? lowRaw;
-    const highRaw = range[5] ?? range[4] ?? medianRaw;
+    const lowFromRange = range.length > 1 ? range[1] : range[0];
+    const highFromRange = range.length > 1 ? range[range.length - 2] : range[range.length - 1];
+    const medianIndex = Math.floor(range.length / 2);
+    const medianFromRange = range[medianIndex];
 
-    const low = normalizeSatVb(lowRaw) ?? 1;
+    const lowRaw = lowFromRange ?? block.medianFee ?? 0;
+    const medianRaw = block.medianFee ?? medianFromRange ?? lowRaw;
+    const highRaw = highFromRange ?? medianRaw;
+
+    const low = normalizeSatVb(lowRaw) ?? 0;
     const median = normalizeSatVb(medianRaw) ?? low;
     const high = normalizeSatVb(highRaw) ?? median;
 

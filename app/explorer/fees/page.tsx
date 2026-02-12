@@ -11,6 +11,7 @@ import { formatSatVb } from "@/lib/feeBands";
 export default function FeesPage() {
   const { bands: feeBands, loading: bandsLoading, error: bandsError, retry: retryBands } = useBitcoinFeeBands(30_000);
 
+  const hasFeeBands = feeBands.length > 0;
   const cardFees = useMemo(
     () => ({
       // Keep cards and chart fully aligned by using the same next-block fee-band source.
@@ -37,17 +38,17 @@ export default function FeesPage() {
               Fee Market Intelligence
             </h1>
             <p className="mt-2 text-slate-400 text-sm">
-              Recommended fees plus live mempool block fee bands from public APIs.
+              Live mempool block fee bands from public APIs, aligned with the summary cards.
             </p>
           </div>
         </div>
 
-        {bandsLoading && feeBands.length === 0 && <LoadingState message="Analyzing mempool dynamics..." />}
-        {bandsError && feeBands.length === 0 && (
+        {bandsLoading && !hasFeeBands && <LoadingState message="Analyzing mempool dynamics..." />}
+        {bandsError && !hasFeeBands && (
           <ErrorState message={bandsError ?? "Unable to load fee market data."} onRetry={retryBands} />
         )}
 
-        {!(bandsLoading && feeBands.length === 0) && !(bandsError && feeBands.length === 0) && (
+        {!(bandsLoading && !hasFeeBands) && !(bandsError && !hasFeeBands) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -98,9 +99,9 @@ export default function FeesPage() {
               </div>
 
               <div className="h-[350px] w-full min-w-0">
-                {bandsLoading && feeBands.length === 0 ? (
+                {bandsLoading && !hasFeeBands ? (
                   <LoadingState message="Loading live fee bands..." />
-                ) : bandsError && feeBands.length === 0 ? (
+                ) : bandsError && !hasFeeBands ? (
                   <ErrorState message={bandsError} onRetry={retryBands} />
                 ) : (
                   <SafeResponsiveContainer width="100%" height="100%">
@@ -108,6 +109,8 @@ export default function FeesPage() {
                       <CartesianGrid strokeDasharray="2 4" stroke="#1e293b" vertical={false} />
                       <XAxis dataKey="bucket" stroke="#475569" tick={{ fontSize: 12 }} />
                       <YAxis
+                        scale="linear"
+                        domain={[0, "auto"]}
                         stroke="#475569"
                         tick={{ fontSize: 12 }}
                         label={{ value: "sat/vB", angle: -90, position: "insideLeft", fill: "#475569" }}
@@ -134,7 +137,7 @@ export default function FeesPage() {
                         }}
                       />
                       <Line
-                        type="monotone"
+                        type="stepAfter"
                         dataKey="high"
                         stroke="#ef4444"
                         strokeWidth={2.5}
@@ -143,7 +146,7 @@ export default function FeesPage() {
                         name="High"
                       />
                       <Line
-                        type="monotone"
+                        type="stepAfter"
                         dataKey="median"
                         stroke="#f59e0b"
                         strokeWidth={3}
@@ -152,7 +155,7 @@ export default function FeesPage() {
                         name="Median"
                       />
                       <Line
-                        type="monotone"
+                        type="stepAfter"
                         dataKey="low"
                         stroke="#10b981"
                         strokeWidth={2.5}

@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import Card, { MetricValue, PanelHeader } from "./Card";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
@@ -8,18 +7,12 @@ import { Area, AreaChart, Tooltip, XAxis, YAxis } from "recharts";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import { formatSatVb } from "@/lib/feeBands";
 
-function renderMetricValue(value: number | null, suffix = "", fallback = "Data temporarily unavailable") {
-  if (value === null) return fallback;
-  return `${value.toLocaleString()}${suffix}`;
-}
-
 export default function HeroMetrics() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
   const { bands: feeBands } = useBitcoinFeeBands(30_000);
   const cardFeeFast = feeBands[0]?.high ?? metrics?.feeFast ?? null;
   const cardFeeHalfHour = feeBands[0]?.median ?? metrics?.feeHalfHour ?? null;
   const cardFeeHour = feeBands[0]?.low ?? metrics?.feeHour ?? null;
-
   const liveBadge = status === "ready" && metrics ? "Live from public sources" : status === "loading" ? "Loading network data" : "Data temporarily unavailable";
 
   return (
@@ -44,7 +37,7 @@ export default function HeroMetrics() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr">
         <Link href="/explorer/blocks">
-          <Card variant="metric" accent="cyan" onClick={() => {}}>
+          <Card variant="metric" accent="cyan" onClick={() => { }}>
             <MetricValue
               icon="📦"
               value={metrics?.blockHeight?.toLocaleString() ?? "Data temporarily unavailable"}
@@ -56,7 +49,7 @@ export default function HeroMetrics() {
         </Link>
 
         <Link href="/explorer/vitals">
-          <Card variant="metric" accent="orange" onClick={() => {}}>
+          <Card variant="metric" accent="orange" onClick={() => { }}>
             <MetricValue
               icon="⛏️"
               value={metrics?.hashrateEh !== null && metrics?.hashrateEh !== undefined ? `${metrics.hashrateEh} EH/s` : "Data temporarily unavailable"}
@@ -68,7 +61,7 @@ export default function HeroMetrics() {
         </Link>
 
         <Link href="/explorer/mempool">
-          <Card variant="metric" accent="blue" onClick={() => {}}>
+          <Card variant="metric" accent="blue" onClick={() => { }}>
             <MetricValue
               icon="🌊"
               value={metrics?.mempoolTxCount?.toLocaleString() ?? "Data temporarily unavailable"}
@@ -80,7 +73,7 @@ export default function HeroMetrics() {
         </Link>
 
         <Link href="/explorer/vitals">
-          <Card variant="metric" accent="violet" onClick={() => {}}>
+          <Card variant="metric" accent="violet" onClick={() => { }}>
             <MetricValue
               icon="⏳"
               value={metrics?.daysUntilHalving?.toLocaleString() ?? "Data temporarily unavailable"}
@@ -94,7 +87,7 @@ export default function HeroMetrics() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link href="/explorer/fees" className="block w-full h-full">
-          <Card variant="panel" className="h-full" onClick={() => {}}>
+          <Card variant="panel" className="h-full" onClick={() => { }}>
             <PanelHeader>Fee Market (sat/vB)</PanelHeader>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -121,14 +114,18 @@ export default function HeroMetrics() {
                 <SafeResponsiveContainer width="100%" height="100%" minHeight={64}>
                   <AreaChart data={feeBands}>
                     <XAxis dataKey="bucket" hide />
-                    <YAxis hide domain={[0, "auto"]} />
+                    <YAxis hide scale="linear" domain={[0, "auto"]} />
                     <Tooltip
                       contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155", color: "#f1f5f9" }}
                       labelStyle={{ color: "#94a3b8" }}
+                      formatter={(value, name) => [
+                        `${formatSatVb(Number(value))} sat/vB`,
+                        String(name),
+                      ]}
                     />
-                    <Area type="monotone" dataKey="high" stroke="#ef4444" fill="#ef444433" strokeWidth={1.5} />
-                    <Area type="monotone" dataKey="median" stroke="#f59e0b" fill="#f59e0b22" strokeWidth={1.5} />
-                    <Area type="monotone" dataKey="low" stroke="#10b981" fill="#10b98122" strokeWidth={1.5} />
+                    <Area type="stepAfter" dataKey="high" stroke="#ef4444" fill="#ef444433" strokeWidth={1.5} name="High" />
+                    <Area type="stepAfter" dataKey="median" stroke="#f59e0b" fill="#f59e0b22" strokeWidth={1.5} name="Median" />
+                    <Area type="stepAfter" dataKey="low" stroke="#10b981" fill="#10b98122" strokeWidth={1.5} name="Low" />
                   </AreaChart>
                 </SafeResponsiveContainer>
               </div>
@@ -137,7 +134,7 @@ export default function HeroMetrics() {
         </Link>
 
         <Link href="/explorer/mempool" className="block w-full h-full">
-          <Card variant="panel" className="h-full" onClick={() => {}}>
+          <Card variant="panel" className="h-full" onClick={() => { }}>
             <PanelHeader>Live Mempool Stream</PanelHeader>
             {metrics?.recentTxIds?.length ? (
               <div className="space-y-1 text-xs text-slate-300">
