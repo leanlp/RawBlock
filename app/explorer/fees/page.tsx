@@ -4,23 +4,21 @@ import { useMemo } from "react";
 import Header from "../../../components/Header";
 import { CartesianGrid, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import { ErrorState, LoadingState } from "../../../components/EmptyState";
-import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
 import { useBitcoinFeeBands } from "@/hooks/useBitcoinFeeBands";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
-import { formatSatVb, normalizeSatVb } from "@/lib/feeBands";
+import { formatSatVb } from "@/lib/feeBands";
 
 export default function FeesPage() {
-  const { metrics, status, error, retry } = useBitcoinLiveMetrics(30_000);
   const { bands: feeBands, loading: bandsLoading, error: bandsError, retry: retryBands } = useBitcoinFeeBands(30_000);
 
   const cardFees = useMemo(
     () => ({
-      // Prefer first mempool-block fee band (real-time pressure), fallback to recommended fees.
-      fast: feeBands[0]?.high ?? normalizeSatVb(metrics?.feeFast),
-      standard: feeBands[0]?.median ?? normalizeSatVb(metrics?.feeHalfHour),
-      economy: feeBands[0]?.low ?? normalizeSatVb(metrics?.feeHour),
+      // Keep cards and chart fully aligned by using the same next-block fee-band source.
+      fast: feeBands[0]?.high ?? null,
+      standard: feeBands[0]?.median ?? null,
+      economy: feeBands[0]?.low ?? null,
     }),
-    [feeBands, metrics?.feeFast, metrics?.feeHalfHour, metrics?.feeHour],
+    [feeBands],
   );
 
   const formatFee = (value: number | null) => {
@@ -44,12 +42,12 @@ export default function FeesPage() {
           </div>
         </div>
 
-        {status === "loading" && !metrics && <LoadingState message="Analyzing mempool dynamics..." />}
-        {status === "error" && !metrics && (
-          <ErrorState message={error ?? "Unable to load fee market data."} onRetry={retry} />
+        {bandsLoading && feeBands.length === 0 && <LoadingState message="Analyzing mempool dynamics..." />}
+        {bandsError && feeBands.length === 0 && (
+          <ErrorState message={bandsError ?? "Unable to load fee market data."} onRetry={retryBands} />
         )}
 
-        {!(status === "loading" && !metrics) && !(status === "error" && !metrics) && (
+        {!(bandsLoading && feeBands.length === 0) && !(bandsError && feeBands.length === 0) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
