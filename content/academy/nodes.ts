@@ -11,7 +11,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
     summary:
       "Bitcoin is a decentralized monetary network where independent nodes enforce a fixed supply and shared transaction history.",
     story:
-      "A new learner opens Raw Block and expects Bitcoin to be a coin app. Instead, they discover a coordination machine. Every ten minutes, thousands of participants across the world converge on one shared ledger state without asking a bank, company, or government for permission. The practical insight is that Bitcoin is not one server and not one company. It is a protocol where rules are transparent, verification is local, and participation is voluntary. The network only works because many independent operators keep checking every block and transaction. That is why Bitcoin can remain online through political pressure, censorship attempts, and infrastructure failures. Once you understand Bitcoin as a rule system plus an open market of participants, most other topics in this path become easier: mining is cost-backed ordering, nodes are rule enforcers, and wallets are interfaces to keys rather than places where coins are stored.",
+      "A new learner opens Raw Block expecting a coin app and instead finds a coordination protocol. Every ten minutes, independent participants across the world converge on one ledger state without a central operator. Bitcoin is not a company server; it is open rules plus local verification. Each full node checks blocks and transactions independently, and that shared discipline keeps the system resilient against censorship and infrastructure failures. Once this model clicks, the rest becomes clearer: miners provide cost-backed ordering, nodes enforce validity, wallets manage keys, and settlement confidence grows with confirmation depth.",
     deepDive: [
       {
         heading: "System model",
@@ -1525,7 +1525,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
     keyTakeaways: ["Anchor node", "Detailed content elsewhere", "Progress-stable"],
     realData: [
       { key: "feeFast", label: "Policy pressure", description: "relay context", display: "sat/vB" },
-      { key: "lastUpdated", label: "snapshot", description: "timestamp", display: "time" },
+      { key: "lastUpdated", label: "snapshot", description: "ISO timestamp value", display: "time" },
     ],
     securityNotes: ["Anchor only", "See mapped concept for details"],
     linkedVulnerabilities: [],
