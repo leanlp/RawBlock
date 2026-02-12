@@ -137,7 +137,7 @@ function DecoderContent() {
                                 onClick={() => fetchDecodedTx('4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b')}
                                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-xs text-slate-400 transition-all hover:border-cyan-500/50 hover:text-cyan-400 sm:w-auto"
                             >
-                                ⚡ Nakamoto&apos;s Genesis Reward
+                                ⚡ Nakamoto&apos;s Genesis Subsidy
                             </button>
                             <button
                                 type="button"

@@ -15,6 +15,11 @@ export interface GraphNode {
   summary: string;
   difficulty: 1 | 2 | 3 | 4;
   claimIds?: string[];
+  advancedNotes?: string[];
+  furtherReading?: {
+    title: string;
+    url: string;
+  }[];
   explorerLinks?: string[];
   securityNotes?: string[];
   securityCaseStudies?: {

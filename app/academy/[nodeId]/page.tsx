@@ -8,6 +8,8 @@ import { graphStore } from "@/lib/graph/store";
 import type { GraphNode } from "@/lib/graph/types";
 import AcademyProgressSync from "@/components/academy/AcademyProgressSync";
 import { claimsById } from "@/data/content/claims";
+import GlossaryText from "@/components/glossary/GlossaryText";
+import { NODE_TYPE_PRESENTATION } from "@/lib/graph/nodeTypePresentation";
 
 type AcademyNodePageProps = {
   params: Promise<{
@@ -112,6 +114,7 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
   const nodeClaims = (node.claimIds ?? [])
     .map((claimId) => claimsById[claimId])
     .filter(Boolean);
+  const nodeFurtherReading = node.furtherReading ?? [];
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-4 py-10 md:px-8">
@@ -119,9 +122,12 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
         <header className="space-y-2">
           <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Academy Node</p>
           <h1 className="text-3xl font-semibold md:text-4xl">{node.title}</h1>
+          <p className="text-sm text-cyan-300">
+            {NODE_TYPE_PRESENTATION[node.type].icon} {NODE_TYPE_PRESENTATION[node.type].label}
+          </p>
           <div className="flex flex-wrap gap-2 text-sm text-slate-300">
             <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1">
-              Type: {node.type}
+              Type: {NODE_TYPE_PRESENTATION[node.type].label}
             </span>
             <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1">
               Difficulty: {node.difficulty}/4
@@ -135,8 +141,25 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
           <div className="space-y-8 lg:col-span-8">
             <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
               <h2 className="mb-3 text-lg font-semibold">Summary</h2>
-              <p className="text-slate-300">{node.summary}</p>
+              <GlossaryText text={node.summary} className="text-slate-300" />
             </section>
+
+            {node.advancedNotes && node.advancedNotes.length > 0 ? (
+              <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                <details>
+                  <summary className="cursor-pointer select-none text-sm font-semibold text-cyan-300">
+                    Explain More...
+                  </summary>
+                  <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
+                    {node.advancedNotes.map((note) => (
+                      <li key={note}>
+                        <GlossaryText text={note} />
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </section>
+            ) : null}
 
             <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
               <h2 className="mb-3 text-lg font-semibold">Related Nodes</h2>
@@ -166,7 +189,9 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
               ) : (
                 <ul className="list-disc space-y-2 pl-5 text-slate-300">
                   {node.securityNotes.map((note) => (
-                    <li key={note}>{note}</li>
+                    <li key={note}>
+                      <GlossaryText text={note} />
+                    </li>
                   ))}
                 </ul>
               )}
@@ -246,7 +271,9 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                       ) : (
                         <ul className="list-disc pl-5 text-slate-300">
                           {consensusRules.map((rule) => (
-                            <li key={rule.id}>{rule.description}</li>
+                            <li key={rule.id}>
+                              <GlossaryText text={rule.description} />
+                            </li>
                           ))}
                         </ul>
                       )}
@@ -258,7 +285,9 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                       ) : (
                         <ul className="list-disc pl-5 text-slate-300">
                           {policyRules.map((rule) => (
-                            <li key={rule.id}>{rule.description}</li>
+                            <li key={rule.id}>
+                              <GlossaryText text={rule.description} />
+                            </li>
                           ))}
                         </ul>
                       )}
@@ -293,10 +322,12 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                       <summary className="cursor-pointer select-none text-sm font-medium text-cyan-300">
                         {study.title}
                       </summary>
-                      <p className="mt-3 text-sm text-slate-300">{study.description}</p>
+                      <p className="mt-3 text-sm text-slate-300">
+                        <GlossaryText text={study.description} />
+                      </p>
                       {study.historicalReference ? (
                         <p className="mt-2 text-xs text-slate-400">
-                          Reference: {study.historicalReference}
+                          Reference: <GlossaryText text={study.historicalReference} />
                         </p>
                       ) : null}
                     </details>
@@ -378,7 +409,9 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
               <h2 className="mb-3 text-lg font-semibold text-cyan-200">Key Recap</h2>
               <ul className="list-disc space-y-2 pl-5 text-sm text-slate-200">
                 {recapPoints.map((point) => (
-                  <li key={point}>{point}</li>
+                  <li key={point}>
+                    <GlossaryText text={point} />
+                  </li>
                 ))}
               </ul>
             </section>
@@ -389,7 +422,9 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                 <ul className="space-y-2 text-sm text-slate-300">
                   {nodeClaims.map((claim) => (
                     <li key={claim.id} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
-                      <p className="text-slate-200">{claim.text}</p>
+                      <p className="text-slate-200">
+                        <GlossaryText text={claim.text} />
+                      </p>
                       <p className="mt-2 text-xs text-slate-400">
                         Verified: {claim.last_verified_at}
                       </p>
@@ -400,6 +435,29 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                         className="mt-1 inline-flex text-xs text-cyan-300 hover:text-cyan-200"
                       >
                         Source
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            {nodeFurtherReading.length > 0 ? (
+              <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                <h2 className="mb-3 text-lg font-semibold">Further Reading</h2>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  {nodeFurtherReading.map((reference) => (
+                    <li key={reference.url} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+                      <p className="text-slate-200">
+                        <GlossaryText text={reference.title} />
+                      </p>
+                      <Link
+                        href={reference.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 inline-flex text-xs text-cyan-300 hover:text-cyan-200"
+                      >
+                        Open source
                       </Link>
                     </li>
                   ))}

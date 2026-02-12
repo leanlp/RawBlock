@@ -483,6 +483,39 @@ export default function DashboardHome() {
                 </div>
             </section>
 
+            {/* Simulation Launchpad */}
+            <section className="w-full mb-12 rounded-2xl border border-amber-500/20 bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6">
+                <div className="mb-5">
+                    <h2 className="text-2xl font-bold text-white">Simulations</h2>
+                    <p className="text-sm text-slate-300 mt-1">
+                        Learn by doing: launch interactive Bitcoin simulations and games.
+                    </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <Link
+                        href="/game/tetris"
+                        className="rounded-lg border border-slate-700 bg-slate-950/70 p-4 hover:border-amber-400/60 transition-colors"
+                    >
+                        <p className="text-base font-semibold text-slate-100">🧱 Mempool Game</p>
+                        <p className="text-xs text-slate-400 mt-1">Build profitable blocks and learn fee-market strategy.</p>
+                    </Link>
+                    <Link
+                        href="/game/mining"
+                        className="rounded-lg border border-slate-700 bg-slate-950/70 p-4 hover:border-amber-400/60 transition-colors"
+                    >
+                        <p className="text-base font-semibold text-slate-100">⛏️ Mining Simulator</p>
+                        <p className="text-xs text-slate-400 mt-1">Test hashrate shocks and difficulty retarget behavior.</p>
+                    </Link>
+                    <Link
+                        href="/lab/lightning"
+                        className="rounded-lg border border-slate-700 bg-slate-950/70 p-4 hover:border-amber-400/60 transition-colors"
+                    >
+                        <p className="text-base font-semibold text-slate-100">⚡ Lightning Simulator</p>
+                        <p className="text-xs text-slate-400 mt-1">Explore channels, routing, and payment trade-offs.</p>
+                    </Link>
+                </div>
+            </section>
+
             {/* Categorized Features */}
             <div className="w-full">
                 <CategorySection category={categories.explore} categoryKey="explore" />

@@ -177,7 +177,7 @@ export default function BlockPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Reward</div>
+                                    <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Coinbase Payout (Subsidy + Fees)</div>
                                     <div className="text-emerald-400 font-mono font-bold text-sm">{(block.reward ?? 0).toFixed(8)} BTC</div>
                                 </div>
                             </div>

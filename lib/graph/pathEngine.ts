@@ -1,5 +1,6 @@
 import { transactionLifecycle } from "@/data/paths/transaction-lifecycle";
 import { bitcoinFoundations } from "@/data/paths/bitcoin-foundations";
+import { lightningPrimer } from "@/data/paths/lightning-primer";
 import { graphStore } from "@/lib/graph/store";
 
 export interface LearningPath {
@@ -19,7 +20,7 @@ export interface PathProgress {
 
 export const CANONICAL_PATH_ID = bitcoinFoundations.id;
 
-const paths: LearningPath[] = [bitcoinFoundations, transactionLifecycle];
+const paths: LearningPath[] = [bitcoinFoundations, lightningPrimer, transactionLifecycle];
 
 export function getCanonicalPath(): LearningPath {
   return bitcoinFoundations;

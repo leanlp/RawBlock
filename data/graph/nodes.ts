@@ -155,6 +155,16 @@ export const graphNodes: GraphNode[] = [
     summary: `Decentralized peer-to-peer monetary network with a fixed supply of ${BITCOIN_MAX_SUPPLY_BTC.toLocaleString()} BTC enforced by consensus rules.`,
     difficulty: 1,
     claimIds: NODE_CLAIM_IDS["what-is-bitcoin"],
+    furtherReading: [
+      {
+        title: "Bitcoin Whitepaper (Satoshi Nakamoto, 2008)",
+        url: "https://bitcoin.org/bitcoin.pdf",
+      },
+      {
+        title: "Bitcoin Developer Guide: Introduction",
+        url: "https://developer.bitcoin.org/devguide/index.html",
+      },
+    ],
   },
   {
     id: "transactions-lifecycle",
@@ -163,6 +173,20 @@ export const graphNodes: GraphNode[] = [
     summary: "Lifecycle from wallet construction and signing, to mempool relay, mining inclusion, and confirmation depth growth.",
     difficulty: 1,
     claimIds: NODE_CLAIM_IDS["transactions-lifecycle"],
+    advancedNotes: [
+      "A transaction is first validated locally by a wallet/node before relay; invalid scripts and malformed serialization are rejected before reaching the mempool.",
+      "Propagation is gossip-based across peers, so arrival order differs by node and network latency; miners do not share one global mempool.",
+    ],
+    furtherReading: [
+      {
+        title: "Bitcoin Developer Guide: Transactions",
+        url: "https://developer.bitcoin.org/devguide/transactions.html",
+      },
+      {
+        title: "BIP 125: Opt-in Full Replace-by-Fee Signaling",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki",
+      },
+    ],
   },
   {
     id: "utxo-model",
@@ -171,6 +195,20 @@ export const graphNodes: GraphNode[] = [
     summary: "State model where transactions consume prior outputs and create new outputs instead of updating account balances.",
     difficulty: 1,
     claimIds: NODE_CLAIM_IDS["utxo-model"],
+    advancedNotes: [
+      "UTXO selection strategy affects fees, privacy, and future spendability. Consolidation lowers future input count but can leak ownership clustering.",
+      "Unlike account systems, Bitcoin validity depends on proving each spent output exists and is unspent at validation time.",
+    ],
+    furtherReading: [
+      {
+        title: "Bitcoin Developer Guide: Transactions and UTXOs",
+        url: "https://developer.bitcoin.org/devguide/transactions.html",
+      },
+      {
+        title: "BIP 30: Duplicate Transactions and UTXO Safety",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0030.mediawiki",
+      },
+    ],
   },
   {
     id: "blocks-and-headers",
@@ -179,6 +217,16 @@ export const graphNodes: GraphNode[] = [
     summary: "Block headers commit to previous block hash, merkle root, and difficulty metadata, making history tamper-evident.",
     difficulty: 1,
     claimIds: NODE_CLAIM_IDS["blocks-and-headers"],
+    furtherReading: [
+      {
+        title: "Bitcoin Developer Reference: Block Chain and Header Fields",
+        url: "https://developer.bitcoin.org/reference/block_chain.html#block-headers",
+      },
+      {
+        title: "BIP 34: Block Height in Coinbase for Version 2 Blocks",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki",
+      },
+    ],
   },
   {
     id: "mining-and-subsidy",
@@ -187,6 +235,20 @@ export const graphNodes: GraphNode[] = [
     summary: `Miners perform proof-of-work and receive subsidy plus fees, with subsidy halving every ${BITCOIN_HALVING_INTERVAL_BLOCKS.toLocaleString()} blocks.`,
     difficulty: 2,
     claimIds: NODE_CLAIM_IDS["mining-and-subsidy"],
+    advancedNotes: [
+      "Miner revenue is subsidy + fees. Over long horizons, fee market dynamics increasingly matter as subsidy decays toward zero.",
+      "Template construction (transaction selection and ordering) is a key competitive edge for miners during high-fee periods.",
+    ],
+    furtherReading: [
+      {
+        title: "Bitcoin Developer Reference: Block Subsidy",
+        url: "https://developer.bitcoin.org/reference/block_chain.html#block-subsidy",
+      },
+      {
+        title: "BIP 42: Finite Monetary Supply and Subsidy Overflow Fix",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0042.mediawiki",
+      },
+    ],
   },
   {
     id: "difficulty-adjustment-2016",
@@ -195,6 +257,20 @@ export const graphNodes: GraphNode[] = [
     summary: "Difficulty retargets every 2016 blocks to keep block production near a 10-minute average despite hashrate shocks.",
     difficulty: 2,
     claimIds: NODE_CLAIM_IDS["difficulty-adjustment-2016"],
+    advancedNotes: [
+      "Retarget uses elapsed time for the previous 2016-block epoch and clamps extreme shifts to preserve stability.",
+      "Fast hashrate drops can cause temporarily slow blocks until the next retarget window completes.",
+    ],
+    furtherReading: [
+      {
+        title: "Bitcoin Wiki: Difficulty",
+        url: "https://en.bitcoin.it/wiki/Difficulty",
+      },
+      {
+        title: "Bitcoin Developer Reference: nBits and Target Encoding",
+        url: "https://developer.bitcoin.org/reference/block_chain.html#target-nbits",
+      },
+    ],
   },
   {
     id: "consensus-rules-vs-policy",
@@ -203,6 +279,20 @@ export const graphNodes: GraphNode[] = [
     summary: "Consensus invalidates blocks/transactions network-wide; policy governs local relay and mempool behavior.",
     difficulty: 2,
     claimIds: NODE_CLAIM_IDS["consensus-rules-vs-policy"],
+    advancedNotes: [
+      "Consensus violations can split chains; policy differences only affect relay/mining preference and do not create permanent consensus forks by themselves.",
+      "Standardness rules can evolve faster than consensus rules, allowing operational hardening without hard-forking consensus.",
+    ],
+    furtherReading: [
+      {
+        title: "Bitcoin Core Source: consensus.h (Consensus Constants)",
+        url: "https://github.com/bitcoin/bitcoin/blob/master/src/consensus/consensus.h",
+      },
+      {
+        title: "Bitcoin Core Source: policy.h (Relay/Mempool Policy)",
+        url: "https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.h",
+      },
+    ],
   },
   {
     id: "pseudonymity-not-anonymity",
@@ -211,6 +301,16 @@ export const graphNodes: GraphNode[] = [
     summary: "Bitcoin addresses are not real names, but public transaction graphs enable tracing, clustering, and attribution.",
     difficulty: 1,
     claimIds: NODE_CLAIM_IDS["pseudonymity-not-anonymity"],
+    furtherReading: [
+      {
+        title: "Bitcoin Wiki: Privacy",
+        url: "https://en.bitcoin.it/wiki/Privacy",
+      },
+      {
+        title: "Address Clustering in Bitcoin (Meiklejohn et al.)",
+        url: "https://www.usenix.org/system/files/conference/imc13/imc13-meiklejohn.pdf",
+      },
+    ],
   },
   {
     id: "wallets-hold-keys-not-coins",
@@ -219,6 +319,16 @@ export const graphNodes: GraphNode[] = [
     summary: "Wallets store private keys and signing material that control UTXOs recorded on-chain; coins are never stored inside the wallet app.",
     difficulty: 1,
     claimIds: NODE_CLAIM_IDS["wallets-hold-keys-not-coins"],
+    furtherReading: [
+      {
+        title: "Bitcoin Developer Guide: Wallets",
+        url: "https://developer.bitcoin.org/devguide/wallets.html",
+      },
+      {
+        title: "BIP 32: Hierarchical Deterministic Wallets",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki",
+      },
+    ],
   },
   {
     id: "address-vs-public-key",
@@ -227,6 +337,16 @@ export const graphNodes: GraphNode[] = [
     summary: "Addresses are encoded script destinations; they are not identical to raw public keys, especially for SegWit and Taproot outputs.",
     difficulty: 2,
     claimIds: NODE_CLAIM_IDS["address-vs-public-key"],
+    furtherReading: [
+      {
+        title: "BIP 173: Bech32 Address Format",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki",
+      },
+      {
+        title: "BIP 350: Bech32m for Taproot Addresses",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki",
+      },
+    ],
   },
   {
     id: "lightning-network-maturity",
@@ -235,6 +355,20 @@ export const graphNodes: GraphNode[] = [
     summary: `Production-ready Layer 2 for fast, low-fee payments. Best for small/medium flow while base layer (~${BITCOIN_BASE_LAYER_TPS_ESTIMATE} TPS) remains final settlement.`,
     difficulty: 2,
     claimIds: NODE_CLAIM_IDS["lightning-network-maturity"],
+    advancedNotes: [
+      "Operational reliability depends on channel liquidity management, route quality, and fallback handling for failed pathfinding.",
+      "Watchtowers and mobile-friendly channel management reduce risk for users that are not always online.",
+    ],
+    furtherReading: [
+      {
+        title: "Lightning Network BOLTs Specification",
+        url: "https://github.com/lightning/bolts",
+      },
+      {
+        title: "BIP 174: Partially Signed Bitcoin Transactions (for channel tooling and coordination)",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki",
+      },
+    ],
   },
   {
     id: "segwit-and-taproot-upgrades",
@@ -243,6 +377,20 @@ export const graphNodes: GraphNode[] = [
     summary: "Major soft-fork upgrades improving malleability resistance, efficiency, and script/signature capabilities without changing Bitcoin's monetary policy.",
     difficulty: 2,
     claimIds: NODE_CLAIM_IDS["segwit-and-taproot-upgrades"],
+    furtherReading: [
+      {
+        title: "BIP 141: Segregated Witness (Consensus Layer)",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki",
+      },
+      {
+        title: "BIP 340/341/342: Schnorr, Taproot, and Tapscript",
+        url: "https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki",
+      },
+      {
+        title: "bitcoin-dev Mailing List: Taproot Proposal Thread",
+        url: "https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2018-January/015614.html",
+      },
+    ],
   },
   {
     id: "double-spend",
@@ -483,7 +631,7 @@ export const graphNodes: GraphNode[] = [
     id: "selfish-mining",
     type: "attack",
     title: "Selfish Mining",
-    summary: "Strategy of withholding blocks to gain disproportionate mining rewards.",
+    summary: "Strategy of withholding blocks to gain disproportionate miner revenue.",
     difficulty: 4,
     securityCaseStudies: [
       {

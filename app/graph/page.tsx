@@ -23,6 +23,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { graphStore } from "@/lib/graph/store";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
+import { NODE_TYPE_PRESENTATION } from "@/lib/graph/nodeTypePresentation";
 
 const TYPE_ORDER = [
   "primitive",
@@ -371,6 +372,7 @@ export default function BitcoinMapPage() {
   const [showOnlyAttackEdges, setShowOnlyAttackEdges] = useState(false);
   const [showOnlyAssumptions, setShowOnlyAssumptions] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const threatMode =
     showFullGraph &&
     (showOnlyVulnerabilities || showOnlyAttackEdges || showOnlyAssumptions);
@@ -403,6 +405,36 @@ export default function BitcoinMapPage() {
     media.addEventListener("change", syncTheme);
     return () => media.removeEventListener("change", syncTheme);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const media = window.matchMedia("(max-width: 768px)");
+    const syncViewport = () => {
+      setIsMobileViewport(media.matches);
+    };
+
+    syncViewport();
+    media.addEventListener("change", syncViewport);
+    return () => media.removeEventListener("change", syncViewport);
+  }, []);
+
+  const effectiveFocusMode = isMobileViewport ? true : focusMode;
+  const effectiveFocusedNodeId = isMobileViewport
+    ? (focusedNodeId ?? canonicalPath.orderedNodes[0] ?? null)
+    : focusedNodeId;
+
+  const mobileSourceNodes = useMemo(() => {
+    const baseNodes = showFullGraph
+      ? graphStore.nodes
+      : graphStore.nodes.filter((node) => canonicalNodeSet.has(node.id));
+
+    return baseNodes.map((node) => ({
+      id: node.id,
+      title: node.title,
+      type: node.type,
+    }));
+  }, [showFullGraph, canonicalNodeSet]);
 
   const handleViewportChange = useCallback((_: unknown, viewport: Viewport) => {
     setZoomLevel(viewport.zoom);
@@ -467,17 +499,17 @@ export default function BitcoinMapPage() {
     );
     const focusedNodeIds = new Set<string>();
 
-    if (focusMode && focusedNodeId) {
-      focusedNodeIds.add(focusedNodeId);
+    if (effectiveFocusMode && effectiveFocusedNodeId) {
+      focusedNodeIds.add(effectiveFocusedNodeId);
       visibleEdges.forEach((edge) => {
-        if (edge.from === focusedNodeId || edge.to === focusedNodeId) {
+        if (edge.from === effectiveFocusedNodeId || edge.to === effectiveFocusedNodeId) {
           focusedNodeIds.add(edge.from);
           focusedNodeIds.add(edge.to);
         }
       });
     }
 
-    const focusActive = focusMode && focusedNodeId !== null;
+    const focusActive = effectiveFocusMode && effectiveFocusedNodeId !== null;
     const activeNodes = focusActive
       ? visibleNodes.filter((node) => focusedNodeIds.has(node.id))
       : visibleNodes;
@@ -486,7 +518,7 @@ export default function BitcoinMapPage() {
           (edge) =>
             focusedNodeIds.has(edge.from) &&
             focusedNodeIds.has(edge.to) &&
-            (edge.from === focusedNodeId || edge.to === focusedNodeId),
+            (edge.from === effectiveFocusedNodeId || edge.to === effectiveFocusedNodeId),
         )
       : visibleEdges;
 
@@ -497,7 +529,7 @@ export default function BitcoinMapPage() {
       const position = lanePosition(node.type, row);
 
       const isPathNode = canonicalNodeSet.has(node.id);
-      const isFocusedNode = focusActive && node.id === focusedNodeId;
+      const isFocusedNode = focusActive && node.id === effectiveFocusedNodeId;
       const muted = !threatMode && !isPathNode;
 
       return {
@@ -508,6 +540,7 @@ export default function BitcoinMapPage() {
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-2">
                 <div className="font-semibold" style={{ color: theme.nodeText }}>
+                  <span className="mr-1">{NODE_TYPE_PRESENTATION[node.type].icon}</span>
                   {node.title}
                 </div>
                 <div
@@ -534,7 +567,7 @@ export default function BitcoinMapPage() {
                 </div>
               </div>
               <div className="text-[11px] uppercase tracking-wide" style={{ color: theme.nodeMeta }}>
-                {node.type} · d{node.difficulty}
+                {NODE_TYPE_PRESENTATION[node.type].label} · d{node.difficulty}
               </div>
             </div>
           ),
@@ -601,8 +634,8 @@ export default function BitcoinMapPage() {
     canonicalNodeSet,
     canonicalStepPairs,
     showFullGraph,
-    focusMode,
-    focusedNodeId,
+    effectiveFocusMode,
+    effectiveFocusedNodeId,
     showOnlyVulnerabilities,
     showOnlyAttackEdges,
     showOnlyAssumptions,
@@ -620,8 +653,8 @@ export default function BitcoinMapPage() {
     () =>
       [
         showFullGraph,
-        focusMode,
-        focusedNodeId ?? "none",
+        effectiveFocusMode,
+        effectiveFocusedNodeId ?? "none",
         showOnlyVulnerabilities,
         showOnlyAttackEdges,
         showOnlyAssumptions,
@@ -630,8 +663,8 @@ export default function BitcoinMapPage() {
       ].join("|"),
     [
       showFullGraph,
-      focusMode,
-      focusedNodeId,
+      effectiveFocusMode,
+      effectiveFocusedNodeId,
       showOnlyVulnerabilities,
       showOnlyAttackEdges,
       showOnlyAssumptions,
@@ -651,7 +684,7 @@ export default function BitcoinMapPage() {
             {threatMode ? "Bitcoin Threat Map" : "Protocol Knowledge Graph"}
           </h1>
           <p className="text-sm" style={{ color: theme.textMuted }}>
-            {focusMode
+            {effectiveFocusMode
               ? "Focus Mode is active. Click a node to isolate it with direct prerequisites and dependents."
               : "Click any node to open its Academy page. Graph is rendered directly from structured node and edge data."}
           </p>
@@ -660,9 +693,9 @@ export default function BitcoinMapPage() {
               Highlighting canonical path: {canonicalPath.title} ({canonicalPath.orderedNodes.length} steps)
             </p>
           ) : null}
-          {focusMode && focusedNodeId ? (
+          {effectiveFocusMode && effectiveFocusedNodeId ? (
             <p className="text-xs text-amber-300">
-              Focused concept: {graphStore.getNode(focusedNodeId)?.title ?? focusedNodeId}
+              Focused concept: {graphStore.getNode(effectiveFocusedNodeId)?.title ?? effectiveFocusedNodeId}
             </p>
           ) : null}
         </header>
@@ -674,7 +707,7 @@ export default function BitcoinMapPage() {
               className="rounded-full border px-2 py-1 uppercase tracking-wide"
               style={{ borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type] }}
             >
-              {type}
+              {NODE_TYPE_PRESENTATION[type].icon} {NODE_TYPE_PRESENTATION[type].label}
             </span>
           ))}
           <span
@@ -715,35 +748,60 @@ export default function BitcoinMapPage() {
               {showFullGraph ? "Showing All Nodes" : "Showing Canonical Path"}
             </span>
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              setFocusMode((prev) => !prev);
-              setFocusedNodeId(null);
-            }}
-            className={`md:col-span-3 flex items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors ${
-              focusMode
-                ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
-                : "border-slate-700 bg-slate-950/70 text-slate-200"
-            }`}
-          >
-            <span className="font-medium">
-              Focus Mode: {focusMode ? "On" : "Off"}
-            </span>
-            <span
-              className={`rounded-full border px-2 py-0.5 text-xs ${
+          {!isMobileViewport ? (
+            <button
+              type="button"
+              onClick={() => {
+                setFocusMode((prev) => !prev);
+                setFocusedNodeId(null);
+              }}
+              className={`md:col-span-3 flex items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors ${
                 focusMode
-                  ? "border-amber-400/70 text-amber-300"
-                  : "border-slate-600 text-slate-400"
+                  ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
+                  : "border-slate-700 bg-slate-950/70 text-slate-200"
               }`}
             >
-              {focusMode
-                ? focusedNodeId
-                  ? "Node Isolated"
-                  : "Select a Node"
-                : "Navigation Enabled"}
-            </span>
-          </button>
+              <span className="font-medium">
+                Focus Mode: {focusMode ? "On" : "Off"}
+              </span>
+              <span
+                className={`rounded-full border px-2 py-0.5 text-xs ${
+                  focusMode
+                    ? "border-amber-400/70 text-amber-300"
+                    : "border-slate-600 text-slate-400"
+                }`}
+              >
+                {focusMode
+                  ? focusedNodeId
+                    ? "Node Isolated"
+                    : "Select a Node"
+                  : "Navigation Enabled"}
+              </span>
+            </button>
+          ) : null}
+          {isMobileViewport ? (
+            <label className="md:col-span-3 flex flex-col gap-1">
+              <span className="text-xs font-medium" style={{ color: theme.textMuted }}>
+                Mobile Focus Node
+              </span>
+              <select
+                value={effectiveFocusedNodeId ?? ""}
+                onChange={(event) => setFocusedNodeId(event.target.value || null)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                style={{
+                  borderColor: theme.sectionBorder,
+                  background: theme.sectionBg,
+                  color: theme.textPrimary,
+                }}
+              >
+                {mobileSourceNodes.map((node) => (
+                  <option key={node.id} value={node.id}>
+                    {NODE_TYPE_PRESENTATION[node.type].icon} {node.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
 
           <label className="flex items-center gap-2">
             <input
@@ -776,7 +834,7 @@ export default function BitcoinMapPage() {
 
         <div
           ref={graphContainerRef}
-          className="relative h-[78vh] overflow-hidden rounded-xl"
+          className="relative h-[70vh] md:h-[78vh] overflow-hidden rounded-xl"
           style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
           onWheel={handleCanvasWheel}
         >
@@ -792,14 +850,14 @@ export default function BitcoinMapPage() {
             preventScrolling
             onMove={handleViewportChange}
             onNodeClick={(_, node) => {
-              if (focusMode) {
+              if (effectiveFocusMode) {
                 setFocusedNodeId(node.id);
                 return;
               }
               router.push(`/academy/${node.id}`);
             }}
             onPaneClick={() => {
-              if (focusMode) {
+              if (effectiveFocusMode) {
                 setFocusedNodeId(null);
               }
               setHoveredNodeId(null);

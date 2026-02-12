@@ -183,7 +183,7 @@ export default function MempoolGame() {
                     {gameState === 'MINED' && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10 backdrop-blur-md">
                             <h2 className="text-4xl font-bold text-white mb-2">Block Mined! 📦</h2>
-                            <p className="text-slate-400 mb-6">Total Reward: <span className="text-emerald-400 font-bold">{(blockSubsidy + (currentFees / 100000000)).toFixed(6)} BTC</span></p>
+                            <p className="text-slate-400 mb-6">Total Coinbase Payout: <span className="text-emerald-400 font-bold">{(blockSubsidy + (currentFees / 100000000)).toFixed(6)} BTC</span></p>
                             <button onClick={startGame} className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-lg">
                                 Play Again
                             </button>

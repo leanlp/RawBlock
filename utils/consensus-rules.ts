@@ -355,7 +355,7 @@ export function validateBlock(block: BlockData): ValidationStep[] {
         check: hasCoinbaseField 
             ? 'First TX is a valid coinbase' 
             : (isLimitedData ? '⚠️ Coinbase data hidden by API, assumed valid position' : 'ERROR: First TX is not a coinbase!'),
-        explanation: 'The coinbase transaction creates new Bitcoin (block reward). It has no real inputs - the "input" is just arbitrary data the miner can set.',
+        explanation: 'The coinbase transaction creates new Bitcoin (block subsidy) and claims fees. It has no real inputs - the "input" is just arbitrary data the miner can set.',
         status: (hasCoinbaseField || isLimitedData) ? 'pass' : 'fail',
         details: {
             isCoinbase: hasCoinbaseField,
@@ -380,19 +380,19 @@ export function validateBlock(block: BlockData): ValidationStep[] {
         }
     });
     
-    // Step 3.3: Block reward check
+    // Step 3.3: Block subsidy check
     const expectedSubsidy = getBitcoinBlockSubsidy(block.header.height);
     // Use mapped outputs if available, otherwise just subsidy + fees (which we can't calc without inputs)
     // Since we don't have inputs, we can't calc fees. 
-    // But we DO have 'reward' from the API mapping in serverv2.js block 1553!
-    // Wait, block data interface doesn't have 'reward'. We should have added it?
+    // But we DO have payout metadata from the API mapping in serverv2.js block 1553.
+    // Wait, block data interface doesn't include payout. We should have added it?
     // Let's rely on vouts sum.
     const coinbaseOutput = coinbase?.vout.reduce((sum, out) => sum + out.value, 0) || 0;
     
     steps.push({
         id: '3.3',
         stage: 3,
-        name: 'Block Reward',
+        name: 'Block Subsidy',
         description: 'Coinbase output must not exceed subsidy + fees',
         rule: `At height ${block.header.height}, subsidy is ${expectedSubsidy} BTC (${Math.floor(block.header.height / BITCOIN_HALVING_INTERVAL_BLOCKS)} halvings)`,
         check: `Coinbase outputs: ${coinbaseOutput.toFixed(8)} BTC`,
@@ -414,7 +414,7 @@ export function validateBlock(block: BlockData): ValidationStep[] {
         description: 'Coinbase outputs require 100 confirmations to spend',
         rule: `Coinbase outputs cannot be spent until ${COINBASE_MATURITY} blocks have been mined on top`,
         check: `Maturity enforced at spend time, not block validation`,
-        explanation: 'This protects against miners who might mine invalid blocks. If the block is orphaned, the coinbase reward disappears - waiting 100 blocks makes this extremely unlikely.',
+        explanation: 'This protects against miners who might mine invalid blocks. If the block is orphaned, its coinbase payout is not spendable on the best chain. Waiting 100 blocks makes reversal risk extremely unlikely.',
         status: 'info',
         details: {
             maturityRequired: COINBASE_MATURITY
