@@ -61,7 +61,6 @@ const NAV_ITEMS = [
         items: [
             { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
             { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
-            { name: "Lightning Simulator", path: "/lab/lightning", icon: "⚡" },
         ]
     }
 ];
