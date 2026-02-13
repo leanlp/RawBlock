@@ -8,6 +8,7 @@ import InteractiveScript from '../../../components/InteractiveScript';
 import { analyzePrivacy } from '../../../utils/privacy';
 import PrivacyReport from '../../../components/PrivacyReport';
 import EducationPanel from '../../../components/EducationPanel';
+import Header from '../../../components/Header';
 
 export const dynamic = "force-dynamic";
 
@@ -209,17 +210,20 @@ function DecoderContent() {
             </div>
 
             <div className="relative z-10 mx-auto w-full max-w-6xl">
+                <div className="md:hidden">
+                    <Header />
+                </div>
                 {!API_URL ? (
                     <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
                         Demo mode: live decoder backend is unavailable. Public fallback supports txid decode only.
                     </div>
                 ) : null}
                 {/* Header */}
-                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <h1 className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-[clamp(1.5rem,2.8vw,2rem)] font-bold leading-tight text-transparent">
+                <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h1 className="page-title mx-auto max-w-[92vw] [text-wrap:balance] bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-center text-transparent sm:mx-0 sm:max-w-none sm:text-left">
                         {result && isAddress(result) ? 'Address Inspector' : 'Transaction Decoder'}
                     </h1>
-                    <Link href="/" className="inline-flex min-h-11 items-center text-sm text-slate-500 transition-colors hover:text-cyan-400">
+                    <Link href="/" className="inline-flex min-h-11 items-center justify-center text-sm text-slate-500 transition-colors hover:text-cyan-400 sm:justify-start">
                         ← Back to Dashboard
                     </Link>
                 </div>

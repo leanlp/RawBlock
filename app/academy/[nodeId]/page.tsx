@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Header from "@/components/Header";
 import AcademyProgressSync from "@/components/academy/AcademyProgressSync";
 import ExplorerDeepLinks from "@/components/academy/ExplorerDeepLinks";
 import NodeRealDataPanel from "@/components/academy/NodeRealDataPanel";
@@ -96,11 +97,14 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
   const linkedPolicyVsConsensus = policyVsConsensus.filter((item) => item.linkedNodeIds.includes(node.id));
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 px-4 py-10 md:px-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Academy Node</p>
-          <h1 className="text-3xl font-semibold md:text-4xl">{node.title}</h1>
+    <main className="page-shell-lg bg-slate-950">
+      <div className="page-wrap-reading">
+        <div className="md:hidden">
+          <Header />
+        </div>
+        <header className="page-header">
+          <p className="page-kicker">Academy Node</p>
+          <h1 className="page-title">{node.title}</h1>
           <p className="text-sm text-cyan-300">
             {NODE_TYPE_PRESENTATION[node.type].icon} {NODE_TYPE_PRESENTATION[node.type].label}
           </p>

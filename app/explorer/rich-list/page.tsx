@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Header from '../../../components/Header';
 
 // Static imports - all whale data embedded in frontend
 import whale01 from '../../../data/whales/whale_01.json';
@@ -68,6 +69,9 @@ export default function RichListPage() {
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono selection:bg-cyan-500/30">
             <div className="max-w-6xl mx-auto space-y-8">
+                <div className="md:hidden">
+                    <Header />
+                </div>
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>

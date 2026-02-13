@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import Header from '../../../../components/Header';
 
 // Static imports - all whale data embedded
 import whale01 from '../../../../data/whales/whale_01.json';
@@ -141,6 +142,9 @@ export default function WhaleDetailPage() {
         return (
             <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
                 <div className="max-w-4xl mx-auto">
+                    <div className="md:hidden">
+                        <Header />
+                    </div>
                     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-8 text-center">
                         <div className="text-red-400 text-lg mb-4">❌ Whale #{rank} not found</div>
                         <Link href="/explorer/rich-list" className="text-cyan-400 hover:underline inline-flex items-center min-h-11">
@@ -155,6 +159,9 @@ export default function WhaleDetailPage() {
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
             <div className="max-w-6xl mx-auto space-y-6">
+                <div className="md:hidden">
+                    <Header />
+                </div>
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>

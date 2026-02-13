@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import io from "socket.io-client";
 import Link from "next/link";
+import Header from "../../../components/Header";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,9 @@ export default function GraffitiPage() {
     return (
         <main className="min-h-screen overflow-x-hidden bg-black text-green-500 font-mono p-4 md:p-8 selection:bg-green-900 selection:text-white">
             <div className="max-w-4xl mx-auto space-y-8 relative">
+                <div className="md:hidden">
+                    <Header />
+                </div>
 
                 {/* Custom Header for this "Hacker" mode */}
                 <div className="border-b border-green-900/50 pb-6 flex flex-wrap justify-between items-center gap-3">

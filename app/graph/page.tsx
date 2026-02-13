@@ -21,6 +21,7 @@ import {
   type Viewport,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import Header from "@/components/Header";
 import { graphStore } from "@/lib/graph/store";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
 import { NODE_TYPE_PRESENTATION } from "@/lib/graph/nodeTypePresentation";
@@ -802,10 +803,13 @@ export default function BitcoinMapPage() {
       style={{ background: theme.pageBg, color: theme.textPrimary }}
     >
       <div className="mx-auto max-w-[1600px] space-y-5">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Knowledge Graph</p>
-          <h1 className="text-3xl font-semibold md:text-4xl">Protocol Knowledge Graph</h1>
-          <p className="text-sm" style={{ color: theme.textMuted }}>
+        <div className="md:hidden">
+          <Header />
+        </div>
+        <header className="page-header">
+          <p className="page-kicker">Knowledge Graph</p>
+          <h1 className="page-title">Protocol Knowledge Graph</h1>
+          <p className="page-subtitle" style={{ color: theme.textMuted }}>
             {isMobileViewport && mobileViewMode === "story"
               ? "Mobile Story mode is active. Step through the canonical path before exploring the full graph."
               : effectiveFocusMode

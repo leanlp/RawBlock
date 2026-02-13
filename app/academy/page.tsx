@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import Header from "@/components/Header";
 import { getAllPaths } from "@/lib/graph/pathEngine";
 import { graphStore } from "@/lib/graph/store";
 
@@ -21,12 +22,15 @@ export default function AcademyLandingPage() {
   }, [query]);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100 md:px-8">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Academy</p>
-          <h1 className="text-3xl font-semibold md:text-4xl">Graph-Driven Learning</h1>
-          <p className="text-sm text-slate-400">
+    <main className="page-shell bg-slate-950">
+      <div className="page-wrap">
+        <div className="md:hidden">
+          <Header />
+        </div>
+        <header className="page-header">
+          <p className="page-kicker">Academy</p>
+          <h1 className="page-title">Graph-Driven Learning</h1>
+          <p className="page-subtitle">
             Learn Bitcoin protocol concepts through structured graph nodes and ordered paths.
           </p>
         </header>

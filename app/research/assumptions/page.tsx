@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Header from "@/components/Header";
 import AcademyNodeReferenceChip from "@/components/academy/AcademyNodeReferenceChip";
 import { getResearchAssumptions } from "@/lib/content/research";
 
@@ -21,11 +22,14 @@ export default function AssumptionsResearchPage() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100 md:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header>
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Research</p>
-          <h1 className="text-3xl font-semibold">Security Assumptions</h1>
+    <main className="page-shell bg-slate-950">
+      <div className="page-wrap-wide">
+        <div className="md:hidden">
+          <Header />
+        </div>
+        <header className="page-header">
+          <p className="page-kicker">Research</p>
+          <h1 className="page-title">Security Assumptions</h1>
         </header>
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:p-4">

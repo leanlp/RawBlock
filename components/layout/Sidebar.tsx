@@ -9,7 +9,18 @@ import { GUIDED_LESSONS } from "../../data/guided-learning";
 import { useGuidedLearning } from "../providers/GuidedLearningProvider";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
 
-const NAV_ITEMS = [
+type NavItem = {
+    name: string;
+    path: string;
+    icon: string;
+};
+
+type NavSection = {
+    category: string;
+    items: NavItem[];
+};
+
+const NAV_ITEMS: NavSection[] = [
     {
         category: "Start",
         items: [
@@ -56,6 +67,18 @@ const NAV_ITEMS = [
             { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
             { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
             { name: "Lightning Simulator", path: "/lab/lightning", icon: "⚡" },
+        ]
+    },
+    {
+        category: "Knowledge",
+        items: [
+            { name: "Academy", path: "/academy", icon: "🎓" },
+            { name: "Knowledge Graph", path: "/graph", icon: "🕸️" },
+            { name: "Research", path: "/research", icon: "📚" },
+            { name: "Vulnerabilities", path: "/research/vulnerabilities", icon: "🛡️" },
+            { name: "Attack Models", path: "/research/attacks", icon: "🎯" },
+            { name: "Assumptions", path: "/research/assumptions", icon: "📌" },
+            { name: "Policy vs Cons.", path: "/research/policy", icon: "⚖️" },
         ]
     },
 ];
@@ -107,18 +130,6 @@ export default function Sidebar() {
 
     const sidebarContent = (
         <>
-            {/* Logo */}
-            <div className="h-16 flex items-center justify-center border-b border-slate-800/50">
-                <Link href="/" onClick={() => setMobileOpen(false)} className="cursor-pointer flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                        <span className="text-white font-bold">R</span>
-                    </div>
-                    <h1 className="font-bold text-slate-200 tracking-tight">
-                        Raw<span className="text-cyan-400">Block</span>
-                    </h1>
-                </Link>
-            </div>
-
             <div className="border-b border-slate-800/50 px-3 py-3">
                 <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
                     <p className="text-[10px] uppercase tracking-widest text-slate-500">Learning Journey</p>
@@ -173,8 +184,8 @@ export default function Sidebar() {
                                             }
                                         `}
                                     >
-                                        <span className="text-lg flex-shrink-0">{item.icon}</span>
-                                        <span className="text-sm font-medium truncate">{item.name}</span>
+                                        <span className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center text-base leading-none">{item.icon}</span>
+                                        <span className="truncate text-[13px] font-medium leading-5 tracking-[0.01em]">{item.name}</span>
                                         {isActive && (
                                             <motion.div
                                                 className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-cyan-400 rounded-r-full"
