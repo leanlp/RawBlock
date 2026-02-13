@@ -2,9 +2,19 @@
 
 import Header from "@/components/Header";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
+import { useFeeMarketData, formatFeeTime } from "@/hooks/useFeeMarketData";
+import { formatSatVb } from "@/lib/feeBands";
+import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 export default function VitalsPage() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
+  const { history, cardFees, loading: feeLoading, hasData: hasFeeData, retry: retryFees } = useFeeMarketData(30_000);
+
+  const renderFee = (value: number | null) => {
+    const formatted = formatSatVb(value);
+    return formatted === "Data temporarily unavailable" ? formatted : `${formatted} sat/vB`;
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans">
@@ -16,7 +26,7 @@ export default function VitalsPage() {
             <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">
               Protocol Vital Signs
             </h1>
-            <p className="mt-2 text-slate-400 text-sm">Raw Block live Bitcoin telemetry with graceful fallback states.</p>
+            <p className="mt-2 text-slate-400 text-sm">Raw Block live Bitcoin telemetry with unified fee intelligence and trend context.</p>
           </div>
         </div>
 
@@ -61,9 +71,9 @@ export default function VitalsPage() {
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
               <p className="text-xs uppercase tracking-widest text-slate-500">Fee Recommendations</p>
               <div className="mt-2 space-y-1 text-sm text-slate-200">
-                <p>Fast: {metrics.feeFast !== null ? `${metrics.feeFast} sat/vB` : "Data temporarily unavailable"}</p>
-                <p>30 min: {metrics.feeHalfHour !== null ? `${metrics.feeHalfHour} sat/vB` : "Data temporarily unavailable"}</p>
-                <p>60 min: {metrics.feeHour !== null ? `${metrics.feeHour} sat/vB` : "Data temporarily unavailable"}</p>
+                <p>Fast: {renderFee(cardFees.fast)}</p>
+                <p>30 min: {renderFee(cardFees.medium)}</p>
+                <p>60 min: {renderFee(cardFees.slow)}</p>
               </div>
             </div>
 
@@ -83,6 +93,90 @@ export default function VitalsPage() {
             </div>
           </div>
         ) : null}
+
+        <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-slate-500">Vital Trend Panel</p>
+              <h2 className="mt-1 text-lg font-semibold text-slate-100">Fee Pressure Over Time</h2>
+            </div>
+            <div className="flex flex-wrap gap-2 text-[11px] font-mono">
+              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-300">
+                Fast {renderFee(cardFees.fast)}
+              </span>
+              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-amber-300">
+                30m {renderFee(cardFees.medium)}
+              </span>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-emerald-300">
+                60m {renderFee(cardFees.slow)}
+              </span>
+            </div>
+          </div>
+
+          {feeLoading && !hasFeeData ? (
+            <div className="h-[320px] animate-pulse rounded-lg border border-slate-800 bg-slate-950/40" />
+          ) : history.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-sm text-slate-400">Fee history is temporarily unavailable.</p>
+              <button
+                type="button"
+                onClick={retryFees}
+                className="mt-3 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-200 hover:border-cyan-400/60 hover:text-cyan-300"
+              >
+                Retry trend feed
+              </button>
+            </div>
+          ) : (
+            <div className="h-[320px] w-full min-w-0 rounded-lg border border-slate-800 bg-slate-950/40 p-2">
+              <SafeResponsiveContainer width="100%" height="100%" minHeight={280}>
+                <AreaChart data={history} margin={{ top: 8, right: 12, left: 6, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="vitals-fee-fast" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="vitals-fee-medium" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="vitals-fee-slow" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="2 4" stroke="#1e293b" vertical={false} />
+                  <XAxis
+                    dataKey="timestamp"
+                    tickFormatter={formatFeeTime}
+                    stroke="#475569"
+                    tick={{ fontSize: 12 }}
+                    minTickGap={48}
+                  />
+                  <YAxis
+                    stroke="#475569"
+                    tick={{ fontSize: 12 }}
+                    domain={[0, "auto"]}
+                    label={{ value: "sat/vB", angle: -90, position: "insideLeft", fill: "#475569" }}
+                  />
+                  <Tooltip
+                    labelFormatter={(value) => formatFeeTime(Number(value))}
+                    formatter={(value, name) => [`${formatSatVb(Number(value))} sat/vB`, String(name)]}
+                    contentStyle={{
+                      backgroundColor: "#020617",
+                      borderColor: "#334155",
+                      color: "#f1f5f9",
+                      borderRadius: "12px",
+                      boxShadow: "0 8px 30px rgba(0,0,0,0.35)",
+                    }}
+                  />
+                  <Area type="monotone" dataKey="slow" stroke="#10b981" fill="url(#vitals-fee-slow)" strokeWidth={2} name="60 min" />
+                  <Area type="monotone" dataKey="medium" stroke="#f59e0b" fill="url(#vitals-fee-medium)" strokeWidth={2} name="30 min" />
+                  <Area type="monotone" dataKey="fast" stroke="#ef4444" fill="url(#vitals-fee-fast)" strokeWidth={2} name="Fast" />
+                </AreaChart>
+              </SafeResponsiveContainer>
+            </div>
+          )}
+        </section>
       </div>
     </main>
   );
