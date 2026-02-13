@@ -219,20 +219,22 @@ export default function HeroMetrics() {
           </Card>
         </Link>
 
-        <Card variant="panel" className="h-full" onClick={() => {}}>
-          <PanelHeader>Live Mempool Stream</PanelHeader>
-          {displayRecentTxIds.length > 0 ? (
-            <div className="space-y-1 text-xs text-slate-300">
-              {displayRecentTxIds.map((txid) => (
-                <p key={txid} className="font-mono text-cyan-400">
-                  TX: {txid.slice(0, 8)}...{txid.slice(-4)}
-                </p>
-              ))}
-            </div>
-          ) : (
-            <div className="text-xs text-slate-400">{error ?? "Data temporarily unavailable"}</div>
-          )}
-        </Card>
+        <Link href="/explorer/mempool" className="block w-full h-full">
+          <Card variant="panel" className="h-full" onClick={() => {}}>
+            <PanelHeader>Live Mempool Stream</PanelHeader>
+            {displayRecentTxIds.length > 0 ? (
+              <div className="space-y-1 text-xs text-slate-300">
+                {displayRecentTxIds.map((txid) => (
+                  <p key={txid} className="font-mono text-cyan-400">
+                    TX: {txid.slice(0, 8)}...{txid.slice(-4)}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <div className="text-xs text-slate-400">{error ?? "Data temporarily unavailable"}</div>
+            )}
+          </Card>
+        </Link>
       </div>
     </div>
   );
