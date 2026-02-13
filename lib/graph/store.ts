@@ -19,6 +19,33 @@ export interface GraphStore {
   getNeighbors(id: string): GraphNode[];
 }
 
+function normalizeIntroducesDirection(edge: Edge): Edge {
+  if (edge.type !== "INTRODUCED_IN") {
+    return edge;
+  }
+
+  return {
+    from: edge.to,
+    to: edge.from,
+    type: "INTRODUCES",
+  };
+}
+
+function canonicalizeEdgesForRendering(edges: Edge[]): Edge[] {
+  const seen = new Set<string>();
+  const canonical: Edge[] = [];
+
+  for (const edge of edges) {
+    const normalized = normalizeIntroducesDirection(edge);
+    const key = `${normalized.from}|${normalized.to}|${normalized.type}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    canonical.push(normalized);
+  }
+
+  return canonical;
+}
+
 function indexGraph(nodes: GraphNode[], edges: Edge[]): GraphIndexes {
   const byId = new Map<string, GraphNode>();
   const outgoing = new Map<string, Edge[]>();
@@ -43,7 +70,7 @@ export function createGraphStore(
   edges: Edge[] = graphEdges,
 ): GraphStore {
   const graphNodesCopy = [...nodes];
-  const graphEdgesCopy = [...edges];
+  const graphEdgesCopy = canonicalizeEdgesForRendering(edges);
   verifyGraphIntegrity(graphNodesCopy, graphEdgesCopy);
   const indexes = indexGraph(graphNodesCopy, graphEdgesCopy);
 

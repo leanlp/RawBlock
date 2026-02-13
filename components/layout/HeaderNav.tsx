@@ -26,7 +26,7 @@ export default function HeaderNav() {
   const pathname = usePathname();
   const [researchMenuOpen, setResearchMenuOpen] = useState(false);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
-  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const menuTriggerRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
     if (!researchMenuOpen) return;
@@ -46,7 +46,7 @@ export default function HeaderNav() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setResearchMenuOpen(false);
-        menuButtonRef.current?.focus();
+        menuTriggerRef.current?.focus();
       }
     };
 
@@ -84,14 +84,26 @@ export default function HeaderNav() {
             );
           })}
 
-          <div className="relative" ref={menuRootRef}>
-            <button
-              ref={menuButtonRef}
-              type="button"
+          <div
+            className="relative"
+            ref={menuRootRef}
+            onMouseEnter={() => setResearchMenuOpen(true)}
+            onMouseLeave={() => setResearchMenuOpen(false)}
+          >
+            <Link
+              ref={menuTriggerRef}
+              href="/research"
               aria-haspopup="menu"
               aria-expanded={researchMenuOpen}
               aria-controls="research-menu"
-              onClick={() => setResearchMenuOpen((open) => !open)}
+              onFocus={() => setResearchMenuOpen(true)}
+              onClick={() => setResearchMenuOpen(false)}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowDown" || event.key === " ") {
+                  event.preventDefault();
+                  setResearchMenuOpen(true);
+                }
+              }}
               className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 ${
                 isResearchPath(pathname)
                   ? "bg-cyan-500/15 text-cyan-300"
@@ -105,11 +117,11 @@ export default function HeaderNav() {
               >
                 ▾
               </span>
-            </button>
+            </Link>
             {researchMenuOpen ? (
               <div
                 id="research-menu"
-                className="absolute right-0 top-full z-50 mt-1.5 w-max min-w-[11rem] max-w-[13rem] rounded-lg border border-slate-800 bg-slate-900/95 p-1 shadow-xl shadow-black/35 backdrop-blur-sm"
+                className="absolute right-0 top-full z-50 mt-1 origin-top-right translate-x-1 w-[min(12rem,calc(100vw-2rem))] min-w-[9.75rem] max-w-[12rem] rounded-lg border border-slate-800 bg-slate-900/95 p-1 shadow-xl shadow-black/35 backdrop-blur-sm"
                 role="menu"
               >
                 {researchItems.map((item) => {
@@ -123,7 +135,7 @@ export default function HeaderNav() {
                       key={item.href}
                       href={item.href}
                       onClick={() => setResearchMenuOpen(false)}
-                      className={`block whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm hover:bg-slate-800 hover:text-slate-100 ${
+                      className={`block rounded-md px-2 py-1.5 text-sm leading-tight hover:bg-slate-800 hover:text-slate-100 ${
                         isActive
                           ? "text-cyan-300"
                           : "text-slate-300"

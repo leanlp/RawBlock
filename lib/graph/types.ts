@@ -43,7 +43,8 @@ export interface Edge {
     | "MITIGATED_BY"
     | "POLICY_ONLY"
     | "NOT_CONSENSUS_CRITICAL"
-    | "INTRODUCED_BY";
+    | "INTRODUCES"
+    | "INTRODUCED_IN";
 }
 
 export interface ValidationRule {

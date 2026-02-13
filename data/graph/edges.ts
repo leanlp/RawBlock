@@ -22,7 +22,7 @@ export const graphEdges: Edge[] = [
   { from: "schnorr-signature", to: "signature", type: "PART_OF" },
 
   { from: "utxo", to: "output", type: "PART_OF" },
-  { from: "transaction", to: "utxo", type: "INTRODUCED_BY" },
+  { from: "transaction", to: "utxo", type: "INTRODUCES" },
   { from: "input", to: "utxo", type: "DEPENDS_ON" },
   { from: "what-is-bitcoin", to: "transactions-lifecycle", type: "DEPENDS_ON" },
   { from: "transactions-lifecycle", to: "utxo-model", type: "DEPENDS_ON" },
@@ -57,7 +57,7 @@ export const graphEdges: Edge[] = [
 
   { from: "mempool", to: "transaction", type: "DEPENDS_ON" },
   { from: "mining", to: "mempool", type: "DEPENDS_ON" },
-  { from: "mining", to: "block", type: "INTRODUCED_BY" },
+  { from: "mining", to: "block", type: "INTRODUCES" },
   { from: "confirmation", to: "block", type: "DEPENDS_ON" },
   { from: "confirmation", to: "transaction", type: "DEPENDS_ON" },
   { from: "fee-rate", to: "mempool", type: "STRENGTHENS" },
@@ -92,12 +92,12 @@ export const graphEdges: Edge[] = [
   { from: "eclipse-attack", to: "double-spend", type: "STRENGTHENS" },
   { from: "orphan-block", to: "reorg", type: "PART_OF" },
 
-  { from: "segwit", to: "witness-data", type: "INTRODUCED_BY" },
-  { from: "segwit", to: "p2wpkh", type: "INTRODUCED_BY" },
-  { from: "segwit", to: "p2wsh", type: "INTRODUCED_BY" },
+  { from: "segwit", to: "witness-data", type: "INTRODUCES" },
+  { from: "segwit", to: "p2wpkh", type: "INTRODUCES" },
+  { from: "segwit", to: "p2wsh", type: "INTRODUCES" },
   { from: "segwit", to: "scriptsig", type: "WEAKENS" },
-  { from: "taproot", to: "p2tr", type: "INTRODUCED_BY" },
-  { from: "taproot", to: "schnorr-signature", type: "INTRODUCED_BY" },
+  { from: "taproot", to: "p2tr", type: "INTRODUCES" },
+  { from: "taproot", to: "schnorr-signature", type: "INTRODUCES" },
   { from: "taproot", to: "script", type: "STRENGTHENS" },
 
   { from: "p2pkh", to: "scriptpubkey", type: "PART_OF" },
