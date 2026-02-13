@@ -84,8 +84,6 @@ export default function HeroMetrics() {
       ? "Live from public sources"
       : status === "error"
         ? "Showing startup snapshot"
-        : status === "loading"
-        ? "Loading network data"
         : "Startup snapshot";
 
   return (

@@ -26,7 +26,7 @@ export default function HeaderNav() {
   const pathname = usePathname();
   const [researchMenuOpen, setResearchMenuOpen] = useState(false);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
-  const menuTriggerRef = useRef<HTMLAnchorElement | null>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const openResearchMenu = () => {
     setResearchMenuOpen(true);
@@ -93,14 +93,14 @@ export default function HeaderNav() {
             ref={menuRootRef}
             onMouseEnter={openResearchMenu}
           >
-            <Link
+            <button
+              type="button"
               ref={menuTriggerRef}
-              href="/research"
               aria-haspopup="menu"
               aria-expanded={researchMenuOpen}
               aria-controls="research-menu"
               onFocus={openResearchMenu}
-              onClick={() => setResearchMenuOpen(false)}
+              onClick={() => setResearchMenuOpen((open) => !open)}
               onKeyDown={(event) => {
                 if (event.key === "ArrowDown" || event.key === " ") {
                   event.preventDefault();
@@ -112,15 +112,15 @@ export default function HeaderNav() {
                   ? "bg-cyan-500/15 text-cyan-300"
                   : "text-slate-300 hover:bg-slate-800/80 hover:text-slate-100"
               }`}
-            >
-              <span>Research</span>
+              >
+                <span>Research</span>
               <span
                 aria-hidden="true"
                 className={`text-[11px] leading-none transition-transform ${researchMenuOpen ? "rotate-180" : ""}`}
               >
                 ▾
               </span>
-            </Link>
+            </button>
             {researchMenuOpen ? (
               <div
                 id="research-menu"
