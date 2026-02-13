@@ -60,7 +60,25 @@ export default function PolicyVsConsensusResearchPage() {
           </div>
         </section>
 
-        <section className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
+        <section className="rounded-xl border border-slate-800 bg-slate-900/40">
+          <div className="space-y-3 p-3 md:hidden">
+            {filtered.map((item) => (
+              <article key={item.id} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                <p className="text-sm font-medium text-slate-100">{item.title}</p>
+                <div className="mt-2 text-xs text-slate-300">
+                  <p><span className="text-slate-500">Layer:</span> {item.layer}</p>
+                </div>
+                <p className="mt-2 text-xs text-slate-400">{item.rationale}</p>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {item.linkedNodeIds.map((nodeId) => (
+                    <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} />
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-slate-800 text-slate-400">
               <tr>
@@ -87,6 +105,7 @@ export default function PolicyVsConsensusResearchPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </section>
       </div>
     </main>

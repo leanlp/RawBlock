@@ -4,8 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-const MENU_CLOSE_DELAY_MS = 140;
-
 const researchItems = [
   { label: "Overview", href: "/research" },
   { label: "Vulnerabilities", href: "/research/vulnerabilities" },
@@ -29,25 +27,9 @@ export default function HeaderNav() {
   const [researchMenuOpen, setResearchMenuOpen] = useState(false);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
   const menuTriggerRef = useRef<HTMLAnchorElement | null>(null);
-  const closeTimerRef = useRef<number | null>(null);
-
-  const clearCloseTimer = () => {
-    if (closeTimerRef.current === null) return;
-    window.clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = null;
-  };
 
   const openResearchMenu = () => {
-    clearCloseTimer();
     setResearchMenuOpen(true);
-  };
-
-  const scheduleCloseResearchMenu = () => {
-    clearCloseTimer();
-    closeTimerRef.current = window.setTimeout(() => {
-      setResearchMenuOpen(false);
-      closeTimerRef.current = null;
-    }, MENU_CLOSE_DELAY_MS);
   };
 
   useEffect(() => {
@@ -80,7 +62,6 @@ export default function HeaderNav() {
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("focusin", handleFocusIn);
       document.removeEventListener("keydown", handleKeyDown);
-      clearCloseTimer();
     };
   }, [researchMenuOpen]);
 
@@ -111,7 +92,6 @@ export default function HeaderNav() {
             className="relative"
             ref={menuRootRef}
             onMouseEnter={openResearchMenu}
-            onMouseLeave={scheduleCloseResearchMenu}
           >
             <Link
               ref={menuTriggerRef}
@@ -144,9 +124,7 @@ export default function HeaderNav() {
             {researchMenuOpen ? (
               <div
                 id="research-menu"
-                className="absolute right-0 top-full z-50 origin-top-right translate-x-1 w-[min(12rem,calc(100vw-2rem))] min-w-[9.75rem] max-w-[12rem] rounded-lg border border-slate-800 bg-slate-900/95 p-1 shadow-xl shadow-black/35 backdrop-blur-sm"
-                onMouseEnter={openResearchMenu}
-                onMouseLeave={scheduleCloseResearchMenu}
+                className="absolute right-0 top-full z-50 mt-1.5 origin-top-right w-[min(10.5rem,calc(100vw-2rem))] min-w-[8.5rem] max-w-[10.5rem] rounded-lg border border-slate-800 bg-slate-900/95 p-1 shadow-xl shadow-black/35 backdrop-blur-sm"
                 role="menu"
               >
                 {researchItems.map((item) => {

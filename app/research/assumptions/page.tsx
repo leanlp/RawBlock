@@ -69,7 +69,26 @@ export default function AssumptionsResearchPage() {
           </div>
         </section>
 
-        <section className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
+        <section className="rounded-xl border border-slate-800 bg-slate-900/40">
+          <div className="space-y-3 p-3 md:hidden">
+            {filtered.map((item) => (
+              <article key={item.id} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                <p className="text-sm font-medium text-slate-100">{item.title}</p>
+                <p className="mt-1 text-xs text-slate-400">{item.summary}</p>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-300">
+                  <p><span className="text-slate-500">Type:</span> {item.assumptionType}</p>
+                  <p><span className="text-slate-500">Severity:</span> {item.severity}</p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {item.linkedNodeIds.map((nodeId) => (
+                    <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} />
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-slate-800 text-slate-400">
               <tr>
@@ -99,6 +118,7 @@ export default function AssumptionsResearchPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </section>
       </div>
     </main>
