@@ -19,6 +19,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const FALLBACK_MEMPOOL_RECENT_URL = "https://mempool.space/api/mempool/recent";
 
 type DataMode = "live" | "snapshot";
+type StreamPhase = "connecting" | "live" | "disconnected" | "snapshot";
 
 function normalizeTransactions(rows: unknown[]): Transaction[] {
     return rows
@@ -50,6 +51,9 @@ export default function MempoolPage() {
     const [data, setData] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [connected, setConnected] = useState<boolean>(false);
+    const [streamPhase, setStreamPhase] = useState<StreamPhase>(API_URL ? "connecting" : "snapshot");
+    const [streamIssue, setStreamIssue] = useState<string | null>(null);
+    const [lastUpdateAt, setLastUpdateAt] = useState<number | null>(null);
     const [socketMempoolCount, setSocketMempoolCount] = useState<number>(0);
     const [dataMode, setDataMode] = useState<DataMode>(API_URL ? "live" : "snapshot");
     const [modeNotice, setModeNotice] = useState<string | null>(
@@ -60,6 +64,24 @@ export default function MempoolPage() {
 
     // Use ref for socket to avoid re-creation
     const socketRef = useRef<Socket | null>(null);
+    const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const clearDisconnectTimer = useCallback(() => {
+        if (disconnectTimerRef.current) {
+            clearTimeout(disconnectTimerRef.current);
+            disconnectTimerRef.current = null;
+        }
+    }, []);
+
+    const beginConnectingWindow = useCallback((reason?: string) => {
+        clearDisconnectTimer();
+        setStreamPhase("connecting");
+        setStreamIssue(reason ?? null);
+        disconnectTimerRef.current = setTimeout(() => {
+            setStreamPhase("disconnected");
+            setStreamIssue(reason ?? "WebSocket blocked or node unreachable.");
+        }, 12_000);
+    }, [clearDisconnectTimer]);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -76,6 +98,7 @@ export default function MempoolPage() {
                     setData(normalizeTransactions(Array.isArray(json) ? json : []));
                     setDataMode("live");
                     setModeNotice(null);
+                    setLastUpdateAt(Date.now());
                     return;
                 } catch (primaryError) {
                     console.warn("Live mempool feed unavailable, falling back to snapshot mode:", primaryError);
@@ -91,6 +114,9 @@ export default function MempoolPage() {
             setDataMode("snapshot");
             setModeNotice("Demo mode: showing public mempool snapshot data.");
             setConnected(false);
+            setStreamPhase("snapshot");
+            setStreamIssue(null);
+            setLastUpdateAt(Date.now());
         } catch (err: unknown) {
             console.error(err);
             if (err instanceof Error) {
@@ -114,6 +140,8 @@ export default function MempoolPage() {
             };
         }
 
+        beginConnectingWindow();
+
         // Socket Connection for full live mode.
         socketRef.current = io(API_URL, {
             transports: ["websocket"],
@@ -127,11 +155,16 @@ export default function MempoolPage() {
             setConnected(true);
             setDataMode("live");
             setModeNotice(null);
+            setStreamPhase("live");
+            setStreamIssue(null);
+            clearDisconnectTimer();
+            setLastUpdateAt(Date.now());
             console.log("Socket Connected");
         });
 
         socket.on("disconnect", () => {
             setConnected(false);
+            beginConnectingWindow("Reconnecting to node stream...");
             console.log("Socket Disconnected");
         });
 
@@ -152,17 +185,18 @@ export default function MempoolPage() {
                 // Keep only top 50 
                 return unique.slice(0, 50);
             });
+            setLastUpdateAt(Date.now());
         });
 
         socket.on("mempool:stats", (stats: { count: number }) => {
             setSocketMempoolCount(stats.count);
+            setLastUpdateAt(Date.now());
         });
 
         socket.on("connect_error", (socketErr: Error) => {
-            console.warn("Socket connection failed, using snapshot mode:", socketErr.message);
+            console.warn("Socket connection failed:", socketErr.message);
             setConnected(false);
-            setDataMode("snapshot");
-            setModeNotice("Live stream unavailable. Showing public mempool snapshot data.");
+            beginConnectingWindow("WebSocket blocked or node unreachable.");
         });
 
         socket.on("rbf:conflict", (event: { txid: string, replacedTxid: string, feeDiff: string }) => {
@@ -174,12 +208,27 @@ export default function MempoolPage() {
 
         return () => {
             clearInterval(refresh);
+            clearDisconnectTimer();
             socket.disconnect();
         };
-    }, [fetchData]);
+    }, [beginConnectingWindow, clearDisconnectTimer, fetchData]);
 
     const [rbfAlert, setRbfAlert] = useState<{ txid: string, replacedTxid: string, feeDiff: string } | null>(null);
     const canonicalMempoolCount = liveMetrics?.mempoolTxCount ?? socketMempoolCount;
+    const statusTimestamp = lastUpdateAt
+        ? new Date(lastUpdateAt)
+        : liveMetrics?.lastUpdated
+            ? new Date(liveMetrics.lastUpdated)
+            : null;
+
+    const handleRetryConnection = () => {
+        setError(null);
+        if (API_URL) {
+            beginConnectingWindow();
+            socketRef.current?.connect();
+        }
+        fetchData();
+    };
 
     return (
         <>
@@ -201,7 +250,7 @@ export default function MempoolPage() {
                                 <span className="text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full">
                                     Snapshot mode
                                 </span>
-                            ) : connected ? (
+                            ) : streamPhase === "live" && connected ? (
                                 <span className="flex items-center gap-1.5 text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">
                                     <span className="relative flex h-2 w-2">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -209,10 +258,21 @@ export default function MempoolPage() {
                                     </span>
                                     Live
                                 </span>
+                            ) : streamPhase === "connecting" ? (
+                                <span className="flex items-center gap-1.5 text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+                                    <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-cyan-400"></span>
+                                    Connecting...
+                                </span>
                             ) : (
                                 <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">Disconnected</span>
                             )}
                         </div>
+                        {statusTimestamp ? (
+                            <div className="text-slate-500">
+                                Last update:{" "}
+                                <span className="font-mono text-slate-300">{statusTimestamp.toLocaleTimeString()}</span>
+                            </div>
+                        ) : null}
                         {canonicalMempoolCount > 0 && (
                             <div className="text-slate-500">
                                 <span className="font-mono text-slate-300">{canonicalMempoolCount.toLocaleString()}</span> txs in mempool
@@ -221,6 +281,20 @@ export default function MempoolPage() {
                     </div>
                 </div>
             </div>
+
+            {dataMode !== "snapshot" && streamPhase === "disconnected" ? (
+                <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-200">
+                    <span>{streamIssue ?? "Live stream unavailable."}</span>
+                    {data.length > 0 ? <span className="text-amber-200">Showing last-known data.</span> : null}
+                    <button
+                        type="button"
+                        onClick={handleRetryConnection}
+                        className="rounded border border-red-400/40 bg-red-400/10 px-2 py-1 text-red-100 hover:bg-red-400/20"
+                    >
+                        Retry
+                    </button>
+                </div>
+            ) : null}
 
             {modeNotice ? (
                 <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">

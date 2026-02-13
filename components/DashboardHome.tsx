@@ -409,6 +409,12 @@ export default function DashboardHome() {
                                 const isActive = index === currentLessonIndex;
                                 const isCompleted = completedLessons.includes(index);
                                 const isLocked = index > maxUnlockedLesson;
+                                const statusLabel = isCompleted ? "Done" : isLocked ? "Locked" : "Current";
+                                const statusClassName = isCompleted
+                                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                                    : isLocked
+                                        ? "border-slate-700/60 bg-slate-900/70 text-slate-500"
+                                        : "border-cyan-500/30 bg-cyan-500/10 text-cyan-300";
 
                                 return (
                                     <button
@@ -416,6 +422,7 @@ export default function DashboardHome() {
                                         type="button"
                                         onClick={() => goToLesson(index)}
                                         disabled={isLocked}
+                                        aria-label={`${index + 1}. ${lesson.title} — ${statusLabel}`}
                                         className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors ${isActive
                                             ? "bg-cyan-500/15 border border-cyan-400/40"
                                             : "border border-transparent"
@@ -428,8 +435,11 @@ export default function DashboardHome() {
                                             <span className="text-sm text-slate-100">
                                                 {index + 1}. {lesson.title}
                                             </span>
-                                            <span className="text-xs text-slate-400">
-                                                {isCompleted ? "Done" : isLocked ? "Locked" : "Current"}
+                                            {" "}
+                                            <span
+                                                className={`rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${statusClassName}`}
+                                            >
+                                                {statusLabel}
                                             </span>
                                         </div>
                                     </button>

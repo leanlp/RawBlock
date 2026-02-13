@@ -21,10 +21,13 @@ export default function VitalsPage() {
         </div>
 
         {status === "loading" && !metrics ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Array.from({ length: 4 }).map((_, idx) => (
-              <div key={`vitals-skeleton-${idx}`} className="h-40 rounded-xl border border-slate-800 bg-slate-900/50 animate-pulse" />
-            ))}
+          <div>
+            <p className="mb-4 text-sm text-slate-500">Connecting to live telemetry...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <div key={`vitals-skeleton-${idx}`} className="h-40 rounded-xl border border-slate-800 bg-slate-900/50 animate-pulse" />
+              ))}
+            </div>
           </div>
         ) : null}
 

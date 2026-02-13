@@ -146,7 +146,7 @@ export default function NetworkPage() {
                         </div>
                     )}
 
-                    {loading && <LoadingState message="Locating global peers..." />}
+                    {loading && <LoadingState message="Connecting to peer telemetry..." />}
 
                     {!loading && error && <ErrorState message={error} onRetry={fetchPeers} />}
 

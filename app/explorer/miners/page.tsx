@@ -134,7 +134,7 @@ export default function MinersPage() {
                     </div>
                 ) : null}
 
-                {loading && <LoadingState message="Scanning blockchain for signatures..." />}
+                {loading && <LoadingState message="Connecting to miner telemetry..." />}
 
                 {!loading && error && <ErrorState message={error} onRetry={fetchData} />}
 
