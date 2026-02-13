@@ -15,46 +15,70 @@ const navItems = [
 const RECENT_SEARCHES_KEY = "rawblock-recent-searches";
 const MAX_RECENT_SEARCHES = 5;
 
+type SearchTarget =
+    | { kind: "block-height"; href: string }
+    | { kind: "block-hash"; href: string }
+    | { kind: "txid"; href: string }
+    | { kind: "address"; href: string }
+    | { kind: "invalid"; href: null };
+
+function classifySearchTarget(query: string): SearchTarget {
+    const q = query.trim();
+    if (!q) return { kind: "invalid", href: null };
+
+    if (/^\d+$/.test(q)) {
+        return { kind: "block-height", href: `/explorer/block/${q}` };
+    }
+    if (/^[a-fA-F0-9]{64}$/.test(q) && q.startsWith("00000")) {
+        return { kind: "block-hash", href: `/explorer/block/${q}` };
+    }
+    if (/^[a-fA-F0-9]{64}$/.test(q)) {
+        return { kind: "txid", href: `/explorer/decoder?query=${encodeURIComponent(q)}` };
+    }
+    if (/^(1|3|bc1|tb1)[a-zA-Z0-9]{20,}$/.test(q)) {
+        return { kind: "address", href: `/explorer/decoder?query=${encodeURIComponent(q)}` };
+    }
+
+    return { kind: "invalid", href: null };
+}
+
 // Quick suggestions based on input patterns
 function getQuickSuggestions(query: string): { label: string; type: string; href: string }[] {
     const q = query.trim();
     if (!q) return [];
 
     const suggestions: { label: string; type: string; href: string }[] = [];
+    const target = classifySearchTarget(q);
 
-    // Block height suggestion
-    if (/^\d+$/.test(q)) {
+    if (target.kind === "block-height" && target.href) {
         suggestions.push({
             label: `Block #${q}`,
             type: "Block Height",
-            href: `/explorer/block/${q}`,
+            href: target.href,
         });
     }
 
-    // Block hash (starts with 00000)
-    if (q.startsWith('00000') && q.length >= 10) {
+    if (target.kind === "block-hash" && target.href) {
         suggestions.push({
             label: `${q.slice(0, 16)}...`,
             type: "Block Hash",
-            href: `/explorer/block/${q}`,
+            href: target.href,
         });
     }
 
-    // Transaction ID pattern (64 hex chars)
-    if (/^[a-fA-F0-9]{10,64}$/.test(q) && !q.startsWith('00000')) {
+    if (target.kind === "txid" && target.href) {
         suggestions.push({
             label: `${q.slice(0, 16)}...`,
             type: "Transaction",
-            href: `/explorer/decoder?query=${encodeURIComponent(q)}`,
+            href: target.href,
         });
     }
 
-    // Bitcoin address patterns
-    if (/^(1|3|bc1|tb1)[a-zA-Z0-9]{20,}$/.test(q)) {
+    if (target.kind === "address" && target.href) {
         suggestions.push({
             label: `${q.slice(0, 16)}...`,
             type: "Address",
-            href: `/explorer/decoder?query=${encodeURIComponent(q)}`,
+            href: target.href,
         });
     }
 
@@ -68,6 +92,7 @@ export default function Header() {
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [recentSearches, setRecentSearches] = useState<string[]>([]);
+    const [searchError, setSearchError] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -101,43 +126,39 @@ export default function Header() {
         .slice(0, 3);
     const allSuggestions = [
         ...quickSuggestions.map((s) => ({ ...s, isRecent: false })),
-        ...filteredRecent.map((s) => ({
-            label: s,
-            type: "Recent",
-            href: `/explorer/decoder?query=${encodeURIComponent(s)}`,
-            isRecent: true,
-        })),
+        ...filteredRecent.map((s) => {
+            const target = classifySearchTarget(s);
+            return {
+                label: s,
+                type: "Recent",
+                href: target.href ?? `/explorer/decoder?query=${encodeURIComponent(s)}`,
+                isRecent: true,
+            };
+        }),
     ];
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         const q = searchQuery.trim();
         if (!q) return;
-
-        saveRecentSearch(q);
         setShowDropdown(false);
 
-        // Route based on input type
-        // Route based on input type
-        if (/^\d+$/.test(q)) {
-            router.push(`/explorer/block/${q}`);
-        } else if (q.startsWith('00000') && q.length === 64) {
-            router.push(`/explorer/block/${q}`);
-        } else if (/^[a-fA-F0-9]{64}$/.test(q)) {
-            router.push(`/explorer/decoder?query=${encodeURIComponent(q)}`);
-        } else if (/^(1|3|bc1|tb1)[a-zA-Z0-9]{20,}$/.test(q)) {
-            router.push(`/explorer/decoder?query=${encodeURIComponent(q)}`);
-        } else {
-            // Fallback for invalid search -> Go to specific block
-            // Toast could be added here if we had a toast context, for now just redirect
-            router.push(`/explorer/block/000000000000000000006b03d76401467ebd608cd78a839a932c466fc2c14467`);
+        const target = classifySearchTarget(q);
+        if (!target.href) {
+            setSearchError("No results found. Use a block height, 64-char hash/txid, or a valid BTC address.");
+            return;
         }
+
+        setSearchError("");
+        saveRecentSearch(q);
+        router.push(target.href);
     };
 
     const handleSelectSuggestion = (href: string, label: string) => {
         saveRecentSearch(label);
         setShowDropdown(false);
         setSearchQuery("");
+        setSearchError("");
         router.push(href);
     };
 
@@ -228,6 +249,7 @@ export default function Header() {
                         value={searchQuery}
                         onChange={(e) => {
                             setSearchQuery(e.target.value);
+                            setSearchError("");
                             setShowDropdown(true);
                             setSelectedIndex(-1);
                         }}
@@ -241,6 +263,9 @@ export default function Header() {
                         </svg>
                     </div>
                 </form>
+                {searchError && (
+                    <p className="mt-2 text-xs text-amber-400">{searchError}</p>
+                )}
 
                 {/* Autocomplete Dropdown */}
                 {showDropdown && (

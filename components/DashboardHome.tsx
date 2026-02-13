@@ -91,7 +91,7 @@ const categories = {
                 icon: "🌱"
             },
             {
-                title: "Lightning Visualizer",
+                title: "Lightning Simulator",
                 description: "Layer 2 simulator. Channels, Rebalancing, and Multi-Hop HTLCs.",
                 href: "/lab/lightning",
                 color: "from-yellow-400 to-amber-600",
@@ -499,7 +499,7 @@ export default function DashboardHome() {
                         href="/game/tetris"
                         className="rounded-lg border border-slate-700 bg-slate-950/70 p-4 hover:border-amber-400/60 transition-colors"
                     >
-                        <p className="text-base font-semibold text-slate-100">🧱 Mempool Game</p>
+                        <p className="text-base font-semibold text-slate-100">🧱 Mempool Tetris</p>
                         <p className="text-xs text-slate-400 mt-1">Build profitable blocks and learn fee-market strategy.</p>
                     </Link>
                     <Link

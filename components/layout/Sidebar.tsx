@@ -52,14 +52,14 @@ const NAV_ITEMS = [
     {
         category: "Arcade",
         items: [
-            { name: "Tetris", path: "/game/tetris", icon: "🧱" },
-            { name: "Mining Sim", path: "/game/mining", icon: "⚡" },
+            { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
+            { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
         ]
     },
     {
         category: "Simulations",
         items: [
-            { name: "Mempool Game", path: "/game/tetris", icon: "🧱" },
+            { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
             { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
             { name: "Lightning Simulator", path: "/lab/lightning", icon: "⚡" },
         ]
