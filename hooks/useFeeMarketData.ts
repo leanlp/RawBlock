@@ -29,12 +29,15 @@ type FeeMarketState = {
   history: FeeHistoryPoint[];
   current: FeeSnapshot | null;
 };
+const FRONTEND_FEE_FLOOR = 0.2;
 
 function parseFee(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return Number(value.toFixed(2));
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Number(Math.max(FRONTEND_FEE_FLOOR, value).toFixed(2));
+  }
   if (typeof value === "string") {
     const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? Number(parsed.toFixed(2)) : null;
+    return Number.isFinite(parsed) ? Number(Math.max(FRONTEND_FEE_FLOOR, parsed).toFixed(2)) : null;
   }
   return null;
 }
