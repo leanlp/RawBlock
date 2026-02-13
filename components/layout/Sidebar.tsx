@@ -210,9 +210,6 @@ export default function Sidebar() {
                         <Linkedin size={16} />
                     </Link>
                 </div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-600 text-center">
-                    App Shell
-                </p>
             </div>
         </>
     );

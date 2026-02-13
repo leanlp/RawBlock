@@ -3,6 +3,8 @@
 import Header from "../../../components/Header";
 import RPCExplorer from "../../../components/rpc-explorer/RPCExplorer";
 
+export const dynamic = "force-dynamic";
+
 export default function RPCExplorerPage() {
     return (
         <div className="space-y-6">

@@ -37,6 +37,8 @@ import {
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 
+export const dynamic = "force-dynamic";
+
 // --- Custom Node Components ---
 
 // 1. Transaction Node (Refined)

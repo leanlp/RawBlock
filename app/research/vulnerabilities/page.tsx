@@ -35,7 +35,7 @@ export default function VulnerabilitiesResearchPage() {
         </header>
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:p-4">
-          <div className="flex items-center justify-between sm:hidden">
+          <div className="flex items-center justify-between md:hidden">
             <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Filters</p>
             <button
               type="button"
@@ -51,7 +51,7 @@ export default function VulnerabilitiesResearchPage() {
 
           <div
             id="vulnerability-filters"
-            className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 sm:mt-0 sm:flex sm:flex-wrap sm:items-center`}
+            className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 md:mt-0 md:grid md:grid-cols-2 xl:flex xl:flex-wrap xl:items-center`}
           >
             <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
               <option value="">All severities</option>

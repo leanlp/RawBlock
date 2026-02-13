@@ -4,6 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 
 // Define Command Type with Template Support
 type CommandDef = { cmd: string; desc: string; template?: string };
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+type HistoryEntry =
+    | { type: 'cmd'; content: string }
+    | { type: 'res' | 'err'; content: unknown };
 
 const COMMAND_GROUPS: { category: string; commands: CommandDef[] }[] = [
     {
@@ -69,8 +73,14 @@ const COMMAND_GROUPS: { category: string; commands: CommandDef[] }[] = [
 ];
 
 export default function RPCExplorer() {
-    const [history, setHistory] = useState<Array<{ type: 'cmd' | 'res' | 'err', content: any }>>([
-        { type: 'res', content: "Bitcoin Core RPC Explorer v1.0.0\nType 'help' for a list of commands or select from the menu.\n" }
+    const isDemoMode = !API_URL;
+    const [history, setHistory] = useState<HistoryEntry[]>([
+        {
+            type: 'res',
+            content: isDemoMode
+                ? "Bitcoin Core RPC Explorer v1.0.0 (Demo Mode)\nLive RPC backend is unavailable in this deployment.\nType 'help' for a list of commands.\n"
+                : "Bitcoin Core RPC Explorer v1.0.0\nType 'help' for a list of commands or select from the menu.\n",
+        }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -107,8 +117,50 @@ export default function RPCExplorer() {
         setLoading(true);
         setInput('');
 
+        if (isDemoMode) {
+            const demoMethod = method.toLowerCase();
+            const demoResults: Record<string, unknown> = {
+                getblockcount: 936310,
+                getbestblockhash: "00000000000000000000d2f42650e9f4b90e26e9a7f3f173a972ee41cf2b8f95",
+                getdifficulty: 104000000000.0,
+                getconnectioncount: 8,
+                getnetworkhashps: 680000000000000000,
+                getmempoolinfo: { loaded: true, size: 14322, bytes: 33429876, usage: 186542208 },
+                getblockchaininfo: { chain: "main", blocks: 936310, headers: 936310, verificationprogress: 0.99999 },
+                getnetworkinfo: { version: 260000, subversion: "/Satoshi:26.0.0/", connections: 8, relayfee: 0.00001 },
+                getmininginfo: { blocks: 936310, networkhashps: 680000000000000000, pooledtx: 14322, chain: "main" },
+            };
+
+            setTimeout(() => {
+                if (demoMethod === "help") {
+                    setHistory((prev) => [
+                        ...prev,
+                        {
+                            type: 'res',
+                            content:
+                                "Demo mode supports a subset of read-only commands:\n" +
+                                Object.keys(demoResults).sort().join(", "),
+                        },
+                    ]);
+                    setLoading(false);
+                    return;
+                }
+                const result = demoResults[demoMethod];
+                if (result === undefined) {
+                    setHistory((prev) => [
+                        ...prev,
+                        { type: 'err', content: `Demo mode: '${method}' is not available without a live RPC backend.` },
+                    ]);
+                } else {
+                    setHistory((prev) => [...prev, { type: 'res', content: result }]);
+                }
+                setLoading(false);
+            }, 220);
+            return;
+        }
+
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/rpc-playground`, {
+            const res = await fetch(`${API_URL}/api/rpc-playground`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ method, params })
@@ -122,8 +174,9 @@ export default function RPCExplorer() {
                 setHistory(prev => [...prev, { type: 'res', content: data.result }]);
             }
 
-        } catch (e: any) {
-            setHistory(prev => [...prev, { type: 'err', content: "Network Error: " + e.message }]);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Unknown error";
+            setHistory(prev => [...prev, { type: 'err', content: "Network Error: " + message }]);
         } finally {
             setLoading(false);
         }
@@ -136,7 +189,13 @@ export default function RPCExplorer() {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-100px)] gap-4 p-4 font-mono text-sm">
+        <div className="space-y-3 p-4 font-mono text-sm">
+            {isDemoMode ? (
+                <div className="w-full rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                    Demo mode: live RPC backend is unavailable. Read-only sample responses are shown.
+                </div>
+            ) : null}
+            <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-100px)] gap-4">
             {/* Sidebar - Learning Menu */}
             <div className="w-full lg:w-64 lg:flex-shrink-0 bg-slate-900/50 border border-slate-800 rounded-lg overflow-hidden flex flex-col max-h-80 lg:max-h-none">
                 <div className="p-3 bg-slate-900 border-b border-slate-800 font-bold text-slate-400">
@@ -232,6 +291,7 @@ export default function RPCExplorer() {
                         EXEC
                     </button>
                 </div>
+            </div>
             </div>
         </div>
     );

@@ -9,6 +9,8 @@ import { analyzePrivacy } from '../../../utils/privacy';
 import PrivacyReport from '../../../components/PrivacyReport';
 import EducationPanel from '../../../components/EducationPanel';
 
+export const dynamic = "force-dynamic";
+
 // ... interfaces ...
 export interface TxInput {
     txid: string;
@@ -52,6 +54,75 @@ interface AddressInfo {
 }
 
 type DecoderResult = (DecodedTx & { type?: 'transaction' }) | AddressInfo;
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const MEMPOOL_TX_API = "https://mempool.space/api/tx";
+
+interface MempoolTxInput {
+    txid?: string;
+    vout?: number;
+    scriptsig?: string;
+    scriptsig_asm?: string;
+    sequence?: number;
+    is_coinbase?: boolean;
+}
+
+interface MempoolTxOutput {
+    value?: number;
+    scriptpubkey?: string;
+    scriptpubkey_asm?: string;
+    scriptpubkey_address?: string;
+}
+
+interface MempoolTx {
+    txid: string;
+    version?: number;
+    locktime?: number;
+    size?: number;
+    weight?: number;
+    vin?: MempoolTxInput[];
+    vout?: MempoolTxOutput[];
+}
+
+function isLikelyTxid(value: string): boolean {
+    return /^[a-fA-F0-9]{64}$/.test(value.trim());
+}
+
+async function decodeViaMempool(txid: string): Promise<DecodedTx> {
+    const res = await fetch(`${MEMPOOL_TX_API}/${txid}`, { cache: "no-store" });
+    if (!res.ok) {
+        throw new Error(`Fallback decoder failed (HTTP ${res.status})`);
+    }
+    const tx = (await res.json()) as MempoolTx;
+    const weight = Number(tx.weight ?? 0);
+    return {
+        txid: tx.txid,
+        hash: tx.txid,
+        version: Number(tx.version ?? 0),
+        size: Number(tx.size ?? 0),
+        vsize: Math.max(1, Math.floor(weight / 4)),
+        weight,
+        locktime: Number(tx.locktime ?? 0),
+        vin: (tx.vin ?? []).map((input) => ({
+            txid: String(input.txid ?? ""),
+            vout: Number(input.vout ?? 0),
+            scriptSig: {
+                asm: String(input.scriptsig_asm ?? ""),
+                hex: String(input.scriptsig ?? ""),
+            },
+            sequence: Number(input.sequence ?? 0),
+            ...(input.is_coinbase ? { coinbase: "true" } : {}),
+        })),
+        vout: (tx.vout ?? []).map((output, index) => ({
+            value: Number(output.value ?? 0) / 100_000_000,
+            n: index,
+            scriptPubKey: {
+                asm: String(output.scriptpubkey_asm ?? ""),
+                hex: String(output.scriptpubkey ?? ""),
+                address: output.scriptpubkey_address,
+            },
+        })),
+    };
+}
 
 function DecoderContent() {
     const searchParams = useSearchParams();
@@ -69,23 +140,43 @@ function DecoderContent() {
         setQuery(txQuery);
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/decode-tx`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: txQuery })
-            });
+            if (API_URL) {
+                const res = await fetch(`${API_URL}/api/decode-tx`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: txQuery })
+                });
 
-            const data = await res.json();
+                const data = await res.json();
 
-            if (!res.ok) {
-                // If it's a 404, specifically mention the node index
-                if (res.status === 404) {
-                    throw new Error("Transaction not found. Your node may be pruning history or lacks -txindex.");
+                if (!res.ok) {
+                    // If it's a 404, specifically mention the node index
+                    if (res.status === 404) {
+                        throw new Error("Transaction not found. Your node may be pruning history or lacks -txindex.");
+                    }
+                    throw new Error(data.error || 'Failed to decode');
                 }
-                throw new Error(data.error || 'Failed to decode');
+                setResult(data);
+                return;
             }
-            setResult(data);
+
+            if (!isLikelyTxid(txQuery)) {
+                throw new Error("Live decoder unavailable. In demo mode, paste a 64-character txid.");
+            }
+            const fallbackTx = await decodeViaMempool(txQuery.trim());
+            setResult({ ...fallbackTx, type: 'transaction' });
         } catch (err: unknown) {
+            // Try public tx fallback even when live API is configured but unavailable.
+            if (isLikelyTxid(txQuery)) {
+                try {
+                    const fallbackTx = await decodeViaMempool(txQuery.trim());
+                    setResult({ ...fallbackTx, type: 'transaction' });
+                    setError("Live backend unavailable. Showing public fallback decode.");
+                    return;
+                } catch {
+                    // fall through to default error handling
+                }
+            }
             setError(err instanceof Error ? err.message : 'Failed to decode');
         } finally {
             setLoading(false);
@@ -118,6 +209,11 @@ function DecoderContent() {
             </div>
 
             <div className="relative z-10 mx-auto w-full max-w-6xl">
+                {!API_URL ? (
+                    <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                        Demo mode: live decoder backend is unavailable. Public fallback supports txid decode only.
+                    </div>
+                ) : null}
                 {/* Header */}
                 <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <h1 className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-[clamp(1.5rem,2.8vw,2rem)] font-bold leading-tight text-transparent">
