@@ -283,8 +283,9 @@ export default function WhaleDetailPage() {
                 )}
 
                 {/* Data Source */}
-                <div className="bg-green-900/20 border border-green-500/30 rounded-lg px-4 py-3 text-xs text-green-300/80">
-                    ✅ <span className="font-bold">Scanned via Local Node</span> — {formatDate(whale.fetchedAt)}
+                <div className="bg-sky-900/20 border border-sky-500/30 rounded-lg px-4 py-3 text-xs text-sky-200/90">
+                    ℹ️ <span className="font-bold">Static address snapshot</span> — This record reflects an address view, not a confirmed entity.
+                    Updated: {formatDate(whale.fetchedAt)}
                 </div>
 
                 {/* UTXOs Table - Simplified */}

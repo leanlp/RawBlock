@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -45,9 +44,6 @@ interface WhaleData {
 export default function RichListPage() {
     const router = useRouter();
 
-    // Hardcoded as we are using static imports now
-    const dataSource = 'api';
-
     const whales: WhaleData[] = allWhales.map(w => ({
         rank: w.rank,
         address: w.address,
@@ -79,7 +75,7 @@ export default function RichListPage() {
                             🐋 Whale Watch
                         </h1>
                         <p className="text-slate-400 text-sm uppercase tracking-widest">
-                            Top 20 Bitcoin Holders • Static Node Data
+                            Top 20 addresses by balance • static snapshot
                         </p>
                     </div>
                     <Link href="/" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors self-start md:self-auto inline-flex items-center min-h-11">
@@ -88,8 +84,9 @@ export default function RichListPage() {
                 </div>
 
                 {/* Data Source Notice */}
-                <div className="bg-green-900/20 border border-green-500/30 rounded-lg px-4 py-3 text-xs text-green-300/80">
-                    ✅ <span className="font-bold">Static Node Data</span> — Scanned from your Bitcoin node via scantxoutset RPC.
+                <div className="bg-sky-900/20 border border-sky-500/30 rounded-lg px-4 py-3 text-xs text-sky-200/90">
+                    ℹ️ <span className="font-bold">Static address snapshot</span> — This table ranks addresses, not entities.
+                    Exchanges/custodians may represent many users.
                     Last updated: {formatDate(whales[0]?.fetchedAt)}
                 </div>
 
@@ -109,7 +106,7 @@ export default function RichListPage() {
                     </div>
                     <div className="bg-slate-900/50 border border-purple-500/30 rounded-xl p-5 text-center">
                         <div className="text-3xl font-bold text-purple-400">20</div>
-                        <div className="text-xs text-slate-500 uppercase mt-1">Whales Tracked</div>
+                        <div className="text-xs text-slate-500 uppercase mt-1">Addresses Tracked</div>
                     </div>
                 </div>
 

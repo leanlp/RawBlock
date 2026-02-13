@@ -19,16 +19,27 @@ export interface GraphStore {
   getNeighbors(id: string): GraphNode[];
 }
 
-function normalizeIntroducesDirection(edge: Edge): Edge {
-  if (edge.type !== "INTRODUCED_IN") {
-    return edge;
+function normalizeLegacyEdge(edge: Edge): Edge {
+  // Legacy edge stored as "X INTRODUCED_IN Y" should be canonicalized to "Y INTRODUCES X".
+  if (edge.type === "INTRODUCED_IN") {
+    return {
+      from: edge.to,
+      to: edge.from,
+      type: "INTRODUCES",
+    };
   }
 
-  return {
-    from: edge.to,
-    to: edge.from,
-    type: "INTRODUCES",
-  };
+  // Legacy edge stored as "X INTRODUCED_BY Y" is often already directed from introducer -> concept.
+  // Canonicalize label to INTRODUCES while preserving direction.
+  if (edge.type === "INTRODUCED_BY") {
+    return {
+      from: edge.from,
+      to: edge.to,
+      type: "INTRODUCES",
+    };
+  }
+
+  return edge;
 }
 
 function canonicalizeEdgesForRendering(edges: Edge[]): Edge[] {
@@ -36,7 +47,7 @@ function canonicalizeEdgesForRendering(edges: Edge[]): Edge[] {
   const canonical: Edge[] = [];
 
   for (const edge of edges) {
-    const normalized = normalizeIntroducesDirection(edge);
+    const normalized = normalizeLegacyEdge(edge);
     const key = `${normalized.from}|${normalized.to}|${normalized.type}`;
     if (seen.has(key)) continue;
     seen.add(key);

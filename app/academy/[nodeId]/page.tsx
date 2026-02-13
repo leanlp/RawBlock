@@ -17,6 +17,7 @@ import {
 } from "@/lib/content/research";
 import { NODE_TYPE_PRESENTATION } from "@/lib/graph/nodeTypePresentation";
 import { graphStore } from "@/lib/graph/store";
+import type { Edge } from "@/lib/graph/types";
 
 type AcademyNodePageProps = {
   params: Promise<{
@@ -54,6 +55,13 @@ const GLOSSARY_ITEMS = [
       "Bitcoin base layer optimizes final settlement and security. Lightning optimizes speed and cost for day-to-day payment flow.",
   },
 ];
+
+function renderRelationLabel(edge: Edge): string {
+  if (edge.type === "INTRODUCED_BY" || edge.type === "INTRODUCED_IN") {
+    return "INTRODUCES";
+  }
+  return edge.type;
+}
 
 export default async function AcademyNodePage({ params }: AcademyNodePageProps) {
   const { nodeId } = await params;
@@ -315,7 +323,7 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                       {outgoing.map((edge) => (
                         <tr key={`out-${edge.from}-${edge.to}-${edge.type}`} className="border-b border-slate-900">
                           <td className="px-2 py-2 text-slate-400">Outgoing</td>
-                          <td className="px-2 py-2 font-mono text-xs">{edge.type}</td>
+                          <td className="px-2 py-2 font-mono text-xs">{renderRelationLabel(edge)}</td>
                           <td className="px-2 py-2">
                             <Link href={`/academy/${edge.to}`} className="text-cyan-300 hover:underline">
                               {graphStore.getNode(edge.to)?.title ?? edge.to}
@@ -326,7 +334,7 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                       {incoming.map((edge) => (
                         <tr key={`in-${edge.from}-${edge.to}-${edge.type}`} className="border-b border-slate-900">
                           <td className="px-2 py-2 text-slate-400">Incoming</td>
-                          <td className="px-2 py-2 font-mono text-xs">{edge.type}</td>
+                          <td className="px-2 py-2 font-mono text-xs">{renderRelationLabel(edge)}</td>
                           <td className="px-2 py-2">
                             <Link href={`/academy/${edge.from}`} className="text-cyan-300 hover:underline">
                               {graphStore.getNode(edge.from)?.title ?? edge.from}

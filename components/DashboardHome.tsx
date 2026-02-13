@@ -6,7 +6,7 @@ import HeroMetrics from "./HeroMetrics";
 import Card from "./Card";
 import { GUIDED_LESSONS } from "../data/guided-learning";
 import { useGuidedLearning } from "./providers/GuidedLearningProvider";
-import { CANONICAL_PATH_ID } from "@/lib/graph/pathEngine";
+import { CANONICAL_PATH_ID, getCanonicalPath } from "@/lib/graph/pathEngine";
 
 // Feature categories for organized navigation
 const categories = {
@@ -300,6 +300,7 @@ export default function DashboardHome() {
         goToNext,
         goToPrevious,
     } = useGuidedLearning();
+    const canonicalPathSteps = getCanonicalPath().orderedNodes.length;
 
     return (
         <div className="flex flex-col items-center justify-start py-8 relative z-10 max-w-7xl w-full mx-auto px-3 sm:px-4">
@@ -373,7 +374,7 @@ export default function DashboardHome() {
                                 href={`/paths/${CANONICAL_PATH_ID}`}
                                 className="inline-flex rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200 hover:bg-cyan-500/20 transition-colors"
                             >
-                                Open Canonical Path
+                                Open Canonical Path ({canonicalPathSteps} concepts)
                             </Link>
                         </div>
                     </div>
@@ -385,7 +386,7 @@ export default function DashboardHome() {
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                         <span>
-                            Lesson {currentLessonIndex + 1} of {GUIDED_LESSONS.length}
+                            Guided lesson {currentLessonIndex + 1} of {GUIDED_LESSONS.length}
                         </span>
                         {resumedFromSession && (
                             <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-cyan-300">

@@ -25,9 +25,22 @@ interface Peer {
     bytes_recv: number;
 }
 
+type DataMode = "live" | "demo";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+
+const DEMO_PEERS: Peer[] = [
+    { id: 1, addr: "203.0.113.11:8333", ip: "203.0.113.11", subver: "/Satoshi:26.0.0/", inbound: false, ping: 0.042, version: 70016, location: { country: "US", city: "New York", ll: [40.71, -74.00] }, bytes_sent: 0, bytes_recv: 0 },
+    { id: 2, addr: "198.51.100.24:8333", ip: "198.51.100.24", subver: "/Satoshi:25.1.0/", inbound: true, ping: 0.081, version: 70016, location: { country: "DE", city: "Frankfurt", ll: [50.11, 8.68] }, bytes_sent: 0, bytes_recv: 0 },
+    { id: 3, addr: "192.0.2.58:8333", ip: "192.0.2.58", subver: "/SatoshiKnots:26.0.0/", inbound: false, ping: 0.114, version: 70016, location: { country: "JP", city: "Tokyo", ll: [35.68, 139.76] }, bytes_sent: 0, bytes_recv: 0 },
+    { id: 4, addr: "203.0.113.77:8333", ip: "203.0.113.77", subver: "/Satoshi:26.0.0/", inbound: true, ping: 0.097, version: 70016, location: { country: "BR", city: "Sao Paulo", ll: [-23.55, -46.63] }, bytes_sent: 0, bytes_recv: 0 },
+    { id: 5, addr: "198.51.100.91:8333", ip: "198.51.100.91", subver: "/Satoshi:25.0.0/", inbound: false, ping: 0.073, version: 70016, location: { country: "GB", city: "London", ll: [51.50, -0.12] }, bytes_sent: 0, bytes_recv: 0 },
+];
+
 export default function NetworkPage() {
     const [peers, setPeers] = useState<Peer[]>([]);
-    const [knownPeers, setKnownPeers] = useState<any[]>([]);
+    const [knownPeers, setKnownPeers] = useState<Peer[]>([]);
+    const [dataMode, setDataMode] = useState<DataMode>(API_URL ? "live" : "demo");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [scanning, setScanning] = useState(false);
@@ -37,19 +50,43 @@ export default function NetworkPage() {
         setLoading(true);
         setError(null);
 
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/peers`)
-            .then(res => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8_000);
+
+        const fallbackToDemo = () => {
+            setPeers(DEMO_PEERS);
+            setKnownPeers([]);
+            setDataMode("demo");
+            setLoading(false);
+        };
+
+        if (!API_URL) {
+            fallbackToDemo();
+            clearTimeout(timeout);
+            return;
+        }
+
+        fetch(`${API_URL}/api/peers`, { cache: "no-store", signal: controller.signal })
+            .then((res) => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.json();
             })
-            .then(data => {
-                setPeers(data || []);
+            .then((data) => {
+                const safePeers = Array.isArray(data) ? (data as Peer[]) : [];
+                if (safePeers.length === 0) {
+                    fallbackToDemo();
+                    return;
+                }
+                setPeers(safePeers);
+                setDataMode("live");
                 setLoading(false);
             })
             .catch(err => {
                 console.error("Failed to fetch peers:", err);
-                setError(err.message);
-                setLoading(false);
+                fallbackToDemo();
+            })
+            .finally(() => {
+                clearTimeout(timeout);
             });
     }, []);
 
@@ -58,12 +95,13 @@ export default function NetworkPage() {
     }, [fetchPeers]);
 
     const handleDeepScan = async () => {
+        if (dataMode === "demo") return;
         if (knownPeers.length > 0) return;
         setScanning(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/known-nodes`);
+            const res = await fetch(`${API_URL}/api/known-nodes`, { cache: "no-store" });
             const data = await res.json();
-            setKnownPeers(data);
+            setKnownPeers(Array.isArray(data) ? (data as Peer[]) : []);
         } catch (e) {
             console.error("Deep Scan failed", e);
         } finally {
@@ -93,10 +131,20 @@ export default function NetworkPage() {
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <PageHeader
                         title="Global Network"
-                        subtitle="Visualizing the decentralized P2P connections of your local Bitcoin node."
+                        subtitle={
+                            dataMode === "live"
+                                ? "Visualizing the decentralized P2P connections of your local Bitcoin node."
+                                : "Demo mode: showing a static peer snapshot while live node APIs are unavailable."
+                        }
                         icon="🌐"
                         gradient="from-emerald-400 to-cyan-400"
                     />
+
+                    {dataMode === "demo" && (
+                        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                            Live peer discovery is unavailable. Rendering demo peer data so this view remains usable.
+                        </div>
+                    )}
 
                     {loading && <LoadingState message="Locating global peers..." />}
 
@@ -107,7 +155,7 @@ export default function NetworkPage() {
                             <div className="text-6xl mb-4">🌍</div>
                             <h3 className="text-xl font-bold text-white mb-2">No Peers Found</h3>
                             <p className="text-slate-400 max-w-md mx-auto mb-8">
-                                Your node doesn't seem to be connected to any peers. Check your network connection.
+                                Your node does not seem to be connected to any peers. Check your network connection.
                             </p>
                             <button
                                 onClick={fetchPeers}
@@ -131,15 +179,23 @@ export default function NetworkPage() {
                                 <div className="absolute top-4 right-4">
                                     <button
                                         onClick={handleDeepScan}
-                                        disabled={scanning || knownPeers.length > 0}
+                                        disabled={dataMode === "demo" || scanning || knownPeers.length > 0}
                                         className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase border transition-all ${knownPeers.length > 0
                                             ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 cursor-default'
                                             : scanning
                                                 ? 'bg-cyan-900/50 border-cyan-800 text-cyan-400 cursor-wait'
-                                                : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-cyan-500 hover:text-cyan-400'
+                                                : dataMode === "demo"
+                                                    ? 'bg-slate-900/40 border-slate-800 text-slate-500 cursor-not-allowed'
+                                                    : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-cyan-500 hover:text-cyan-400'
                                             }`}
                                     >
-                                        {scanning ? 'Scanning...' : knownPeers.length > 0 ? `${knownPeers.length} Nodes` : 'Deep Scan'}
+                                        {dataMode === "demo"
+                                            ? "Deep Scan (Live API Required)"
+                                            : scanning
+                                                ? 'Scanning...'
+                                                : knownPeers.length > 0
+                                                    ? `${knownPeers.length} Nodes`
+                                                    : 'Deep Scan'}
                                     </button>
                                 </div>
                             </div>

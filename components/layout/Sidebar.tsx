@@ -7,6 +7,7 @@ import { Twitter, Linkedin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { GUIDED_LESSONS } from "../../data/guided-learning";
 import { useGuidedLearning } from "../providers/GuidedLearningProvider";
+import { getCanonicalPath } from "@/lib/graph/pathEngine";
 
 const NAV_ITEMS = [
     {
@@ -65,6 +66,7 @@ export default function Sidebar() {
     const { progressPercent, currentLessonIndex } = useGuidedLearning();
     const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
     const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
+    const canonicalConceptCount = getCanonicalPath().orderedNodes.length;
 
     useEffect(() => {
         if (!mobileOpen) return;
@@ -121,7 +123,10 @@ export default function Sidebar() {
                 <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
                     <p className="text-[10px] uppercase tracking-widest text-slate-500">Learning Journey</p>
                     <p className="text-xs text-slate-300 mt-1">
-                        Step {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
+                        Guided Lesson {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
+                    </p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                        Canonical path: {canonicalConceptCount} concepts
                     </p>
                     <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden mt-2">
                         <div

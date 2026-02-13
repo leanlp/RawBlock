@@ -47,7 +47,8 @@ export interface Edge {
     | "POLICY_ONLY"
     | "NOT_CONSENSUS_CRITICAL"
     | "INTRODUCES"
-    | "INTRODUCED_IN";
+    | "INTRODUCED_IN"
+    | "INTRODUCED_BY";
 }
 
 export interface ValidationRule {
