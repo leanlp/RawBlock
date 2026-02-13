@@ -43,7 +43,7 @@ export default function PolicyVsConsensusResearchPage() {
 
           <div
             id="policy-filters"
-            className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 sm:mt-0 sm:grid sm:grid-cols-2 lg:flex lg:flex-wrap`}
+            className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 sm:mt-0 sm:flex sm:flex-wrap sm:items-center`}
           >
             <select value={layer} onChange={(e) => setLayer(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
               <option value="">All layers</option>

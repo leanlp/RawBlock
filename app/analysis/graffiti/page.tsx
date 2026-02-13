@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import io from "socket.io-client";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 interface GraffitiMsg {
     txid: string;
     text: string;
@@ -21,7 +23,7 @@ export default function GraffitiPage() {
     useEffect(() => {
         const controller = new AbortController();
         // Fetch historical (from server memory)
-        fetch(`${API_BASE_URL}/api/graffiti-recent`, { signal: controller.signal })
+        fetch(`${API_BASE_URL}/api/graffiti-recent`, { signal: controller.signal, cache: "no-store" })
             .then((res) => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.json();

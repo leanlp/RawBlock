@@ -113,13 +113,15 @@ export default function HeaderNav() {
                   : "text-slate-300 hover:bg-slate-800/80 hover:text-slate-100"
               }`}
               >
-                <span>Research</span>
-              <span
-                aria-hidden="true"
-                className={`text-[11px] leading-none transition-transform ${researchMenuOpen ? "rotate-180" : ""}`}
-              >
-                ▾
-              </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span>Research</span>
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none text-[11px] leading-none transition-transform ${researchMenuOpen ? "rotate-180" : ""}`}
+                  >
+                    ▾
+                  </span>
+                </span>
             </button>
             {researchMenuOpen ? (
               <div

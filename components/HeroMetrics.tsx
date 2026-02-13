@@ -79,21 +79,14 @@ export default function HeroMetrics() {
   const displayFeeHour = cardFees.slow ?? HERO_FALLBACK_FEES.slow;
   const displayFeeHistory = feeHistory.length > 0 ? feeHistory : HERO_FALLBACK_FEE_HISTORY;
 
-  const liveBadge =
-    hasLiveMetrics
-      ? "Live from public sources"
-      : status === "error"
-        ? "Showing startup snapshot"
-        : "Startup snapshot";
-
   return (
     <div className="w-full mb-12">
-      <div className="flex items-center justify-center gap-2 mb-6">
-        <div
-          className={`w-2 h-2 rounded-full ${hasLiveMetrics ? "bg-emerald-500 animate-pulse" : status === "error" ? "bg-amber-500" : "bg-amber-500 animate-pulse"}`}
-        />
-        <span className="text-xs text-slate-500 uppercase tracking-widest">{liveBadge}</span>
-        {status === "error" ? (
+      {status === "error" && !hasLiveMetrics ? (
+        <div className="mb-6 flex items-center justify-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-amber-500" />
+          <span className="text-xs uppercase tracking-widest text-slate-500">
+            Showing startup snapshot
+          </span>
           <button
             type="button"
             onClick={retry}
@@ -101,8 +94,8 @@ export default function HeroMetrics() {
           >
             Retry
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr">
         <Link href="/explorer/blocks">

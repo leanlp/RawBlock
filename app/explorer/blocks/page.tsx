@@ -7,6 +7,8 @@ import Card, { CardRow } from "../../../components/Card";
 import EmptyState, { LoadingState, ErrorState } from "../../../components/EmptyState";
 import PageHeader from "../../../components/PageHeader";
 
+export const dynamic = "force-dynamic";
+
 interface BlockInfo {
     height: number;
     hash: string;
@@ -39,7 +41,7 @@ export default function BlocksIndexPage() {
         setError(null);
 
         const fetchPrimary = async (): Promise<BlockInfo[]> => {
-            const res = await fetch(`${API_BASE_URL}/api/miners`);
+            const res = await fetch(`${API_BASE_URL}/api/miners`, { cache: "no-store" });
             if (!res.ok) throw new Error(`Primary source HTTP ${res.status}`);
             const data = await res.json();
             if (!Array.isArray(data?.blocks)) {
@@ -49,7 +51,7 @@ export default function BlocksIndexPage() {
         };
 
         const fetchFallback = async (): Promise<BlockInfo[]> => {
-            const res = await fetch(MEMPOOL_BLOCKS_URL);
+            const res = await fetch(MEMPOOL_BLOCKS_URL, { cache: "no-store" });
             if (!res.ok) throw new Error(`Fallback source HTTP ${res.status}`);
             const data = (await res.json()) as MempoolBlockInfo[];
             if (!Array.isArray(data)) {
