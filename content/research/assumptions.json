@@ -47,8 +47,8 @@
     "category": "p2p-network",
     "linkedNodeIds": [
       "transactions-lifecycle",
-      "fees-mempool",
-      "reorgs-finality",
+      "mempool",
+      "reorg",
       "spv-vs-full-node"
     ],
     "summary": "Security and usability assume blocks and transactions propagate across peers quickly enough to limit stale/fork windows.",
@@ -87,7 +87,7 @@
     "category": "game-theory",
     "linkedNodeIds": [
       "mining-and-subsidy",
-      "fees-mempool",
+      "mempool",
       "lightning-network-maturity",
       "security-and-attacks"
     ],

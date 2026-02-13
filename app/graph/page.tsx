@@ -58,6 +58,25 @@ const DIFFICULTY_COLORS: Record<1 | 2 | 3 | 4, string> = {
   4: "#ef4444",
 };
 
+const RELATION_LEGEND = [
+  { type: "DEPENDS_ON", meaning: "A concept requires another prerequisite." },
+  { type: "PART_OF", meaning: "A component belongs to a larger structure." },
+  { type: "VALIDATED_BY", meaning: "A rule/mechanism verifies another element." },
+  { type: "INTRODUCES", meaning: "An upgrade/process introduces a new capability." },
+  { type: "CREATES", meaning: "A process creates a new object/state." },
+  { type: "SPENDS", meaning: "An input consumes an existing UTXO state." },
+  { type: "IS_UNSPENT_FORM_OF", meaning: "UTXO is the unspent state of an output." },
+  { type: "EXPLOITS", meaning: "An attack/vulnerability targets a weakness." },
+  { type: "MITIGATED_BY", meaning: "A control/rule reduces attack impact." },
+  { type: "STRENGTHENS", meaning: "Improves resilience or confidence." },
+  { type: "WEAKENS", meaning: "Reduces resilience or trust assumptions." },
+  { type: "POLICY_ONLY", meaning: "Relay/mempool behavior, not consensus validity." },
+  {
+    type: "NOT_CONSENSUS_CRITICAL",
+    meaning: "A mechanism affects operations, not global validity rules.",
+  },
+] as const;
+
 type GraphThemePalette = {
   pageBg: string;
   sectionBg: string;
@@ -727,235 +746,247 @@ export default function BitcoinMapPage() {
           </span>
         </div>
 
-        <section
-          className="grid gap-2 rounded-xl p-4 text-sm md:grid-cols-3"
-          style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
-        >
-          <label className="md:col-span-3 flex flex-col gap-1">
-            <span className="text-xs font-medium" style={{ color: theme.textMuted }}>
-              Search Concepts
-            </span>
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by title, id, or type..."
-              className="w-full rounded-lg border px-3 py-2 text-sm"
-              style={{
-                borderColor: theme.sectionBorder,
-                background: theme.sectionBg,
-                color: theme.textPrimary,
-              }}
-            />
-          </label>
-          <button
-            type="button"
-            onClick={() => {
-              setShowFullGraph((prev) => !prev);
-              setFocusedNodeId(null);
-            }}
-            className={`md:col-span-3 flex items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors ${
-              showFullGraph
-                ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200"
-                : "border-slate-700 bg-slate-950/70 text-slate-200"
-            }`}
+        <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+          <aside
+            className="space-y-4 rounded-xl p-4 text-sm xl:sticky xl:top-24 xl:self-start"
+            style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
           >
-            <span className="font-medium">
-              Full Graph: {showFullGraph ? "On" : "Off"}{" "}
-              {!showFullGraph ? "(Focused Learning View)" : "(Complete Concept Map)"}
-            </span>
-            <span
-              className={`rounded-full border px-2 py-0.5 text-xs ${
-                showFullGraph
-                  ? "border-cyan-400/70 text-cyan-300"
-                  : "border-slate-600 text-slate-400"
-              }`}
-            >
-              {showFullGraph ? "Showing All Nodes" : "Showing Canonical Path"}
-            </span>
-          </button>
-          {!isMobileViewport ? (
-            <button
-              type="button"
-              onClick={() => {
-                setFocusMode((prev) => !prev);
-                setFocusedNodeId(null);
-              }}
-              className={`md:col-span-3 flex items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors ${
-                focusMode
-                  ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
-                  : "border-slate-700 bg-slate-950/70 text-slate-200"
-              }`}
-            >
-              <span className="font-medium">
-                Focus Mode: {focusMode ? "On" : "Off"}
-              </span>
-              <span
-                className={`rounded-full border px-2 py-0.5 text-xs ${
-                  focusMode
-                    ? "border-amber-400/70 text-amber-300"
-                    : "border-slate-600 text-slate-400"
-                }`}
-              >
-                {focusMode
-                  ? focusedNodeId
-                    ? "Node Isolated"
-                    : "Select a Node"
-                  : "Navigation Enabled"}
-              </span>
-            </button>
-          ) : null}
-          {isMobileViewport ? (
-            <label className="md:col-span-3 flex flex-col gap-1">
-              <span className="text-xs font-medium" style={{ color: theme.textMuted }}>
-                Mobile Focus Node
-              </span>
-              <select
-                value={effectiveFocusedNodeId ?? ""}
-                onChange={(event) => setFocusedNodeId(event.target.value || null)}
+            <section className="space-y-2">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: theme.textMuted }}>
+                Search
+              </h2>
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search by title, id, or type..."
                 className="w-full rounded-lg border px-3 py-2 text-sm"
                 style={{
                   borderColor: theme.sectionBorder,
                   background: theme.sectionBg,
                   color: theme.textPrimary,
                 }}
-              >
-                {mobileSourceNodes.map((node) => (
-                  <option key={node.id} value={node.id}>
-                    {NODE_TYPE_PRESENTATION[node.type].icon} {node.title}
-                  </option>
+              />
+            </section>
+
+            <section className="space-y-2">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: theme.textMuted }}>
+                View Mode
+              </h2>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowFullGraph(false);
+                    setFocusMode(true);
+                    setFocusedNodeId(null);
+                  }}
+                  className={`rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${
+                    !showFullGraph
+                      ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
+                      : "border-slate-700 bg-slate-950/70 text-slate-300"
+                  }`}
+                >
+                  Focused
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowFullGraph(true);
+                    setFocusMode(false);
+                    setFocusedNodeId(null);
+                  }}
+                  className={`rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${
+                    showFullGraph
+                      ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200"
+                      : "border-slate-700 bg-slate-950/70 text-slate-300"
+                  }`}
+                >
+                  Full
+                </button>
+              </div>
+              <p className="text-xs" style={{ color: theme.textMuted }}>
+                {!showFullGraph
+                  ? "Focused view highlights learning-path context and node isolation."
+                  : "Full view renders all mapped concepts and relations."}
+              </p>
+              {isMobileViewport ? (
+                <label className="mt-2 flex flex-col gap-1">
+                  <span className="text-xs font-medium" style={{ color: theme.textMuted }}>
+                    Mobile Focus Node
+                  </span>
+                  <select
+                    value={effectiveFocusedNodeId ?? ""}
+                    onChange={(event) => setFocusedNodeId(event.target.value || null)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    style={{
+                      borderColor: theme.sectionBorder,
+                      background: theme.sectionBg,
+                      color: theme.textPrimary,
+                    }}
+                  >
+                    {mobileSourceNodes.map((node) => (
+                      <option key={node.id} value={node.id}>
+                        {NODE_TYPE_PRESENTATION[node.type].icon} {node.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+            </section>
+
+            <section className="space-y-2">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: theme.textMuted }}>
+                Filters
+              </h2>
+              <label className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={showOnlyVulnerabilities}
+                  disabled={!showFullGraph}
+                  onChange={(event) => setShowOnlyVulnerabilities(event.target.checked)}
+                />
+                Vulnerabilities
+              </label>
+              <label className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={showOnlyAttackEdges}
+                  disabled={!showFullGraph}
+                  onChange={(event) => setShowOnlyAttackEdges(event.target.checked)}
+                />
+                Attacks
+              </label>
+              <label className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={showOnlyAssumptions}
+                  disabled={!showFullGraph}
+                  onChange={(event) => setShowOnlyAssumptions(event.target.checked)}
+                />
+                Assumptions
+              </label>
+              {!showFullGraph ? (
+                <p className="text-[11px]" style={{ color: theme.textMuted }}>
+                  Switch to Full view to apply security-only filters.
+                </p>
+              ) : null}
+            </section>
+
+            <section className="space-y-2">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: theme.textMuted }}>
+                Relation Legend
+              </h2>
+              <ul className="max-h-56 space-y-1 overflow-auto pr-1 text-[11px]">
+                {RELATION_LEGEND.map((item) => (
+                  <li key={item.type} className="rounded-md border border-slate-800 bg-slate-950/50 px-2 py-1">
+                    <p className="font-mono text-[10px] text-cyan-300">{item.type}</p>
+                    <p style={{ color: theme.textMuted }}>{item.meaning}</p>
+                  </li>
                 ))}
-              </select>
-            </label>
-          ) : null}
+              </ul>
+            </section>
+          </aside>
 
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={showOnlyVulnerabilities}
-              disabled={!showFullGraph}
-              onChange={(event) => setShowOnlyVulnerabilities(event.target.checked)}
-            />
-            Show only vulnerabilities
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={showOnlyAttackEdges}
-              disabled={!showFullGraph}
-              onChange={(event) => setShowOnlyAttackEdges(event.target.checked)}
-            />
-            Show only attack edges
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={showOnlyAssumptions}
-              disabled={!showFullGraph}
-              onChange={(event) => setShowOnlyAssumptions(event.target.checked)}
-            />
-            Show only security assumptions
-          </label>
-        </section>
-
-        <div
-          ref={graphContainerRef}
-          className="relative h-[70vh] md:h-[78vh] overflow-hidden rounded-xl"
-          style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
-          onWheel={handleCanvasWheel}
-        >
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            minZoom={MIN_GRAPH_ZOOM}
-            maxZoom={MAX_GRAPH_ZOOM}
-            zoomOnPinch
-            zoomOnScroll
-            panOnScroll={false}
-            zoomOnDoubleClick={false}
-            preventScrolling
-            onMove={handleViewportChange}
-            onNodeClick={(_, node) => {
-              if (effectiveFocusMode) {
-                setFocusedNodeId(node.id);
-                return;
-              }
-              router.push(`/academy/${node.id}`);
-            }}
-            onPaneClick={() => {
-              if (effectiveFocusMode) {
-                setFocusedNodeId(null);
-              }
-              setHoveredNodeId(null);
-            }}
-            onNodeMouseEnter={(event, node) => {
-              setHoveredNodeId(node.id);
-              setTooltipPosition({ x: event.clientX, y: event.clientY });
-            }}
-            onNodeMouseMove={(event, node) => {
-              if (hoveredNodeId !== node.id) {
-                setHoveredNodeId(node.id);
-              }
-              setTooltipPosition({ x: event.clientX, y: event.clientY });
-            }}
-            onNodeMouseLeave={() => {
-              setHoveredNodeId(null);
-            }}
-            onNodeDragStart={() => {
-              setIsNodeDragging(true);
-              setHoveredNodeId(null);
-            }}
-            onNodeDragStop={() => {
-              window.setTimeout(() => {
-                setIsNodeDragging(false);
-              }, 110);
-            }}
-            nodesDraggable
-            attributionPosition="bottom-left"
+          <div
+            ref={graphContainerRef}
+            className="relative h-[70vh] md:h-[78vh] overflow-hidden rounded-xl"
+            style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
+            onWheel={handleCanvasWheel}
           >
-            <GraphFitController
-              containerRef={graphContainerRef}
-              fitVersion={graphFitVersion}
-              suspendAutoFit={isNodeDragging}
-              allowAutoFit
-            />
-            <GraphZoomPanel
-              zoomLevel={zoomLevel}
-              onZoomLabelChange={handleZoomLabelChange}
-              theme={theme}
-            />
-            <MiniMap
-              nodeStrokeWidth={2}
-              nodeColor={(node) => {
-                const raw = graphStore.getNode(node.id);
-                if (!raw) return "#64748b";
-                if (!threatMode && canonicalNodeSet.has(raw.id)) return "#22d3ee";
-                return TYPE_COLORS[raw.type] ?? "#64748b";
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              minZoom={MIN_GRAPH_ZOOM}
+              maxZoom={MAX_GRAPH_ZOOM}
+              zoomOnPinch
+              zoomOnScroll
+              panOnScroll={false}
+              zoomOnDoubleClick={false}
+              preventScrolling
+              onMove={handleViewportChange}
+              onNodeClick={(_, node) => {
+                if (effectiveFocusMode) {
+                  setFocusedNodeId(node.id);
+                  return;
+                }
+                router.push(`/academy/${node.id}`);
               }}
-              maskColor={theme.minimapMask}
-            />
-            <Background gap={20} size={1} color="#1e293b" />
-          </ReactFlow>
-          {hoveredNode ? (
-            <div
-              className="pointer-events-none fixed z-50 max-w-xs rounded-lg border p-3 shadow-2xl"
-              style={{
-                left: tooltipPosition.x + 14,
-                top: tooltipPosition.y + 14,
-                borderColor: theme.tooltipBorder,
-                background: theme.tooltipBg,
+              onPaneClick={() => {
+                if (effectiveFocusMode) {
+                  setFocusedNodeId(null);
+                }
+                setHoveredNodeId(null);
               }}
+              onNodeMouseEnter={(event, node) => {
+                setHoveredNodeId(node.id);
+                setTooltipPosition({ x: event.clientX, y: event.clientY });
+              }}
+              onNodeMouseMove={(event, node) => {
+                if (hoveredNodeId !== node.id) {
+                  setHoveredNodeId(node.id);
+                }
+                setTooltipPosition({ x: event.clientX, y: event.clientY });
+              }}
+              onNodeMouseLeave={() => {
+                setHoveredNodeId(null);
+              }}
+              onNodeDragStart={() => {
+                setIsNodeDragging(true);
+                setHoveredNodeId(null);
+              }}
+              onNodeDragStop={() => {
+                window.setTimeout(() => {
+                  setIsNodeDragging(false);
+                }, 110);
+              }}
+              nodesDraggable
+              attributionPosition="bottom-left"
             >
-              <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>
-                {hoveredNode.title}
-              </p>
-              <p className="mt-1 text-[11px]" style={{ color: theme.textSubtle }}>
-                {NODE_TYPE_PRESENTATION[hoveredNode.type].label} · difficulty {hoveredNode.difficulty}/4
-              </p>
-              <p className="mt-1 text-xs leading-relaxed" style={{ color: theme.textMuted }}>
-                {hoveredNode.summary}
-              </p>
-            </div>
-          ) : null}
+              <GraphFitController
+                containerRef={graphContainerRef}
+                fitVersion={graphFitVersion}
+                suspendAutoFit={isNodeDragging}
+                allowAutoFit
+              />
+              <GraphZoomPanel
+                zoomLevel={zoomLevel}
+                onZoomLabelChange={handleZoomLabelChange}
+                theme={theme}
+              />
+              <MiniMap
+                nodeStrokeWidth={2}
+                nodeColor={(node) => {
+                  const raw = graphStore.getNode(node.id);
+                  if (!raw) return "#64748b";
+                  if (!threatMode && canonicalNodeSet.has(raw.id)) return "#22d3ee";
+                  return TYPE_COLORS[raw.type] ?? "#64748b";
+                }}
+                maskColor={theme.minimapMask}
+              />
+              <Background gap={20} size={1} color="#1e293b" />
+            </ReactFlow>
+            {hoveredNode ? (
+              <div
+                className="pointer-events-none fixed z-50 max-w-xs rounded-lg border p-3 shadow-2xl"
+                style={{
+                  left: tooltipPosition.x + 14,
+                  top: tooltipPosition.y + 14,
+                  borderColor: theme.tooltipBorder,
+                  background: theme.tooltipBg,
+                }}
+              >
+                <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>
+                  {hoveredNode.title}
+                </p>
+                <p className="mt-1 text-[11px]" style={{ color: theme.textSubtle }}>
+                  {NODE_TYPE_PRESENTATION[hoveredNode.type].label} · difficulty {hoveredNode.difficulty}/4
+                </p>
+                <p className="mt-1 text-xs leading-relaxed" style={{ color: theme.textMuted }}>
+                  {hoveredNode.summary}
+                </p>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
       <style jsx global>{`

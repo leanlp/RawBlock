@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+const MENU_CLOSE_DELAY_MS = 140;
+
 const researchItems = [
   { label: "Overview", href: "/research" },
   { label: "Vulnerabilities", href: "/research/vulnerabilities" },
@@ -27,6 +29,26 @@ export default function HeaderNav() {
   const [researchMenuOpen, setResearchMenuOpen] = useState(false);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
   const menuTriggerRef = useRef<HTMLAnchorElement | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
+
+  const clearCloseTimer = () => {
+    if (closeTimerRef.current === null) return;
+    window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = null;
+  };
+
+  const openResearchMenu = () => {
+    clearCloseTimer();
+    setResearchMenuOpen(true);
+  };
+
+  const scheduleCloseResearchMenu = () => {
+    clearCloseTimer();
+    closeTimerRef.current = window.setTimeout(() => {
+      setResearchMenuOpen(false);
+      closeTimerRef.current = null;
+    }, MENU_CLOSE_DELAY_MS);
+  };
 
   useEffect(() => {
     if (!researchMenuOpen) return;
@@ -58,6 +80,7 @@ export default function HeaderNav() {
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("focusin", handleFocusIn);
       document.removeEventListener("keydown", handleKeyDown);
+      clearCloseTimer();
     };
   }, [researchMenuOpen]);
 
@@ -87,8 +110,8 @@ export default function HeaderNav() {
           <div
             className="relative"
             ref={menuRootRef}
-            onMouseEnter={() => setResearchMenuOpen(true)}
-            onMouseLeave={() => setResearchMenuOpen(false)}
+            onMouseEnter={openResearchMenu}
+            onMouseLeave={scheduleCloseResearchMenu}
           >
             <Link
               ref={menuTriggerRef}
@@ -96,12 +119,12 @@ export default function HeaderNav() {
               aria-haspopup="menu"
               aria-expanded={researchMenuOpen}
               aria-controls="research-menu"
-              onFocus={() => setResearchMenuOpen(true)}
+              onFocus={openResearchMenu}
               onClick={() => setResearchMenuOpen(false)}
               onKeyDown={(event) => {
                 if (event.key === "ArrowDown" || event.key === " ") {
                   event.preventDefault();
-                  setResearchMenuOpen(true);
+                  openResearchMenu();
                 }
               }}
               className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 ${
@@ -121,7 +144,9 @@ export default function HeaderNav() {
             {researchMenuOpen ? (
               <div
                 id="research-menu"
-                className="absolute right-0 top-full z-50 mt-1 origin-top-right translate-x-1 w-[min(12rem,calc(100vw-2rem))] min-w-[9.75rem] max-w-[12rem] rounded-lg border border-slate-800 bg-slate-900/95 p-1 shadow-xl shadow-black/35 backdrop-blur-sm"
+                className="absolute right-0 top-full z-50 origin-top-right translate-x-1 w-[min(12rem,calc(100vw-2rem))] min-w-[9.75rem] max-w-[12rem] rounded-lg border border-slate-800 bg-slate-900/95 p-1 shadow-xl shadow-black/35 backdrop-blur-sm"
+                onMouseEnter={openResearchMenu}
+                onMouseLeave={scheduleCloseResearchMenu}
                 role="menu"
               >
                 {researchItems.map((item) => {

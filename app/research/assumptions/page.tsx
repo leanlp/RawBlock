@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
+import AcademyNodeReferenceChip from "@/components/academy/AcademyNodeReferenceChip";
 import { getResearchAssumptions } from "@/lib/content/research";
-import { graphStore } from "@/lib/graph/store";
 
 export default function AssumptionsResearchPage() {
   const assumptions = getResearchAssumptions();
@@ -92,9 +91,7 @@ export default function AssumptionsResearchPage() {
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap gap-1">
                       {item.linkedNodeIds.map((nodeId) => (
-                        <Link key={`${item.id}-${nodeId}`} href={`/academy/${nodeId}`} className="rounded border border-slate-700 px-2 py-0.5 text-xs text-cyan-300 hover:border-cyan-500">
-                          {graphStore.getNode(nodeId)?.title ?? nodeId}
-                        </Link>
+                        <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} />
                       ))}
                     </div>
                   </td>

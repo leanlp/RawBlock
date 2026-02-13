@@ -21,9 +21,9 @@ export const graphEdges: Edge[] = [
   { from: "ecdsa-signature", to: "signature", type: "PART_OF" },
   { from: "schnorr-signature", to: "signature", type: "PART_OF" },
 
-  { from: "utxo", to: "output", type: "PART_OF" },
-  { from: "transaction", to: "utxo", type: "INTRODUCES" },
-  { from: "input", to: "utxo", type: "DEPENDS_ON" },
+  { from: "transaction", to: "output", type: "CREATES" },
+  { from: "utxo", to: "output", type: "IS_UNSPENT_FORM_OF" },
+  { from: "input", to: "utxo", type: "SPENDS" },
   { from: "what-is-bitcoin", to: "transactions-lifecycle", type: "DEPENDS_ON" },
   { from: "transactions-lifecycle", to: "utxo-model", type: "DEPENDS_ON" },
   { from: "utxo-model", to: "blocks-and-headers", type: "DEPENDS_ON" },

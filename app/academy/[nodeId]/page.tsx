@@ -197,20 +197,30 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
                   <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
                     <p className="text-xs uppercase tracking-wide text-slate-500">Consensus Rules</p>
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-300">
+                    <ul className="mt-2 space-y-2 text-xs text-slate-300">
                       {nodeContent.consensusRules.map((rule) => (
-                        <li key={rule}>
-                          <GlossaryText text={rule} />
+                        <li key={rule} className="flex items-start gap-2">
+                          <span className="mt-0.5 inline-flex shrink-0 rounded border border-emerald-700 bg-emerald-900/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-emerald-300">
+                            Consensus
+                          </span>
+                          <span className="min-w-0">
+                            <GlossaryText text={rule} />
+                          </span>
                         </li>
                       ))}
                     </ul>
                   </div>
                   <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
                     <p className="text-xs uppercase tracking-wide text-slate-500">Policy Rules</p>
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-300">
+                    <ul className="mt-2 space-y-2 text-xs text-slate-300">
                       {nodeContent.policyRules.map((rule) => (
-                        <li key={rule}>
-                          <GlossaryText text={rule} />
+                        <li key={rule} className="flex items-start gap-2">
+                          <span className="mt-0.5 inline-flex shrink-0 rounded border border-amber-700 bg-amber-900/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-amber-300">
+                            Policy
+                          </span>
+                          <span className="min-w-0">
+                            <GlossaryText text={rule} />
+                          </span>
                         </li>
                       ))}
                     </ul>

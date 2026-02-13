@@ -9,7 +9,7 @@
       "consensus-rules-vs-policy",
       "spv-vs-full-node",
       "security-and-attacks",
-      "reorgs-finality"
+      "reorg"
     ],
     "summary": "An attacker isolates a target node's peer connections to control its view of blocks and transactions.",
     "targetLayer": "network",
@@ -49,7 +49,7 @@
     "linkedNodeIds": [
       "mining-and-subsidy",
       "difficulty-adjustment-2016",
-      "reorgs-finality",
+      "reorg",
       "security-and-attacks"
     ],
     "summary": "A miner withholds valid blocks strategically to increase expected revenue over fully honest publication.",
@@ -88,10 +88,10 @@
     "severity": "medium",
     "category": "economic-reorg",
     "linkedNodeIds": [
-      "fees-mempool",
-      "mining-and-subsidy",
-      "reorgs-finality",
-      "security-and-attacks"
+      "mempool",
+      "mining",
+      "reorg",
+      "consensus-rules-vs-policy"
     ],
     "summary": "During extreme fee spikes, miners may have incentive to attempt short reorgs to capture recent fee-rich blocks.",
     "targetLayer": "economic",
@@ -130,7 +130,7 @@
     "category": "mempool-policy-abuse",
     "linkedNodeIds": [
       "transactions-lifecycle",
-      "fees-mempool",
+      "mempool",
       "consensus-rules-vs-policy",
       "security-and-attacks"
     ],
@@ -160,6 +160,129 @@
         "title": "Bitcoin Developer Guide: Transactions",
         "url": "https://developer.bitcoin.org/devguide/transactions.html",
         "type": "dev-guide"
+      }
+    ]
+  },
+  {
+    "id": "lightning-channel-jamming",
+    "title": "Lightning Channel Jamming",
+    "year": 2020,
+    "severity": "medium",
+    "category": "ln-routing-abuse",
+    "linkedNodeIds": [
+      "lightning-network-maturity",
+      "mempool",
+      "consensus-rules-vs-policy",
+      "transactions-lifecycle"
+    ],
+    "summary": "Attackers occupy HTLC slots and route capacity to degrade payment success for other users without necessarily stealing funds.",
+    "targetLayer": "network",
+    "attackerCapabilities": [
+      "Ability to open/fund channels and issue many strategic payments or HTLCs",
+      "Sufficient capital and timing coordination to sustain congestion pressure"
+    ],
+    "mitigations": [
+      "Use liquidity-aware routing and channel policy tuning to reduce jam impact",
+      "Apply operational monitoring and fallback paths, including on-chain settlement when needed"
+    ],
+    "observedInWild": false,
+    "sources": [
+      {
+        "title": "Lightning BOLTs specification",
+        "url": "https://github.com/lightning/bolts",
+        "type": "reference"
+      },
+      {
+        "title": "Bitcoin Optech topic: channel jamming attacks",
+        "url": "https://bitcoinops.org/en/topics/channel-jamming-attacks/",
+        "type": "reference"
+      },
+      {
+        "title": "Mastering Lightning",
+        "url": "https://github.com/lnbook/lnbook",
+        "type": "reference"
+      }
+    ]
+  },
+  {
+    "id": "lightning-probing",
+    "title": "Lightning Probing and Topology Leakage",
+    "year": 2019,
+    "severity": "medium",
+    "category": "ln-privacy-leakage",
+    "linkedNodeIds": [
+      "lightning-network-maturity",
+      "pseudonymity-not-anonymity",
+      "network-topology-assumption"
+    ],
+    "summary": "Adversarial payment probes can infer channel balances, routing policy, or node behavior, reducing operational privacy.",
+    "targetLayer": "network",
+    "attackerCapabilities": [
+      "Ability to send repeated crafted probe payments through target routes",
+      "Collection and analysis of failure codes/timing behavior over many attempts"
+    ],
+    "mitigations": [
+      "Use privacy-preserving routing features and conservative error disclosure",
+      "Harden operational policy and monitoring to detect repetitive probe patterns"
+    ],
+    "observedInWild": false,
+    "sources": [
+      {
+        "title": "Lightning BOLTs specification",
+        "url": "https://github.com/lightning/bolts",
+        "type": "reference"
+      },
+      {
+        "title": "Bitcoin Optech topic: probing",
+        "url": "https://bitcoinops.org/en/topics/probing/",
+        "type": "reference"
+      },
+      {
+        "title": "Mastering Lightning",
+        "url": "https://github.com/lnbook/lnbook",
+        "type": "reference"
+      }
+    ]
+  },
+  {
+    "id": "lightning-pinning-fee-griefing",
+    "title": "Lightning Pinning and Fee Griefing",
+    "year": 2021,
+    "severity": "high",
+    "category": "ln-close-path-friction",
+    "linkedNodeIds": [
+      "lightning-network-maturity",
+      "mempool",
+      "reorg",
+      "consensus-rules-vs-policy",
+      "transactions-lifecycle"
+    ],
+    "summary": "Adversaries exploit mempool and fee dynamics to delay or worsen close-path transactions, raising risk/cost during disputes or congestion.",
+    "targetLayer": "mempool",
+    "attackerCapabilities": [
+      "Ability to craft/publish conflicting or pinning transactions around close paths",
+      "Economic capacity to sustain fee pressure and exploit confirmation latency"
+    ],
+    "mitigations": [
+      "Use robust channel/anchor fee-bumping workflows and careful close-path design",
+      "Maintain monitoring, watchtower coverage, and conservative risk policy during high-fee periods"
+    ],
+    "observedInWild": false,
+    "sources": [
+      {
+        "title": "Bitcoin Optech topic: transaction pinning",
+        "url": "https://bitcoinops.org/en/topics/transaction-pinning/",
+        "type": "reference"
+      },
+      {
+        "title": "Lightning BOLTs specification",
+        "url": "https://github.com/lightning/bolts",
+        "type": "reference"
+      },
+      {
+        "title": "Bitcoin Core mempool replacements policy",
+        "url": "https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md",
+        "type": "core-docs"
       }
     ]
   }
