@@ -7,6 +7,7 @@ import { graphStore } from "@/lib/graph/store";
 
 export default function AttacksResearchPage() {
   const attacks = getResearchAttacks();
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [severity, setSeverity] = useState<string>("");
   const [year, setYear] = useState<string>("");
   const [category, setCategory] = useState<string>("");
@@ -31,27 +32,51 @@ export default function AttacksResearchPage() {
           <h1 className="text-3xl font-semibold">Attack Models</h1>
         </header>
 
-        <section className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4 md:grid-cols-4">
-          <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
-            <option value="">All severities</option>
-            <option value="critical">critical</option>
-            <option value="high">high</option>
-            <option value="medium">medium</option>
-            <option value="low">low</option>
-          </select>
-          <select value={year} onChange={(e) => setYear(e.target.value)} className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
-            <option value="">All years</option>
-            {yearOptions.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
-            <option value="">All categories</option>
-            {categoryOptions.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <input value={linkedNode} onChange={(e) => setLinkedNode(e.target.value)} placeholder="Linked node id" className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+        <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:p-4">
+          <div className="flex items-center justify-between sm:hidden">
+            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Filters</p>
+            <button
+              type="button"
+              aria-controls="attack-filters"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((open) => !open)}
+              className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
+            >
+              {filtersOpen ? "Hide" : "Filters"}
+              <span aria-hidden="true" className={`text-[10px] transition-transform ${filtersOpen ? "rotate-180" : ""}`}>▾</span>
+            </button>
+          </div>
+
+          <div
+            id="attack-filters"
+            className={`${filtersOpen ? "mt-3 flex" : "hidden"} flex-wrap gap-3 sm:mt-0 sm:flex`}
+          >
+            <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none">
+              <option value="">All severities</option>
+              <option value="critical">critical</option>
+              <option value="high">high</option>
+              <option value="medium">medium</option>
+              <option value="low">low</option>
+            </select>
+            <select value={year} onChange={(e) => setYear(e.target.value)} className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none">
+              <option value="">All years</option>
+              {yearOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none">
+              <option value="">All categories</option>
+              {categoryOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <input
+              value={linkedNode}
+              onChange={(e) => setLinkedNode(e.target.value)}
+              placeholder="Linked node id"
+              className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none"
+            />
+          </div>
         </section>
 
         <section className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">

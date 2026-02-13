@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const researchItems = [
+  { label: "Overview", href: "/research" },
   { label: "Vulnerabilities", href: "/research/vulnerabilities" },
   { label: "Attack Models", href: "/research/attacks" },
   { label: "Assumptions", href: "/research/assumptions" },
@@ -83,18 +84,7 @@ export default function HeaderNav() {
             );
           })}
 
-          <div className="relative flex items-center gap-1" ref={menuRootRef}>
-            <Link
-              href="/research"
-              onClick={() => setResearchMenuOpen(false)}
-              className={`rounded-md px-3 py-2 text-sm transition-colors ${
-                isResearchPath(pathname)
-                  ? "bg-cyan-500/15 text-cyan-300"
-                  : "text-slate-300 hover:bg-slate-800/80 hover:text-slate-100"
-              }`}
-            >
-              Research
-            </Link>
+          <div className="relative" ref={menuRootRef}>
             <button
               ref={menuButtonRef}
               type="button"
@@ -102,27 +92,48 @@ export default function HeaderNav() {
               aria-expanded={researchMenuOpen}
               aria-controls="research-menu"
               onClick={() => setResearchMenuOpen((open) => !open)}
-              className="inline-flex min-h-11 items-center rounded-md px-2 text-slate-300 hover:bg-slate-800/80 hover:text-slate-100"
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 ${
+                isResearchPath(pathname)
+                  ? "bg-cyan-500/15 text-cyan-300"
+                  : "text-slate-300 hover:bg-slate-800/80 hover:text-slate-100"
+              }`}
             >
-              ▾
+              <span>Research</span>
+              <span
+                aria-hidden="true"
+                className={`text-[11px] leading-none transition-transform ${researchMenuOpen ? "rotate-180" : ""}`}
+              >
+                ▾
+              </span>
             </button>
             {researchMenuOpen ? (
               <div
                 id="research-menu"
-                className="absolute right-0 top-full z-50 mt-2 w-56 rounded-lg border border-slate-800 bg-slate-900 p-1 shadow-xl"
+                className="absolute right-0 top-full z-50 mt-1.5 w-max min-w-[11rem] max-w-[13rem] rounded-lg border border-slate-800 bg-slate-900/95 p-1 shadow-xl shadow-black/35 backdrop-blur-sm"
                 role="menu"
               >
-                {researchItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setResearchMenuOpen(false)}
-                    className="block rounded px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-slate-100"
-                    role="menuitem"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {researchItems.map((item) => {
+                  const isActive =
+                    item.href === "/research"
+                      ? pathname === "/research"
+                      : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setResearchMenuOpen(false)}
+                      className={`block whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm hover:bg-slate-800 hover:text-slate-100 ${
+                        isActive
+                          ? "text-cyan-300"
+                          : "text-slate-300"
+                      }`}
+                      role="menuitem"
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
               </div>
             ) : null}
           </div>

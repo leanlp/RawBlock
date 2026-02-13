@@ -7,6 +7,7 @@ import { graphStore } from "@/lib/graph/store";
 
 export default function PolicyVsConsensusResearchPage() {
   const rules = getResearchPolicyVsConsensus();
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [layer, setLayer] = useState<string>("");
   const [linkedNode, setLinkedNode] = useState<string>("");
 
@@ -26,14 +27,38 @@ export default function PolicyVsConsensusResearchPage() {
           <h1 className="text-3xl font-semibold">Policy vs Consensus</h1>
         </header>
 
-        <section className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4 md:grid-cols-2">
-          <select value={layer} onChange={(e) => setLayer(e.target.value)} className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
-            <option value="">All layers</option>
-            {layerOptions.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <input value={linkedNode} onChange={(e) => setLinkedNode(e.target.value)} placeholder="Linked node id" className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+        <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:p-4">
+          <div className="flex items-center justify-between sm:hidden">
+            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Filters</p>
+            <button
+              type="button"
+              aria-controls="policy-filters"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((open) => !open)}
+              className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
+            >
+              {filtersOpen ? "Hide" : "Filters"}
+              <span aria-hidden="true" className={`text-[10px] transition-transform ${filtersOpen ? "rotate-180" : ""}`}>▾</span>
+            </button>
+          </div>
+
+          <div
+            id="policy-filters"
+            className={`${filtersOpen ? "mt-3 flex" : "hidden"} flex-wrap gap-3 sm:mt-0 sm:flex`}
+          >
+            <select value={layer} onChange={(e) => setLayer(e.target.value)} className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none">
+              <option value="">All layers</option>
+              {layerOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <input
+              value={linkedNode}
+              onChange={(e) => setLinkedNode(e.target.value)}
+              placeholder="Linked node id"
+              className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none"
+            />
+          </div>
         </section>
 
         <section className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
