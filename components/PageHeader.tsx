@@ -51,18 +51,18 @@ export default function PageHeader({
             className="pb-6 border-b border-slate-800 mb-8"
         >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h1 className={`text-[clamp(1.5rem,2.8vw,2.25rem)] font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${gradient} flex items-center gap-3 leading-tight`}>
+                <div className="text-center md:text-left">
+                    <h1 className={`mx-auto block max-w-[92vw] break-words text-[clamp(1.25rem,5.2vw,2.25rem)] font-extrabold leading-tight text-transparent bg-clip-text bg-gradient-to-r ${gradient} md:mx-0 md:max-w-none`}>
                         {icon && (
-                            <span className="text-[clamp(1.5rem,2.8vw,2.25rem)]">
+                            <span className="mb-1 hidden align-middle text-[clamp(1.2rem,2.4vw,2rem)] sm:mb-0 sm:mr-2 sm:inline-flex">
                                 {typeof icon === 'string' ? icon : icon}
                             </span>
                         )}
-                        {title}
+                        <span className="align-middle [text-wrap:balance]">{title}</span>
                     </h1>
                     {subtitle && (
-                        <div className="flex items-center gap-2 mt-2">
-                            <p className="text-slate-400 text-sm md:text-base max-w-2xl truncate md:whitespace-normal md:overflow-visible leading-relaxed">
+                        <div className="mt-2 flex items-center justify-center gap-2 md:justify-start">
+                            <p className="max-w-2xl text-sm leading-relaxed text-slate-400 md:text-base">
                                 {subtitle}
                             </p>
                             {copyText && (
@@ -88,7 +88,7 @@ export default function PageHeader({
                 </div>
 
                 {actions && (
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center justify-center gap-2 flex-shrink-0 md:justify-start">
                         {actions}
                     </div>
                 )}

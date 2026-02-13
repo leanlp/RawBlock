@@ -36,6 +36,9 @@ export interface Edge {
     | "DEPENDS_ON"
     | "VALIDATED_BY"
     | "PART_OF"
+    | "CREATES"
+    | "SPENDS"
+    | "IS_UNSPENT_FORM_OF"
     | "EXPLOITS"
     | "EXPLOITED_BY"
     | "STRENGTHENS"
@@ -43,6 +46,8 @@ export interface Edge {
     | "MITIGATED_BY"
     | "POLICY_ONLY"
     | "NOT_CONSENSUS_CRITICAL"
+    | "INTRODUCES"
+    | "INTRODUCED_IN"
     | "INTRODUCED_BY";
 }
 

@@ -3,12 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Twitter, Linkedin } from "lucide-react";
+import { Twitter, Linkedin, ChevronLeft, ChevronRight, House } from "lucide-react";
 import { useEffect, useState } from "react";
 import { GUIDED_LESSONS } from "../../data/guided-learning";
 import { useGuidedLearning } from "../providers/GuidedLearningProvider";
+import { getCanonicalPath } from "@/lib/graph/pathEngine";
 
-const NAV_ITEMS = [
+type NavItem = {
+    name: string;
+    path: string;
+    icon: string;
+};
+
+type NavSection = {
+    category: string;
+    items: NavItem[];
+};
+
+const NAV_ITEMS: NavSection[] = [
     {
         category: "Start",
         items: [
@@ -36,8 +48,8 @@ const NAV_ITEMS = [
             { name: "Script", path: "/lab/script", icon: "⚗️" },
             { name: "Taproot", path: "/lab/taproot", icon: "🌱" },
             { name: "Keys", path: "/lab/keys", icon: "🗝️" },
-            { name: "Lightning", path: "/lab/lightning", icon: "⚡" },
             { name: "Hashing", path: "/lab/hashing", icon: "🔨" },
+            { name: "Consensus", path: "/lab/consensus", icon: "⚙️" },
         ]
     },
     {
@@ -50,28 +62,62 @@ const NAV_ITEMS = [
         ]
     },
     {
-        category: "Arcade",
-        items: [
-            { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
-            { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
-        ]
-    },
-    {
         category: "Simulations",
         items: [
             { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
             { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
             { name: "Lightning Simulator", path: "/lab/lightning", icon: "⚡" },
         ]
-    }
+    },
+    {
+        category: "Knowledge",
+        items: [
+            { name: "Academy", path: "/academy", icon: "🎓" },
+            { name: "Research", path: "/research", icon: "📚" },
+            { name: "Vulnerabilities", path: "/research/vulnerabilities", icon: "🛡️" },
+            { name: "Attack Models", path: "/research/attacks", icon: "🎯" },
+            { name: "Assumptions", path: "/research/assumptions", icon: "📌" },
+            { name: "Policy vs Cons.", path: "/research/policy-vs-consensus", icon: "⚖️" },
+        ]
+    },
 ];
+
+const ORDERED_MENU_PATHS = NAV_ITEMS.flatMap((section) => section.items.map((item) => item.path));
 
 export default function Sidebar() {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [isScrollingDown, setIsScrollingDown] = useState(false);
     const { progressPercent, currentLessonIndex } = useGuidedLearning();
     const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
     const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
+    const canonicalConceptCount = getCanonicalPath().orderedNodes.length;
+
+    const activeIndex = (() => {
+        const candidates = ORDERED_MENU_PATHS
+            .map((path, index) => ({ path, index }))
+            .filter(({ path }) => path === "/" ? pathname === "/" : pathname.startsWith(path))
+            .sort((a, b) => b.path.length - a.path.length);
+        return candidates[0]?.index ?? 0;
+    })();
+    const previousPath = ORDERED_MENU_PATHS[(activeIndex - 1 + ORDERED_MENU_PATHS.length) % ORDERED_MENU_PATHS.length];
+    const nextPath = ORDERED_MENU_PATHS[(activeIndex + 1) % ORDERED_MENU_PATHS.length];
+
+    useEffect(() => {
+        let lastY = window.scrollY;
+
+        const handleScroll = () => {
+            const currentY = window.scrollY;
+            setIsScrolled(currentY > 16);
+            setIsScrollingDown(currentY > lastY + 2 && currentY > 48);
+            lastY = currentY;
+        };
+
+        handleScroll();
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     useEffect(() => {
         if (!mobileOpen) return;
@@ -112,23 +158,14 @@ export default function Sidebar() {
 
     const sidebarContent = (
         <>
-            {/* Logo */}
-            <div className="h-16 flex items-center justify-center border-b border-slate-800/50">
-                <Link href="/" onClick={() => setMobileOpen(false)} className="cursor-pointer flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                        <span className="text-white font-bold">R</span>
-                    </div>
-                    <h1 className="font-bold text-slate-200 tracking-tight">
-                        Raw<span className="text-cyan-400">Block</span>
-                    </h1>
-                </Link>
-            </div>
-
             <div className="border-b border-slate-800/50 px-3 py-3">
                 <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
                     <p className="text-[10px] uppercase tracking-widest text-slate-500">Learning Journey</p>
                     <p className="text-xs text-slate-300 mt-1">
-                        Step {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
+                        Guided Lesson {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
+                    </p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                        Canonical path: {canonicalConceptCount} concepts
                     </p>
                     <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden mt-2">
                         <div
@@ -175,8 +212,8 @@ export default function Sidebar() {
                                             }
                                         `}
                                     >
-                                        <span className="text-lg flex-shrink-0">{item.icon}</span>
-                                        <span className="text-sm font-medium truncate">{item.name}</span>
+                                        <span className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center text-base leading-none">{item.icon}</span>
+                                        <span className="truncate text-[13px] font-medium leading-5 tracking-[0.01em]">{item.name}</span>
                                         {isActive && (
                                             <motion.div
                                                 className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-cyan-400 rounded-r-full"
@@ -212,19 +249,44 @@ export default function Sidebar() {
                         <Linkedin size={16} />
                     </Link>
                 </div>
-                <p className="text-[10px] text-slate-600 text-center">
-                    © 2026 Raw Block
-                </p>
             </div>
         </>
     );
 
     return (
         <>
+            {/* Quick Route Controls (Mobile) */}
+            <div className={`md:hidden fixed top-4 left-16 z-[79] ${mobileOpen ? "hidden" : "flex"} flex-row gap-2 transition-all duration-300 ${isScrollingDown ? "opacity-55" : isScrolled ? "opacity-80" : "opacity-100"}`}>
+                <Link
+                    href={previousPath}
+                    className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
+                    aria-label="Previous menu page"
+                    title="Previous"
+                >
+                    <ChevronLeft size={14} />
+                </Link>
+                <Link
+                    href="/"
+                    className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
+                    aria-label="Go home"
+                    title="Home"
+                >
+                    <House size={14} />
+                </Link>
+                <Link
+                    href={nextPath}
+                    className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
+                    aria-label="Next menu page"
+                    title="Next"
+                >
+                    <ChevronRight size={14} />
+                </Link>
+            </div>
+
             {/* Mobile Hamburger Button */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden fixed top-4 left-4 z-[80] w-11 h-11 bg-slate-900/90 backdrop-blur-sm border border-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:text-cyan-400 transition-colors"
+                className={`md:hidden fixed top-4 left-4 z-[80] flex h-11 w-11 items-center justify-center rounded-lg text-slate-300 transition-all duration-300 hover:text-cyan-400 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/90 backdrop-blur-sm"}`}
                 aria-label="Toggle menu"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

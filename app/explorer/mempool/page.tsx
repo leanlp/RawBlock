@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import MempoolVisualizer from "../../../components/MempoolVisualizer";
 import NetworkHud from "../../../components/NetworkHud";
@@ -16,30 +15,82 @@ interface Transaction {
     time: number;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const FALLBACK_MEMPOOL_RECENT_URL = "https://mempool.space/api/mempool/recent";
+
+type DataMode = "live" | "snapshot";
+
+function normalizeTransactions(rows: unknown[]): Transaction[] {
+    return rows
+        .map((row) => {
+            const item = row as Partial<{ txid: string; fee: number; size: number; vsize: number; time: number }>;
+            const rawFee = Number(item.fee ?? 0);
+            const feeBtc = rawFee > 1 ? rawFee / 100_000_000 : rawFee;
+            return {
+                txid: String(item.txid ?? ""),
+                fee: Number.isFinite(feeBtc) ? feeBtc : 0,
+                size: Number(item.size ?? item.vsize ?? 0),
+                time: Number(item.time ?? Date.now() / 1000),
+            };
+        })
+        .filter((tx) => tx.txid.length > 0);
+}
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = 8_000) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(input, { ...init, signal: controller.signal });
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
 export default function MempoolPage() {
     const [data, setData] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [connected, setConnected] = useState<boolean>(false);
     const [socketMempoolCount, setSocketMempoolCount] = useState<number>(0);
+    const [dataMode, setDataMode] = useState<DataMode>(API_URL ? "live" : "snapshot");
+    const [modeNotice, setModeNotice] = useState<string | null>(
+        API_URL ? null : "Demo mode: showing public mempool snapshot data.",
+    );
     const [error, setError] = useState<string | null>(null);
     const { metrics: liveMetrics } = useBitcoinLiveMetrics(30_000);
 
     // Use ref for socket to avoid re-creation
     const socketRef = useRef<Socket | null>(null);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         setError(null);
-        try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            if (!apiUrl) throw new Error("API URL not configured");
 
-            const res = await fetch(`${apiUrl}/api/mempool-recent`);
-            if (!res.ok) {
-                throw new Error("Failed to fetch data");
+        try {
+            if (API_URL) {
+                try {
+                    const res = await fetchWithTimeout(`${API_URL}/api/mempool-recent`, { cache: "no-store" });
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+                    const json = await res.json();
+                    setData(normalizeTransactions(Array.isArray(json) ? json : []));
+                    setDataMode("live");
+                    setModeNotice(null);
+                    return;
+                } catch (primaryError) {
+                    console.warn("Live mempool feed unavailable, falling back to snapshot mode:", primaryError);
+                }
             }
-            const json = await res.json();
-            setData(json);
+
+            const fallbackRes = await fetchWithTimeout(FALLBACK_MEMPOOL_RECENT_URL, { cache: "no-store" });
+            if (!fallbackRes.ok) {
+                throw new Error(`Snapshot source failed (HTTP ${fallbackRes.status})`);
+            }
+            const fallbackJson = await fallbackRes.json();
+            setData(normalizeTransactions(Array.isArray(fallbackJson) ? fallbackJson : []));
+            setDataMode("snapshot");
+            setModeNotice("Demo mode: showing public mempool snapshot data.");
+            setConnected(false);
         } catch (err: unknown) {
             console.error(err);
             if (err instanceof Error) {
@@ -50,17 +101,21 @@ export default function MempoolPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         // Initial Fetch
         fetchData();
+        const refresh = setInterval(fetchData, 30_000);
 
-        // Socket Connection
-        const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+        if (!API_URL) {
+            return () => {
+                clearInterval(refresh);
+            };
+        }
 
-        // Force websocket transport to avoid polling CORS issues
-        socketRef.current = io(socketUrl, {
+        // Socket Connection for full live mode.
+        socketRef.current = io(API_URL, {
             transports: ["websocket"],
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
@@ -70,6 +125,8 @@ export default function MempoolPage() {
 
         socket.on("connect", () => {
             setConnected(true);
+            setDataMode("live");
+            setModeNotice(null);
             console.log("Socket Connected");
         });
 
@@ -101,6 +158,13 @@ export default function MempoolPage() {
             setSocketMempoolCount(stats.count);
         });
 
+        socket.on("connect_error", (socketErr: Error) => {
+            console.warn("Socket connection failed, using snapshot mode:", socketErr.message);
+            setConnected(false);
+            setDataMode("snapshot");
+            setModeNotice("Live stream unavailable. Showing public mempool snapshot data.");
+        });
+
         socket.on("rbf:conflict", (event: { txid: string, replacedTxid: string, feeDiff: string }) => {
             // Trigger visual alert
             setRbfAlert(event);
@@ -109,9 +173,10 @@ export default function MempoolPage() {
         });
 
         return () => {
+            clearInterval(refresh);
             socket.disconnect();
         };
-    }, []);
+    }, [fetchData]);
 
     const [rbfAlert, setRbfAlert] = useState<{ txid: string, replacedTxid: string, feeDiff: string } | null>(null);
     const canonicalMempoolCount = liveMetrics?.mempoolTxCount ?? socketMempoolCount;
@@ -132,7 +197,11 @@ export default function MempoolPage() {
                     <div className="text-xs text-right space-y-1">
                         <div className="flex items-center justify-end gap-2">
                             <span className="font-semibold text-slate-500 uppercase tracking-wider">Stream</span>
-                            {connected ? (
+                            {dataMode === "snapshot" ? (
+                                <span className="text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                                    Snapshot mode
+                                </span>
+                            ) : connected ? (
                                 <span className="flex items-center gap-1.5 text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">
                                     <span className="relative flex h-2 w-2">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -152,6 +221,12 @@ export default function MempoolPage() {
                     </div>
                 </div>
             </div>
+
+            {modeNotice ? (
+                <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                    {modeNotice}
+                </div>
+            ) : null}
 
             {/* Status / Error */}
             {error && (
@@ -254,10 +329,14 @@ export default function MempoolPage() {
             </div>
 
             <div className="flex justify-between text-xs text-slate-600 px-1 pb-20">
-                <p>Data provided by local Bitcoin Core node via WebSocket.</p>
+                <p>
+                    {dataMode === "live"
+                        ? "Data provided by local Bitcoin Core node via WebSocket."
+                        : "Data provided by public mempool snapshot feed (demo mode)."}
+                </p>
             </div>
 
-            <NetworkHud />
+            {API_URL ? <NetworkHud /> : null}
         </>
     );
 }

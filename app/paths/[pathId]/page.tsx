@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
+import Header from "@/components/Header";
 import { useGuidedLearning } from "@/components/providers/GuidedLearningProvider";
 import { graphStore } from "@/lib/graph/store";
 import {
@@ -24,8 +25,11 @@ export default function PathPage() {
 
   if (!path) {
     return (
-      <main className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100 md:px-8">
+      <main className="page-shell-lg bg-slate-950">
         <div className="mx-auto max-w-4xl rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+          <div className="mb-6 md:hidden">
+            <Header />
+          </div>
           <h1 className="text-2xl font-semibold">Path not found</h1>
           <p className="mt-2 text-sm text-slate-400">The requested learning path does not exist.</p>
         </div>
@@ -72,12 +76,15 @@ export default function PathPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100 md:px-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Learning Path</p>
-          <h1 className="text-3xl font-semibold md:text-4xl">{path.title}</h1>
-          <p className="text-sm text-slate-400">
+    <main className="page-shell-lg bg-slate-950">
+      <div className="page-wrap-reading">
+        <div className="md:hidden">
+          <Header />
+        </div>
+        <header className="page-header">
+          <p className="page-kicker">Learning Path</p>
+          <h1 className="page-title">{path.title}</h1>
+          <p className="page-subtitle">
             Path ID: <span className="font-mono">{path.id}</span>
           </p>
         </header>

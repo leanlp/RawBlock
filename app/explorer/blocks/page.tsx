@@ -7,11 +7,27 @@ import Card, { CardRow } from "../../../components/Card";
 import EmptyState, { LoadingState, ErrorState } from "../../../components/EmptyState";
 import PageHeader from "../../../components/PageHeader";
 
+export const dynamic = "force-dynamic";
+
 interface BlockInfo {
     height: number;
     hash: string;
     time: number;
     miner: string;
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rawblock.net";
+const MEMPOOL_BLOCKS_URL = "https://mempool.space/api/v1/blocks";
+
+interface MempoolBlockInfo {
+    height: number;
+    id: string;
+    timestamp: number;
+    extras?: {
+        pool?: {
+            name?: string;
+        };
+    };
 }
 
 export default function BlocksIndexPage() {
@@ -24,24 +40,55 @@ export default function BlocksIndexPage() {
         setLoading(true);
         setError(null);
 
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/miners`)
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                return res.json();
+        const fetchPrimary = async (): Promise<BlockInfo[]> => {
+            const res = await fetch(`${API_BASE_URL}/api/miners`, { cache: "no-store" });
+            if (!res.ok) throw new Error(`Primary source HTTP ${res.status}`);
+            const data = await res.json();
+            if (!Array.isArray(data?.blocks)) {
+                throw new Error("Primary source payload missing blocks");
+            }
+            return data.blocks as BlockInfo[];
+        };
+
+        const fetchFallback = async (): Promise<BlockInfo[]> => {
+            const res = await fetch(MEMPOOL_BLOCKS_URL, { cache: "no-store" });
+            if (!res.ok) throw new Error(`Fallback source HTTP ${res.status}`);
+            const data = (await res.json()) as MempoolBlockInfo[];
+            if (!Array.isArray(data)) {
+                throw new Error("Fallback source payload invalid");
+            }
+            return data.slice(0, 30).map((block) => ({
+                height: block.height,
+                hash: block.id,
+                time: block.timestamp,
+                miner: block.extras?.pool?.name || "Unknown",
+            }));
+        };
+
+        fetchPrimary()
+            .catch((primaryErr) => {
+                console.warn("Primary blocks feed failed, trying fallback:", primaryErr);
+                return fetchFallback();
             })
-            .then(data => {
-                setBlocks(data.blocks || []);
+            .then((resolvedBlocks) => {
+                setBlocks(resolvedBlocks);
                 setLoading(false);
             })
             .catch(err => {
                 console.error(err);
-                setError(err.message || "Failed to fetch blocks");
+                setError("Unable to load blocks from primary or fallback sources.");
                 setLoading(false);
             });
     }, []);
 
     useEffect(() => {
-        fetchBlocks();
+        const timer = setTimeout(() => {
+            fetchBlocks();
+        }, 0);
+
+        return () => {
+            clearTimeout(timer);
+        };
     }, [fetchBlocks]);
 
     const navigateToBlock = (hash: string) => {
@@ -85,7 +132,7 @@ export default function BlocksIndexPage() {
                     <>
                         {/* Mobile Card Layout */}
                         <div className="md:hidden space-y-3">
-                            {blocks.map((block, index) => (
+                            {blocks.map((block) => (
                                 <Card
                                     key={block.hash}
                                     onClick={() => navigateToBlock(block.hash)}
@@ -159,4 +206,3 @@ export default function BlocksIndexPage() {
         </main>
     );
 }
-

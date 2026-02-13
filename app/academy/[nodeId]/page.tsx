@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Header from "@/components/Header";
 import AcademyProgressSync from "@/components/academy/AcademyProgressSync";
 import ExplorerDeepLinks from "@/components/academy/ExplorerDeepLinks";
 import NodeRealDataPanel from "@/components/academy/NodeRealDataPanel";
@@ -17,6 +18,7 @@ import {
 } from "@/lib/content/research";
 import { NODE_TYPE_PRESENTATION } from "@/lib/graph/nodeTypePresentation";
 import { graphStore } from "@/lib/graph/store";
+import type { Edge } from "@/lib/graph/types";
 
 type AcademyNodePageProps = {
   params: Promise<{
@@ -55,6 +57,13 @@ const GLOSSARY_ITEMS = [
   },
 ];
 
+function renderRelationLabel(edge: Edge): string {
+  if (edge.type === "INTRODUCED_BY" || edge.type === "INTRODUCED_IN") {
+    return "INTRODUCES";
+  }
+  return edge.type;
+}
+
 export default async function AcademyNodePage({ params }: AcademyNodePageProps) {
   const { nodeId } = await params;
   const node = graphStore.getNode(nodeId);
@@ -88,11 +97,14 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
   const linkedPolicyVsConsensus = policyVsConsensus.filter((item) => item.linkedNodeIds.includes(node.id));
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 px-4 py-10 md:px-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Academy Node</p>
-          <h1 className="text-3xl font-semibold md:text-4xl">{node.title}</h1>
+    <main className="page-shell-lg bg-slate-950">
+      <div className="page-wrap-reading">
+        <div className="md:hidden">
+          <Header />
+        </div>
+        <header className="page-header">
+          <p className="page-kicker">Academy Node</p>
+          <h1 className="page-title">{node.title}</h1>
           <p className="text-sm text-cyan-300">
             {NODE_TYPE_PRESENTATION[node.type].icon} {NODE_TYPE_PRESENTATION[node.type].label}
           </p>
@@ -197,20 +209,30 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
                   <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
                     <p className="text-xs uppercase tracking-wide text-slate-500">Consensus Rules</p>
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-300">
+                    <ul className="mt-2 space-y-2 text-xs text-slate-300">
                       {nodeContent.consensusRules.map((rule) => (
-                        <li key={rule}>
-                          <GlossaryText text={rule} />
+                        <li key={rule} className="flex items-start gap-2">
+                          <span className="mt-0.5 inline-flex shrink-0 rounded border border-emerald-700 bg-emerald-900/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-emerald-300">
+                            Consensus
+                          </span>
+                          <span className="min-w-0">
+                            <GlossaryText text={rule} />
+                          </span>
                         </li>
                       ))}
                     </ul>
                   </div>
                   <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
                     <p className="text-xs uppercase tracking-wide text-slate-500">Policy Rules</p>
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-300">
+                    <ul className="mt-2 space-y-2 text-xs text-slate-300">
                       {nodeContent.policyRules.map((rule) => (
-                        <li key={rule}>
-                          <GlossaryText text={rule} />
+                        <li key={rule} className="flex items-start gap-2">
+                          <span className="mt-0.5 inline-flex shrink-0 rounded border border-amber-700 bg-amber-900/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-amber-300">
+                            Policy
+                          </span>
+                          <span className="min-w-0">
+                            <GlossaryText text={rule} />
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -305,7 +327,7 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                       {outgoing.map((edge) => (
                         <tr key={`out-${edge.from}-${edge.to}-${edge.type}`} className="border-b border-slate-900">
                           <td className="px-2 py-2 text-slate-400">Outgoing</td>
-                          <td className="px-2 py-2 font-mono text-xs">{edge.type}</td>
+                          <td className="px-2 py-2 font-mono text-xs">{renderRelationLabel(edge)}</td>
                           <td className="px-2 py-2">
                             <Link href={`/academy/${edge.to}`} className="text-cyan-300 hover:underline">
                               {graphStore.getNode(edge.to)?.title ?? edge.to}
@@ -316,7 +338,7 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                       {incoming.map((edge) => (
                         <tr key={`in-${edge.from}-${edge.to}-${edge.type}`} className="border-b border-slate-900">
                           <td className="px-2 py-2 text-slate-400">Incoming</td>
-                          <td className="px-2 py-2 font-mono text-xs">{edge.type}</td>
+                          <td className="px-2 py-2 font-mono text-xs">{renderRelationLabel(edge)}</td>
                           <td className="px-2 py-2">
                             <Link href={`/academy/${edge.from}`} className="text-cyan-300 hover:underline">
                               {graphStore.getNode(edge.from)?.title ?? edge.from}

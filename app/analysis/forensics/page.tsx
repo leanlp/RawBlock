@@ -17,6 +17,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import PageHeader from "../../../components/PageHeader";
+import Header from "../../../components/Header";
 import {
     Search,
     ShieldAlert,
@@ -36,6 +37,8 @@ import {
     Loader2
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
+
+export const dynamic = "force-dynamic";
 
 // --- Custom Node Components ---
 
@@ -1390,6 +1393,9 @@ export default function ForensicsPage() {
 
     return (
         <main className="h-screen w-full bg-slate-950 flex flex-col relative overflow-hidden">
+            <div className="bg-slate-950 px-4 pt-4 md:hidden">
+                <Header />
+            </div>
             {/* Standardized Header */}
             <div className="bg-slate-950 px-4 md:px-8 pt-4 z-50 shadow-sm relative">
                 <PageHeader

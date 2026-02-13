@@ -755,11 +755,13 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
     linkedAssumptions: ["independent-validation-assumption"],
     policyRules: [
       "Standardness filtering of uncommon scripts in default relay settings.",
-      "Minimum relay fee and RBF policy affect mempool admission and replacement.",
+      "Minimum relay feerate and RBF replacement policy affect mempool admission and replacement.",
+      "Mempool eviction and package relay behavior are implementation policy choices.",
     ],
     consensusRules: [
-      "Script validity and UTXO constraints define transaction acceptability in blocks.",
-      "Block structural rules and proof-of-work target checks are mandatory.",
+      "MAX_BLOCK_WEIGHT (4,000,000 weight units from SegWit/BIP141) is a consensus block validity rule.",
+      "Coinbase maturity, script validity, and UTXO spend constraints are consensus-enforced.",
+      "Block structure commitments and proof-of-work target validity are mandatory consensus checks.",
     ],
     policyVsConsensusExplanation:
       "Policy is a pre-consensus admission layer; consensus is the final and universal validity layer.",
@@ -1162,9 +1164,9 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
     canonicalLesson: "security-and-attacks",
     pathMappings: ["bitcoin-foundations", "lightning-primer"],
     summary:
-      "Lightning is a production-ready Bitcoin Layer 2 optimized for fast low-fee payments, with operational security trade-offs versus base-layer settlement.",
+      "Lightning is widely used in production for fast low-fee payments, with important operational trade-offs versus direct base-layer settlement.",
     story:
-      "Early Lightning discussions called the network experimental. Today, the operational picture is different: major exchanges and payment processors route meaningful traffic over Lightning for speed and cost efficiency. Users now expect instant settlement-like UX for small and medium transfers, while still relying on base-layer Bitcoin for final settlement guarantees and very large value movement. The maturity shift is not about removing trade-offs; it is about understanding them. Channel liquidity, routing reliability, and watchtower support matter for safe use. Raw Block presents Lightning as production-ready infrastructure that continues to evolve, not as a hypothetical future experiment.",
+      "Early Lightning discussions called the network experimental. Today, usage is materially broader: major exchanges and payment providers route meaningful traffic over Lightning for speed and cost efficiency in suitable payment flows. Users now expect near-instant UX for many small and medium transfers, while still relying on base-layer Bitcoin for final settlement guarantees and very large value movement. The maturity shift is not about removing trade-offs; it is about managing them. Channel liquidity, routing reliability, watchtower support, and close-path fee conditions all matter for safe use. Raw Block presents Lightning as widely used production infrastructure that still requires disciplined operations.",
     deepDive: [
       {
         heading: "Why Lightning now",
@@ -1178,15 +1180,16 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
         heading: "Security trade-offs",
         bullets: [
           "Users trade immediate base-layer finality for speed and cost.",
-          "Watchtowers and healthy channel management reduce penalty-risk exposure.",
+          "Liquidity management, route availability, and online/watchtower posture directly affect reliability.",
+          "Forced closes and unilateral exits can become expensive during high on-chain fee periods.",
           "Large strategic settlements may still prefer direct on-chain confirmation depth.",
         ],
       },
     ],
     keyTakeaways: [
-      "Lightning is production-ready, not merely experimental.",
+      "Lightning is widely used in production, with important operational trade-offs.",
       "Best fit: high-frequency small/medium payments.",
-      "Use watchtowers and liquidity management for safer operations.",
+      "Use watchtowers, liquidity management, and close-fee planning for safer operations.",
     ],
     realData: [
       {
@@ -1203,11 +1206,12 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
       },
     ],
     securityNotes: [
-      "Channel counterparties and routing paths introduce liquidity and online-availability constraints.",
-      "Watchtower services mitigate monitoring requirements for offline users.",
+      "Channel counterparties and routing paths introduce liquidity, routing, and online-availability constraints.",
+      "Watchtower services mitigate monitoring requirements for offline users, but do not remove all operational risk.",
+      "During fee spikes, forced-close and sweep transactions can materially raise operational costs and failure risk.",
     ],
     linkedVulnerabilities: [],
-    linkedAttacks: ["fee-sniping"],
+    linkedAttacks: ["lightning-channel-jamming", "lightning-probing", "lightning-pinning-fee-griefing"],
     linkedAssumptions: ["network-topology-assumption"],
     policyRules: [
       "Routing, fee policy, and channel open/close strategy are implementation-level policy choices.",
@@ -1233,7 +1237,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
     ],
     claimSources: [
       {
-        claim: "Lightning is broadly deployed for real-world payments by major exchanges/providers.",
+        claim: "Lightning is widely used in production by major exchanges/providers for suitable payment flows, with clear operational trade-offs.",
         sources: [
           { title: "Coinbase Lightning launch", url: "https://www.coinbase.com/blog/lightning-payments-now-available-on-coinbase", type: "reference" },
           { title: "Kraken Lightning support", url: "https://support.kraken.com/hc/en-us/articles/5068216131988-Lightning-Network-on-Kraken", type: "reference" },

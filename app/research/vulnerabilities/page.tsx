@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
+import Header from "@/components/Header";
+import AcademyNodeReferenceChip from "@/components/academy/AcademyNodeReferenceChip";
 import { getResearchVulnerabilities } from "@/lib/content/research";
-import { graphStore } from "@/lib/graph/store";
 
 export default function VulnerabilitiesResearchPage() {
   const vulnerabilities = getResearchVulnerabilities();
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [severity, setSeverity] = useState<string>("");
   const [year, setYear] = useState<string>("");
   const [category, setCategory] = useState<string>("");
@@ -27,42 +28,84 @@ export default function VulnerabilitiesResearchPage() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100 md:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header>
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Research</p>
-          <h1 className="text-3xl font-semibold">Vulnerabilities Registry</h1>
+    <main className="page-shell bg-slate-950">
+      <div className="page-wrap-wide">
+        <div className="md:hidden">
+          <Header />
+        </div>
+        <header className="page-header">
+          <p className="page-kicker">Research</p>
+          <h1 className="page-title">Vulnerabilities Registry</h1>
         </header>
 
-        <section className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4 md:grid-cols-4">
-          <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
-            <option value="">All severities</option>
-            <option value="critical">critical</option>
-            <option value="high">high</option>
-            <option value="medium">medium</option>
-            <option value="low">low</option>
-          </select>
-          <select value={year} onChange={(e) => setYear(e.target.value)} className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
-            <option value="">All years</option>
-            {yearOptions.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
-            <option value="">All categories</option>
-            {categoryOptions.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <input
-            value={linkedNode}
-            onChange={(e) => setLinkedNode(e.target.value)}
-            placeholder="Linked node id"
-            className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-          />
+        <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:p-4">
+          <div className="flex items-center justify-between md:hidden">
+            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Filters</p>
+            <button
+              type="button"
+              aria-controls="vulnerability-filters"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((open) => !open)}
+              className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
+            >
+              {filtersOpen ? "Hide" : "Filters"}
+              <span aria-hidden="true" className={`text-[10px] transition-transform ${filtersOpen ? "rotate-180" : ""}`}>▾</span>
+            </button>
+          </div>
+
+          <div
+            id="vulnerability-filters"
+            className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 md:mt-0 md:grid md:grid-cols-2 xl:flex xl:flex-wrap xl:items-center`}
+          >
+            <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
+              <option value="">All severities</option>
+              <option value="critical">critical</option>
+              <option value="high">high</option>
+              <option value="medium">medium</option>
+              <option value="low">low</option>
+            </select>
+            <select value={year} onChange={(e) => setYear(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
+              <option value="">All years</option>
+              {yearOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
+              <option value="">All categories</option>
+              {categoryOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <input
+              value={linkedNode}
+              onChange={(e) => setLinkedNode(e.target.value)}
+              placeholder="Linked node id"
+              className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto"
+            />
+          </div>
         </section>
 
-        <section className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40">
+        <section className="rounded-xl border border-slate-800 bg-slate-900/40">
+          <div className="space-y-3 p-3 md:hidden">
+            {filtered.map((item) => (
+              <article key={item.id} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                <p className="text-sm font-medium text-slate-100">{item.title}</p>
+                <p className="mt-1 text-xs text-slate-400">{item.cve ?? "No CVE"}</p>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-300">
+                  <p><span className="text-slate-500">Severity:</span> {item.severity}</p>
+                  <p><span className="text-slate-500">Year:</span> {item.year}</p>
+                  <p className="col-span-2"><span className="text-slate-500">Category:</span> {item.category}</p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {item.linkedNodeIds.map((nodeId) => (
+                    <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} />
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-slate-800 text-slate-400">
               <tr>
@@ -86,9 +129,7 @@ export default function VulnerabilitiesResearchPage() {
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap gap-1">
                       {item.linkedNodeIds.map((nodeId) => (
-                        <Link key={`${item.id}-${nodeId}`} href={`/academy/${nodeId}`} className="rounded border border-slate-700 px-2 py-0.5 text-xs text-cyan-300 hover:border-cyan-500">
-                          {graphStore.getNode(nodeId)?.title ?? nodeId}
-                        </Link>
+                        <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} />
                       ))}
                     </div>
                   </td>
@@ -96,6 +137,7 @@ export default function VulnerabilitiesResearchPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </section>
       </div>
     </main>

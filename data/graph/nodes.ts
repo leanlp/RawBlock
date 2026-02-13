@@ -352,7 +352,7 @@ export const graphNodes: GraphNode[] = [
     id: "lightning-network-maturity",
     type: "mechanism",
     title: "Lightning Network Maturity",
-    summary: `Production-ready Layer 2 for fast, low-fee payments. Best for small/medium flow while base layer (~${BITCOIN_BASE_LAYER_TPS_ESTIMATE} TPS) remains final settlement.`,
+    summary: `Widely used in production for fast, low-fee payments, with operational trade-offs. Best for small/medium flow while base layer (~${BITCOIN_BASE_LAYER_TPS_ESTIMATE} TPS) remains final settlement.`,
     difficulty: 2,
     claimIds: NODE_CLAIM_IDS["lightning-network-maturity"],
     advancedNotes: [

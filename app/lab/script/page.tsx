@@ -54,11 +54,11 @@ export default function ScriptLabPage() {
                 <Header />
 
                 {/* Title Section */}
-                <div>
-                    <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">
-                        Script Lab ⚗️
+                <div className="page-header">
+                    <h1 className="page-title mx-auto max-w-[92vw] bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-center text-transparent sm:mx-0 sm:max-w-none sm:text-left">
+                        Script Lab
                     </h1>
-                    <p className="mt-2 text-slate-400 text-sm">Bitcoins Programmable Logic Debugger.</p>
+                    <p className="page-subtitle">Bitcoin programmable logic debugger.</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-[500px]">

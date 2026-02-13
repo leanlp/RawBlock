@@ -40,10 +40,22 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui), "Segoe UI", sans-serif;
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+.font-sans {
+  font-family: var(--font-ui), "Segoe UI", sans-serif;
+}
+
+.font-mono,
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-code), "SFMono-Regular", Consolas, monospace;
 }
 
 h1 {
@@ -131,6 +143,80 @@ body::before {
 
 .label-sm {
   @apply font-sans text-[10px] uppercase tracking-widest text-slate-600;
+}
+
+/* ===== PAGE LAYOUT SYSTEM ===== */
+.page-shell {
+  @apply min-h-screen px-4 py-8 md:px-8 text-slate-100;
+}
+
+.page-shell-lg {
+  @apply min-h-screen px-4 py-10 md:px-8 text-slate-100;
+}
+
+.page-wrap {
+  @apply mx-auto w-full max-w-6xl space-y-8;
+}
+
+.page-wrap-wide {
+  @apply mx-auto w-full max-w-7xl space-y-6;
+}
+
+.page-wrap-reading {
+  @apply mx-auto w-full max-w-5xl space-y-8;
+}
+
+.page-header {
+  @apply space-y-2;
+}
+
+.page-kicker {
+  @apply text-xs uppercase text-cyan-400;
+  letter-spacing: 0.18em;
+}
+
+.page-title {
+  @apply text-3xl font-sans font-semibold leading-tight md:text-4xl;
+}
+
+.page-subtitle {
+  @apply text-sm leading-relaxed text-slate-400;
+}
+
+.page-card {
+  @apply rounded-xl border border-slate-800 bg-slate-900/50 p-5;
+}
+
+.page-card-soft {
+  @apply rounded-xl border border-slate-800 bg-slate-900/40;
+}
+
+@media (max-width: 767px) {
+  .page-header,
+  main header {
+    text-align: center;
+  }
+
+  main h1:not(.home-brand-title) {
+    font-size: clamp(1.45rem, 5.8vw, 1.85rem) !important;
+    line-height: 1.12 !important;
+    font-family: var(--font-ui), "Segoe UI", sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+    display: block;
+    width: 100%;
+    text-align: center !important;
+    margin-inline: auto;
+    padding-inline: 0.5rem;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  .page-subtitle,
+  main header p {
+    margin-inline: auto;
+    max-width: 40ch;
+  }
 }
 
 /* ===== ACCENT BUTTON GRADIENT ===== */

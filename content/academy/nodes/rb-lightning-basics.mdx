@@ -6,7 +6,7 @@ difficulty: 2
 lessonId: 5
 pathIds:
   - bitcoin-foundations
-summary: Lightning Network is a production-ready Layer 2 for fast, low-fee payments settled periodically on Bitcoin base layer.
+summary: Lightning Network is widely used in production for fast, low-fee payments, with important operational trade-offs versus direct base-layer settlement.
 story: >-
   Alice runs a café and wants instant payments without waiting for on-chain confirmations
   every time someone buys coffee. She adopts Lightning and sees near-instant settlement
@@ -16,16 +16,19 @@ story: >-
   is layered: Lightning for fast small/medium flow, base layer for final global settlement.
   That combination is why Lightning is now practical in production while still evolving.
 keyTakeaways:
-  - Lightning is production-ready, not merely experimental.
+  - Lightning is widely used in production, with important operational trade-offs.
   - Best fit is frequent small/medium payments with low latency needs.
   - Base layer remains final dispute resolution and settlement anchor.
 securityNotes:
   - Watchtowers and proper channel management reduce counterparty risk.
-  - Liquidity mismanagement can degrade reliability even when protocol works correctly.
+  - Liquidity mismanagement and routing failures can degrade reliability even when protocol rules are correct.
+  - Forced closes during high on-chain fee periods can be operationally expensive.
 linkedVulnerabilities:
   - pre-segwit-tx-malleability
 linkedAttacks:
-  - fee-sniping
+  - lightning-channel-jamming
+  - lightning-probing
+  - lightning-pinning-fee-griefing
 linkedAssumptions:
   - network-propagation-assumption
   - economic-incentives-assumption
@@ -66,7 +69,7 @@ claimSources:
       - title: BIP 112 (CSV)
         url: https://github.com/bitcoin/bips/blob/master/bip-0112.mediawiki
         type: BIP
-  - claim: Lightning usage is now common in major production integrations.
+  - claim: Lightning is now widely used in production integrations for suitable payment flows.
     sources:
       - title: Coinbase Lightning announcement
         url: https://www.coinbase.com/blog/lightning-payments-now-available-on-coinbase

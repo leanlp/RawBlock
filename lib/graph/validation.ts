@@ -136,6 +136,23 @@ export function verifyVulnerabilityEdgeParity(
   }
 }
 
+export function verifyNoDirectTransactionUtxoLegacyEdges(edges: Edge[]): void {
+  const invalid = edges.filter(
+    (edge) =>
+      (edge.from === "transaction" && edge.to === "utxo") ||
+      (edge.from === "utxo" && edge.to === "transaction"),
+  );
+
+  if (invalid.length > 0) {
+    const details = invalid
+      .map((edge) => `${edge.from} -[${edge.type}]-> ${edge.to}`)
+      .join(", ");
+    throw new Error(
+      `Transaction/UTXO relation violation: direct edges are not allowed (${details}). Model via transaction -> output (CREATES), utxo -> output (IS_UNSPENT_FORM_OF), and input -> utxo (SPENDS).`,
+    );
+  }
+}
+
 export function verifyGraphIntegrity(nodes: GraphNode[], edges: Edge[]): void {
   verifyUniqueNodeIds(nodes);
   verifyAssumptionNodeParity(nodes);
@@ -143,4 +160,5 @@ export function verifyGraphIntegrity(nodes: GraphNode[], edges: Edge[]): void {
   verifyAttackModelReferencesCanonicalNodes(nodes);
   verifyEdgeReferencesCanonicalNodes(nodes, edges);
   verifyVulnerabilityEdgeParity(edges);
+  verifyNoDirectTransactionUtxoLegacyEdges(edges);
 }

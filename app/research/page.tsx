@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Header from "@/components/Header";
 
 const sections = [
   {
@@ -25,12 +26,15 @@ const sections = [
 
 export default function ResearchLandingPage() {
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100 md:px-8">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-400">Research</p>
-          <h1 className="text-3xl font-semibold md:text-4xl">Security Research Layer</h1>
-          <p className="text-sm text-slate-400">
+    <main className="page-shell bg-slate-950">
+      <div className="page-wrap">
+        <div className="md:hidden">
+          <Header />
+        </div>
+        <header className="page-header">
+          <p className="page-kicker">Research</p>
+          <h1 className="page-title">Security Research Layer</h1>
+          <p className="page-subtitle">
             Explore vulnerabilities, attacks, assumptions, and policy-consensus boundaries as structured protocol data.
           </p>
         </header>

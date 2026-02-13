@@ -19,6 +19,44 @@ export interface GraphStore {
   getNeighbors(id: string): GraphNode[];
 }
 
+function normalizeLegacyEdge(edge: Edge): Edge {
+  // Legacy edge stored as "X INTRODUCED_IN Y" should be canonicalized to "Y INTRODUCES X".
+  if (edge.type === "INTRODUCED_IN") {
+    return {
+      from: edge.to,
+      to: edge.from,
+      type: "INTRODUCES",
+    };
+  }
+
+  // Legacy edge stored as "X INTRODUCED_BY Y" is often already directed from introducer -> concept.
+  // Canonicalize label to INTRODUCES while preserving direction.
+  if (edge.type === "INTRODUCED_BY") {
+    return {
+      from: edge.from,
+      to: edge.to,
+      type: "INTRODUCES",
+    };
+  }
+
+  return edge;
+}
+
+function canonicalizeEdgesForRendering(edges: Edge[]): Edge[] {
+  const seen = new Set<string>();
+  const canonical: Edge[] = [];
+
+  for (const edge of edges) {
+    const normalized = normalizeLegacyEdge(edge);
+    const key = `${normalized.from}|${normalized.to}|${normalized.type}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    canonical.push(normalized);
+  }
+
+  return canonical;
+}
+
 function indexGraph(nodes: GraphNode[], edges: Edge[]): GraphIndexes {
   const byId = new Map<string, GraphNode>();
   const outgoing = new Map<string, Edge[]>();
@@ -43,7 +81,7 @@ export function createGraphStore(
   edges: Edge[] = graphEdges,
 ): GraphStore {
   const graphNodesCopy = [...nodes];
-  const graphEdgesCopy = [...edges];
+  const graphEdgesCopy = canonicalizeEdgesForRendering(edges);
   verifyGraphIntegrity(graphNodesCopy, graphEdgesCopy);
   const indexes = indexGraph(graphNodesCopy, graphEdgesCopy);
 

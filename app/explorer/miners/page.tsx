@@ -9,6 +9,8 @@ import EmptyState, { LoadingState, ErrorState } from '../../../components/EmptyS
 import PageHeader from '../../../components/PageHeader';
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
+export const dynamic = "force-dynamic";
+
 interface BlockInfo {
     height: number;
     hash: string;
@@ -28,35 +30,90 @@ interface MinerData {
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#a4de6c', '#d0ed57'];
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const MEMPOOL_BLOCKS_URL = "https://mempool.space/api/v1/blocks";
+
+interface MempoolBlockInfo {
+    id: string;
+    height: number;
+    timestamp: number;
+    extras?: {
+        pool?: {
+            name?: string;
+        };
+    };
+}
+
+function buildDistribution(blocks: BlockInfo[]): Distribution[] {
+    const counts = new Map<string, number>();
+    for (const block of blocks) {
+        counts.set(block.miner, (counts.get(block.miner) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+}
 
 export default function MinersPage() {
     const router = useRouter();
     const [data, setData] = useState<MinerData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [modeNotice, setModeNotice] = useState<string | null>(null);
 
     const fetchData = useCallback(() => {
         setLoading(true);
         setError(null);
+        setModeNotice(null);
 
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/miners`)
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                return res.json();
+        const fetchPrimary = async (): Promise<MinerData> => {
+            if (!API_URL) {
+                throw new Error("Live miner API unavailable");
+            }
+            const res = await fetch(`${API_URL}/api/miners`, { cache: "no-store" });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return (await res.json()) as MinerData;
+        };
+
+        const fetchFallback = async (): Promise<MinerData> => {
+            const res = await fetch(MEMPOOL_BLOCKS_URL, { cache: "no-store" });
+            if (!res.ok) throw new Error(`Fallback HTTP ${res.status}`);
+            const mempoolBlocks = (await res.json()) as MempoolBlockInfo[];
+            const blocks: BlockInfo[] = mempoolBlocks.slice(0, 30).map((block) => ({
+                height: block.height,
+                hash: block.id,
+                time: block.timestamp,
+                miner: block.extras?.pool?.name || "Unknown",
+                coinbaseHex: "",
+            }));
+            return {
+                blocks,
+                distribution: buildDistribution(blocks),
+            };
+        };
+
+        fetchPrimary()
+            .catch((primaryErr) => {
+                console.warn("Live miner feed unavailable, using snapshot fallback:", primaryErr);
+                setModeNotice("Demo mode: miner data loaded from public mempool snapshot.");
+                return fetchFallback();
             })
-            .then(data => {
-                setData(data);
+            .then((resolvedData) => {
+                setData(resolvedData);
                 setLoading(false);
             })
             .catch(err => {
                 console.error(err);
-                setError(err.message);
+                setError("Unable to load miner data from live or fallback sources.");
                 setLoading(false);
             });
     }, []);
 
     useEffect(() => {
-        fetchData();
+        const timer = setTimeout(() => {
+            fetchData();
+        }, 0);
+        return () => clearTimeout(timer);
     }, [fetchData]);
 
     return (
@@ -70,6 +127,12 @@ export default function MinersPage() {
                     icon="⛏️"
                     gradient="from-amber-400 to-orange-500"
                 />
+
+                {modeNotice ? (
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                        {modeNotice}
+                    </div>
+                ) : null}
 
                 {loading && <LoadingState message="Scanning blockchain for signatures..." />}
 

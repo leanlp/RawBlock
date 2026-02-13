@@ -2,11 +2,18 @@
 
 import { motion } from "framer-motion";
 import Link from 'next/link';
+import { Oxanium } from "next/font/google";
 import HeroMetrics from "./HeroMetrics";
 import Card from "./Card";
 import { GUIDED_LESSONS } from "../data/guided-learning";
 import { useGuidedLearning } from "./providers/GuidedLearningProvider";
-import { CANONICAL_PATH_ID } from "@/lib/graph/pathEngine";
+import { CANONICAL_PATH_ID, getCanonicalPath } from "@/lib/graph/pathEngine";
+
+const brandDisplayFont = Oxanium({
+    subsets: ["latin"],
+    weight: ["700", "800"],
+    display: "swap",
+});
 
 // Feature categories for organized navigation
 const categories = {
@@ -300,6 +307,7 @@ export default function DashboardHome() {
         goToNext,
         goToPrevious,
     } = useGuidedLearning();
+    const canonicalPathSteps = getCanonicalPath().orderedNodes.length;
 
     return (
         <div className="flex flex-col items-center justify-start py-8 relative z-10 max-w-7xl w-full mx-auto px-3 sm:px-4">
@@ -310,8 +318,11 @@ export default function DashboardHome() {
                 transition={{ duration: 0.8 }}
                 className="text-center mb-8"
             >
-                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 mb-4 drop-shadow-2xl">
-                    RAW BLOCK
+                <h1
+                    className={`${brandDisplayFont.className} home-brand-title mb-5 !text-[clamp(2.4rem,8vw,5.25rem)] !leading-[0.9] font-extrabold uppercase tracking-[0.06em] select-none`}
+                >
+                    <span className="bg-gradient-to-b from-slate-100 via-slate-200 to-slate-400 bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(148,163,184,0.2)]">RAW </span>
+                    <span className="bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_2px_20px_rgba(6,182,212,0.35)]">BLOCK</span>
                 </h1>
                 <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
                     Your command center for analyzing the <span className="text-cyan-400 font-medium">Bitcoin P2P network</span>.
@@ -373,7 +384,7 @@ export default function DashboardHome() {
                                 href={`/paths/${CANONICAL_PATH_ID}`}
                                 className="inline-flex rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200 hover:bg-cyan-500/20 transition-colors"
                             >
-                                Open Canonical Path
+                                Open Canonical Path ({canonicalPathSteps} concepts)
                             </Link>
                         </div>
                     </div>
@@ -385,7 +396,7 @@ export default function DashboardHome() {
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                         <span>
-                            Lesson {currentLessonIndex + 1} of {GUIDED_LESSONS.length}
+                            Guided lesson {currentLessonIndex + 1} of {GUIDED_LESSONS.length}
                         </span>
                         {resumedFromSession && (
                             <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-cyan-300">

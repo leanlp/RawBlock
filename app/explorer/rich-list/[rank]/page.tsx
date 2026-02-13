@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import Header from '../../../../components/Header';
 
 // Static imports - all whale data embedded
 import whale01 from '../../../../data/whales/whale_01.json';
@@ -141,6 +142,9 @@ export default function WhaleDetailPage() {
         return (
             <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
                 <div className="max-w-4xl mx-auto">
+                    <div className="md:hidden">
+                        <Header />
+                    </div>
                     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-8 text-center">
                         <div className="text-red-400 text-lg mb-4">❌ Whale #{rank} not found</div>
                         <Link href="/explorer/rich-list" className="text-cyan-400 hover:underline inline-flex items-center min-h-11">
@@ -155,11 +159,14 @@ export default function WhaleDetailPage() {
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
             <div className="max-w-6xl mx-auto space-y-6">
+                <div className="md:hidden">
+                    <Header />
+                </div>
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-600 mb-2">
-                            🐋 Whale #{whale.rank}
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="page-header">
+                        <h1 className="page-title bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">
+                            Whale #{whale.rank}
                         </h1>
                         <p className="text-slate-500 text-xs md:text-sm font-mono break-all">
                             {whale.address}
@@ -283,8 +290,9 @@ export default function WhaleDetailPage() {
                 )}
 
                 {/* Data Source */}
-                <div className="bg-green-900/20 border border-green-500/30 rounded-lg px-4 py-3 text-xs text-green-300/80">
-                    ✅ <span className="font-bold">Scanned via Local Node</span> — {formatDate(whale.fetchedAt)}
+                <div className="bg-sky-900/20 border border-sky-500/30 rounded-lg px-4 py-3 text-xs text-sky-200/90">
+                    ℹ️ <span className="font-bold">Static address snapshot</span> — This record reflects an address view, not a confirmed entity.
+                    Updated: {formatDate(whale.fetchedAt)}
                 </div>
 
                 {/* UTXOs Table - Simplified */}

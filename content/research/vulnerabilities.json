@@ -49,7 +49,7 @@
     "linkedNodeIds": [
       "transactions-lifecycle",
       "segwit-and-taproot-upgrades",
-      "fees-mempool",
+      "mempool",
       "security-and-attacks"
     ],
     "summary": "Before SegWit, third parties could mutate transaction identifiers without changing spend intent, breaking txid-sensitive workflows.",

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Header from "../../../components/Header";
-import GraffitiWall from "../../../components/graffiti/GraffitiWall";
 import { motion, AnimatePresence } from "framer-motion";
 import io from "socket.io-client";
+import Link from "next/link";
+import Header from "../../../components/Header";
+
+export const dynamic = "force-dynamic";
 
 interface GraffitiMsg {
     txid: string;
@@ -12,26 +14,50 @@ interface GraffitiMsg {
     time: number;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rawblock.net";
+
 export default function GraffitiPage() {
     const [messages, setMessages] = useState<GraffitiMsg[]>([]);
-    const [socket, setSocket] = useState<any>(null);
+    const [connectionStatus, setConnectionStatus] = useState<"connecting" | "live" | "offline">("connecting");
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const controller = new AbortController();
         // Fetch historical (from server memory)
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/graffiti-recent`)
-            .then(res => res.json())
-            .then(data => setMessages(data as GraffitiMsg[]));
+        fetch(`${API_BASE_URL}/api/graffiti-recent`, { signal: controller.signal, cache: "no-store" })
+            .then((res) => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then((data) => setMessages(Array.isArray(data) ? (data as GraffitiMsg[]) : []))
+            .catch((err) => {
+                console.error("Failed to fetch graffiti feed:", err);
+                setMessages([]);
+            });
 
         // Connect Socket
-        const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
-        setSocket(newSocket);
+        const newSocket = io(API_BASE_URL, {
+            transports: ["websocket", "polling"],
+            reconnectionAttempts: 2,
+            timeout: 5000,
+        });
+
+        newSocket.on("connect", () => {
+            setConnectionStatus("live");
+        });
 
         newSocket.on('graffiti:new', (msg: GraffitiMsg) => {
             setMessages(prev => [msg, ...prev].slice(0, 100)); // Keep last 100
         });
 
+        newSocket.on("connect_error", (err: Error) => {
+            console.error("Graffiti socket connection error:", err.message);
+            setConnectionStatus("offline");
+            newSocket.disconnect();
+        });
+
         return () => {
+            controller.abort();
             newSocket.disconnect();
         };
     }, []);
@@ -41,20 +67,27 @@ export default function GraffitiPage() {
     };
 
     return (
-        <main className="min-h-screen bg-black text-green-500 font-mono p-4 md:p-8 selection:bg-green-900 selection:text-white">
+        <main className="min-h-screen overflow-x-hidden bg-black text-green-500 font-mono p-4 md:p-8 selection:bg-green-900 selection:text-white">
             <div className="max-w-4xl mx-auto space-y-8 relative">
+                <div className="md:hidden">
+                    <Header />
+                </div>
 
                 {/* Custom Header for this "Hacker" mode */}
-                <div className="border-b border-green-900/50 pb-6 flex justify-between items-center">
+                <div className="border-b border-green-900/50 pb-6 flex flex-wrap justify-between items-center gap-3">
                     <h1 className="text-2xl font-bold tracking-tighter uppercase glitch-text">
                         Graffiti_Wall <span className="animate-pulse">_</span>
                     </h1>
-                    <a href="/" className="text-xs hover:text-green-300 hover:underline inline-flex items-center min-h-11">[ RETURN_TO_HOME ]</a>
+                    <Link href="/" className="text-xs hover:text-green-300 hover:underline inline-flex items-center min-h-11">[ RETURN_TO_HOME ]</Link>
+                </div>
+
+                <div className="text-[11px] text-green-700">
+                    Socket: {connectionStatus === "live" ? "live" : connectionStatus === "connecting" ? "connecting..." : "offline (history mode)"}
                 </div>
 
                 <div className="bg-black/90 border border-green-800 rounded-sm p-4 h-[80vh] overflow-y-auto shadow-[0_0_20px_rgba(0,255,0,0.1)] custom-scrollbar relative">
                     {/* Matrix Rain Effect Overlay (CSS based simplified) */}
-                    <div className="absolute inset-0 pointer-events-none opacity-5 bg-[url('https://upload.wikimedia.org/wikipedia/commons/1/17/Matrix_digital_rain_banner.png')] bg-repeat bg-contain"></div>
+                    <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(circle_at_center,rgba(34,197,94,0.18),transparent_60%)]"></div>
 
                     <AnimatePresence initial={false}>
                         {messages.map((msg) => (
@@ -66,10 +99,10 @@ export default function GraffitiPage() {
                                 transition={{ duration: 0.3 }}
                                 className="mb-4 border-l-2 border-green-900 pl-4 py-2 hover:border-green-500 hover:bg-green-900/10 transition-colors group"
                             >
-                                <div className="flex gap-2 text-[10px] text-green-700 mb-1 group-hover:text-green-400 font-bold">
+                                <div className="mb-1 flex min-w-0 gap-2 text-[10px] font-bold text-green-700 group-hover:text-green-400">
                                     <span>{formatDate(msg.time)}</span>
                                     <span>::</span>
-                                    <span className="truncate w-32 md:w-auto font-mono">{msg.txid}</span>
+                                    <span className="min-w-0 flex-1 truncate font-mono">{msg.txid}</span>
                                 </div>
                                 <div className="text-lg md:text-xl text-green-400 font-medium break-words leading-relaxed shadow-black drop-shadow-sm">
                                     &gt; {msg.text}
