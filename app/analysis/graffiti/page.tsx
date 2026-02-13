@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import io from "socket.io-client";
+import Link from "next/link";
 
 interface GraffitiMsg {
     txid: string;
@@ -14,11 +15,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rawblock.ne
 
 export default function GraffitiPage() {
     const [messages, setMessages] = useState<GraffitiMsg[]>([]);
+    const [connectionStatus, setConnectionStatus] = useState<"connecting" | "live" | "offline">("connecting");
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const controller = new AbortController();
         // Fetch historical (from server memory)
-        fetch(`${API_BASE_URL}/api/graffiti-recent`)
+        fetch(`${API_BASE_URL}/api/graffiti-recent`, { signal: controller.signal })
             .then((res) => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.json();
@@ -32,6 +35,12 @@ export default function GraffitiPage() {
         // Connect Socket
         const newSocket = io(API_BASE_URL, {
             transports: ["websocket", "polling"],
+            reconnectionAttempts: 2,
+            timeout: 5000,
+        });
+
+        newSocket.on("connect", () => {
+            setConnectionStatus("live");
         });
 
         newSocket.on('graffiti:new', (msg: GraffitiMsg) => {
@@ -40,9 +49,12 @@ export default function GraffitiPage() {
 
         newSocket.on("connect_error", (err: Error) => {
             console.error("Graffiti socket connection error:", err.message);
+            setConnectionStatus("offline");
+            newSocket.disconnect();
         });
 
         return () => {
+            controller.abort();
             newSocket.disconnect();
         };
     }, []);
@@ -60,12 +72,16 @@ export default function GraffitiPage() {
                     <h1 className="text-2xl font-bold tracking-tighter uppercase glitch-text">
                         Graffiti_Wall <span className="animate-pulse">_</span>
                     </h1>
-                    <a href="/" className="text-xs hover:text-green-300 hover:underline inline-flex items-center min-h-11">[ RETURN_TO_HOME ]</a>
+                    <Link href="/" className="text-xs hover:text-green-300 hover:underline inline-flex items-center min-h-11">[ RETURN_TO_HOME ]</Link>
+                </div>
+
+                <div className="text-[11px] text-green-700">
+                    Socket: {connectionStatus === "live" ? "live" : connectionStatus === "connecting" ? "connecting..." : "offline (history mode)"}
                 </div>
 
                 <div className="bg-black/90 border border-green-800 rounded-sm p-4 h-[80vh] overflow-y-auto shadow-[0_0_20px_rgba(0,255,0,0.1)] custom-scrollbar relative">
                     {/* Matrix Rain Effect Overlay (CSS based simplified) */}
-                    <div className="absolute inset-0 pointer-events-none opacity-5 bg-[url('https://upload.wikimedia.org/wikipedia/commons/1/17/Matrix_digital_rain_banner.png')] bg-repeat bg-contain"></div>
+                    <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(circle_at_center,rgba(34,197,94,0.18),transparent_60%)]"></div>
 
                     <AnimatePresence initial={false}>
                         {messages.map((msg) => (
