@@ -728,7 +728,30 @@ export default function BitcoinMapPage() {
           ) : null}
         </header>
 
-        <div className="flex flex-wrap gap-2 text-xs">
+        <details className="rounded-lg border border-slate-800 bg-slate-900/40 p-3 text-xs md:hidden">
+          <summary className="cursor-pointer list-none text-slate-300">
+            Options & Legend
+          </summary>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            {TYPE_ORDER.map((type) => (
+              <span
+                key={type}
+                className="rounded-full border px-2 py-1 uppercase tracking-wide"
+                style={{ borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type] }}
+              >
+                {NODE_TYPE_PRESENTATION[type].icon} {NODE_TYPE_PRESENTATION[type].label}
+              </span>
+            ))}
+            <span
+              className="rounded-full border px-2 py-1"
+              style={{ borderColor: theme.sectionBorder, color: theme.textMuted }}
+            >
+              Difficulty: 1 easy → 4 advanced
+            </span>
+          </div>
+        </details>
+
+        <div className="hidden flex-wrap gap-2 text-xs md:flex">
           {TYPE_ORDER.map((type) => (
             <span
               key={type}

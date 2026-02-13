@@ -14,6 +14,8 @@ interface BlockInfo {
     miner: string;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rawblock.net";
+
 export default function BlocksIndexPage() {
     const router = useRouter();
     const [blocks, setBlocks] = useState<BlockInfo[]>([]);
@@ -24,7 +26,7 @@ export default function BlocksIndexPage() {
         setLoading(true);
         setError(null);
 
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/miners`)
+        fetch(`${API_BASE_URL}/api/miners`)
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.json();
@@ -159,4 +161,3 @@ export default function BlocksIndexPage() {
         </main>
     );
 }
-

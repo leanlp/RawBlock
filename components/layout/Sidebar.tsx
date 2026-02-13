@@ -36,8 +36,8 @@ const NAV_ITEMS = [
             { name: "Script", path: "/lab/script", icon: "⚗️" },
             { name: "Taproot", path: "/lab/taproot", icon: "🌱" },
             { name: "Keys", path: "/lab/keys", icon: "🗝️" },
-            { name: "Lightning", path: "/lab/lightning", icon: "⚡" },
             { name: "Hashing", path: "/lab/hashing", icon: "🔨" },
+            { name: "Consensus", path: "/lab/consensus", icon: "⚙️" },
         ]
     },
     {
@@ -50,19 +50,13 @@ const NAV_ITEMS = [
         ]
     },
     {
-        category: "Arcade",
-        items: [
-            { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
-            { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
-        ]
-    },
-    {
         category: "Simulations",
         items: [
             { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
             { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
+            { name: "Lightning Simulator", path: "/lab/lightning", icon: "⚡" },
         ]
-    }
+    },
 ];
 
 export default function Sidebar() {

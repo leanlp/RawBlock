@@ -51,22 +51,22 @@ export default function VulnerabilitiesResearchPage() {
 
           <div
             id="vulnerability-filters"
-            className={`${filtersOpen ? "mt-3 flex" : "hidden"} flex-wrap gap-3 sm:mt-0 sm:flex`}
+            className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 sm:mt-0 sm:grid sm:grid-cols-2 lg:flex lg:flex-wrap`}
           >
-            <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none">
+            <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
               <option value="">All severities</option>
               <option value="critical">critical</option>
               <option value="high">high</option>
               <option value="medium">medium</option>
               <option value="low">low</option>
             </select>
-            <select value={year} onChange={(e) => setYear(e.target.value)} className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none">
+            <select value={year} onChange={(e) => setYear(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
               <option value="">All years</option>
               {yearOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none">
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
               <option value="">All categories</option>
               {categoryOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
@@ -76,7 +76,7 @@ export default function VulnerabilitiesResearchPage() {
               value={linkedNode}
               onChange={(e) => setLinkedNode(e.target.value)}
               placeholder="Linked node id"
-              className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none"
+              className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto"
             />
           </div>
         </section>

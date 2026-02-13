@@ -43,9 +43,9 @@ export default function PolicyVsConsensusResearchPage() {
 
           <div
             id="policy-filters"
-            className={`${filtersOpen ? "mt-3 flex" : "hidden"} flex-wrap gap-3 sm:mt-0 sm:flex`}
+            className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 sm:mt-0 sm:grid sm:grid-cols-2 lg:flex lg:flex-wrap`}
           >
-            <select value={layer} onChange={(e) => setLayer(e.target.value)} className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none">
+            <select value={layer} onChange={(e) => setLayer(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
               <option value="">All layers</option>
               {layerOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
@@ -55,7 +55,7 @@ export default function PolicyVsConsensusResearchPage() {
               value={linkedNode}
               onChange={(e) => setLinkedNode(e.target.value)}
               placeholder="Linked node id"
-              className="min-w-[10rem] flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:flex-none"
+              className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto"
             />
           </div>
         </section>

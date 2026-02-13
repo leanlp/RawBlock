@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Header from "../../../components/Header";
-import GraffitiWall from "../../../components/graffiti/GraffitiWall";
 import { motion, AnimatePresence } from "framer-motion";
 import io from "socket.io-client";
 
@@ -12,23 +10,36 @@ interface GraffitiMsg {
     time: number;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rawblock.net";
+
 export default function GraffitiPage() {
     const [messages, setMessages] = useState<GraffitiMsg[]>([]);
-    const [socket, setSocket] = useState<any>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         // Fetch historical (from server memory)
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/graffiti-recent`)
-            .then(res => res.json())
-            .then(data => setMessages(data as GraffitiMsg[]));
+        fetch(`${API_BASE_URL}/api/graffiti-recent`)
+            .then((res) => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then((data) => setMessages(Array.isArray(data) ? (data as GraffitiMsg[]) : []))
+            .catch((err) => {
+                console.error("Failed to fetch graffiti feed:", err);
+                setMessages([]);
+            });
 
         // Connect Socket
-        const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
-        setSocket(newSocket);
+        const newSocket = io(API_BASE_URL, {
+            transports: ["websocket", "polling"],
+        });
 
         newSocket.on('graffiti:new', (msg: GraffitiMsg) => {
             setMessages(prev => [msg, ...prev].slice(0, 100)); // Keep last 100
+        });
+
+        newSocket.on("connect_error", (err: Error) => {
+            console.error("Graffiti socket connection error:", err.message);
         });
 
         return () => {
@@ -41,11 +52,11 @@ export default function GraffitiPage() {
     };
 
     return (
-        <main className="min-h-screen bg-black text-green-500 font-mono p-4 md:p-8 selection:bg-green-900 selection:text-white">
+        <main className="min-h-screen overflow-x-hidden bg-black text-green-500 font-mono p-4 md:p-8 selection:bg-green-900 selection:text-white">
             <div className="max-w-4xl mx-auto space-y-8 relative">
 
                 {/* Custom Header for this "Hacker" mode */}
-                <div className="border-b border-green-900/50 pb-6 flex justify-between items-center">
+                <div className="border-b border-green-900/50 pb-6 flex flex-wrap justify-between items-center gap-3">
                     <h1 className="text-2xl font-bold tracking-tighter uppercase glitch-text">
                         Graffiti_Wall <span className="animate-pulse">_</span>
                     </h1>
@@ -66,10 +77,10 @@ export default function GraffitiPage() {
                                 transition={{ duration: 0.3 }}
                                 className="mb-4 border-l-2 border-green-900 pl-4 py-2 hover:border-green-500 hover:bg-green-900/10 transition-colors group"
                             >
-                                <div className="flex gap-2 text-[10px] text-green-700 mb-1 group-hover:text-green-400 font-bold">
+                                <div className="mb-1 flex min-w-0 gap-2 text-[10px] font-bold text-green-700 group-hover:text-green-400">
                                     <span>{formatDate(msg.time)}</span>
                                     <span>::</span>
-                                    <span className="truncate w-32 md:w-auto font-mono">{msg.txid}</span>
+                                    <span className="min-w-0 flex-1 truncate font-mono">{msg.txid}</span>
                                 </div>
                                 <div className="text-lg md:text-xl text-green-400 font-medium break-words leading-relaxed shadow-black drop-shadow-sm">
                                     &gt; {msg.text}
