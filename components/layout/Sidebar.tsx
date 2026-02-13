@@ -43,7 +43,7 @@ const NAV_ITEMS: NavSection[] = [
         ]
     },
     {
-        category: "Lab",
+        category: "Learn",
         items: [
             { name: "Script", path: "/lab/script", icon: "⚗️" },
             { name: "Taproot", path: "/lab/taproot", icon: "🌱" },
@@ -165,7 +165,7 @@ export default function Sidebar() {
                         Guided Lesson {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
                     </p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                        Canonical path: {canonicalConceptCount} concepts
+                        Path scope: {GUIDED_LESSONS.length} lessons • {canonicalConceptCount} concepts
                     </p>
                     <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden mt-2">
                         <div

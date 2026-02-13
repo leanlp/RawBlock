@@ -22,13 +22,6 @@ const categories = {
         subtitle: "Real-time blockchain data and network analysis",
         features: [
             {
-                title: "Live Mempool",
-                description: "Real-time transaction feed. Watch blocks fill up live.",
-                href: "/explorer/mempool",
-                color: "from-blue-500 to-cyan-600",
-                icon: "🌊"
-            },
-            {
                 title: "Network Monitor",
                 description: "Visualize the decentralized P2P topology.",
                 href: "/explorer/network",
@@ -177,7 +170,7 @@ const categories = {
                 description: "Identify mining pools via coinbase signature analysis.",
                 href: "/explorer/miners",
                 color: "from-rose-400 to-pink-500",
-                icon: "🔬"
+                icon: "⛏️"
             }
         ]
     },
@@ -352,11 +345,11 @@ export default function DashboardHome() {
                         color="purple"
                     />
                     <PrimaryActionCard
-                        href="/explorer/mempool"
-                        icon="🌊"
-                        title="Watch Mempool"
-                        description="Real-time feed of pending transactions entering the network."
-                        actionText="View live"
+                        href="/explorer/network"
+                        icon="🌍"
+                        title="Network Monitor"
+                        description="Track peer topology and node distribution in real time."
+                        actionText="Open network"
                         color="blue"
                     />
                 </div>
@@ -384,7 +377,7 @@ export default function DashboardHome() {
                                 href={`/paths/${CANONICAL_PATH_ID}`}
                                 className="inline-flex rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200 hover:bg-cyan-500/20 transition-colors"
                             >
-                                Open Canonical Path ({canonicalPathSteps} concepts)
+                                Open Canonical Path ({GUIDED_LESSONS.length} lessons • {canonicalPathSteps} concepts)
                             </Link>
                         </div>
                     </div>
@@ -396,7 +389,7 @@ export default function DashboardHome() {
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                         <span>
-                            Guided lesson {currentLessonIndex + 1} of {GUIDED_LESSONS.length}
+                            Guided lesson {currentLessonIndex + 1} of {GUIDED_LESSONS.length} • Canonical scope: {canonicalPathSteps} concepts
                         </span>
                         {resumedFromSession && (
                             <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-cyan-300">
