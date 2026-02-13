@@ -122,19 +122,21 @@ export default function HeroMetrics() {
           </Card>
         </Link>
 
-        <Card variant="metric" accent="blue" onClick={() => {}}>
-          <MetricValue
-            icon="🌊"
-            value={displayMetrics.mempoolTxCount?.toLocaleString() ?? "Data temporarily unavailable"}
-            label="Pending TXs"
-            sublabel={
-              displayMetrics.mempoolVsizeMb !== null && displayMetrics.mempoolVsizeMb !== undefined
-                ? `${displayMetrics.mempoolVsizeMb} MB`
-                : ""
-            }
-            accent="blue"
-          />
-        </Card>
+        <Link href="/explorer/mempool">
+          <Card variant="metric" accent="blue" onClick={() => {}}>
+            <MetricValue
+              icon="🌊"
+              value={displayMetrics.mempoolTxCount?.toLocaleString() ?? "Data temporarily unavailable"}
+              label="Pending TXs"
+              sublabel={
+                displayMetrics.mempoolVsizeMb !== null && displayMetrics.mempoolVsizeMb !== undefined
+                  ? `${displayMetrics.mempoolVsizeMb} MB`
+                  : ""
+              }
+              accent="blue"
+            />
+          </Card>
+        </Link>
 
         <Link href="/explorer/vitals">
           <Card variant="metric" accent="violet" onClick={() => {}}>
