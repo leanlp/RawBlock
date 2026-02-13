@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Twitter, Linkedin } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GUIDED_LESSONS } from "../../data/guided-learning";
 import { useGuidedLearning } from "../providers/GuidedLearningProvider";
 
@@ -72,6 +72,43 @@ export default function Sidebar() {
     const { progressPercent, currentLessonIndex } = useGuidedLearning();
     const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
     const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
+
+    useEffect(() => {
+        if (!mobileOpen) return;
+
+        const bodyStyle = document.body.style;
+        const htmlStyle = document.documentElement.style;
+        const scrollY = window.scrollY;
+
+        const previousBody = {
+            overflow: bodyStyle.overflow,
+            position: bodyStyle.position,
+            top: bodyStyle.top,
+            width: bodyStyle.width,
+            overscrollBehavior: bodyStyle.overscrollBehavior,
+        };
+        const previousHtml = {
+            overscrollBehavior: htmlStyle.overscrollBehavior,
+        };
+
+        // Freeze document scroll while the mobile drawer is open.
+        bodyStyle.overflow = "hidden";
+        bodyStyle.position = "fixed";
+        bodyStyle.top = `-${scrollY}px`;
+        bodyStyle.width = "100%";
+        bodyStyle.overscrollBehavior = "none";
+        htmlStyle.overscrollBehavior = "none";
+
+        return () => {
+            bodyStyle.overflow = previousBody.overflow;
+            bodyStyle.position = previousBody.position;
+            bodyStyle.top = previousBody.top;
+            bodyStyle.width = previousBody.width;
+            bodyStyle.overscrollBehavior = previousBody.overscrollBehavior;
+            htmlStyle.overscrollBehavior = previousHtml.overscrollBehavior;
+            window.scrollTo(0, scrollY);
+        };
+    }, [mobileOpen]);
 
     const sidebarContent = (
         <>
