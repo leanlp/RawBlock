@@ -163,10 +163,10 @@ export default function WhaleDetailPage() {
                     <Header />
                 </div>
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-600 mb-2">
-                            🐋 Whale #{whale.rank}
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="page-header">
+                        <h1 className="page-title bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">
+                            Whale #{whale.rank}
                         </h1>
                         <p className="text-slate-500 text-xs md:text-sm font-mono break-all">
                             {whale.address}

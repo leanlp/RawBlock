@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Twitter, Linkedin } from "lucide-react";
+import { Twitter, Linkedin, ChevronLeft, ChevronRight, House } from "lucide-react";
 import { useEffect, useState } from "react";
 import { GUIDED_LESSONS } from "../../data/guided-learning";
 import { useGuidedLearning } from "../providers/GuidedLearningProvider";
@@ -73,23 +73,51 @@ const NAV_ITEMS: NavSection[] = [
         category: "Knowledge",
         items: [
             { name: "Academy", path: "/academy", icon: "🎓" },
-            { name: "Knowledge Graph", path: "/graph", icon: "🕸️" },
             { name: "Research", path: "/research", icon: "📚" },
             { name: "Vulnerabilities", path: "/research/vulnerabilities", icon: "🛡️" },
             { name: "Attack Models", path: "/research/attacks", icon: "🎯" },
             { name: "Assumptions", path: "/research/assumptions", icon: "📌" },
-            { name: "Policy vs Cons.", path: "/research/policy", icon: "⚖️" },
+            { name: "Policy vs Cons.", path: "/research/policy-vs-consensus", icon: "⚖️" },
         ]
     },
 ];
 
+const ORDERED_MENU_PATHS = NAV_ITEMS.flatMap((section) => section.items.map((item) => item.path));
+
 export default function Sidebar() {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [isScrollingDown, setIsScrollingDown] = useState(false);
     const { progressPercent, currentLessonIndex } = useGuidedLearning();
     const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
     const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
     const canonicalConceptCount = getCanonicalPath().orderedNodes.length;
+
+    const activeIndex = (() => {
+        const candidates = ORDERED_MENU_PATHS
+            .map((path, index) => ({ path, index }))
+            .filter(({ path }) => path === "/" ? pathname === "/" : pathname.startsWith(path))
+            .sort((a, b) => b.path.length - a.path.length);
+        return candidates[0]?.index ?? 0;
+    })();
+    const previousPath = ORDERED_MENU_PATHS[(activeIndex - 1 + ORDERED_MENU_PATHS.length) % ORDERED_MENU_PATHS.length];
+    const nextPath = ORDERED_MENU_PATHS[(activeIndex + 1) % ORDERED_MENU_PATHS.length];
+
+    useEffect(() => {
+        let lastY = window.scrollY;
+
+        const handleScroll = () => {
+            const currentY = window.scrollY;
+            setIsScrolled(currentY > 16);
+            setIsScrollingDown(currentY > lastY + 2 && currentY > 48);
+            lastY = currentY;
+        };
+
+        handleScroll();
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     useEffect(() => {
         if (!mobileOpen) return;
@@ -227,10 +255,38 @@ export default function Sidebar() {
 
     return (
         <>
+            {/* Quick Route Controls (Mobile) */}
+            <div className={`md:hidden fixed top-4 left-16 z-[79] ${mobileOpen ? "hidden" : "flex"} flex-row gap-2 transition-all duration-300 ${isScrollingDown ? "opacity-55" : isScrolled ? "opacity-80" : "opacity-100"}`}>
+                <Link
+                    href={previousPath}
+                    className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
+                    aria-label="Previous menu page"
+                    title="Previous"
+                >
+                    <ChevronLeft size={14} />
+                </Link>
+                <Link
+                    href="/"
+                    className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
+                    aria-label="Go home"
+                    title="Home"
+                >
+                    <House size={14} />
+                </Link>
+                <Link
+                    href={nextPath}
+                    className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
+                    aria-label="Next menu page"
+                    title="Next"
+                >
+                    <ChevronRight size={14} />
+                </Link>
+            </div>
+
             {/* Mobile Hamburger Button */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden fixed top-4 left-4 z-[80] w-11 h-11 bg-slate-900/90 backdrop-blur-sm border border-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:text-cyan-400 transition-colors"
+                className={`md:hidden fixed top-4 left-4 z-[80] flex h-11 w-11 items-center justify-center rounded-lg text-slate-300 transition-all duration-300 hover:text-cyan-400 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/90 backdrop-blur-sm"}`}
                 aria-label="Toggle menu"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
