@@ -1,0 +1,117 @@
+---
+id: rb-consensus-policy
+title: Consensus Rules vs Policy
+type: rule
+difficulty: 3
+lessonId: 7
+pathIds:
+  - bitcoin-foundations
+summary: Consensus defines chain validity; policy defines local relay and mempool behavior for valid-but-unconfirmed data.
+story: >-
+  Bob sees two nodes disagree about a transaction in mempool and panics, thinking Bitcoin
+  has forked. Alice explains they are both right in different layers. One node relayed the
+  transaction, the other rejected it under local fee policy. That is not a consensus split.
+  Consensus asks: if this transaction is mined, is the block valid for everyone? Policy asks:
+  should I relay this transaction now under my local constraints? This distinction sounds
+  subtle but prevents major confusion. Dust limits, standard script forms, and replacement
+  behavior are policy surfaces. Signature validity, UTXO spending rules, and block limits are
+  consensus surfaces. When teams mix those concepts, they misprice risk. When they separate
+  them clearly, operations and incident response become much more reliable.
+keyTakeaways:
+  - Consensus invalidity is global; policy rejection is local.
+  - Policy can vary across nodes without causing a chain fork.
+  - Security analysis must label findings by layer.
+securityNotes:
+  - Treat consensus bugs as systemic incidents and policy issues as local behavior risks.
+  - Mempool observations alone cannot prove consensus validity.
+linkedVulnerabilities:
+  - cve-2018-17144
+  - value-overflow-2010
+linkedAttacks:
+  - replace-by-fee-abuse
+  - eclipse-attack
+linkedAssumptions:
+  - independent-validation-assumption
+  - network-propagation-assumption
+policyVsConsensus:
+  consensusRules:
+    - Block weight and structure limits are mandatory for validity.
+    - UTXO spend and script verification rules are globally enforced.
+    - Coinbase payout limits are consensus-critical.
+  policyRules:
+    - Dust threshold and standard script forms are relay policy.
+    - Minimum relay fee and replacement acceptance are policy.
+    - Mempool eviction strategy is local implementation policy.
+  explanation: Consensus decides what can be part of Bitcoin history; policy decides what local nodes are willing to relay before confirmation.
+caseStudies:
+  - title: CVE-2018-17144
+    year: 2018
+    whatHappened: Consensus validation regression created inflation risk.
+    whyItMatters: Distinguishes true systemic failure from routine policy variance.
+  - title: Opt-in RBF Debates
+    year: 2016
+    whatHappened: Ecosystem debates around replacement policy and merchant UX.
+    whyItMatters: Shows policy trade-offs can be contentious without changing consensus.
+explorerDeepLinks:
+  - label: Bitcoin Core Policy Docs
+    url: https://github.com/bitcoin/bitcoin/tree/master/doc/policy
+  - label: Mempool Replacement Policy
+    url: https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md
+  - label: Consensus Constants
+    url: https://github.com/bitcoin/bitcoin/blob/master/src/consensus/consensus.h
+claimSources:
+  - claim: Consensus and policy are distinct layers in Bitcoin Core architecture.
+    sources:
+      - title: consensus.h
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/consensus/consensus.h
+        type: core-docs
+      - title: policy.h
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.h
+        type: core-docs
+  - claim: RBF behavior is policy, not consensus.
+    sources:
+      - title: BIP 125
+        url: https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+        type: BIP
+      - title: Mempool replacement doc
+        url: https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md
+        type: core-docs
+  - claim: Dust/standardness thresholds are relay policy concepts.
+    sources:
+      - title: Bitcoin Core policy docs
+        url: https://github.com/bitcoin/bitcoin/tree/master/doc/policy
+        type: core-docs
+      - title: Bitcoin Core policy.h
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.h
+        type: core-docs
+furtherReading:
+  - title: Bitcoin Core Policy Docs
+    url: https://github.com/bitcoin/bitcoin/tree/master/doc/policy
+  - title: validation.cpp
+    url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+  - title: BIP 125
+    url: https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Consensus rules are mandatory validity checks across all full nodes. Policy rules are local admission preferences for relay and mempool management.
+
+**Real Data:** Show `mempool size`, `fee recommendations`, and `recent replacement activity` to demonstrate where policy pressure appears without implying consensus change.
+
+## Walkthrough
+1. Node receives unconfirmed transaction.
+2. Node checks consensus validity basics.
+3. Node applies local policy filters.
+4. Miner may include transaction if consensus-valid.
+5. Block-level consensus decides final acceptance.
+
+## Common Misconceptions
+- “If one node rejects relay, transaction is invalid.” Not necessarily.
+- “Policy differences cause automatic hard forks.” They usually do not.
+- “RBF means consensus weakness.” It is policy behavior.
+
+## Check Yourself (Questions)
+- Give one example of consensus rule and one of policy rule.
+- Why can mempool views differ between honest nodes?
+- Which layer determines global chain validity?

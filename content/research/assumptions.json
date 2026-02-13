@@ -1,0 +1,161 @@
+[
+  {
+    "id": "honest-majority-hashpower",
+    "title": "Honest-Majority Hashpower Assumption",
+    "year": 2009,
+    "severity": "critical",
+    "category": "economic-security",
+    "linkedNodeIds": [
+      "what-is-bitcoin",
+      "mining-and-subsidy",
+      "difficulty-adjustment-2016",
+      "security-and-attacks"
+    ],
+    "summary": "Bitcoin assumes a majority of effective hashpower follows consensus-valid chain extension over time.",
+    "assumptionType": "economic",
+    "dependsOn": [
+      "mining rewards and fees remain economically meaningful",
+      "hashpower is not persistently dominated by adversarial coordination"
+    ],
+    "weakenedBy": [
+      "hashrate concentration",
+      "long-duration subsidy/fee incentive misalignment"
+    ],
+    "sources": [
+      {
+        "title": "Bitcoin Whitepaper",
+        "url": "https://bitcoin.org/bitcoin.pdf",
+        "type": "whitepaper"
+      },
+      {
+        "title": "Bitcoin Developer Guide: Block Chain",
+        "url": "https://developer.bitcoin.org/devguide/block_chain.html",
+        "type": "dev-guide"
+      },
+      {
+        "title": "Mempool.space Mining API docs",
+        "url": "https://mempool.space/docs/api/rest",
+        "type": "reference"
+      }
+    ]
+  },
+  {
+    "id": "network-propagation-assumption",
+    "title": "Network Propagation Assumption",
+    "year": 2009,
+    "severity": "high",
+    "category": "p2p-network",
+    "linkedNodeIds": [
+      "transactions-lifecycle",
+      "fees-mempool",
+      "reorgs-finality",
+      "spv-vs-full-node"
+    ],
+    "summary": "Security and usability assume blocks and transactions propagate across peers quickly enough to limit stale/fork windows.",
+    "assumptionType": "network",
+    "dependsOn": [
+      "sufficiently connected peer topology",
+      "reasonable latency and bandwidth for relay"
+    ],
+    "weakenedBy": [
+      "eclipse-style isolation",
+      "regional outages and severe network partitioning"
+    ],
+    "sources": [
+      {
+        "title": "Bitcoin Developer Guide: P2P Network",
+        "url": "https://developer.bitcoin.org/devguide/p2p_network.html",
+        "type": "dev-guide"
+      },
+      {
+        "title": "BIP 152: Compact Block Relay",
+        "url": "https://github.com/bitcoin/bips/blob/master/bip-0152.mediawiki",
+        "type": "BIP"
+      },
+      {
+        "title": "FIBRE project",
+        "url": "https://bitcoinfibre.org/",
+        "type": "reference"
+      }
+    ]
+  },
+  {
+    "id": "economic-incentives-assumption",
+    "title": "Economic Incentives Assumption",
+    "year": 2009,
+    "severity": "high",
+    "category": "game-theory",
+    "linkedNodeIds": [
+      "mining-and-subsidy",
+      "fees-mempool",
+      "lightning-network-maturity",
+      "security-and-attacks"
+    ],
+    "summary": "Bitcoin assumes most participants prefer strategies that preserve long-term network value over short-term destructive behavior.",
+    "assumptionType": "game-theory",
+    "dependsOn": [
+      "honest operation remains economically competitive",
+      "users and miners respond to fee and confirmation signals"
+    ],
+    "weakenedBy": [
+      "extreme fee spikes",
+      "cross-market incentives not aligned with chain health"
+    ],
+    "sources": [
+      {
+        "title": "Bitcoin Whitepaper",
+        "url": "https://bitcoin.org/bitcoin.pdf",
+        "type": "whitepaper"
+      },
+      {
+        "title": "Bitcoin Developer Guide: Mining",
+        "url": "https://developer.bitcoin.org/devguide/mining.html",
+        "type": "dev-guide"
+      },
+      {
+        "title": "Bitcoin-dev discussion group",
+        "url": "https://groups.google.com/g/bitcoindev",
+        "type": "mailing-list"
+      }
+    ]
+  },
+  {
+    "id": "cryptographic-assumption",
+    "title": "Cryptographic Assumption",
+    "year": 2009,
+    "severity": "critical",
+    "category": "cryptography",
+    "linkedNodeIds": [
+      "signatures-schnorr-ecdsa",
+      "segwit-and-taproot-upgrades",
+      "security-and-attacks"
+    ],
+    "summary": "Bitcoin security assumes practical resistance of SHA-256 hashing and signature schemes against forgery and collision attacks.",
+    "assumptionType": "cryptographic",
+    "dependsOn": [
+      "hash preimage and collision resistance remain computationally hard",
+      "signature forgery remains infeasible under current threat models"
+    ],
+    "weakenedBy": [
+      "major cryptanalytic breakthrough",
+      "large-scale implementation flaws in cryptographic libraries"
+    ],
+    "sources": [
+      {
+        "title": "Bitcoin Whitepaper",
+        "url": "https://bitcoin.org/bitcoin.pdf",
+        "type": "whitepaper"
+      },
+      {
+        "title": "BIP 340: Schnorr Signatures",
+        "url": "https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki",
+        "type": "BIP"
+      },
+      {
+        "title": "NIST FIPS 180-4",
+        "url": "https://csrc.nist.gov/publications/detail/fips/180/4/final",
+        "type": "reference"
+      }
+    ]
+  }
+]

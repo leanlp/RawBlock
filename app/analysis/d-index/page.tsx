@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Header from "../../../components/Header";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip } from 'recharts';
 import { motion } from "framer-motion";
 import { calculateDIndex, DIndexResult } from "../../../utils/d-index";
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 export default function DIndexPage() {
     const [result, setResult] = useState<DIndexResult | null>(null);
@@ -110,7 +111,7 @@ export default function DIndexPage() {
                             <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6 text-center">Metric Composition</h2>
 
                             <div className="h-[400px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <SafeResponsiveContainer width="100%" height="100%">
                                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                                         <PolarGrid stroke="#334155" />
                                         <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 12 }} />
@@ -128,7 +129,7 @@ export default function DIndexPage() {
                                             labelStyle={{ color: '#cbd5e1' }}
                                         />
                                     </RadarChart>
-                                </ResponsiveContainer>
+                                </SafeResponsiveContainer>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">

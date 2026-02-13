@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Twitter, Linkedin } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { GUIDED_LESSONS } from "../../data/guided-learning";
+import { useGuidedLearning } from "../providers/GuidedLearningProvider";
 
 const NAV_ITEMS = [
     {
@@ -50,30 +52,100 @@ const NAV_ITEMS = [
     {
         category: "Arcade",
         items: [
-            { name: "Tetris", path: "/game/tetris", icon: "🧱" },
-            { name: "Mining Sim", path: "/game/mining", icon: "⚡" },
+            { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
+            { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
+        ]
+    },
+    {
+        category: "Simulations",
+        items: [
+            { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
+            { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
+            { name: "Lightning Simulator", path: "/lab/lightning", icon: "⚡" },
         ]
     }
 ];
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const { progressPercent, currentLessonIndex } = useGuidedLearning();
+    const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
+    const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
 
-    const SidebarContent = () => (
+    useEffect(() => {
+        if (!mobileOpen) return;
+
+        const bodyStyle = document.body.style;
+        const htmlStyle = document.documentElement.style;
+        const scrollY = window.scrollY;
+
+        const previousBody = {
+            overflow: bodyStyle.overflow,
+            position: bodyStyle.position,
+            top: bodyStyle.top,
+            width: bodyStyle.width,
+            overscrollBehavior: bodyStyle.overscrollBehavior,
+        };
+        const previousHtml = {
+            overscrollBehavior: htmlStyle.overscrollBehavior,
+        };
+
+        // Freeze document scroll while the mobile drawer is open.
+        bodyStyle.overflow = "hidden";
+        bodyStyle.position = "fixed";
+        bodyStyle.top = `-${scrollY}px`;
+        bodyStyle.width = "100%";
+        bodyStyle.overscrollBehavior = "none";
+        htmlStyle.overscrollBehavior = "none";
+
+        return () => {
+            bodyStyle.overflow = previousBody.overflow;
+            bodyStyle.position = previousBody.position;
+            bodyStyle.top = previousBody.top;
+            bodyStyle.width = previousBody.width;
+            bodyStyle.overscrollBehavior = previousBody.overscrollBehavior;
+            htmlStyle.overscrollBehavior = previousHtml.overscrollBehavior;
+            window.scrollTo(0, scrollY);
+        };
+    }, [mobileOpen]);
+
+    const sidebarContent = (
         <>
             {/* Logo */}
             <div className="h-16 flex items-center justify-center border-b border-slate-800/50">
-                <div onClick={() => setCollapsed(!collapsed)} className="cursor-pointer flex items-center gap-3">
+                <Link href="/" onClick={() => setMobileOpen(false)} className="cursor-pointer flex items-center gap-3">
                     <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20">
                         <span className="text-white font-bold">R</span>
                     </div>
-                    {!collapsed && (
-                        <h1 className="font-bold text-slate-200 tracking-tight">
-                            Raw<span className="text-cyan-400">Block</span>
-                        </h1>
-                    )}
+                    <h1 className="font-bold text-slate-200 tracking-tight">
+                        Raw<span className="text-cyan-400">Block</span>
+                    </h1>
+                </Link>
+            </div>
+
+            <div className="border-b border-slate-800/50 px-3 py-3">
+                <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+                    <p className="text-[10px] uppercase tracking-widest text-slate-500">Learning Journey</p>
+                    <p className="text-xs text-slate-300 mt-1">
+                        Step {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
+                    </p>
+                    <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden mt-2">
+                        <div
+                            className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                            style={{ width: `${progressPercent}%` }}
+                        />
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                        <span className="text-[11px] text-cyan-300">{progressPercent}% complete</span>
+                        <Link
+                            href="/#guided-learning-mode"
+                            onClick={() => setMobileOpen(false)}
+                            className="text-[11px] text-slate-300 hover:text-cyan-300 transition-colors"
+                        >
+                            Resume
+                        </Link>
+                    </div>
                 </div>
             </div>
 
@@ -81,11 +153,9 @@ export default function Sidebar() {
             <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-6 custom-scrollbar">
                 {NAV_ITEMS.map((section, idx) => (
                     <div key={idx}>
-                        {!collapsed && (
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-600 px-3 mb-3">
-                                {section.category}
-                            </h3>
-                        )}
+                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-600 px-3 mb-3">
+                            {section.category}
+                        </h3>
                         <div className="space-y-1">
                             {section.items.map((item) => {
                                 const isActive = pathname === item.path ||
@@ -106,9 +176,7 @@ export default function Sidebar() {
                                         `}
                                     >
                                         <span className="text-lg flex-shrink-0">{item.icon}</span>
-                                        {!collapsed && (
-                                            <span className="text-sm font-medium truncate">{item.name}</span>
-                                        )}
+                                        <span className="text-sm font-medium truncate">{item.name}</span>
                                         {isActive && (
                                             <motion.div
                                                 className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-cyan-400 rounded-r-full"
@@ -125,31 +193,29 @@ export default function Sidebar() {
             </nav>
 
             {/* Footer */}
-            {!collapsed && (
-                <div className="p-4 border-t border-slate-800/50 flex flex-col gap-4">
-                    <div className="flex justify-center gap-4">
-                        <Link
-                            href="https://x.com/rawblocknet"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center min-h-11 min-w-11"
-                        >
-                            <Twitter size={16} />
-                        </Link>
-                        <Link
-                            href="https://linkedin.com/company/rawblock"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center min-h-11 min-w-11"
-                        >
-                            <Linkedin size={16} />
-                        </Link>
-                    </div>
-                    <p className="text-[10px] text-slate-600 text-center">
-                        © 2026 Raw Block
-                    </p>
+            <div className="p-4 border-t border-slate-800/50 flex flex-col gap-4">
+                <div className="flex justify-center gap-4">
+                    <Link
+                        href="https://x.com/rawblocknet"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center min-h-11 min-w-11"
+                    >
+                        <Twitter size={16} />
+                    </Link>
+                    <Link
+                        href="https://linkedin.com/company/rawblock"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center justify-center min-h-11 min-w-11"
+                    >
+                        <Linkedin size={16} />
+                    </Link>
                 </div>
-            )}
+                <p className="text-[10px] text-slate-600 text-center">
+                    © 2026 Raw Block
+                </p>
+            </div>
         </>
     );
 
@@ -193,7 +259,7 @@ export default function Sidebar() {
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
                         className="md:hidden fixed left-0 top-0 bottom-0 z-[80] w-64 bg-slate-950/98 backdrop-blur-xl border-r border-slate-900 flex flex-col"
                     >
-                        <SidebarContent />
+                        {sidebarContent}
                     </motion.aside>
                 )}
             </AnimatePresence>
@@ -206,11 +272,11 @@ export default function Sidebar() {
                     fixed left-0 top-0 bottom-0 z-30
                     bg-slate-950/95 backdrop-blur-xl border-r border-slate-900
                     transition-all duration-300 ease-in-out
-                    ${collapsed ? "w-20" : "w-64"}
+                    w-64
                     hidden md:flex flex-col
                 `}
             >
-                <SidebarContent />
+                {sidebarContent}
             </motion.aside>
         </>
     );

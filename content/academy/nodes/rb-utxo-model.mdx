@@ -1,0 +1,109 @@
+---
+id: rb-utxo-model
+title: UTXO Model
+type: mechanism
+difficulty: 2
+lessonId: 3
+pathIds:
+  - bitcoin-foundations
+summary: Bitcoin state is represented as unspent transaction outputs, each with explicit spending conditions and one-time spend semantics.
+story: >-
+  Carol opens her wallet and wonders why she has many small coins instead of one running
+  balance. Her app shows one number, but under the hood she owns several UTXOs from prior
+  payments. When she sends funds, the wallet combines some outputs, creates a payment
+  output, and often creates change back to herself. This model feels strange at first,
+  but it is exactly why Bitcoin validation is strong: nodes do not trust a mutable balance
+  table, they verify each spend path against explicit prior outputs. Carol also notices a
+  practical trade-off. If she accumulates many tiny UTXOs, future transactions become
+  heavier and more expensive. If she consolidates carelessly, she can leak privacy by
+  linking addresses. UTXO literacy is where protocol design meets day-to-day wallet
+  operations, and it explains both fee behavior and many attack discussions.
+keyTakeaways:
+  - UTXOs are the canonical spendable state in Bitcoin.
+  - Each UTXO can be spent once under valid script conditions.
+  - Coin selection influences fees and privacy outcomes.
+securityNotes:
+  - Duplicate spend attempts fail when nodes enforce UTXO uniqueness.
+  - Excessive UTXO fragmentation increases operational cost and wallet risk.
+linkedVulnerabilities:
+  - cve-2018-17144
+linkedAttacks:
+  - replace-by-fee-abuse
+linkedAssumptions:
+  - independent-validation-assumption
+  - network-propagation-assumption
+policyVsConsensus:
+  consensusRules:
+    - An input must reference an existing unspent output exactly once.
+    - Script validation must succeed for every consumed output.
+  policyRules:
+    - Dust and standardness policy influence which outputs are relayed.
+    - Nodes may deprioritize low-fee consolidation transactions.
+  explanation: Consensus protects spend correctness; policy shapes which UTXO transformations propagate efficiently.
+caseStudies:
+  - title: CVE-2018-17144
+    year: 2018
+    whatHappened: Duplicate-input checks regressed in specific validation paths.
+    whyItMatters: It highlighted how UTXO invariants are consensus-critical for inflation safety.
+explorerDeepLinks:
+  - label: Address UTXO View
+    url: https://mempool.space/address/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+  - label: Raw Block UTXO Explorer
+    url: https://www.rawblock.net/analysis/utxo
+  - label: Developer Transactions Reference
+    url: https://developer.bitcoin.org/reference/transactions.html
+claimSources:
+  - claim: Bitcoin uses a UTXO state model rather than account balances.
+    sources:
+      - title: Developer Guide Transactions
+        url: https://developer.bitcoin.org/devguide/transactions.html
+        type: dev-guide
+      - title: Bitcoin Whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+  - claim: UTXO uniqueness is required to prevent double spending.
+    sources:
+      - title: Bitcoin Core validation.cpp
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+        type: core-docs
+      - title: Bitcoin Whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: reference
+  - claim: Dust and standardness policies affect relay behavior for small outputs.
+    sources:
+      - title: Bitcoin Core policy.h
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.h
+        type: core-docs
+      - title: Bitcoin Core policy docs
+        url: https://github.com/bitcoin/bitcoin/tree/master/doc/policy
+        type: core-docs
+furtherReading:
+  - title: Developer Guide Transactions
+    url: https://developer.bitcoin.org/devguide/transactions.html
+  - title: Bitcoin Core validation.cpp
+    url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+  - title: Bitcoin Core policy docs
+    url: https://github.com/bitcoin/bitcoin/tree/master/doc/policy
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+UTXO entries represent spendable outputs with locking scripts. Inputs prove authorization to consume those entries. Nodes update state by removing spent outputs and adding new ones.
+
+**Real Data:** Show `mempool fee levels` and `block space pressure` to explain when UTXO consolidation is economically reasonable.
+
+## Walkthrough
+1. Receive payment, creating a new UTXO.
+2. Spend by referencing that UTXO as input.
+3. Create recipient output plus change output.
+4. Repeat over time, building wallet UTXO set.
+
+## Common Misconceptions
+- “Wallet balance is one coin bucket.” It is an abstraction over many UTXOs.
+- “Small outputs are always good for flexibility.” They can become fee liabilities.
+- “UTXO and address are the same object.” They are different layers.
+
+## Check Yourself (Questions)
+- Why does UTXO fragmentation increase fees?
+- Which part of UTXO handling is consensus-critical?
+- How can consolidation hurt privacy?

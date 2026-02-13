@@ -1,0 +1,166 @@
+[
+  {
+    "id": "eclipse-attack",
+    "title": "Eclipse Attack",
+    "year": 2015,
+    "severity": "high",
+    "category": "network-isolation",
+    "linkedNodeIds": [
+      "consensus-rules-vs-policy",
+      "spv-vs-full-node",
+      "security-and-attacks",
+      "reorgs-finality"
+    ],
+    "summary": "An attacker isolates a target node's peer connections to control its view of blocks and transactions.",
+    "targetLayer": "network",
+    "attackerCapabilities": [
+      "Control or influence many peer connections around the victim",
+      "Sustain isolation long enough to bias chain/mempool visibility"
+    ],
+    "mitigations": [
+      "Diversify peer connectivity and avoid single-homing network paths",
+      "Run updated Bitcoin Core versions and monitor for tip/peer anomalies"
+    ],
+    "observedInWild": false,
+    "sources": [
+      {
+        "title": "Eclipse Attacks on Bitcoin's Peer-to-Peer Network (USENIX 2015)",
+        "url": "https://www.usenix.org/conference/usenixsecurity15/technical-sessions/presentation/heilman",
+        "type": "reference"
+      },
+      {
+        "title": "Bitcoin Developer Guide: P2P Network",
+        "url": "https://developer.bitcoin.org/devguide/p2p_network.html",
+        "type": "dev-guide"
+      },
+      {
+        "title": "Bitcoin Core source tree",
+        "url": "https://github.com/bitcoin/bitcoin/tree/master/src",
+        "type": "core-docs"
+      }
+    ]
+  },
+  {
+    "id": "selfish-mining",
+    "title": "Selfish Mining",
+    "year": 2014,
+    "severity": "high",
+    "category": "mining-strategy",
+    "linkedNodeIds": [
+      "mining-and-subsidy",
+      "difficulty-adjustment-2016",
+      "reorgs-finality",
+      "security-and-attacks"
+    ],
+    "summary": "A miner withholds valid blocks strategically to increase expected revenue over fully honest publication.",
+    "targetLayer": "mining",
+    "attackerCapabilities": [
+      "Sufficient hashpower share to make withholding strategy viable",
+      "Fast private relay and timing control for strategic release"
+    ],
+    "mitigations": [
+      "Improve propagation performance to reduce stale-block arbitrage",
+      "Maintain hashrate decentralization across independent operators"
+    ],
+    "observedInWild": false,
+    "sources": [
+      {
+        "title": "Majority is not Enough: Bitcoin Mining is Vulnerable",
+        "url": "https://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf",
+        "type": "reference"
+      },
+      {
+        "title": "Bitcoin Whitepaper",
+        "url": "https://bitcoin.org/bitcoin.pdf",
+        "type": "whitepaper"
+      },
+      {
+        "title": "FIBRE project",
+        "url": "https://bitcoinfibre.org/",
+        "type": "reference"
+      }
+    ]
+  },
+  {
+    "id": "fee-sniping",
+    "title": "Fee Sniping",
+    "year": 2016,
+    "severity": "medium",
+    "category": "economic-reorg",
+    "linkedNodeIds": [
+      "fees-mempool",
+      "mining-and-subsidy",
+      "reorgs-finality",
+      "security-and-attacks"
+    ],
+    "summary": "During extreme fee spikes, miners may have incentive to attempt short reorgs to capture recent fee-rich blocks.",
+    "targetLayer": "economic",
+    "attackerCapabilities": [
+      "Ability to mine on alternate short branches",
+      "Economic tolerance for temporary orphan-risk losses"
+    ],
+    "mitigations": [
+      "Use deeper confirmation policies for high-value settlements",
+      "Monitor unusual reorg behavior during abnormal fee regimes"
+    ],
+    "observedInWild": false,
+    "sources": [
+      {
+        "title": "Bitcoin Developer Guide: Mining",
+        "url": "https://developer.bitcoin.org/devguide/mining.html",
+        "type": "dev-guide"
+      },
+      {
+        "title": "Bitcoin-dev discussion group",
+        "url": "https://groups.google.com/g/bitcoindev",
+        "type": "mailing-list"
+      },
+      {
+        "title": "Mempool.space API docs",
+        "url": "https://mempool.space/docs/api/rest",
+        "type": "reference"
+      }
+    ]
+  },
+  {
+    "id": "replace-by-fee-abuse",
+    "title": "Replace-by-Fee Abuse Pattern",
+    "year": 2016,
+    "severity": "medium",
+    "category": "mempool-policy-abuse",
+    "linkedNodeIds": [
+      "transactions-lifecycle",
+      "fees-mempool",
+      "consensus-rules-vs-policy",
+      "security-and-attacks"
+    ],
+    "summary": "Zero-confirmation recipients can be harmed when an attacker replaces a pending transaction with a higher-fee conflict.",
+    "targetLayer": "mempool",
+    "attackerCapabilities": [
+      "Broadcast a replaceable low-fee transaction accepted by the recipient",
+      "Issue a higher-fee conflicting replacement before confirmation"
+    ],
+    "mitigations": [
+      "Avoid zero-confirmation acceptance for sensitive payment values",
+      "Use explicit confirmation and mempool monitoring policies"
+    ],
+    "observedInWild": true,
+    "sources": [
+      {
+        "title": "BIP 125: Opt-in Full Replace-by-Fee",
+        "url": "https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki",
+        "type": "BIP"
+      },
+      {
+        "title": "Bitcoin Core mempool replacements policy",
+        "url": "https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md",
+        "type": "core-docs"
+      },
+      {
+        "title": "Bitcoin Developer Guide: Transactions",
+        "url": "https://developer.bitcoin.org/devguide/transactions.html",
+        "type": "dev-guide"
+      }
+    ]
+  }
+]

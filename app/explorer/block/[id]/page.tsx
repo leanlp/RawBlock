@@ -6,7 +6,8 @@ import Header from "../../../../components/Header";
 import PageHeader from "../../../../components/PageHeader";
 import Card from "../../../../components/Card";
 import { motion } from "framer-motion";
-import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
+import { Treemap, Tooltip } from "recharts";
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface BlockData {
     hash: string;
@@ -177,7 +178,7 @@ export default function BlockPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Reward</div>
+                                    <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Coinbase Payout (Subsidy + Fees)</div>
                                     <div className="text-emerald-400 font-mono font-bold text-sm">{(block.reward ?? 0).toFixed(8)} BTC</div>
                                 </div>
                             </div>
@@ -195,7 +196,7 @@ export default function BlockPage() {
                                 </p>
 
                                 <div className="h-[500px] w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <SafeResponsiveContainer width="100%" height="100%">
                                         <Treemap
                                             data={treeMapData}
                                             dataKey="size"
@@ -217,7 +218,7 @@ export default function BlockPage() {
                                                 }}
                                             />
                                         </Treemap>
-                                    </ResponsiveContainer>
+                                    </SafeResponsiveContainer>
                                 </div>
                             </div>
                         )}

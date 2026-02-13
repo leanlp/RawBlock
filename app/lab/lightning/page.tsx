@@ -66,9 +66,38 @@ export default function LightningPage() {
                 <div className="flex flex-col md:flex-row justify-between items-end pb-6 border-b border-slate-800">
                     <div>
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500">
-                            Lightning Visualizer ⚡
+                            Lightning Simulator ⚡
                         </h1>
-                        <p className="mt-2 text-slate-400 text-sm">Layer 2: Payment Channels & Multi-Hop Routing.</p>
+                        <p className="mt-2 text-slate-400 text-sm">
+                            Production-ready Layer 2 for instant, low-fee payments: channels, routing, and settlement.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="bg-slate-900/50 border border-slate-800 p-5 rounded-2xl">
+                    <h2 className="text-slate-300 text-sm font-bold mb-3 uppercase tracking-widest">Lightning Status (2026)</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="space-y-2 text-slate-300">
+                            <p>
+                                Lightning is no longer experimental. It is production-ready and broadly used for fast Bitcoin payments.
+                            </p>
+                            <p>
+                                Major exchanges and platforms support Lightning, including <span className="text-white font-semibold">Coinbase</span>,{" "}
+                                <span className="text-white font-semibold">Kraken</span>, <span className="text-white font-semibold">Binance</span>, and{" "}
+                                <span className="text-white font-semibold">Bitfinex</span>.
+                            </p>
+                        </div>
+                        <div className="space-y-2 text-slate-300">
+                            <p>
+                                Best fit: small and medium payments with instant UX and low fees.
+                            </p>
+                            <p>
+                                Trade-off: large/high-assurance settlement is still often finalized on-chain for maximum finality.
+                            </p>
+                            <p className="text-xs text-slate-400">
+                                Security best practices: use watchtowers, keep channels well-managed, monitor liquidity, and rebalance routes.
+                            </p>
+                        </div>
                     </div>
                 </div>
 

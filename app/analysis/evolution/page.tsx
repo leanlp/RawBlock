@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Header from "../../../components/Header";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { motion } from "framer-motion";
 import io from "socket.io-client";
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface EvolutionData {
     distribution: {
@@ -12,7 +13,7 @@ interface EvolutionData {
         segwit: number;
         taproot: number;
     };
-    wastedSpace: string;
+    wastedSpace: string | number;
     fatFingers: Array<{
         txid: string;
         feeRate: string;
@@ -48,6 +49,10 @@ export default function EvolutionPage() {
         { name: 'Taproot (Next-Gen)', value: data.distribution.taproot },
     ] : [];
 
+    // Derive a bounded percent from distribution to avoid impossible values (>100%).
+    const legacyShare = data?.distribution.legacy ?? 0;
+    const estimatedWastedSpace = Math.max(0, Math.min(100, legacyShare * 0.4));
+
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-sans">
             <div className="max-w-6xl mx-auto space-y-8">
@@ -72,7 +77,7 @@ export default function EvolutionPage() {
                             <h2 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">The Gene Pool (Script Types)</h2>
 
                             <div className="h-[300px] w-full flex items-center justify-center">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <SafeResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
                                             data={chartData}
@@ -92,12 +97,15 @@ export default function EvolutionPage() {
                                         />
                                         <Legend verticalAlign="bottom" height={36} />
                                     </PieChart>
-                                </ResponsiveContainer>
+                                </SafeResponsiveContainer>
                             </div>
 
                             <div className="mt-4 p-4 bg-slate-800/30 rounded-lg text-center">
-                                <div className="text-sm text-slate-400">Inefficiency Score</div>
-                                <div className="text-2xl font-bold text-red-400">~{data.wastedSpace}% <span className="text-xs text-slate-500 font-normal">Wasted Block Space</span></div>
+                                <div className="text-sm text-slate-400">Estimated Capacity Loss</div>
+                                <div className="text-2xl font-bold text-red-400">
+                                    {estimatedWastedSpace.toFixed(1)}%
+                                    <span className="text-xs text-slate-500 font-normal"> from Legacy Script Usage</span>
+                                </div>
                             </div>
                         </div>
 

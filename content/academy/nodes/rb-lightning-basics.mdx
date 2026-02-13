@@ -1,0 +1,106 @@
+---
+id: rb-lightning-basics
+title: Lightning Network Basics
+type: mechanism
+difficulty: 2
+lessonId: 5
+pathIds:
+  - bitcoin-foundations
+summary: Lightning Network is a production-ready Layer 2 for fast, low-fee payments settled periodically on Bitcoin base layer.
+story: >-
+  Alice runs a café and wants instant payments without waiting for on-chain confirmations
+  every time someone buys coffee. She adopts Lightning and sees near-instant settlement
+  experience for daily transactions. But she also learns Lightning is not “free magic.”
+  Channel liquidity, routing reliability, and operational monitoring matter. For large treasury
+  moves, she still prefers direct on-chain settlement with confirmation depth. The right model
+  is layered: Lightning for fast small/medium flow, base layer for final global settlement.
+  That combination is why Lightning is now practical in production while still evolving.
+keyTakeaways:
+  - Lightning is production-ready, not merely experimental.
+  - Best fit is frequent small/medium payments with low latency needs.
+  - Base layer remains final dispute resolution and settlement anchor.
+securityNotes:
+  - Watchtowers and proper channel management reduce counterparty risk.
+  - Liquidity mismanagement can degrade reliability even when protocol works correctly.
+linkedVulnerabilities:
+  - pre-segwit-tx-malleability
+linkedAttacks:
+  - fee-sniping
+linkedAssumptions:
+  - network-propagation-assumption
+  - economic-incentives-assumption
+policyVsConsensus:
+  consensusRules:
+    - Lightning settlement transactions must satisfy Bitcoin consensus.
+    - Timelock and script validity enforce channel safety assumptions.
+  policyRules:
+    - Routing, fee policies, and channel heuristics are implementation-level policy.
+    - Service providers define liquidity and risk controls operationally.
+  explanation: Lightning policy is flexible at L2; final enforceability comes from L1 consensus settlement.
+caseStudies:
+  - title: Exchange Lightning Integrations
+    year: 2024
+    whatHappened: Major exchanges integrated Lightning withdrawals/deposits.
+    whyItMatters: It marked transition from niche experiment to mainstream operational rail.
+explorerDeepLinks:
+  - label: Lightning Nodes and Channels
+    url: https://mempool.space/lightning
+  - label: Lightning BOLTs
+    url: https://github.com/lightning/bolts
+  - label: Raw Block Lightning Lab
+    url: https://www.rawblock.net/lab/lightning
+claimSources:
+  - claim: Lightning is a Layer 2 protocol anchored to Bitcoin settlement.
+    sources:
+      - title: Lightning BOLTs repository
+        url: https://github.com/lightning/bolts
+        type: reference
+      - title: Bitcoin whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+  - claim: Timelocks are foundational to Lightning safety.
+    sources:
+      - title: BIP 65 (CLTV)
+        url: https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki
+        type: BIP
+      - title: BIP 112 (CSV)
+        url: https://github.com/bitcoin/bips/blob/master/bip-0112.mediawiki
+        type: BIP
+  - claim: Lightning usage is now common in major production integrations.
+    sources:
+      - title: Coinbase Lightning announcement
+        url: https://www.coinbase.com/blog/lightning-payments-now-available-on-coinbase
+        type: reference
+      - title: Kraken Lightning support docs
+        url: https://support.kraken.com/hc/en-us/articles/5068216131988-Lightning-Network-on-Kraken
+        type: reference
+furtherReading:
+  - title: Lightning BOLTs
+    url: https://github.com/lightning/bolts
+  - title: Mastering Lightning
+    url: https://github.com/lnbook/lnbook
+  - title: Raw Block Lightning Lab
+    url: https://www.rawblock.net/lab/lightning
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Lightning uses off-chain channels and routed payments while relying on Bitcoin for final enforceability through timelocked settlement transactions.
+
+**Real Data:** Show `on-chain fee recommendations` and `Lightning channel graph activity`. This helps learners see when L2 routing is economically attractive.
+
+## Walkthrough
+1. Open channel on-chain.
+2. Route payments off-chain.
+3. Rebalance or update channels as needed.
+4. Close or settle on-chain when necessary.
+
+## Common Misconceptions
+- “Lightning replaces Bitcoin base layer.” It does not.
+- “Lightning is unsafe for any real use.” Incorrect with proper operational controls.
+- “All Lightning payments are always instant.” Routing and liquidity can fail.
+
+## Check Yourself (Questions)
+- Why do timelocks matter in channel security?
+- When should a user prefer on-chain settlement?
+- Which metric best signals L1 cost pressure for Lightning adoption?

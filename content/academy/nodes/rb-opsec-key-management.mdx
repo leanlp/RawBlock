@@ -1,0 +1,115 @@
+---
+id: rb-opsec-key-management
+title: Operational Security and Key Management
+type: property
+difficulty: 4
+lessonId: 8
+pathIds:
+  - bitcoin-foundations
+summary: Bitcoin self-custody security depends on operational discipline: key isolation, backups, threat modeling, and recovery practice.
+story: >-
+  Carol helps a family office move from exchange custody to self-custody. Everyone focuses on hardware wallet brand
+  debates, but she starts elsewhere: threat model, who can coerce whom, what happens during travel, and how recovery
+  works if a signer disappears. They run tabletop exercises and discover weak points: seed phrases photographed on phones,
+  no tested backup restoration, and single-person approval bottlenecks. Over weeks, they redesign: geographically separate
+  backups, role separation, spending limits, and emergency playbooks. The result is less "heroic security" and more boring,
+  repeatable procedure. In Bitcoin, boring is good. Protocol security can be world-class, yet funds can still be lost by
+  weak operations. OPSEC is where theory meets reality.
+keyTakeaways:
+  - Key management failures are often operational, not protocol-level.
+  - Backups must be tested with real restore drills.
+  - Security posture should match value-at-risk and adversary capability.
+securityNotes:
+  - Social engineering and endpoint compromise are common practical threats.
+  - Multisig, hardware isolation, and process controls reduce single-point failure risk.
+linkedVulnerabilities:
+  - value-overflow-2010
+linkedAttacks:
+  - eclipse-attack
+  - replace-by-fee-abuse
+linkedAssumptions:
+  - cryptographic-assumption
+  - economic-incentives-assumption
+policyVsConsensus:
+  consensusRules:
+    - Consensus validates signatures and script conditions regardless of organizational process.
+    - Lost keys are unrecoverable without valid spending credentials.
+  policyRules:
+    - Organizations define approval thresholds, signer roles, and withdrawal procedures.
+    - Incident response, monitoring, and key rotation are operational policy decisions.
+  explanation: Consensus cannot rescue poor key operations; policy and process determine real-world loss prevention.
+caseStudies:
+  - title: Exchange Custody Collapses
+    year: 2014
+    whatHappened: Custodial control failures and weak internal controls caused severe losses.
+    whyItMatters: Users inherit counterparty risk when they do not control keys.
+  - title: Seed Phrase Leakage Incidents
+    year: 2022
+    whatHappened: Multiple campaigns tricked users into exposing recovery phrases.
+    whyItMatters: Human-layer OPSEC is a major attack surface.
+explorerDeepLinks:
+  - label: Raw Block Rich List Context
+    url: https://www.rawblock.net/explorer/rich-list
+  - label: Mempool Transaction Explorer
+    url: https://mempool.space/tx/
+  - label: BIP 32 (HD wallets)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+  - label: BIP 174 (PSBT)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki
+claimSources:
+  - claim: Loss or compromise of private keys directly affects spend control.
+    sources:
+      - title: Bitcoin Developer Guide - Wallets
+        url: https://developer.bitcoin.org/devguide/wallets.html
+        type: dev-guide
+      - title: Bitcoin Whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+  - claim: PSBT standards support safer multi-device signing workflows.
+    sources:
+      - title: BIP 174
+        url: https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki
+        type: BIP
+      - title: Bitcoin Core wallet process docs
+        url: https://github.com/bitcoin/bitcoin/tree/master/doc
+        type: core-docs
+  - claim: HD derivation standards improve deterministic backup and key management practices.
+    sources:
+      - title: BIP 32
+        url: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+        type: BIP
+      - title: BIP 39
+        url: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
+        type: BIP
+furtherReading:
+  - title: BIP 174
+    url: https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki
+  - title: BIP 32
+    url: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+  - title: Bitcoin Core Wallet Docs
+    url: https://github.com/bitcoin/bitcoin/tree/master/doc/wallet
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Operational security combines key-generation hygiene, signing isolation, backup integrity, monitoring, and incident response. Good OPSEC treats key compromise as a process risk that must be continuously managed.
+
+### Real Data
+Show `confirmation depth`, `fee volatility`, and `transaction anomaly alerts` for managed wallets. These metrics inform real-time spending controls and fraud response.
+
+## Walkthrough
+1. Define threat model and custody requirements.
+2. Implement signer roles and hardware isolation.
+3. Create encrypted, geographically separated backups.
+4. Test restore and emergency procedures periodically.
+5. Review logs and rotate processes after incidents.
+
+## Common Misconceptions
+- "Hardware wallet alone solves security." Process still matters.
+- "Seed phrase backup once is enough forever." Restore drills are essential.
+- "Protocol security prevents user loss." Operational mistakes can still be fatal.
+
+## Check Yourself (Questions)
+- What is the difference between protocol risk and custody process risk?
+- Why should backup testing be scheduled, not ad hoc?
+- Which controls reduce single-operator compromise impact?

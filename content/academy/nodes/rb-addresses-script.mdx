@@ -1,0 +1,106 @@
+---
+id: rb-addresses-script
+title: Addresses and Script Destinations
+type: primitive
+difficulty: 2
+lessonId: 2
+pathIds:
+  - bitcoin-foundations
+summary: Addresses are human-friendly encodings of script destinations, not always raw public keys.
+story: >-
+  Bob copies a Bitcoin address from a customer and asks why some start with “1,” some with
+  “3,” and others with “bc1.” Alice explains he is seeing different script destination formats,
+  not different currencies. An address is an encoded representation of where spend conditions
+  are set. In some cases it references a key hash, in others a script hash, and in modern
+  outputs a witness program. Bob had assumed “address equals public key,” but that shortcut
+  breaks quickly in real usage. The distinction matters for compatibility, fee efficiency,
+  and error prevention. When you treat addresses as script endpoints, wallet behavior and
+  upgrade history make much more sense.
+keyTakeaways:
+  - Address format signals script/witness destination type.
+  - Address and public key are related but not identical concepts.
+  - Proper encoding and checksum handling prevents costly mistakes.
+securityNotes:
+  - Wrong format handling can produce send failures or unsafe assumptions.
+  - Address reuse increases transaction graph linkage risk.
+linkedVulnerabilities:
+  - pre-segwit-tx-malleability
+linkedAttacks:
+  - replace-by-fee-abuse
+linkedAssumptions:
+  - cryptographic-assumption
+policyVsConsensus:
+  consensusRules:
+    - Spend validation is defined by script/witness rules, not display format.
+    - Output type semantics must satisfy active consensus rules.
+  policyRules:
+    - Wallets/exchanges may restrict accepted destination types.
+    - Relay policy can discourage uncommon script templates.
+  explanation: Consensus validates script semantics; policy and UI govern accepted address formats and defaults.
+caseStudies:
+  - title: Bech32 Migration
+    year: 2017
+    whatHappened: Ecosystem moved toward bech32 for SegWit outputs.
+    whyItMatters: Better checksum and lower-weight transaction patterns improved reliability and fees.
+explorerDeepLinks:
+  - label: Bech32 Wiki
+    url: https://bips.dev/173/
+  - label: Address Explorer
+    url: https://mempool.space/address/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+  - label: Raw Block Decoder
+    url: https://www.rawblock.net/explorer/decoder
+claimSources:
+  - claim: Bech32 and bech32m specify modern Bitcoin address encodings.
+    sources:
+      - title: BIP 173
+        url: https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki
+        type: BIP
+      - title: BIP 350
+        url: https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki
+        type: BIP
+  - claim: Addresses encode script destinations and checksums.
+    sources:
+      - title: Developer Transactions Reference
+        url: https://developer.bitcoin.org/reference/transactions.html
+        type: dev-guide
+      - title: Developer Guide Transactions
+        url: https://developer.bitcoin.org/devguide/transactions.html
+        type: reference
+  - claim: Destination type affects fee weight and compatibility.
+    sources:
+      - title: BIP 141
+        url: https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
+        type: BIP
+      - title: Developer Guide SegWit notes
+        url: https://developer.bitcoin.org/devguide/transactions.html
+        type: dev-guide
+furtherReading:
+  - title: BIP 173
+    url: https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki
+  - title: BIP 350
+    url: https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki
+  - title: Developer Guide Transactions
+    url: https://developer.bitcoin.org/devguide/transactions.html
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Addresses wrap script destination data into user-safe strings with checksums. Script type determines spend path and weight implications.
+
+**Real Data:** Show `segwit/taproot adoption share` and `fee recommendations` to explain why format choice impacts real cost.
+
+## Walkthrough
+1. Wallet derives destination script.
+2. Encodes to address format.
+3. Sender constructs output script from decoded destination.
+4. Receiver spends under script rules.
+
+## Common Misconceptions
+- “Address equals public key.” Not generally.
+- “All address types cost the same.” They do not.
+- “Format differences are cosmetic.” They encode semantics.
+
+## Check Yourself (Questions)
+- What does bech32m add for Taproot destinations?
+- Why is checksum quality operationally important?
+- Where is actual spend logic enforced: address layer or script layer?

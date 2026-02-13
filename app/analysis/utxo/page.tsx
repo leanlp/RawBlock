@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Header from "../../../components/Header";
 import { motion } from "framer-motion";
 import {
-    PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
+    PieChart, Pie, Cell, Tooltip,
     BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts';
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface UTXOStats {
     height: number;
@@ -182,7 +183,7 @@ export default function UTXOExplorerPage() {
                                 </h2>
 
                                 <div className="h-[300px]">
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <SafeResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
                                                 data={distribution?.addressTypes || []}
@@ -202,7 +203,7 @@ export default function UTXOExplorerPage() {
                                                 formatter={(value) => [`${value}%`, 'Share']}
                                             />
                                         </PieChart>
-                                    </ResponsiveContainer>
+                                    </SafeResponsiveContainer>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
@@ -228,7 +229,7 @@ export default function UTXOExplorerPage() {
                                 </h2>
 
                                 <div className="h-[300px]">
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <SafeResponsiveContainer width="100%" height="100%">
                                         <BarChart
                                             data={distribution?.valueRanges || []}
                                             layout="vertical"
@@ -251,7 +252,7 @@ export default function UTXOExplorerPage() {
                                             />
                                             <Bar dataKey="count" fill="#f59e0b" radius={[0, 4, 4, 0]} />
                                         </BarChart>
-                                    </ResponsiveContainer>
+                                    </SafeResponsiveContainer>
                                 </div>
                             </motion.div>
                         </div>
@@ -268,7 +269,7 @@ export default function UTXOExplorerPage() {
                             </h2>
 
                             <div className="h-[200px]">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <SafeResponsiveContainer width="100%" height="100%">
                                     <BarChart data={distribution?.ageDistribution || []}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                                         <XAxis dataKey="age" tick={{ fill: '#94a3b8', fontSize: 10 }} />
@@ -279,7 +280,7 @@ export default function UTXOExplorerPage() {
                                         />
                                         <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                                     </BarChart>
-                                </ResponsiveContainer>
+                                </SafeResponsiveContainer>
                             </div>
 
                             <div className="mt-4 p-4 bg-slate-800/30 rounded-xl">

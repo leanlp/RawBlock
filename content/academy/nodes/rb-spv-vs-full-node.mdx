@@ -1,0 +1,112 @@
+---
+id: rb-spv-vs-full-node
+title: SPV vs Full Node
+type: property
+difficulty: 2
+lessonId: 7
+pathIds:
+  - bitcoin-foundations
+summary: SPV clients verify inclusion proofs but depend on external honesty assumptions; full nodes independently validate all consensus rules.
+story: >-
+  Bob wants a lightweight mobile wallet for daily use. It syncs quickly and shows balances in seconds.
+  Carol asks a simple question: "Who told your wallet those balances are valid?" Bob realizes the app trusts
+  external servers for parts of truth it cannot verify locally. Later, he also runs a full node at home and sees
+  the trade-off clearly: SPV is faster and lighter, full-node validation is stronger and sovereign. He keeps both:
+  mobile convenience for routine spending, full-node verification for high-trust decisions. The point is not that
+  one is "good" and the other "bad." The point is understanding exactly which assumptions you accept.
+keyTakeaways:
+  - Full nodes verify consensus rules directly; SPV verifies less and trusts more.
+  - Lightweight verification is practical but has a different security model.
+  - Risk-sensitive users should anchor workflows to full-node validation.
+securityNotes:
+  - SPV clients are more exposed to eclipse and data-source manipulation.
+  - Full nodes reduce trust in third-party infrastructure and policy decisions.
+linkedVulnerabilities:
+  - cve-2018-17144
+linkedAttacks:
+  - eclipse-attack
+linkedAssumptions:
+  - network-propagation-assumption
+  - honest-majority-hashpower
+policyVsConsensus:
+  consensusRules:
+    - Consensus is defined by full validation of scripts, signatures, and block rules.
+    - Merkle inclusion alone does not prove full transaction validity.
+  policyRules:
+    - Wallet backends choose peer selection and data-serving behavior.
+    - Light client products choose UX and trust defaults.
+  explanation: Consensus security comes from complete validation; SPV policy choices trade resource use for additional trust assumptions.
+caseStudies:
+  - title: Original SPV Design
+    year: 2008
+    whatHappened: The whitepaper described simplified payment verification for lightweight use.
+    whyItMatters: SPV was always a trade-off model, not equal-security replacement for full validation.
+  - title: Modern Neutrino Deployments
+    year: 2018
+    whatHappened: Compact block filter approaches improved privacy/performance for light clients.
+    whyItMatters: Better light-client design narrows practical risks but does not remove trust trade-offs.
+explorerDeepLinks:
+  - label: Bitcoin Whitepaper (SPV section)
+    url: https://bitcoin.org/bitcoin.pdf
+  - label: BIP 157 (Client-side block filtering)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0157.mediawiki
+  - label: BIP 158 (Compact block filters)
+    url: https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
+  - label: Raw Block Network Explorer
+    url: https://www.rawblock.net/explorer/network
+claimSources:
+  - claim: Full nodes independently validate consensus rules and do not trust miners for validity.
+    sources:
+      - title: Developer Guide - Full Nodes
+        url: https://developer.bitcoin.org/devguide/p2p_network.html
+        type: dev-guide
+      - title: Bitcoin Core validation code
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+        type: core-docs
+  - claim: SPV relies on block headers and inclusion proofs rather than full script validation.
+    sources:
+      - title: Bitcoin Whitepaper (Section 8)
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+      - title: Developer Guide - SPV Clients
+        url: https://developer.bitcoin.org/devguide/lightweight_clients.html
+        type: dev-guide
+  - claim: BIP 157/158 define compact filter protocols for modern light clients.
+    sources:
+      - title: BIP 157
+        url: https://github.com/bitcoin/bips/blob/master/bip-0157.mediawiki
+        type: BIP
+      - title: BIP 158
+        url: https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
+        type: BIP
+furtherReading:
+  - title: Bitcoin Whitepaper
+    url: https://bitcoin.org/bitcoin.pdf
+  - title: BIP 157
+    url: https://github.com/bitcoin/bips/blob/master/bip-0157.mediawiki
+  - title: BIP 158
+    url: https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Full nodes download and validate complete block/transaction data against consensus rules. SPV-style clients verify less data and rely on assumptions about honest majority work and data availability.
+
+### Real Data
+Show `peer count`, `latest block height`, and `header sync status`. These metrics help learners see what local verification depth their client actually has.
+
+## Walkthrough
+1. SPV client downloads headers chain.
+2. Requests proofs for relevant transactions.
+3. Accepts inclusion evidence under chainwork assumptions.
+4. Full node independently validates complete ruleset for stronger assurance.
+
+## Common Misconceptions
+- "SPV is equivalent to full-node security." It is not.
+- "Running a full node means mining." Full-node validation and mining are distinct roles.
+- "If a transaction is in a block, it is always valid." Full script/rule checks still matter.
+
+## Check Yourself (Questions)
+- What can a full node detect that SPV may miss?
+- Why does peer diversity matter more for light clients?
+- When is SPV acceptable in practice?

@@ -1,0 +1,106 @@
+---
+id: rb-segwit
+title: SegWit
+type: upgrade
+difficulty: 2
+lessonId: 4
+pathIds:
+  - bitcoin-foundations
+summary: SegWit separated witness data, improved effective capacity accounting, and reduced transaction malleability risk.
+story: >-
+  Carol’s payment infrastructure once depended on fragile unconfirmed txid tracking. During
+  high activity, mutated transaction IDs caused confusion and support incidents. SegWit
+  changed that landscape by restructuring transaction commitments and witness handling.
+  Instead of treating signature material exactly like legacy fields for identity purposes,
+  SegWit introduced witness-aware accounting and commitment paths that made txid behavior
+  more robust for many workflows. It also improved block capacity efficiency through weight
+  accounting, easing congestion pressure at the margin. For Carol’s team, SegWit was not a
+  buzzword but a reliability upgrade that made production operations calmer.
+keyTakeaways:
+  - SegWit improved malleability resistance for practical workflows.
+  - Block weight accounting changed capacity economics.
+  - SegWit laid groundwork for broader L2 reliability.
+securityNotes:
+  - SegWit reduced a key class of txid-related operational fragility.
+  - Mixed legacy/SegWit environments still require careful tooling assumptions.
+linkedVulnerabilities:
+  - pre-segwit-tx-malleability
+linkedAttacks:
+  - replace-by-fee-abuse
+linkedAssumptions:
+  - cryptographic-assumption
+policyVsConsensus:
+  consensusRules:
+    - Witness commitments and weight limits are enforced by consensus.
+    - SegWit spend rules must pass full script verification.
+  policyRules:
+    - Relay and wallet defaults may prefer SegWit forms for efficiency.
+    - Some services can still apply destination-type restrictions.
+  explanation: SegWit’s core semantics are consensus changes; adoption defaults are policy/product decisions.
+caseStudies:
+  - title: SegWit Activation
+    year: 2017
+    whatHappened: SegWit activated as a soft fork and gradually gained broad usage.
+    whyItMatters: It improved transaction robustness and enabled stronger L2 transaction design.
+explorerDeepLinks:
+  - label: SegWit Adoption Chart
+    url: https://mempool.space/graphs/bitcoin/segwit
+  - label: BIP 141
+    url: https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
+  - label: BIP 143
+    url: https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki
+claimSources:
+  - claim: SegWit introduced witness separation and weight accounting.
+    sources:
+      - title: BIP 141
+        url: https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
+        type: BIP
+      - title: Developer Guide Transactions
+        url: https://developer.bitcoin.org/devguide/transactions.html
+        type: dev-guide
+  - claim: SegWit mitigated key malleability issues affecting legacy txid assumptions.
+    sources:
+      - title: BIP 143
+        url: https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki
+        type: BIP
+      - title: BIP 141 rationale
+        url: https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
+        type: BIP
+  - claim: SegWit is consensus-enforced once active.
+    sources:
+      - title: Bitcoin Core validation code
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+        type: core-docs
+      - title: Bitcoin Core release notes
+        url: https://bitcoincore.org/en/releases/
+        type: core-docs
+furtherReading:
+  - title: BIP 141
+    url: https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
+  - title: BIP 143
+    url: https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki
+  - title: Mempool.space REST API docs
+    url: https://mempool.space/docs/api/rest
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+SegWit adds witness-specific serialization and commitments, reduces malleability vectors, and uses block weight accounting instead of simple byte-size alone.
+
+**Real Data:** Show `SegWit adoption share` and `fee market trend`. This connects protocol upgrade design to visible production usage and cost impact.
+
+## Walkthrough
+1. Wallet creates SegWit-compatible spend.
+2. Witness data is handled under new commitment rules.
+3. Nodes validate under active SegWit consensus rules.
+4. Tools use txid/wtxid correctly for monitoring.
+
+## Common Misconceptions
+- “SegWit was only about bigger blocks.” Incomplete.
+- “SegWit removed all malleability forever.” It reduced key classes, not every operational hazard.
+- “SegWit is optional once active.” Consensus enforcement is not optional.
+
+## Check Yourself (Questions)
+- Which BIP defines SegWit consensus changes?
+- Why does witness separation matter for reliability?
+- What metric shows real-world adoption progress?

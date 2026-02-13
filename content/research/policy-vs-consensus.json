@@ -1,0 +1,46 @@
+[
+  {
+    "id": "consensus-block-weight-limit",
+    "title": "Block Weight Limit",
+    "layer": "consensus",
+    "linkedNodeIds": ["blocks-and-headers", "consensus-rules-vs-policy"],
+    "description": "Block weight must remain below consensus maximum.",
+    "rationale": "Protects validation resource bounds and deterministic chain rules.",
+    "sources": [
+      { "title": "consensus.h", "url": "https://github.com/bitcoin/bitcoin/blob/master/src/consensus/consensus.h", "type": "core-docs" }
+    ]
+  },
+  {
+    "id": "consensus-no-double-spend",
+    "title": "No Double Spend",
+    "layer": "consensus",
+    "linkedNodeIds": ["transactions-lifecycle", "utxo-model", "consensus-rules-vs-policy"],
+    "description": "Blocks and transactions cannot spend the same UTXO twice.",
+    "rationale": "Prevents inflation and preserves deterministic ownership transitions.",
+    "sources": [
+      { "title": "validation.cpp", "url": "https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp", "type": "core-docs" }
+    ]
+  },
+  {
+    "id": "policy-standard-script-forms",
+    "title": "Standard Script Relay",
+    "layer": "policy",
+    "linkedNodeIds": ["consensus-rules-vs-policy", "transactions-lifecycle"],
+    "description": "Default relay policy prefers standard script templates.",
+    "rationale": "Reduces abuse surface and keeps mempool operations predictable.",
+    "sources": [
+      { "title": "policy.h", "url": "https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.h", "type": "core-docs" }
+    ]
+  },
+  {
+    "id": "policy-rbf-signaling",
+    "title": "RBF Replacement Policy",
+    "layer": "policy",
+    "linkedNodeIds": ["transactions-lifecycle", "consensus-rules-vs-policy"],
+    "description": "Transaction replacement acceptance follows fee-bump and signaling policy.",
+    "rationale": "Balances fee market efficiency with mempool stability.",
+    "sources": [
+      { "title": "mempool replacements doc", "url": "https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md", "type": "core-docs" }
+    ]
+  }
+]

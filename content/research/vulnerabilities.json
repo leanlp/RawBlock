@@ -1,0 +1,116 @@
+[
+  {
+    "id": "cve-2018-17144",
+    "title": "CVE-2018-17144 Duplicate Input Inflation Bug",
+    "year": 2018,
+    "severity": "critical",
+    "category": "consensus-validation",
+    "linkedNodeIds": [
+      "utxo-model",
+      "transactions-lifecycle",
+      "consensus-rules-vs-policy",
+      "security-and-attacks"
+    ],
+    "summary": "A regression in duplicate-input checks introduced potential inflation and denial-of-service risk in vulnerable Bitcoin Core versions.",
+    "cve": "CVE-2018-17144",
+    "affectedVersions": [
+      "Bitcoin Core 0.14.0",
+      "Bitcoin Core 0.15.0",
+      "Bitcoin Core 0.16.0",
+      "Bitcoin Core 0.16.1",
+      "Bitcoin Core 0.16.2"
+    ],
+    "impact": "If exploited in a block, nodes could accept invalid state transitions or crash, threatening consensus safety.",
+    "mitigation": "Upgrade to patched Bitcoin Core releases and follow conservative release/validation practices for consensus code.",
+    "sources": [
+      {
+        "title": "Bitcoin Core Security Notice (2018-09-20)",
+        "url": "https://bitcoincore.org/en/2018/09/20/notice/",
+        "type": "core-docs"
+      },
+      {
+        "title": "Bitcoin Optech Topic: CVE-2018-17144",
+        "url": "https://bitcoinops.org/en/topics/cve-2018-17144/",
+        "type": "reference"
+      },
+      {
+        "title": "NVD CVE-2018-17144",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2018-17144",
+        "type": "reference"
+      }
+    ]
+  },
+  {
+    "id": "pre-segwit-tx-malleability",
+    "title": "Pre-SegWit Transaction Malleability",
+    "year": 2014,
+    "severity": "high",
+    "category": "transaction-integrity",
+    "linkedNodeIds": [
+      "transactions-lifecycle",
+      "segwit-and-taproot-upgrades",
+      "fees-mempool",
+      "security-and-attacks"
+    ],
+    "summary": "Before SegWit, third parties could mutate transaction identifiers without changing spend intent, breaking txid-sensitive workflows.",
+    "affectedVersions": [
+      "Pre-SegWit transaction formats"
+    ],
+    "impact": "Operational systems depending on unconfirmed txid stability could fail, and second-layer protocol design became more fragile.",
+    "mitigation": "Use SegWit transaction formats and avoid critical dependence on mutable unconfirmed txids in production workflows.",
+    "sources": [
+      {
+        "title": "BIP 141: Segregated Witness",
+        "url": "https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki",
+        "type": "BIP"
+      },
+      {
+        "title": "BIP 143: New digest algorithm for witness programs",
+        "url": "https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki",
+        "type": "BIP"
+      },
+      {
+        "title": "Bitcoin Developer Guide: Transactions",
+        "url": "https://developer.bitcoin.org/devguide/transactions.html",
+        "type": "dev-guide"
+      }
+    ]
+  },
+  {
+    "id": "value-overflow-2010",
+    "title": "2010 Value Overflow Incident",
+    "year": 2010,
+    "severity": "critical",
+    "category": "inflation-bug",
+    "linkedNodeIds": [
+      "what-is-bitcoin",
+      "mining-and-subsidy",
+      "consensus-rules-vs-policy",
+      "security-and-attacks"
+    ],
+    "summary": "An integer overflow bug in early Bitcoin software allowed an invalid inflation transaction to be mined.",
+    "cve": "CVE-2010-5139",
+    "affectedVersions": [
+      "Bitcoin 0.3.9 and earlier"
+    ],
+    "impact": "The incident temporarily violated supply rules and required urgent ecosystem coordination to restore valid chain history.",
+    "mitigation": "Apply strict monetary range checks and maintain extensive consensus test coverage with conservative release engineering.",
+    "sources": [
+      {
+        "title": "Value overflow incident (historical record)",
+        "url": "https://en.bitcoin.it/wiki/Value_overflow_incident",
+        "type": "reference"
+      },
+      {
+        "title": "NVD CVE-2010-5139",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2010-5139",
+        "type": "reference"
+      },
+      {
+        "title": "Bitcoin Whitepaper",
+        "url": "https://bitcoin.org/bitcoin.pdf",
+        "type": "whitepaper"
+      }
+    ]
+  }
+]

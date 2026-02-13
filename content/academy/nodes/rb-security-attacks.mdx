@@ -1,0 +1,125 @@
+---
+id: rb-security-attacks
+title: Security and Attacks
+type: attack
+difficulty: 3
+lessonId: 8
+pathIds:
+  - bitcoin-foundations
+summary: Bitcoin security emerges from consensus correctness, economic incentives, network assumptions, and disciplined operations.
+story: >-
+  Alice asks her team to run a tabletop incident drill: a sudden fee spike, a short reorg,
+  and rumors of mining concentration. No single metric answers everything. The right approach
+  is layered. First, verify consensus safety: are blocks valid? Next, inspect network health:
+  is propagation delayed or partitioned? Then evaluate incentives: does current market pressure
+  create unusual miner behavior? Finally, check operational controls: confirmation policy,
+  key hygiene, and monitoring quality. Bob realizes that “Bitcoin is secure” is not a magic
+  statement; it is an ongoing process of assumptions and evidence. Security work means mapping
+  threats to layers and responding proportionally. That is why Raw Block links vulnerabilities,
+  attack models, assumptions, and policy-vs-consensus analysis in one workflow.
+keyTakeaways:
+  - Security is layered: consensus, network, economics, operations.
+  - Attack feasibility depends on capability, cost, and detection.
+  - Confirmation and custody policies must match risk levels.
+securityNotes:
+  - Separate protocol bugs from abuse patterns and operator misconfiguration.
+  - Use explicit escalation criteria for reorg depth and chain anomalies.
+linkedVulnerabilities:
+  - cve-2018-17144
+  - pre-segwit-tx-malleability
+  - value-overflow-2010
+linkedAttacks:
+  - eclipse-attack
+  - selfish-mining
+  - fee-sniping
+  - replace-by-fee-abuse
+linkedAssumptions:
+  - honest-majority-hashpower
+  - network-propagation-assumption
+  - economic-incentives-assumption
+  - cryptographic-assumption
+policyVsConsensus:
+  consensusRules:
+    - Consensus bugs can create systemic inflation or chain divergence risk.
+    - Consensus-valid history is selected by accumulated proof-of-work.
+  policyRules:
+    - Relay and fee policies shape pre-confirmation risk surface.
+    - Operational confirmation thresholds are security policy decisions.
+  explanation: Security incidents must be mapped to layer: consensus failures are systemic; policy failures are often local but still operationally dangerous.
+caseStudies:
+  - title: Value Overflow Incident
+    year: 2010
+    whatHappened: Invalid inflation transaction exploited a consensus bug.
+    whyItMatters: Demonstrated catastrophic impact of consensus validation defects.
+  - title: CVE-2018-17144
+    year: 2018
+    whatHappened: Duplicate-input validation bug created inflation and DoS risk.
+    whyItMatters: Reinforced strict consensus review and coordinated disclosure practices.
+  - title: Pre-SegWit Malleability Era
+    year: 2014
+    whatHappened: Txid instability caused operational and protocol fragility.
+    whyItMatters: Led to architectural improvements enabling robust L2 construction.
+explorerDeepLinks:
+  - label: Raw Block Vulnerabilities
+    url: https://www.rawblock.net/research/vulnerabilities
+  - label: Raw Block Attack Models
+    url: https://www.rawblock.net/research/attacks
+  - label: Raw Block Assumptions
+    url: https://www.rawblock.net/research/assumptions
+  - label: Raw Block Policy vs Consensus
+    url: https://www.rawblock.net/research/policy-vs-consensus
+claimSources:
+  - claim: Consensus bugs are systemic because all nodes share validity rules.
+    sources:
+      - title: Bitcoin Core validation.cpp
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+        type: core-docs
+      - title: Bitcoin Core 2018 Notice
+        url: https://bitcoincore.org/en/2018/09/20/notice/
+        type: core-docs
+  - claim: Security assumptions include hashrate behavior, propagation health, and cryptography.
+    sources:
+      - title: Bitcoin Whitepaper
+        url: https://bitcoin.org/bitcoin.pdf
+        type: whitepaper
+      - title: Developer Guide Block Chain
+        url: https://developer.bitcoin.org/devguide/block_chain.html
+        type: dev-guide
+  - claim: Operational policy must adjust to fee and reorg conditions.
+    sources:
+      - title: Mempool replacement policy doc
+        url: https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md
+        type: core-docs
+      - title: Bitcoin-dev discussion group
+        url: https://groups.google.com/g/bitcoindev
+        type: mailing-list
+furtherReading:
+  - title: Bitcoin Core Security Advisories
+    url: https://bitcoincore.org/en/security-advisories/
+  - title: Bitcoin Ops Topics
+    url: https://bitcoinops.org/en/topics/
+  - title: Raw Block Research Hub
+    url: https://www.rawblock.net/research
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Security analysis in Bitcoin requires layer separation: consensus correctness, network resilience, economic incentive compatibility, and key-management operations.
+
+**Real Data:** Show `hashrate`, `fee regime`, and `recent reorg depth`. Together they provide a practical risk context for confirmation and settlement decisions.
+
+## Walkthrough
+1. Detect anomaly (fee spike/reorg/relay lag).
+2. Classify by layer (consensus, policy, network, economic).
+3. Validate chain state and peer health.
+4. Apply operational controls (confirmations, monitoring, fail-safe routing).
+
+## Common Misconceptions
+- “Any attack mention means Bitcoin failed.” Not true.
+- “Policy issues are harmless.” They can be costly operationally.
+- “Security is one metric.” It is multi-factor and dynamic.
+
+## Check Yourself (Questions)
+- Which incident type is systemic by definition?
+- Why does fee regime matter for operational security?
+- What assumptions are you implicitly making when accepting 0-conf?

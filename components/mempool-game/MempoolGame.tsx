@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getBlockSubsidy } from "../../lib/constants/bitcoinProtocol";
 
 interface Tx {
     id: string;
@@ -13,6 +14,7 @@ interface Tx {
 
 const MAX_BLOCK_SIZE = 10000; // Scaled down for game (represents 1MB)
 const TARGET_TIME = 60; // 60 seconds to mine a block
+const SIMULATED_BLOCK_HEIGHT = 840_000; // Post-2024 halving era
 
 export default function MempoolGame() {
     console.log("MempoolGame Component v2 - Loaded");
@@ -25,6 +27,7 @@ export default function MempoolGame() {
     const currentSize = block.reduce((acc, tx) => acc + tx.vSize, 0);
     const currentFees = block.reduce((acc, tx) => acc + tx.totalFee, 0);
     const fullness = (currentSize / MAX_BLOCK_SIZE) * 100;
+    const blockSubsidy = getBlockSubsidy(SIMULATED_BLOCK_HEIGHT);
 
     // Transaction ID counter to ensure uniqueness
     let txIdCounter = 0;
@@ -180,7 +183,7 @@ export default function MempoolGame() {
                     {gameState === 'MINED' && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10 backdrop-blur-md">
                             <h2 className="text-4xl font-bold text-white mb-2">Block Mined! 📦</h2>
-                            <p className="text-slate-400 mb-6">Total Reward: <span className="text-emerald-400 font-bold">{(6.25 + (currentFees / 100000000)).toFixed(6)} BTC</span></p>
+                            <p className="text-slate-400 mb-6">Total Coinbase Payout: <span className="text-emerald-400 font-bold">{(blockSubsidy + (currentFees / 100000000)).toFixed(6)} BTC</span></p>
                             <button onClick={startGame} className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-lg">
                                 Play Again
                             </button>

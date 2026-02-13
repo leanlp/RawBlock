@@ -1,0 +1,109 @@
+---
+id: rb-difficulty
+title: Difficulty Adjustment
+type: rule
+difficulty: 2
+lessonId: 6
+pathIds:
+  - bitcoin-foundations
+summary: Bitcoin retargets difficulty every 2016 blocks to keep long-run block cadence near ten minutes despite hashrate changes.
+story: >-
+  Carol notices blocks arriving quickly for several days, then slowing down after a mining
+  region goes offline. She assumes the system is unstable, but the protocol is doing what
+  it was designed to do. Bitcoin does not fix hashrate; it fixes rule-based adjustment.
+  Every 2016 blocks, nodes compare expected elapsed time to observed elapsed time and update
+  target difficulty accordingly. If hashrate rises, target tightens. If hashrate falls,
+  target loosens. This keeps issuance and confirmation tempo anchored over long windows,
+  even through real-world shocks. Carol now understands why short-term delays do not imply
+  failure and why retarget boundaries are key operational checkpoints for miners and users.
+  Difficulty is the network’s timing governor, not a market prediction engine.
+keyTakeaways:
+  - Difficulty retarget is consensus logic, not operator preference.
+  - Short-term block timing can drift between retarget windows.
+  - Long-run cadence stability is preserved through deterministic adjustment.
+securityNotes:
+  - Timestamp manipulation attempts are studied because they affect retarget inputs.
+  - Difficulty alone does not stop attacks; it scales work requirements.
+linkedVulnerabilities:
+  - value-overflow-2010
+linkedAttacks:
+  - selfish-mining
+  - fee-sniping
+linkedAssumptions:
+  - honest-majority-hashpower
+  - cryptographic-assumption
+policyVsConsensus:
+  consensusRules:
+    - New target is computed at fixed retarget interval under consensus formula.
+    - Headers must satisfy current target to be valid.
+  policyRules:
+    - Monitoring and alerting around abnormal intervals are operational policy choices.
+    - Mining pool strategy may react to retarget expectations.
+  explanation: Consensus defines retarget math; policy governs how operators respond to timing anomalies.
+caseStudies:
+  - title: Timewarp Discussion Era
+    year: 2012
+    whatHappened: Researchers discussed timestamp-game vectors affecting historical retarget behavior.
+    whyItMatters: It clarified where assumptions and edge-case incentives meet consensus design.
+explorerDeepLinks:
+  - label: Difficulty Adjustment Graph
+    url: https://mempool.space/graphs/mining/difficulty-adjustment
+  - label: Hashrate and Difficulty
+    url: https://mempool.space/graphs/mining/hashrate-difficulty
+  - label: nBits Reference
+    url: https://developer.bitcoin.org/reference/block_chain.html#target-nbits
+claimSources:
+  - claim: Bitcoin retargets every 2016 blocks.
+    sources:
+      - title: Developer Reference target nBits
+        url: https://developer.bitcoin.org/reference/block_chain.html#target-nbits
+        type: dev-guide
+      - title: Bitcoin Core pow.cpp
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/pow.cpp
+        type: core-docs
+  - claim: Retarget behavior is consensus critical.
+    sources:
+      - title: Bitcoin Core validation
+        url: https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp
+        type: core-docs
+      - title: Developer Guide Block Chain
+        url: https://developer.bitcoin.org/devguide/block_chain.html
+        type: dev-guide
+  - claim: Timestamp edge cases are a known research topic.
+    sources:
+      - title: Bitcoin-dev discussion group
+        url: https://groups.google.com/g/bitcoindev
+        type: mailing-list
+      - title: Developer Guide Block Chain
+        url: https://developer.bitcoin.org/devguide/block_chain.html
+        type: reference
+furtherReading:
+  - title: Bitcoin Core pow.cpp
+    url: https://github.com/bitcoin/bitcoin/blob/master/src/pow.cpp
+  - title: Developer Guide Block Chain
+    url: https://developer.bitcoin.org/devguide/block_chain.html
+  - title: Mempool.space REST API docs
+    url: https://mempool.space/docs/api/rest
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+Difficulty target is encoded in header nBits and recalculated on schedule. This keeps long-run issuance cadence stable despite volatile global hashpower.
+
+**Real Data:** Show `current hashrate`, `last retarget change`, and `blocks to next retarget`. These metrics help learners see timing control in action.
+
+## Walkthrough
+1. Measure elapsed time over prior epoch.
+2. Compute adjusted target under consensus limits.
+3. Encode target in nBits.
+4. Validate future blocks against new target.
+
+## Common Misconceptions
+- “Difficulty means miners solve harder math problems.” It is target threshold adjustment.
+- “Retarget instantly fixes slow blocks.” It updates at epoch boundaries.
+- “Difficulty is the same as hashrate.” Related, not identical.
+
+## Check Yourself (Questions)
+- Why can blocks be slow right after a major hashrate drop?
+- Which field in header represents target encoding?
+- Is retarget logic policy or consensus?

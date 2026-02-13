@@ -1,0 +1,114 @@
+---
+id: rb-softforks-bips
+title: Soft Forks and BIPs
+type: upgrade
+difficulty: 3
+lessonId: 7
+pathIds:
+  - bitcoin-foundations
+summary: Bitcoin changes through conservative soft forks and open BIP processes, preserving backward compatibility for non-upgraded nodes.
+story: >-
+  Alice hears that Bitcoin "never changes," then sees people discussing upgrades like SegWit and Taproot.
+  Bob assumes that means a central team pushes updates at will. Carol walks them through what really happens:
+  proposals are written as BIPs, debated publicly, implemented cautiously, and activated only when ecosystem
+  support is broad enough to avoid unsafe splits. The process is often slow and sometimes frustrating, but that
+  slowness is part of the security model. Changes that affect consensus must be legible, reviewable, and socially
+  coordinated across independent actors. Alice realizes governance in Bitcoin is not voting in an app; it is
+  decentralized rough consensus backed by code, incentives, and careful rollout.
+keyTakeaways:
+  - BIPs are specification artifacts, not commands from an authority.
+  - Soft forks tighten validity rules while preserving compatibility assumptions.
+  - Activation design is a security and coordination problem, not just coding.
+securityNotes:
+  - Unsafe activation strategy can create chain split risk.
+  - Consensus code changes require extraordinary review discipline.
+linkedVulnerabilities:
+  - value-overflow-2010
+  - cve-2018-17144
+linkedAttacks:
+  - eclipse-attack
+linkedAssumptions:
+  - economic-incentives-assumption
+  - network-propagation-assumption
+policyVsConsensus:
+  consensusRules:
+    - Soft-fork rules become consensus only after activation conditions are met.
+    - Non-compliant blocks/transactions are invalid post-activation.
+  policyRules:
+    - Nodes and services choose software versions and deployment timing.
+    - Relay defaults and standardness can evolve without direct consensus changes.
+  explanation: Consensus change requires broad, careful activation; many day-to-day behaviors remain policy-level and locally chosen.
+caseStudies:
+  - title: SegWit Activation (BIP 141)
+    year: 2017
+    whatHappened: SegWit activated as a soft fork after extensive ecosystem coordination.
+    whyItMatters: Demonstrated compatibility-preserving consensus upgrade in production.
+  - title: Taproot Activation (BIP 341/342)
+    year: 2021
+    whatHappened: Taproot deployed through modern activation and broad review.
+    whyItMatters: Showed continued conservative upgrade path for Bitcoin.
+explorerDeepLinks:
+  - label: Bitcoin BIPs Repository
+    url: https://github.com/bitcoin/bips
+  - label: BIP 9 Versionbits
+    url: https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki
+  - label: BIP 8 Activation Proposal
+    url: https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki
+  - label: Bitcoin Core Releases
+    url: https://bitcoincore.org/en/releases/
+claimSources:
+  - claim: BIPs are the canonical specification process for protocol and standard proposals.
+    sources:
+      - title: BIP 2
+        url: https://github.com/bitcoin/bips/blob/master/bip-0002.mediawiki
+        type: BIP
+      - title: Bitcoin BIPs repository
+        url: https://github.com/bitcoin/bips
+        type: BIP
+  - claim: Soft forks tighten rules while maintaining backward compatibility characteristics.
+    sources:
+      - title: BIP 141
+        url: https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
+        type: BIP
+      - title: BIP 341
+        url: https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
+        type: BIP
+  - claim: Activation mechanisms such as versionbits are part of deployment safety.
+    sources:
+      - title: BIP 9
+        url: https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki
+        type: BIP
+      - title: Bitcoin Core release process docs
+        url: https://github.com/bitcoin/bitcoin/tree/master/doc/release-process
+        type: core-docs
+furtherReading:
+  - title: BIP 2
+    url: https://github.com/bitcoin/bips/blob/master/bip-0002.mediawiki
+  - title: BIP 9
+    url: https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki
+  - title: Bitcoin Core release notes
+    url: https://bitcoincore.org/en/releases/
+verifiedAt: 2026-02-12
+---
+
+## Deep Dive
+A soft fork introduces stricter consensus validity conditions while legacy nodes may continue operating without fully understanding new script forms. BIPs document rationale, specification, and deployment details.
+
+### Real Data
+Show `versionbits signaling`, `Taproot/SegWit adoption`, and `current node version distribution`. This helps learners connect governance mechanics to observed network rollout behavior.
+
+## Walkthrough
+1. Proposal drafted as BIP.
+2. Public review and implementation in clients.
+3. Activation parameters and signaling monitored.
+4. Rule activates and nodes enforce new validity constraints.
+
+## Common Misconceptions
+- "BIPs are laws." They are proposals/specifications.
+- "Bitcoin never upgrades." It upgrades conservatively.
+- "Policy and consensus updates are the same thing." They are not.
+
+## Check Yourself (Questions)
+- What makes a change a soft fork rather than a hard fork?
+- Why is activation design a security concern?
+- How can users verify which rules their node enforces?

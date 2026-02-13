@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { Treemap, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
+import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface BlockTransaction {
     [key: string]: any;
@@ -199,7 +200,7 @@ export default function MempoolVisualizer() {
                 >
                     {mode === 'treemap' && (
                         <div className="w-full h-96 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-                            <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                            <SafeResponsiveContainer width="100%" height="100%" minHeight={300}>
                                 <Treemap
                                     data={vizData}
                                     dataKey="value"
@@ -222,7 +223,7 @@ export default function MempoolVisualizer() {
                                         return null;
                                     }} />
                                 </Treemap>
-                            </ResponsiveContainer>
+                            </SafeResponsiveContainer>
                         </div>
                     )}
                     {mode === 'stream' && <StreamView transactions={vizData} />}
