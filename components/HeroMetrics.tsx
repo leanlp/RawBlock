@@ -136,6 +136,7 @@ export default function HeroMetrics() {
   const displayMetrics = metrics ?? HERO_FALLBACK_METRICS;
   const displayRecentTxs =
     metrics?.recentTxs?.length ? metrics.recentTxs : HERO_FALLBACK_METRICS.recentTxs;
+  const visibleRecentTxs = displayRecentTxs.slice(0, 4);
   const displayFeeFast = cardFees.fast ?? HERO_FALLBACK_FEES.fast;
   const displayFeeHalfHour = cardFees.medium ?? HERO_FALLBACK_FEES.medium;
   const displayFeeHour = cardFees.slow ?? HERO_FALLBACK_FEES.slow;
@@ -284,12 +285,12 @@ export default function HeroMetrics() {
         <Link href="/explorer/mempool" className="block w-full h-full">
           <Card variant="panel" className="h-full" onClick={() => {}}>
             <PanelHeader>Live Mempool Stream</PanelHeader>
-            {displayRecentTxs.length > 0 ? (
-              <div className="space-y-2">
-                {displayRecentTxs.map((tx) => (
+            {visibleRecentTxs.length > 0 ? (
+              <div className="space-y-1.5">
+                {visibleRecentTxs.map((tx) => (
                   <div
                     key={tx.txid}
-                    className="rounded-lg border border-cyan-500/20 bg-slate-950/50 px-3 py-2 transition-colors group-hover:border-cyan-400/40"
+                    className="rounded-lg border border-cyan-500/20 bg-slate-950/50 px-3 py-1.5 transition-colors group-hover:border-cyan-400/40"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-mono text-xs text-cyan-300">TX: {getShortTxid(tx.txid)}</p>
