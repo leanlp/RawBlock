@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Host: https://www.rawblock.net
+Sitemap: https://www.rawblock.net/sitemap.xml

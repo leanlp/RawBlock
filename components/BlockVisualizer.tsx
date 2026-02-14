@@ -148,7 +148,7 @@ export default function BlockVisualizer() {
         return () => clearInterval(interval);
     }, []);
 
-    if (loading) return <div className="h-64 animate-pulse bg-slate-900/30 rounded-xl border border-slate-800 flex items-center justify-center text-slate-500 font-mono text-sm">LOADING CANDIDATE BLOCK...</div>;
+    if (loading) return <div className="h-64 animate-pulse bg-slate-900/30 rounded-xl border border-slate-800 flex items-center justify-center text-slate-500 font-mono text-sm">CONNECTING TO CANDIDATE BLOCK FEED...</div>;
     if (!data) return null;
 
     const vizData = data.transactions.slice(0, 500);

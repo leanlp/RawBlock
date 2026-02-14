@@ -107,7 +107,7 @@ export default function BlocksIndexPage() {
                 />
 
                 {/* Loading State */}
-                {loading && <LoadingState message="Fetching blocks from node..." />}
+                {loading && <LoadingState message="Connecting to block feed..." />}
 
                 {/* Error State */}
                 {!loading && error && (

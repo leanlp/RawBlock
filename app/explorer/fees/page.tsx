@@ -31,7 +31,7 @@ export default function FeesPage() {
           </div>
         </div>
 
-        {loading && !hasData && <LoadingState message="Analyzing mempool dynamics..." />}
+        {loading && !hasData && <LoadingState message="Connecting to fee market feed..." />}
         {!loading && error && !hasData && <ErrorState message={error} onRetry={retry} />}
 
         {hasData ? (

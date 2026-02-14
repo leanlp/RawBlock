@@ -102,6 +102,8 @@ const StreamView = ({ transactions }: { transactions: BlockTransaction[] }) => {
 export default function MempoolVisualizer() {
     const [data, setData] = useState<BlockTemplate | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
     const [mode, setMode] = useState<VisualizationMode>('treemap');
 
     const fetchBlock = async () => {
@@ -111,8 +113,11 @@ export default function MempoolVisualizer() {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const json = await res.json();
             setData(json);
+            setError(null);
+            setLastUpdatedAt(Date.now());
         } catch (e) {
             console.error("Failed to fetch candidate block:", e);
+            setError(e instanceof Error ? e.message : "Failed to fetch candidate block");
         } finally {
             setLoading(false);
         }
@@ -124,15 +129,29 @@ export default function MempoolVisualizer() {
         return () => clearInterval(interval);
     }, []);
 
-    if (loading) {
+    if (loading && !data) {
         return (
             <div className="h-96 animate-pulse bg-slate-900/30 rounded-xl border border-slate-800 flex items-center justify-center text-slate-500 font-mono text-sm">
-                LOADING CANDIDATE BLOCK...
+                CONNECTING TO CANDIDATE BLOCK FEED...
             </div>
         );
     }
 
-    if (!data) return null;
+    if (!data) {
+        return (
+            <div className="h-96 rounded-xl border border-red-500/20 bg-slate-900/30 p-6 flex flex-col items-center justify-center gap-3 text-center">
+                <p className="text-sm font-mono text-red-300">Candidate block feed unavailable.</p>
+                <p className="text-xs text-slate-400">{error ?? "Node endpoint is unreachable."}</p>
+                <button
+                    type="button"
+                    onClick={fetchBlock}
+                    className="rounded border border-red-400/40 bg-red-400/10 px-3 py-1 text-xs text-red-100 hover:bg-red-400/20"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
 
     const vizData = data.transactions.slice(0, 500);
 
@@ -143,6 +162,12 @@ export default function MempoolVisualizer() {
 
     return (
         <div className="space-y-4">
+            {error ? (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                    Live candidate feed interrupted. Showing last-known block template{lastUpdatedAt ? ` (${new Date(lastUpdatedAt).toLocaleTimeString()})` : ""}.
+                </div>
+            ) : null}
+
             {/* Header with Mode Switcher */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
