@@ -103,10 +103,12 @@ function getShortTxid(txid: string): string {
   return `${txid.slice(0, 8)}...${txid.slice(-4)}`;
 }
 
-function formatTxAge(time: number | null): string {
-  if (time === null || !Number.isFinite(time)) return "Age n/a";
+function formatTxAge(time: number | null, fallbackTime: number | null): string {
+  const sourceTime = time ?? fallbackTime;
+  if (sourceTime === null || !Number.isFinite(sourceTime)) return "Age n/a";
 
-  const sourceSeconds = time > 1_000_000_000_000 ? Math.floor(time / 1000) : Math.floor(time);
+  const sourceSeconds =
+    sourceTime > 1_000_000_000_000 ? Math.floor(sourceTime / 1000) : Math.floor(sourceTime);
   const ageSeconds = Math.max(0, Math.floor(Date.now() / 1000) - sourceSeconds);
 
   if (ageSeconds < 60) return `${ageSeconds}s ago`;
@@ -141,9 +143,45 @@ export default function HeroMetrics() {
   const displayFeeHalfHour = cardFees.medium ?? HERO_FALLBACK_FEES.medium;
   const displayFeeHour = cardFees.slow ?? HERO_FALLBACK_FEES.slow;
   const displayFeeHistory = feeHistory.length > 0 ? feeHistory : HERO_FALLBACK_FEE_HISTORY;
+  const snapshotMode = !hasLiveMetrics;
+  const connectingMode = status === "loading" && !hasLiveMetrics;
+  const liveMode = hasLiveMetrics && !error;
+  const staleMode = hasLiveMetrics && Boolean(error);
+  const streamFallbackTime = metrics?.lastUpdated
+    ? Math.floor(new Date(metrics.lastUpdated).getTime() / 1000)
+    : Math.floor(Date.now() / 1000);
 
   return (
     <div className="w-full mb-12">
+      {(snapshotMode || connectingMode || liveMode || staleMode) && (
+        <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
+          {snapshotMode && (
+            <span className="rounded border border-slate-700 bg-slate-900/70 px-2 py-1 text-[10px] uppercase tracking-widest text-slate-400">
+              <span className="sm:hidden">Snapshot</span>
+              <span className="hidden sm:inline">Startup Snapshot</span>
+            </span>
+          )}
+          {connectingMode && (
+            <span className="rounded border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-cyan-300">
+              <span className="sm:hidden">Connecting</span>
+              <span className="hidden sm:inline">Connecting To Live Node...</span>
+            </span>
+          )}
+          {liveMode && (
+            <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-emerald-300">
+              <span className="sm:hidden">Live</span>
+              <span className="hidden sm:inline">Live Node Data</span>
+            </span>
+          )}
+          {staleMode && (
+            <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-amber-300">
+              <span className="sm:hidden">Stale</span>
+              <span className="hidden sm:inline">Live Feed Delayed (Showing Last Known)</span>
+            </span>
+          )}
+        </div>
+      )}
+
       {status === "error" && !hasLiveMetrics ? (
         <div className="mb-6 flex items-center justify-center gap-2">
           <div className="h-2 w-2 rounded-full bg-amber-500" />
@@ -305,7 +343,7 @@ export default function HeroMetrics() {
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-slate-400">
                       <span>{formatVsize(tx.vsize)}</span>
                       <span className="text-slate-600">•</span>
-                      <span>{formatTxAge(tx.time)}</span>
+                      <span>{formatTxAge(tx.time, streamFallbackTime)}</span>
                     </div>
                   </div>
                 ))}
