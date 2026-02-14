@@ -136,7 +136,7 @@ export default function HeroMetrics() {
   const displayMetrics = metrics ?? HERO_FALLBACK_METRICS;
   const displayRecentTxs =
     metrics?.recentTxs?.length ? metrics.recentTxs : HERO_FALLBACK_METRICS.recentTxs;
-  const visibleRecentTxs = displayRecentTxs.slice(0, 4);
+  const visibleRecentTxs = displayRecentTxs.slice(0, 3);
   const displayFeeFast = cardFees.fast ?? HERO_FALLBACK_FEES.fast;
   const displayFeeHalfHour = cardFees.medium ?? HERO_FALLBACK_FEES.medium;
   const displayFeeHour = cardFees.slow ?? HERO_FALLBACK_FEES.slow;
@@ -220,7 +220,11 @@ export default function HeroMetrics() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link href="/explorer/fees" className="block w-full h-full">
-          <Card variant="panel" className="h-full" onClick={() => {}}>
+          <Card
+            variant="panel"
+            className="h-full md:min-h-[420px] md:flex md:flex-col"
+            onClick={() => {}}
+          >
             <PanelHeader>Fee Market (sat/vB)</PanelHeader>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -246,7 +250,7 @@ export default function HeroMetrics() {
               </div>
             </div>
             {displayFeeHistory.length > 0 ? (
-              <div className="mt-3 h-20 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-1">
+              <div className="mt-3 h-20 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-1 md:mt-auto">
                 <SafeResponsiveContainer width="100%" height="100%" minHeight={64}>
                   <AreaChart data={displayFeeHistory} margin={{ top: 4, right: 4, left: 2, bottom: 0 }}>
                     <defs>
@@ -283,33 +287,39 @@ export default function HeroMetrics() {
         </Link>
 
         <Link href="/explorer/mempool" className="block w-full h-full">
-          <Card variant="panel" className="h-full" onClick={() => {}}>
+          <Card
+            variant="panel"
+            className="h-full md:min-h-[420px] md:flex md:flex-col"
+            onClick={() => {}}
+          >
             <PanelHeader>Live Mempool Stream</PanelHeader>
             {visibleRecentTxs.length > 0 ? (
-              <div className="space-y-1.5">
-                {visibleRecentTxs.map((tx) => (
-                  <div
-                    key={tx.txid}
-                    className="rounded-lg border border-cyan-500/20 bg-slate-950/50 px-3 py-1.5 transition-colors group-hover:border-cyan-400/40"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-mono text-xs text-cyan-300">TX: {getShortTxid(tx.txid)}</p>
-                      <span
-                        className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${getFeeRateTone(tx.feeRate)}`}
-                      >
-                        {tx.feeRate !== null && Number.isFinite(tx.feeRate)
-                          ? `${formatSatVb(tx.feeRate)} sat/vB`
-                          : "n/a"}
-                      </span>
+              <div className="md:flex md:h-full md:flex-col">
+                <div className="space-y-1.5">
+                  {visibleRecentTxs.map((tx) => (
+                    <div
+                      key={tx.txid}
+                      className="rounded-lg border border-cyan-500/20 bg-slate-950/50 px-3 py-1.5 transition-colors group-hover:border-cyan-400/40"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-mono text-xs text-cyan-300">TX: {getShortTxid(tx.txid)}</p>
+                        <span
+                          className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${getFeeRateTone(tx.feeRate)}`}
+                        >
+                          {tx.feeRate !== null && Number.isFinite(tx.feeRate)
+                            ? `${formatSatVb(tx.feeRate)} sat/vB`
+                            : "n/a"}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-slate-400">
+                        <span>{formatVsize(tx.vsize)}</span>
+                        <span className="text-slate-600">•</span>
+                        <span>{formatTxAge(tx.time)}</span>
+                      </div>
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-slate-400">
-                      <span>{formatVsize(tx.vsize)}</span>
-                      <span className="text-slate-600">•</span>
-                      <span>{formatTxAge(tx.time)}</span>
-                    </div>
-                  </div>
-                ))}
-                <div className="pt-1 text-[10px] uppercase tracking-wider text-cyan-400/90">
+                  ))}
+                </div>
+                <div className="pt-1 text-[10px] uppercase tracking-wider text-cyan-400/90 md:mt-auto">
                   View full mempool →
                 </div>
               </div>
