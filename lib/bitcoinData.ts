@@ -12,10 +12,19 @@ export type BitcoinLiveMetrics = {
   mempoolTxCount: number | null;
   mempoolVsizeMb: number | null;
   recentTxIds: string[];
+  recentTxs: RecentMempoolTx[];
   blocksUntilHalving: number | null;
   daysUntilHalving: number | null;
   lastUpdated: string;
   source: "mempool" | "blockstream" | "mixed" | "unavailable";
+};
+
+export type RecentMempoolTx = {
+  txid: string;
+  feeSat: number | null;
+  vsize: number | null;
+  feeRate: number | null;
+  time: number | null;
 };
 
 const MEMPOOL_API = "https://mempool.space/api";
@@ -134,28 +143,53 @@ async function fetchMempoolSnapshot(): Promise<{
   mempoolTxCount: number | null;
   mempoolVsizeMb: number | null;
   recentTxIds: string[];
+  recentTxs: RecentMempoolTx[];
   source: "mempool" | "unavailable";
 }> {
   try {
     const [mempool, recent] = await Promise.all([
       fetchJsonWithRevalidate<{ count: number; vsize: number }>(`${MEMPOOL_API}/mempool`),
-      fetchJsonWithRevalidate<Array<{ txid: string }>>(`${MEMPOOL_API}/mempool/recent`),
+      fetchJsonWithRevalidate<
+        Array<{ txid?: string; fee?: number; vsize?: number; value?: number; time?: number }>
+      >(`${MEMPOOL_API}/mempool/recent`),
     ]);
 
     const mempoolTxCount = Number.isFinite(mempool.count) ? mempool.count : null;
     const mempoolVsizeMb =
       Number.isFinite(mempool.vsize) ? Number((mempool.vsize / 1_000_000).toFixed(0)) : null;
-    const recentTxIds = (recent ?? [])
-      .map((item) => item.txid)
-      .filter((txid): txid is string => typeof txid === "string" && txid.length > 12)
-      .slice(0, 5);
+    const recentTxs = (recent ?? [])
+      .map((item) => {
+        const txid = typeof item.txid === "string" ? item.txid : "";
+        const feeSat = Number(item.fee);
+        const vsize = Number(item.vsize);
+        const time = Number(item.time);
+        const safeFeeSat = Number.isFinite(feeSat) && feeSat >= 0 ? feeSat : null;
+        const safeVsize = Number.isFinite(vsize) && vsize > 0 ? vsize : null;
+        const safeTime = Number.isFinite(time) && time > 0 ? time : null;
+        const feeRate =
+          safeFeeSat !== null && safeVsize !== null
+            ? Number((safeFeeSat / safeVsize).toFixed(2))
+            : null;
 
-    return { mempoolTxCount, mempoolVsizeMb, recentTxIds, source: "mempool" };
+        return {
+          txid,
+          feeSat: safeFeeSat,
+          vsize: safeVsize,
+          feeRate,
+          time: safeTime,
+        } satisfies RecentMempoolTx;
+      })
+      .filter((item) => item.txid.length > 12)
+      .slice(0, 5);
+    const recentTxIds = recentTxs.map((item) => item.txid);
+
+    return { mempoolTxCount, mempoolVsizeMb, recentTxIds, recentTxs, source: "mempool" };
   } catch {
     return {
       mempoolTxCount: null,
       mempoolVsizeMb: null,
       recentTxIds: [],
+      recentTxs: [],
       source: "unavailable",
     };
   }
@@ -195,6 +229,7 @@ export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
     mempoolTxCount: mempoolData.mempoolTxCount,
     mempoolVsizeMb: mempoolData.mempoolVsizeMb,
     recentTxIds: mempoolData.recentTxIds,
+    recentTxs: mempoolData.recentTxs,
     blocksUntilHalving,
     daysUntilHalving,
     lastUpdated: new Date().toISOString(),

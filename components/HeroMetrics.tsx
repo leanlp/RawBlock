@@ -7,8 +7,46 @@ import { formatFeeTime, useFeeMarketData } from "@/hooks/useFeeMarketData";
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import { formatSatVb } from "@/lib/feeBands";
-import type { BitcoinLiveMetrics } from "@/lib/bitcoinData";
+import type { BitcoinLiveMetrics, RecentMempoolTx } from "@/lib/bitcoinData";
 import type { FeeHistoryPoint } from "@/hooks/useFeeMarketData";
+
+const HERO_FALLBACK_RECENT_TXS: RecentMempoolTx[] = [
+  {
+    txid: "25fa769a3a30e6a7d2b5de87b715e6d3bf41b9c0e76f2d6d37b7aee3561d",
+    feeSat: 1542,
+    vsize: 168,
+    feeRate: 9.18,
+    time: Math.floor(Date.now() / 1000) - 12,
+  },
+  {
+    txid: "fa8306ca14f12af5cb87b8dd2ca9c2d58cb1e6f497f5b3648810f445ce053",
+    feeSat: 2710,
+    vsize: 134,
+    feeRate: 20.22,
+    time: Math.floor(Date.now() / 1000) - 33,
+  },
+  {
+    txid: "bb9a969c4bf880f0f1cd12a6328cf2c9d390c0d318d6c2de9ba58f636034",
+    feeSat: 704,
+    vsize: 226,
+    feeRate: 3.12,
+    time: Math.floor(Date.now() / 1000) - 51,
+  },
+  {
+    txid: "eeb4d3ec0274a96a7f6dc662905f4a2e3f8e6b47e5757297d1b169b5bc5dd",
+    feeSat: 1185,
+    vsize: 173,
+    feeRate: 6.85,
+    time: Math.floor(Date.now() / 1000) - 74,
+  },
+  {
+    txid: "4097da839f1a95e0d8c0a3d0e99995a19da9e73fbf0cc8d95d2fe3a97ff1",
+    feeSat: 2978,
+    vsize: 141,
+    feeRate: 21.12,
+    time: Math.floor(Date.now() / 1000) - 98,
+  },
+];
 
 const HERO_FALLBACK_METRICS: BitcoinLiveMetrics = {
   blockHeight: 936_310,
@@ -18,13 +56,8 @@ const HERO_FALLBACK_METRICS: BitcoinLiveMetrics = {
   hashrateEh: 986_972,
   mempoolTxCount: 14_322,
   mempoolVsizeMb: 28,
-  recentTxIds: [
-    "86cf6141a6efb15fb5b9e6ddf2d20dca",
-    "9447a0c4d15c4f0cb71e1e18",
-    "cd5fc0137de25f7b9913d551",
-    "53f0d5ed6fa92987a884ce99",
-    "ceb8e75c51b8d1f4f87e8814",
-  ],
+  recentTxIds: HERO_FALLBACK_RECENT_TXS.map((tx) => tx.txid),
+  recentTxs: HERO_FALLBACK_RECENT_TXS,
   blocksUntilHalving: 113_690,
   daysUntilHalving: 790,
   lastUpdated: new Date().toISOString(),
@@ -66,14 +99,43 @@ function formatHashrateEh(value: number | null | undefined): string {
   })} EH/s`;
 }
 
+function getShortTxid(txid: string): string {
+  return `${txid.slice(0, 8)}...${txid.slice(-4)}`;
+}
+
+function formatTxAge(time: number | null): string {
+  if (time === null || !Number.isFinite(time)) return "Age n/a";
+
+  const sourceSeconds = time > 1_000_000_000_000 ? Math.floor(time / 1000) : Math.floor(time);
+  const ageSeconds = Math.max(0, Math.floor(Date.now() / 1000) - sourceSeconds);
+
+  if (ageSeconds < 60) return `${ageSeconds}s ago`;
+  if (ageSeconds < 3600) return `${Math.floor(ageSeconds / 60)}m ago`;
+  if (ageSeconds < 86_400) return `${Math.floor(ageSeconds / 3600)}h ago`;
+  return `${Math.floor(ageSeconds / 86_400)}d ago`;
+}
+
+function formatVsize(vsize: number | null): string {
+  if (vsize === null || !Number.isFinite(vsize)) return "vsize n/a";
+  if (vsize >= 1000) return `${(vsize / 1000).toFixed(1)}k vB`;
+  return `${Math.round(vsize)} vB`;
+}
+
+function getFeeRateTone(feeRate: number | null): string {
+  if (feeRate === null || !Number.isFinite(feeRate)) return "border-slate-700/80 text-slate-400";
+  if (feeRate >= 20) return "border-rose-500/50 text-rose-300";
+  if (feeRate >= 8) return "border-amber-500/50 text-amber-300";
+  return "border-emerald-500/50 text-emerald-300";
+}
+
 export default function HeroMetrics() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
   const { history: feeHistory, cardFees } = useFeeMarketData(30_000);
 
   const hasLiveMetrics = Boolean(metrics);
   const displayMetrics = metrics ?? HERO_FALLBACK_METRICS;
-  const displayRecentTxIds =
-    metrics?.recentTxIds?.length ? metrics.recentTxIds : HERO_FALLBACK_METRICS.recentTxIds;
+  const displayRecentTxs =
+    metrics?.recentTxs?.length ? metrics.recentTxs : HERO_FALLBACK_METRICS.recentTxs;
   const displayFeeFast = cardFees.fast ?? HERO_FALLBACK_FEES.fast;
   const displayFeeHalfHour = cardFees.medium ?? HERO_FALLBACK_FEES.medium;
   const displayFeeHour = cardFees.slow ?? HERO_FALLBACK_FEES.slow;
@@ -222,13 +284,33 @@ export default function HeroMetrics() {
         <Link href="/explorer/mempool" className="block w-full h-full">
           <Card variant="panel" className="h-full" onClick={() => {}}>
             <PanelHeader>Live Mempool Stream</PanelHeader>
-            {displayRecentTxIds.length > 0 ? (
-              <div className="space-y-1 text-xs text-slate-300">
-                {displayRecentTxIds.map((txid) => (
-                  <p key={txid} className="font-mono text-cyan-400">
-                    TX: {txid.slice(0, 8)}...{txid.slice(-4)}
-                  </p>
+            {displayRecentTxs.length > 0 ? (
+              <div className="space-y-2">
+                {displayRecentTxs.map((tx) => (
+                  <div
+                    key={tx.txid}
+                    className="rounded-lg border border-cyan-500/20 bg-slate-950/50 px-3 py-2 transition-colors group-hover:border-cyan-400/40"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-mono text-xs text-cyan-300">TX: {getShortTxid(tx.txid)}</p>
+                      <span
+                        className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${getFeeRateTone(tx.feeRate)}`}
+                      >
+                        {tx.feeRate !== null && Number.isFinite(tx.feeRate)
+                          ? `${formatSatVb(tx.feeRate)} sat/vB`
+                          : "n/a"}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-slate-400">
+                      <span>{formatVsize(tx.vsize)}</span>
+                      <span className="text-slate-600">•</span>
+                      <span>{formatTxAge(tx.time)}</span>
+                    </div>
+                  </div>
                 ))}
+                <div className="pt-1 text-[10px] uppercase tracking-wider text-cyan-400/90">
+                  View full mempool →
+                </div>
               </div>
             ) : (
               <div className="text-xs text-slate-400">{error ?? "Data temporarily unavailable"}</div>

@@ -104,6 +104,16 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/learn/lesson1",
+        destination: "/paths/bitcoin-foundations",
+        permanent: true,
+      },
+      {
+        source: "/learn/script-lab",
+        destination: "/lab/script",
+        permanent: true,
+      },
+      {
         source: "/academy/1",
         destination: "/paths/bitcoin-foundations",
         permanent: true,
