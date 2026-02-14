@@ -143,8 +143,8 @@ export default function HeroMetrics() {
   const displayFeeHalfHour = cardFees.medium ?? HERO_FALLBACK_FEES.medium;
   const displayFeeHour = cardFees.slow ?? HERO_FALLBACK_FEES.slow;
   const displayFeeHistory = feeHistory.length > 0 ? feeHistory : HERO_FALLBACK_FEE_HISTORY;
-  const snapshotMode = !hasLiveMetrics;
   const connectingMode = status === "loading" && !hasLiveMetrics;
+  const snapshotMode = status !== "loading" && !hasLiveMetrics;
   const liveMode = hasLiveMetrics && !error;
   const staleMode = hasLiveMetrics && Boolean(error);
   const streamFallbackTime = metrics?.lastUpdated
