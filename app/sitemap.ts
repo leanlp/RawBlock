@@ -8,6 +8,57 @@ function toUrl(path: string): string {
   return `${SITE_URL}${path}`;
 }
 
+function getSeoMetadata(route: string): Pick<MetadataRoute.Sitemap[number], "changeFrequency" | "priority"> {
+  if (route === "/") {
+    return { changeFrequency: "hourly", priority: 1 };
+  }
+
+  if (route.startsWith("/explorer/")) {
+    if (route === "/explorer/mempool" || route === "/explorer/fees") {
+      return { changeFrequency: "hourly", priority: 0.92 };
+    }
+    return { changeFrequency: "daily", priority: 0.86 };
+  }
+
+  if (route.startsWith("/analysis/")) {
+    return { changeFrequency: "daily", priority: 0.82 };
+  }
+
+  if (route === "/research") {
+    return { changeFrequency: "daily", priority: 0.84 };
+  }
+
+  if (route.startsWith("/research/")) {
+    return { changeFrequency: "weekly", priority: 0.8 };
+  }
+
+  if (route === "/academy") {
+    return { changeFrequency: "daily", priority: 0.8 };
+  }
+
+  if (route.startsWith("/academy/")) {
+    return { changeFrequency: "weekly", priority: 0.76 };
+  }
+
+  if (route.startsWith("/paths/")) {
+    return { changeFrequency: "weekly", priority: 0.74 };
+  }
+
+  if (route.startsWith("/lab/")) {
+    return { changeFrequency: "weekly", priority: 0.72 };
+  }
+
+  if (route.startsWith("/game/")) {
+    return { changeFrequency: "weekly", priority: 0.7 };
+  }
+
+  if (route === "/graph") {
+    return { changeFrequency: "weekly", priority: 0.72 };
+  }
+
+  return { changeFrequency: "weekly", priority: 0.68 };
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
@@ -49,10 +100,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const uniqueRoutes = Array.from(new Set([...staticRoutes, ...pathRoutes, ...academyNodeRoutes]));
 
-  return uniqueRoutes.map((route) => ({
-    url: toUrl(route),
-    lastModified: now,
-    changeFrequency: route === "/" ? "hourly" : "daily",
-    priority: route === "/" ? 1 : 0.7,
-  }));
+  return uniqueRoutes.map((route) => {
+    const seo = getSeoMetadata(route);
+    return {
+      url: toUrl(route),
+      lastModified: now,
+      changeFrequency: seo.changeFrequency,
+      priority: seo.priority,
+    };
+  });
 }
