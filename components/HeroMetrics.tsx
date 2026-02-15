@@ -164,9 +164,21 @@ export default function HeroMetrics() {
             </span>
           )}
           {liveMode && (
-            <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-emerald-300">
-              Live Node Data
-            </span>
+            <>
+              {metrics?.source === "rawblock" ? (
+                <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-emerald-300">
+                  Live Node Data
+                </span>
+              ) : metrics?.source === "mixed" ? (
+                <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-amber-300">
+                  Mixed Sources
+                </span>
+              ) : (
+                <span className="rounded border border-slate-700 bg-slate-900/70 px-2 py-1 text-[10px] uppercase tracking-widest text-slate-300">
+                  Public Telemetry
+                </span>
+              )}
+            </>
           )}
           {staleMode && (
             <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-amber-300">

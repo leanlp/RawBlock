@@ -5,16 +5,38 @@ const CONTACTS = [
   { label: "LinkedIn", href: "https://linkedin.com/company/rawblock" },
 ];
 
-const DATA_SOURCES = [
+const DATA_STACK = [
+  {
+    label: "Bitcoin Core (self-hosted full node)",
+    href: "https://bitcoincore.org/en/download/",
+    notes:
+      "Primary source of truth for consensus state: chain tip, difficulty, mempool policy, and mining telemetry via RPC.",
+  },
+  {
+    label: "electrs (self-hosted indexer)",
+    href: "https://github.com/romanz/electrs",
+    notes:
+      "Fast address / transaction lookups via an indexed view of the chain. Used to power explorer-grade queries without relying on third-party APIs.",
+  },
+  {
+    label: "Rawblock API (our node gateway)",
+    href: "https://api.rawblock.net/api/network-stats",
+    notes:
+      "Our public-facing API layer that serves data from the node + indexer stack and streams real-time events to the UI.",
+  },
+];
+
+const FALLBACK_SOURCES = [
   {
     label: "mempool.space",
     href: "https://mempool.space/docs/api/rest",
-    notes: "Primary public telemetry for hashrate, mempool, and fee recommendations.",
+    notes:
+      "Fallback telemetry used only when our infrastructure is unavailable, or when running in demo mode without a configured node gateway.",
   },
   {
     label: "blockstream.info",
     href: "https://github.com/Blockstream/esplora/blob/master/API.md",
-    notes: "Fallback API for block height and fee-estimate continuity.",
+    notes: "Secondary fallback (Esplora-compatible) for tip height and fee-estimate continuity.",
   },
 ];
 
@@ -26,8 +48,9 @@ export default function AboutPage() {
           <p className="text-xs uppercase tracking-widest text-cyan-300/80">Raw Block</p>
           <h1 className="text-3xl font-extrabold text-slate-100 md:text-4xl">About & Trust</h1>
           <p className="max-w-3xl text-sm text-slate-300 md:text-base">
-            Raw Block is a Bitcoin analysis and learning workspace. This page documents data origins,
-            operator model, and safe usage boundaries for power features.
+            Raw Block is a Bitcoin analysis and learning workspace built around one principle: show
+            real network behavior from our own infrastructure (node + indexer), and make the sources
+            explicit when fallbacks are used.
           </p>
         </header>
 
@@ -53,13 +76,37 @@ export default function AboutPage() {
         </section>
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
-          <h2 className="text-lg font-semibold text-slate-100">Data Provenance</h2>
+          <h2 className="text-lg font-semibold text-slate-100">Data Stack</h2>
           <p className="mt-2 text-sm text-slate-300">
-            Live dashboards aggregate public network telemetry. Source availability and update cadence
-            can affect metric freshness.
+            Production deployments are powered by our own Bitcoin Core node and electrs indexer.
+            This allows explorer-grade speed without outsourcing trust to third parties.
           </p>
           <ul className="mt-4 space-y-3">
-            {DATA_SOURCES.map((source) => (
+            {DATA_STACK.map((source) => (
+              <li key={source.href} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                <Link
+                  href={source.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-cyan-300 hover:underline"
+                >
+                  {source.label}
+                </Link>
+                <p className="mt-1 text-sm text-slate-300">{source.notes}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+          <h2 className="text-lg font-semibold text-slate-100">Fallback Policy</h2>
+          <p className="mt-2 text-sm text-slate-300">
+            If our node gateway is unreachable, some dashboards may temporarily fall back to public
+            telemetry providers to keep the UI responsive. When you see a fallback source label,
+            treat it as an availability measure, not the default mode.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {FALLBACK_SOURCES.map((source) => (
               <li key={source.href} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
                 <Link
                   href={source.href}
@@ -89,7 +136,7 @@ export default function AboutPage() {
           <h2 className="text-lg font-semibold text-slate-100">Known Limits</h2>
           <p className="mt-2 text-sm text-slate-300">
             Educational modules and dashboards may evolve quickly. When metrics look suspicious,
-            cross-check with primary upstream sources and treat anomalies as potential display bugs.
+            cross-check against primary sources and treat anomalies as potential display bugs.
           </p>
         </section>
       </div>
