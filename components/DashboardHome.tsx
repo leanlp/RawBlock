@@ -409,7 +409,7 @@ export default function DashboardHome() {
                             </div>
                             <Link
                                 href={`/paths/${CANONICAL_PATH_ID}`}
-                                className="inline-flex rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200 hover:bg-cyan-500/20 transition-colors"
+                                className="inline-flex min-h-11 items-center rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20 transition-colors"
                             >
                                 Open Canonical Path ({GUIDED_LESSONS.length} lessons • {canonicalPathSteps} concepts)
                             </Link>
@@ -498,7 +498,7 @@ export default function DashboardHome() {
                                     <Link
                                         key={`${currentLesson.id}-${module.href}`}
                                         href={module.href}
-                                        className="inline-flex items-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 hover:border-cyan-400/60 hover:text-cyan-300 transition-colors"
+                                        className="inline-flex min-h-11 items-center rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-slate-200 hover:border-cyan-400/60 hover:text-cyan-300 transition-colors"
                                     >
                                         {module.label}
                                     </Link>

@@ -67,7 +67,7 @@ export default function AboutPage() {
                 href={contact.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20"
+                className="inline-flex min-h-11 items-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20"
               >
                 {contact.label}
               </Link>
@@ -84,16 +84,18 @@ export default function AboutPage() {
           </p>
           <ul className="mt-4 space-y-3">
             {DATA_STACK.map((source) => (
-              <li key={source.href} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+              <li key={source.href} className="rounded-lg border border-slate-800 bg-slate-950/60">
                 <Link
                   href={source.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-semibold text-cyan-300 hover:underline"
+                  className="block p-3"
                 >
-                  {source.label}
+                  <span className="text-sm font-semibold text-cyan-300 hover:underline">
+                    {source.label}
+                  </span>
+                  <p className="mt-1 text-sm text-slate-300">{source.notes}</p>
                 </Link>
-                <p className="mt-1 text-sm text-slate-300">{source.notes}</p>
               </li>
             ))}
           </ul>
@@ -108,16 +110,18 @@ export default function AboutPage() {
           </p>
           <ul className="mt-4 space-y-3">
             {FALLBACK_SOURCES.map((source) => (
-              <li key={source.href} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+              <li key={source.href} className="rounded-lg border border-slate-800 bg-slate-950/60">
                 <Link
                   href={source.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-semibold text-cyan-300 hover:underline"
+                  className="block p-3"
                 >
-                  {source.label}
+                  <span className="text-sm font-semibold text-cyan-300 hover:underline">
+                    {source.label}
+                  </span>
+                  <p className="mt-1 text-sm text-slate-300">{source.notes}</p>
                 </Link>
-                <p className="mt-1 text-sm text-slate-300">{source.notes}</p>
               </li>
             ))}
           </ul>

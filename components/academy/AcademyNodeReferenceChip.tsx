@@ -17,7 +17,7 @@ export default function AcademyNodeReferenceChip({ nodeId }: AcademyNodeReferenc
     return (
       <Link
         href={href}
-        className="inline-flex max-w-full items-center rounded border border-slate-700 px-2 py-0.5 text-xs text-cyan-300 hover:border-cyan-500"
+        className="inline-flex min-h-11 max-w-full items-center rounded border border-slate-700 px-3 py-2 text-xs text-cyan-300 hover:border-cyan-500"
         title={label}
       >
         <span className="truncate">{label}</span>

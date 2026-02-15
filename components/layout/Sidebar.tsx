@@ -181,7 +181,7 @@ export default function Sidebar() {
                             <Link
                                 href="/#guided-learning-mode"
                                 onClick={() => setMobileOpen(false)}
-                                className="text-[11px] text-slate-300 hover:text-cyan-300 transition-colors"
+                                className="inline-flex min-h-11 items-center rounded-md border border-slate-700/60 bg-slate-950/40 px-3 text-[11px] text-slate-200 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
                             >
                                 Resume
                             </Link>
@@ -263,7 +263,7 @@ export default function Sidebar() {
             <div className={`md:hidden fixed top-4 left-16 z-[79] ${mobileOpen ? "hidden" : "flex"} flex-row gap-2 transition-all duration-300 ${isScrollingDown ? "opacity-55" : isScrolled ? "opacity-80" : "opacity-100"}`}>
                 <Link
                     href={previousPath}
-                    className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
+                    className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
                     aria-label="Previous menu page"
                     title="Previous"
                 >
@@ -271,7 +271,7 @@ export default function Sidebar() {
                 </Link>
                 <Link
                     href="/"
-                    className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
+                    className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
                     aria-label="Go home"
                     title="Home"
                 >
@@ -279,7 +279,7 @@ export default function Sidebar() {
                 </Link>
                 <Link
                     href={nextPath}
-                    className={`inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
+                    className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
                     aria-label="Next menu page"
                     title="Next"
                 >
