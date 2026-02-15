@@ -53,7 +53,7 @@ const HERO_FALLBACK_METRICS: BitcoinLiveMetrics = {
   feeFast: 5,
   feeHalfHour: 4.5,
   feeHour: 1,
-  hashrateEh: 986_972,
+  hashrateEh: 986.97,
   mempoolTxCount: 14_322,
   mempoolVsizeMb: 28,
   recentTxIds: HERO_FALLBACK_RECENT_TXS.map((tx) => tx.txid),
@@ -147,9 +147,7 @@ export default function HeroMetrics() {
   const snapshotMode = status !== "loading" && !hasLiveMetrics;
   const liveMode = hasLiveMetrics && !error;
   const staleMode = hasLiveMetrics && Boolean(error);
-  const streamFallbackTime = metrics?.lastUpdated
-    ? Math.floor(new Date(metrics.lastUpdated).getTime() / 1000)
-    : Math.floor(Date.now() / 1000);
+  const streamFallbackTime = Math.floor(new Date(displayMetrics.lastUpdated).getTime() / 1000);
 
   return (
     <div className="w-full mb-12">
@@ -157,26 +155,22 @@ export default function HeroMetrics() {
         <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
           {snapshotMode && (
             <span className="rounded border border-slate-700 bg-slate-900/70 px-2 py-1 text-[10px] uppercase tracking-widest text-slate-400">
-              <span className="sm:hidden">Snapshot</span>
-              <span className="hidden sm:inline">Startup Snapshot</span>
+              Startup Snapshot
             </span>
           )}
           {connectingMode && (
             <span className="rounded border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-cyan-300">
-              <span className="sm:hidden">Connecting</span>
-              <span className="hidden sm:inline">Connecting To Live Node...</span>
+              Connecting to live node...
             </span>
           )}
           {liveMode && (
             <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-emerald-300">
-              <span className="sm:hidden">Live</span>
-              <span className="hidden sm:inline">Live Node Data</span>
+              Live Node Data
             </span>
           )}
           {staleMode && (
             <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-amber-300">
-              <span className="sm:hidden">Stale</span>
-              <span className="hidden sm:inline">Live Feed Delayed (Showing Last Known)</span>
+              Live Feed Delayed (Showing Last Known)
             </span>
           )}
         </div>

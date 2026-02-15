@@ -114,6 +114,19 @@ type MempoolHashrateResponse =
       currentHashrate?: number;
     };
 
+function normalizeHashrateToEh(rawHashrate: number): number | null {
+  if (!Number.isFinite(rawHashrate) || rawHashrate <= 0) return null;
+
+  const absolute = Math.abs(rawHashrate);
+
+  // Upstream providers may expose hashrate in H/s, TH/s, PH/s, or EH/s.
+  // Normalize to EH/s defensively to avoid 1000x display mistakes.
+  if (absolute >= 1e15) return rawHashrate / 1e18; // H/s -> EH/s
+  if (absolute >= 1e9) return rawHashrate / 1e6; // TH/s -> EH/s
+  if (absolute >= 1e4) return rawHashrate / 1e3; // PH/s -> EH/s
+  return rawHashrate; // Already EH/s
+}
+
 async function fetchHashrateEh(): Promise<{ hashrateEh: number | null; source: "mempool" | "unavailable" }> {
   try {
     const payload = await fetchJsonWithRevalidate<MempoolHashrateResponse>(
@@ -132,8 +145,12 @@ async function fetchHashrateEh(): Promise<{ hashrateEh: number | null; source: "
       return { hashrateEh: null, source: "unavailable" };
     }
 
-    const eh = hashrate / 1e18;
-    return { hashrateEh: Number.isFinite(eh) ? Number(eh.toFixed(2)) : null, source: "mempool" };
+    const eh = normalizeHashrateToEh(hashrate);
+    if (eh === null || !Number.isFinite(eh)) {
+      return { hashrateEh: null, source: "unavailable" };
+    }
+
+    return { hashrateEh: Number(eh.toFixed(2)), source: "mempool" };
   } catch {
     return { hashrateEh: null, source: "unavailable" };
   }

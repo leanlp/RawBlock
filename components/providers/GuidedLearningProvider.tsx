@@ -34,6 +34,7 @@ type GuidedLearningContextValue = LearningProgressState & {
   setCurrentLessonIndex: (index: number) => void;
   goToLesson: (index: number) => void;
   markLessonComplete: (index: number) => void;
+  completeAndAdvanceFrom: (index: number) => void;
   goToNext: () => void;
   goToPrevious: () => void;
   syncNodeProgress: (nodeId: string) => void;
@@ -91,6 +92,10 @@ export function GuidedLearningProvider({ children }: { children: ReactNode }) {
 
   const markLessonComplete = useCallback((index: number) => {
     dispatch({ type: "MARK_LESSON_COMPLETE", index });
+  }, []);
+
+  const completeAndAdvanceFrom = useCallback((index: number) => {
+    dispatch({ type: "COMPLETE_AND_ADVANCE_FROM", index });
   }, []);
 
   const maxUnlockedLesson = useMemo(
@@ -176,6 +181,7 @@ export function GuidedLearningProvider({ children }: { children: ReactNode }) {
       setCurrentLessonIndex,
       goToLesson,
       markLessonComplete,
+      completeAndAdvanceFrom,
       goToNext,
       goToPrevious,
       syncNodeProgress,
@@ -197,6 +203,7 @@ export function GuidedLearningProvider({ children }: { children: ReactNode }) {
       setCurrentLessonIndex,
       goToLesson,
       markLessonComplete,
+      completeAndAdvanceFrom,
       goToNext,
       goToPrevious,
       syncNodeProgress,

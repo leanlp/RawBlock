@@ -72,6 +72,7 @@ const NAV_ITEMS: NavSection[] = [
     {
         category: "Knowledge",
         items: [
+            { name: "About", path: "/about", icon: "ℹ️" },
             { name: "Academy", path: "/academy", icon: "🎓" },
             { name: "Research", path: "/research", icon: "📚" },
             { name: "Vulnerabilities", path: "/research/vulnerabilities", icon: "🛡️" },
@@ -93,6 +94,7 @@ export default function Sidebar() {
     const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
     const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
     const canonicalConceptCount = getCanonicalPath().orderedNodes.length;
+    const showLearningJourney = pathname !== "/";
 
     const activeIndex = (() => {
         const candidates = ORDERED_MENU_PATHS
@@ -158,33 +160,35 @@ export default function Sidebar() {
 
     const sidebarContent = (
         <>
-            <div className="border-b border-slate-800/50 px-3 py-3">
-                <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-500">Learning Journey</p>
-                    <p className="text-xs text-slate-300 mt-1">
-                        Guided Lesson {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-500">
-                        Path scope: {GUIDED_LESSONS.length} lessons • {canonicalConceptCount} concepts
-                    </p>
-                    <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden mt-2">
-                        <div
-                            className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
-                            style={{ width: `${progressPercent}%` }}
-                        />
-                    </div>
-                    <div className="mt-2 flex items-center justify-between">
-                        <span className="text-[11px] text-cyan-300">{progressPercent}% complete</span>
-                        <Link
-                            href="/#guided-learning-mode"
-                            onClick={() => setMobileOpen(false)}
-                            className="text-[11px] text-slate-300 hover:text-cyan-300 transition-colors"
-                        >
-                            Resume
-                        </Link>
+            {showLearningJourney && (
+                <div className="border-b border-slate-800/50 px-3 py-3">
+                    <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+                        <p className="text-[10px] uppercase tracking-widest text-slate-500">Learning Journey</p>
+                        <p className="text-xs text-slate-300 mt-1">
+                            Guided Lesson {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
+                        </p>
+                        <p className="mt-1 text-[11px] text-slate-500">
+                            Path scope: {GUIDED_LESSONS.length} lessons • {canonicalConceptCount} concepts
+                        </p>
+                        <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden mt-2">
+                            <div
+                                className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </div>
+                        <div className="mt-2 flex items-center justify-between">
+                            <span className="text-[11px] text-cyan-300">{progressPercent}% complete</span>
+                            <Link
+                                href="/#guided-learning-mode"
+                                onClick={() => setMobileOpen(false)}
+                                className="text-[11px] text-slate-300 hover:text-cyan-300 transition-colors"
+                            >
+                                Resume
+                            </Link>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-6 custom-scrollbar">

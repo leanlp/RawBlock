@@ -26,6 +26,7 @@ export const DEFAULT_LEARNING_PROGRESS_STATE: LearningProgressState = {
 export type LearningProgressAction =
   | { type: "SET_LESSON_INDEX"; index: number }
   | { type: "MARK_LESSON_COMPLETE"; index: number }
+  | { type: "COMPLETE_AND_ADVANCE_FROM"; index: number }
   | { type: "SYNC_NODE_LESSON"; index: number }
   | { type: "MARK_NODE_COMPLETE"; nodeId: string }
   | { type: "SET_PATH_STEP"; pathId: string; stepIndex: number }
@@ -119,6 +120,14 @@ export function learningProgressReducer(
       return {
         ...state,
         completedLessons: uniqSorted([...state.completedLessons, safe]),
+      };
+    }
+    case "COMPLETE_AND_ADVANCE_FROM": {
+      const safe = clampLessonIndex(action.index);
+      return {
+        ...state,
+        completedLessons: uniqSorted([...state.completedLessons, safe]),
+        currentLessonIndex: clampLessonIndex(safe + 1),
       };
     }
     case "SYNC_NODE_LESSON": {

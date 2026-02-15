@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from 'next/link';
+import { useState } from "react";
 import { Oxanium } from "next/font/google";
 import HeroMetrics from "./HeroMetrics";
 import Card from "./Card";
@@ -179,6 +180,13 @@ const categories = {
         subtitle: "Advanced utilities for power users",
         features: [
             {
+                title: "About & Trust",
+                description: "Data sources, operator transparency, and responsible-use boundaries.",
+                href: "/about",
+                color: "from-cyan-500 to-blue-600",
+                icon: "ℹ️"
+            },
+            {
                 title: "Node Terminal",
                 description: "Interact with your local Bitcoin Core node via RPC.",
                 href: "/explorer/rpc",
@@ -297,10 +305,36 @@ export default function DashboardHome() {
         maxUnlockedLesson,
         goToLesson,
         markLessonComplete,
+        completeAndAdvanceFrom,
         goToNext,
         goToPrevious,
     } = useGuidedLearning();
+    const [lockedLessonPromptIndex, setLockedLessonPromptIndex] = useState<number | null>(null);
     const canonicalPathSteps = getCanonicalPath().orderedNodes.length;
+    const hasLockedLessons = maxUnlockedLesson < GUIDED_LESSONS.length - 1;
+    const nextLockedLessonIndex = Math.min(maxUnlockedLesson + 1, GUIDED_LESSONS.length - 1);
+    const nextLockedLesson = GUIDED_LESSONS[nextLockedLessonIndex];
+    const isAtUnlockFrontier = currentLessonIndex === maxUnlockedLesson;
+    const lockedLessonPrompt =
+        lockedLessonPromptIndex === null ? null : GUIDED_LESSONS[lockedLessonPromptIndex];
+
+    const closeLockedLessonPrompt = () => {
+        setLockedLessonPromptIndex(null);
+    };
+
+    const requestLockedLessonUnlock = (lessonIndex: number) => {
+        setLockedLessonPromptIndex(lessonIndex);
+    };
+
+    const unlockNextLesson = () => {
+        completeAndAdvanceFrom(maxUnlockedLesson);
+        closeLockedLessonPrompt();
+    };
+
+    const jumpToCurrentUnlockedLesson = () => {
+        goToLesson(maxUnlockedLesson);
+        closeLockedLessonPrompt();
+    };
 
     return (
         <div className="flex flex-col items-center justify-start py-8 relative z-10 max-w-7xl w-full mx-auto px-3 sm:px-4">
@@ -420,15 +454,15 @@ export default function DashboardHome() {
                                     <button
                                         key={lesson.id}
                                         type="button"
-                                        onClick={() => goToLesson(index)}
-                                        disabled={isLocked}
+                                        onClick={() => (isLocked ? requestLockedLessonUnlock(index) : goToLesson(index))}
+                                        aria-disabled={isLocked}
                                         aria-label={`${index + 1}. ${lesson.title} — ${statusLabel}`}
                                         className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors ${isActive
                                             ? "bg-cyan-500/15 border border-cyan-400/40"
                                             : "border border-transparent"
                                             } ${isLocked
-                                            ? "opacity-45 cursor-not-allowed"
-                                            : "hover:bg-slate-800/70"
+                                            ? "opacity-70 hover:bg-slate-800/40"
+                                            : "hover:bg-slate-800/70 cursor-pointer"
                                             }`}
                                     >
                                         <div className="flex items-center justify-between gap-2">
@@ -472,6 +506,34 @@ export default function DashboardHome() {
                             </div>
                         </div>
 
+                        {hasLockedLessons && (
+                            <div className="mb-6 rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-sm text-cyan-100">
+                                <p>
+                                    Lesson {nextLockedLessonIndex + 1} ({nextLockedLesson.title}) is currently locked.
+                                    Complete lesson {maxUnlockedLesson + 1} to unlock it. Progress is saved in your browser.
+                                </p>
+                                <div className="mt-3">
+                                    {isAtUnlockFrontier ? (
+                                        <button
+                                            type="button"
+                                            onClick={unlockNextLesson}
+                                            className="rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-cyan-100 hover:bg-cyan-500/25 transition-colors"
+                                        >
+                                            Complete & Unlock Next Lesson
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => goToLesson(maxUnlockedLesson)}
+                                            className="rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-cyan-100 hover:bg-cyan-500/25 transition-colors"
+                                        >
+                                            Jump to Current Lesson
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex flex-wrap items-center gap-2">
                             <button
                                 type="button"
@@ -499,6 +561,59 @@ export default function DashboardHome() {
                     </div>
                 </div>
             </section>
+
+            {lockedLessonPrompt && (
+                <div className="fixed inset-0 z-[90] flex items-center justify-center px-4">
+                    <button
+                        type="button"
+                        aria-label="Close lesson lock dialog"
+                        onClick={closeLockedLessonPrompt}
+                        className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                    />
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Locked lesson guidance"
+                        className="relative w-full max-w-lg rounded-2xl border border-cyan-500/30 bg-slate-900 p-5 shadow-2xl shadow-cyan-900/20"
+                    >
+                        <p className="text-xs uppercase tracking-widest text-cyan-300/80">Lesson Locked</p>
+                        <h3 className="mt-2 text-xl font-bold text-white">
+                            {lockedLessonPromptIndex !== null ? `Lesson ${lockedLessonPromptIndex + 1}: ` : ""}
+                            {lockedLessonPrompt.title}
+                        </h3>
+                        <p className="mt-3 text-sm text-slate-300">
+                            Complete lesson {maxUnlockedLesson + 1} first to unlock this lesson.
+                            Progress is stored locally in this browser session.
+                        </p>
+
+                        <div className="mt-5 flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={jumpToCurrentUnlockedLesson}
+                                className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:border-cyan-400/60 hover:text-cyan-200 transition-colors"
+                            >
+                                Go to Current Lesson
+                            </button>
+                            {hasLockedLessons && (
+                                <button
+                                    type="button"
+                                    onClick={unlockNextLesson}
+                                    className="rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-3 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/25 transition-colors"
+                                >
+                                    Complete & Unlock Next
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                onClick={closeLockedLessonPrompt}
+                                className="rounded-lg border border-slate-700 bg-transparent px-3 py-2 text-sm text-slate-300 hover:border-slate-500 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Simulation Launchpad */}
             <section className="w-full mb-12 rounded-2xl border border-amber-500/20 bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6">
