@@ -455,7 +455,7 @@ export default function DashboardHome() {
                                         key={lesson.id}
                                         type="button"
                                         onClick={() => (isLocked ? requestLockedLessonUnlock(index) : goToLesson(index))}
-                                        aria-disabled={isLocked}
+                                        aria-haspopup={isLocked ? "dialog" : undefined}
                                         aria-label={`${index + 1}. ${lesson.title} — ${statusLabel}`}
                                         className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors ${isActive
                                             ? "bg-cyan-500/15 border border-cyan-400/40"
