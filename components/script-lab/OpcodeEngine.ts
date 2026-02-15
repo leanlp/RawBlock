@@ -159,7 +159,7 @@ export class OpcodeEngine {
                 push("1");
             } else if (op === "OP_FALSE") {
                 push("0");
-            } else if (/^OP_\\d+$/.test(op)) {
+            } else if (/^OP_\d+$/.test(op)) {
                 push(op.replace("OP_", ""));
             }
             // --- DATA PUSHES (Hex / words not starting with OP_) ---
