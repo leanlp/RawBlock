@@ -13,10 +13,10 @@ const DATA_STACK = [
       "Primary source of truth for consensus state: chain tip, difficulty, mempool policy, and mining telemetry via RPC.",
   },
   {
-    label: "electrs (self-hosted indexer)",
+    label: "electrs (self-hosted indexer, rolling out)",
     href: "https://github.com/romanz/electrs",
     notes:
-      "Fast address / transaction lookups via an indexed view of the chain. Used to power explorer-grade queries without relying on third-party APIs.",
+      "Fast address / transaction lookups via an indexed view of the chain. Used to power explorer-grade queries without relying on third-party APIs (deployment in progress).",
   },
   {
     label: "Rawblock API (our node gateway)",
@@ -78,8 +78,9 @@ export default function AboutPage() {
         <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
           <h2 className="text-lg font-semibold text-slate-100">Data Stack</h2>
           <p className="mt-2 text-sm text-slate-300">
-            Production deployments are powered by our own Bitcoin Core node and electrs indexer.
-            This allows explorer-grade speed without outsourcing trust to third parties.
+            Raw Block is built to run on Bitcoin Core plus an electrs-backed index. During the
+            current rollout (index compaction and hardening), some views may temporarily use public
+            telemetry fallbacks for continuity.
           </p>
           <ul className="mt-4 space-y-3">
             {DATA_STACK.map((source) => (
