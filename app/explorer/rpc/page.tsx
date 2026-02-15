@@ -14,7 +14,7 @@ export default function RPCExplorerPage() {
                     Node Console 💻
                 </h1>
                 <p className="mt-2 text-slate-400 text-sm">
-                    Direct RPC Access to your local Bitcoin Core node.
+                    Read-only JSON-RPC access to the connected Bitcoin Core backend (self-hosted or Rawblock API).
                 </p>
             </div>
             <RPCExplorer />

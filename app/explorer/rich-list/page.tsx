@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
@@ -44,14 +45,20 @@ interface WhaleData {
 
 export default function RichListPage() {
     const router = useRouter();
+    const [decoderQuery, setDecoderQuery] = useState("");
+    const [filter, setFilter] = useState("");
 
-    const whales: WhaleData[] = allWhales.map(w => ({
-        rank: w.rank,
-        address: w.address,
-        balance: w.balance,
-        utxoCount: w.utxoCount,
-        fetchedAt: w.fetchedAt
-    }));
+    const whales: WhaleData[] = useMemo(
+        () =>
+            allWhales.map((w) => ({
+                rank: w.rank,
+                address: w.address,
+                balance: w.balance,
+                utxoCount: w.utxoCount,
+                fetchedAt: w.fetchedAt,
+            })),
+        [],
+    );
 
     const handleViewWhale = (rank: number) => {
         router.push(`/explorer/rich-list/${rank}`);
@@ -65,6 +72,15 @@ export default function RichListPage() {
 
     const totalBtc = whales.reduce((sum, w) => sum + w.balance, 0);
     const totalUtxos = whales.reduce((sum, w) => sum + w.utxoCount, 0);
+
+    const filteredWhales = useMemo(() => {
+        const q = filter.trim().toLowerCase();
+        if (!q) return whales;
+        return whales.filter((w) =>
+            String(w.rank) === q ||
+            w.address.toLowerCase().includes(q)
+        );
+    }, [filter, whales]);
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono selection:bg-cyan-500/30">
@@ -89,9 +105,57 @@ export default function RichListPage() {
 
                 {/* Data Source Notice */}
                 <div className="bg-sky-900/20 border border-sky-500/30 rounded-lg px-4 py-3 text-xs text-sky-200/90">
-                    ℹ️ <span className="font-bold">Static address snapshot</span> — This table ranks addresses, not entities.
-                    Exchanges/custodians may represent many users.
+                    ℹ️ <span className="font-bold">Static address snapshot</span> — This table ranks single addresses, not entities.
+                    Exchanges/custodians may represent many users. Use the Decoder for details.
                     Last updated: {formatDate(whales[0]?.fetchedAt)}
+                </div>
+
+                {/* Quick Actions */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+                        <div className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">
+                            Open In Decoder
+                        </div>
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                const q = decoderQuery.trim();
+                                if (!q) return;
+                                router.push(`/explorer/decoder?query=${encodeURIComponent(q)}`);
+                            }}
+                            className="flex gap-2"
+                        >
+                            <input
+                                value={decoderQuery}
+                                onChange={(e) => setDecoderQuery(e.target.value)}
+                                placeholder="Paste an address or txid..."
+                                className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+                            />
+                            <button
+                                type="submit"
+                                className="min-h-11 whitespace-nowrap rounded-lg border border-slate-700 bg-slate-900 px-4 text-xs font-bold text-cyan-300 hover:border-cyan-500/50 hover:text-cyan-200"
+                            >
+                                Open
+                            </button>
+                        </form>
+                        <div className="mt-2 text-[10px] text-slate-600">
+                            Tip: In demo mode, the Decoder supports txid-only fallback.
+                        </div>
+                    </div>
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+                        <div className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">
+                            Filter This Table
+                        </div>
+                        <input
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                            placeholder="Filter by rank or address..."
+                            className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                        />
+                        <div className="mt-2 text-[10px] text-slate-600">
+                            Showing {filteredWhales.length} of {whales.length}.
+                        </div>
+                    </div>
                 </div>
 
                 {/* Stats Summary */}
@@ -128,7 +192,7 @@ export default function RichListPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/50">
-                                {whales.map((whale) => (
+                                {filteredWhales.map((whale) => (
                                     <tr
                                         key={whale.rank}
                                         className="group hover:bg-slate-800/30 transition-colors cursor-pointer"
@@ -149,12 +213,28 @@ export default function RichListPage() {
                                             </span>
                                         </td>
                                         <td className="p-2 md:p-4 text-center hidden md:table-cell">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleViewWhale(whale.rank); }}
-                                                className="text-[10px] bg-slate-800 hover:bg-cyan-900/50 text-slate-400 hover:text-cyan-300 border border-slate-700 rounded px-3 py-1 transition-all"
-                                            >
-                                                VIEW UTXOS
-                                            </button>
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleViewWhale(whale.rank);
+                                                    }}
+                                                    className="min-h-11 text-[10px] bg-slate-800 hover:bg-cyan-900/50 text-slate-400 hover:text-cyan-300 border border-slate-700 rounded px-3 py-1 transition-all"
+                                                >
+                                                    VIEW UTXOS
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        router.push(`/explorer/decoder?query=${encodeURIComponent(whale.address)}`);
+                                                    }}
+                                                    className="min-h-11 text-[10px] bg-slate-800 hover:bg-amber-900/40 text-slate-400 hover:text-amber-300 border border-slate-700 rounded px-3 py-1 transition-all"
+                                                >
+                                                    DECODE
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

@@ -9,6 +9,8 @@ import { analyzePrivacy } from '../../../utils/privacy';
 import PrivacyReport from '../../../components/PrivacyReport';
 import EducationPanel from '../../../components/EducationPanel';
 import Header from '../../../components/Header';
+import CopyButton from '../../../components/CopyButton';
+import InfoTooltip from '../../../components/InfoTooltip';
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +59,7 @@ interface AddressInfo {
 type DecoderResult = (DecodedTx & { type?: 'transaction' }) | AddressInfo;
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const MEMPOOL_TX_API = "https://mempool.space/api/tx";
+type DecoderDataSource = "live" | "fallback" | "demo" | "unknown";
 
 interface MempoolTxInput {
     txid?: string;
@@ -133,12 +136,26 @@ function DecoderContent() {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<DecoderResult | null>(null);
     const [error, setError] = useState('');
+    const [dataSource, setDataSource] = useState<DecoderDataSource>(API_URL ? "unknown" : "demo");
+
+    const downloadJson = (data: unknown, filename: string) => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    };
 
     const fetchDecodedTx = async (txQuery: string) => {
         setLoading(true);
         setError('');
         setResult(null); // Clear previous result to center loader
         setQuery(txQuery);
+        setDataSource(API_URL ? "unknown" : "demo");
 
         try {
             if (API_URL) {
@@ -158,6 +175,7 @@ function DecoderContent() {
                     throw new Error(data.error || 'Failed to decode');
                 }
                 setResult(data);
+                setDataSource("live");
                 return;
             }
 
@@ -166,6 +184,7 @@ function DecoderContent() {
             }
             const fallbackTx = await decodeViaMempool(txQuery.trim());
             setResult({ ...fallbackTx, type: 'transaction' });
+            setDataSource("fallback");
         } catch (err: unknown) {
             // Try public tx fallback even when live API is configured but unavailable.
             if (isLikelyTxid(txQuery)) {
@@ -173,6 +192,7 @@ function DecoderContent() {
                     const fallbackTx = await decodeViaMempool(txQuery.trim());
                     setResult({ ...fallbackTx, type: 'transaction' });
                     setError("Live backend unavailable. Showing public fallback decode.");
+                    setDataSource("fallback");
                     return;
                 } catch {
                     // fall through to default error handling
@@ -309,6 +329,60 @@ function DecoderContent() {
                 )}
 
                 {/* Results Container */}
+                {result ? (
+                    <div
+                        className={`mb-6 rounded-lg border px-4 py-3 text-xs ${
+                            dataSource === "live"
+                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+                                : dataSource === "fallback"
+                                    ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+                                    : "border-slate-800 bg-slate-900/40 text-slate-300"
+                        }`}
+                    >
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="flex items-start gap-2">
+                                <InfoTooltip
+                                    content={
+                                        dataSource === "live"
+                                            ? "Decoded using the configured backend API (Bitcoin Core + electrs/indexing). If your backend is down, some lookups may fall back to public APIs."
+                                            : dataSource === "fallback"
+                                                ? "Fallback decode uses public APIs (mempool.space). Address scans and some advanced lookups may be unavailable in fallback mode."
+                                                : "Data source is unknown for this result."
+                                    }
+                                    label="Data source details"
+                                />
+                                <div>
+                                    <div className="font-bold">
+                                        Data source:{" "}
+                                        {dataSource === "live"
+                                            ? "Live backend"
+                                            : dataSource === "fallback"
+                                                ? "Public fallback"
+                                                : dataSource === "demo"
+                                                    ? "Demo"
+                                                    : "Unknown"}
+                                    </div>
+                                    <div className="opacity-90">
+                                        {dataSource === "live"
+                                            ? "Rawblock API (node-backed)."
+                                            : dataSource === "fallback"
+                                                ? "mempool.space (tx-only)."
+                                                : dataSource === "demo"
+                                                    ? "No live backend configured."
+                                                    : "—"}
+                                    </div>
+                                </div>
+                            </div>
+                            <Link
+                                href="/about"
+                                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2 text-[11px] font-bold text-slate-200 hover:border-cyan-500/40 hover:text-cyan-200"
+                            >
+                                About & Trust
+                            </Link>
+                        </div>
+                    </div>
+                ) : null}
+
                 {result && isAddress(result) ? (
                     /* ADDRESS VIEW */
                     <div className="space-y-8 animate-in fade-in duration-500">
@@ -327,6 +401,16 @@ function DecoderContent() {
                                 <div>
                                     <div className="mb-2 text-xs text-slate-600">ADDRESS</div>
                                     <div className="break-all font-mono text-[clamp(1rem,2vw,1.5rem)] text-cyan-300 leading-6 select-all">{result.address}</div>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        <CopyButton text={result.address} label="Copy address" className="bg-slate-950/40" />
+                                        <button
+                                            type="button"
+                                            onClick={() => downloadJson(result, `rawblock-address-${result.address.slice(0, 12)}.json`)}
+                                            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs font-bold text-slate-200 hover:border-cyan-500/40 hover:text-cyan-200"
+                                        >
+                                            Download JSON
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="text-left md:text-right">
                                     <div className="mb-2 text-xs text-slate-600">CONFIRMED BALANCE</div>
@@ -385,10 +469,33 @@ function DecoderContent() {
                             <div className="space-y-8">
                                 {/* 1. Overview Card */}
                                 <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
-                                    <h2 className="text-xs text-slate-500 uppercase tracking-widest mb-4">Transaction Overview</h2>
+                                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <h2 className="text-xs text-slate-500 uppercase tracking-widest">Transaction Overview</h2>
+                                        <div className="flex flex-wrap gap-2">
+                                            <CopyButton
+                                                text={JSON.stringify(result, null, 2)}
+                                                label="Copy JSON"
+                                                className="bg-slate-950/40"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => downloadJson(result, `rawblock-tx-${result.txid}.json`)}
+                                                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs font-bold text-slate-200 hover:border-cyan-500/40 hover:text-cyan-200"
+                                            >
+                                                Download JSON
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                         <div className="min-w-0 overflow-hidden">
-                                            <div className="mb-1 text-xs text-slate-600">TXID</div>
+                                            <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                                                <span>TXID</span>
+                                                <CopyButton
+                                                    text={result.txid}
+                                                    label="Copy"
+                                                    className="px-2 py-1 text-[10px] bg-slate-950/40"
+                                                />
+                                            </div>
                                             <div className="max-w-full break-all text-xs text-cyan-300 select-all">{result.txid}</div>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

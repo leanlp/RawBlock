@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Header from '../../../../components/Header';
+import CopyButton from '../../../../components/CopyButton';
 
 // Static imports - all whale data embedded
 import whale01 from '../../../../data/whales/whale_01.json';
@@ -171,6 +172,15 @@ export default function WhaleDetailPage() {
                         <p className="text-slate-500 text-xs md:text-sm font-mono break-all">
                             {whale.address}
                         </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <CopyButton text={whale.address} label="Copy address" className="bg-slate-900/60" />
+                            <Link
+                                href={`/explorer/decoder?query=${encodeURIComponent(whale.address)}`}
+                                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs font-bold text-cyan-300 hover:border-cyan-500/50 hover:text-cyan-200"
+                            >
+                                Open in Decoder
+                            </Link>
+                        </div>
                     </div>
                     <Link href="/explorer/rich-list" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors whitespace-nowrap inline-flex items-center min-h-11">
                         ← Back to Whale Watch

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 
 // Define Command Type with Template Support
 type CommandDef = { cmd: string; desc: string; template?: string };
@@ -8,6 +9,45 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 type HistoryEntry =
     | { type: 'cmd'; content: string }
     | { type: 'res' | 'err'; content: unknown };
+
+const BLOCKED_METHODS = new Set(
+    [
+        // Wallet / key exfiltration
+        "dumpprivkey",
+        "dumpwallet",
+        "importprivkey",
+        "importwallet",
+        "importmulti",
+        "importdescriptors",
+        "backupwallet",
+        "restorewallet",
+        // Spending / signing / funding
+        "sendtoaddress",
+        "sendmany",
+        "sendrawtransaction",
+        "fundrawtransaction",
+        "signrawtransactionwithwallet",
+        "walletpassphrase",
+        "walletpassphrasechange",
+        "encryptwallet",
+        // Node control / policy changes
+        "stop",
+        "setban",
+        "addnode",
+        "disconnectnode",
+        "setnetworkactive",
+        "invalidateblock",
+        "reconsiderblock",
+        "rescanblockchain",
+        // Wallet management
+        "createwallet",
+        "loadwallet",
+        "unloadwallet",
+        "setwalletflag",
+        // Mining / submission
+        "submitblock",
+    ].map((m) => m.toLowerCase()),
+);
 
 const COMMAND_GROUPS: { category: string; commands: CommandDef[] }[] = [
     {
@@ -57,7 +97,6 @@ const COMMAND_GROUPS: { category: string; commands: CommandDef[] }[] = [
             { cmd: "validateaddress", desc: "Check address validity", template: "validateaddress <addr>" },
             { cmd: "decodescript", desc: "Decode Hex Script", template: "decodescript <hex>" },
             { cmd: "getmemoryinfo", desc: "RAM Usage Stats" },
-            { cmd: "upgradewallet", desc: "Try to upgrade wallet version (Safe)", template: "upgradewallet 169900" }, // Just a joke/test, maybe unsafe? No, keep it safe.
             { cmd: "getrpcinfo", desc: "Active RPC Calls" },
         ]
     },
@@ -96,7 +135,24 @@ export default function RPCExplorer() {
 
         const parts = cmdString.trim().split(/\s+/); // Split by any whitespace
         const method = parts[0];
+        const normalizedMethod = method.toLowerCase();
         const rawParams = parts.slice(1);
+
+        if (BLOCKED_METHODS.has(normalizedMethod)) {
+            setHistory((prev) => [
+                ...prev,
+                { type: "cmd", content: cmdString },
+                {
+                    type: "err",
+                    content:
+                        `Blocked for safety: '${method}'.\n` +
+                        "This web console is designed for read-only exploration. Use direct RPC on your own node for wallet/spending/control commands.",
+                },
+            ]);
+            setInput("");
+            setLoading(false);
+            return;
+        }
 
         // Intelligent Parameter Parsing
         const params = rawParams.map(p => {
@@ -190,6 +246,25 @@ export default function RPCExplorer() {
 
     return (
         <div className="space-y-3 p-4 font-mono text-sm">
+            <div className="w-full rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3 text-xs text-slate-300">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <div className="font-bold text-slate-200">Safety notice</div>
+                        <div className="text-slate-400">
+                            Avoid wallet, spending, or node-control commands. High-risk RPC methods are blocked in this web console.
+                        </div>
+                        <div className="mt-1 text-slate-500">
+                            Mode: {isDemoMode ? "Demo (no backend)" : "Live (backend-connected)"}.
+                        </div>
+                    </div>
+                    <Link
+                        href="/about"
+                        className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/30 px-3 py-2 text-[11px] font-bold text-slate-200 hover:border-cyan-500/40 hover:text-cyan-200"
+                    >
+                        About & Trust
+                    </Link>
+                </div>
+            </div>
             {isDemoMode ? (
                 <div className="w-full rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
                     Demo mode: live RPC backend is unavailable. Read-only sample responses are shown.

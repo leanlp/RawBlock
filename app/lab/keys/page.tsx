@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Header from "../../../components/Header";
 import { motion } from "framer-motion";
+import CopyButton from "../../../components/CopyButton";
+import InfoTooltip from "../../../components/InfoTooltip";
 import {
     generateFullKeyDerivation,
     deriveFromPrivateKey,
@@ -14,6 +17,7 @@ export default function KeysPage() {
     const [keys, setKeys] = useState<DerivedKeys | null>(null);
     const [customPrivKey, setCustomPrivKey] = useState<string>("");
     const [showMath, setShowMath] = useState(false);
+    const [revealPrivateKey, setRevealPrivateKey] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Generate new key pair with real ECDSA
@@ -23,6 +27,7 @@ export default function KeysPage() {
             const derivation = generateFullKeyDerivation();
             setKeys(derivation);
             setCustomPrivKey("");
+            setRevealPrivateKey(false);
         } catch (err) {
             setError("Key generation failed");
             console.error(err);
@@ -39,6 +44,7 @@ export default function KeysPage() {
             setError(null);
             const derivation = deriveFromPrivateKey(customPrivKey);
             setKeys(derivation);
+            setRevealPrivateKey(false);
         } catch (err) {
             setError("Invalid private key");
             console.error(err);
@@ -88,6 +94,29 @@ export default function KeysPage() {
                     </div>
                 </div>
 
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex items-start gap-3">
+                            <InfoTooltip
+                                content="This is an educational lab. Keys are generated client-side in your browser for learning purposes. Never paste real private keys here and never fund keys generated in a browser demo."
+                                label="Key Forge safety details"
+                            />
+                            <div>
+                                <div className="font-bold text-amber-100">Safety</div>
+                                <div className="text-amber-200/90">
+                                    Do not use these keys for real funds. Prefer hardware wallets or offline tooling for mainnet.
+                                </div>
+                            </div>
+                        </div>
+                        <Link
+                            href="/about"
+                            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-amber-500/30 bg-slate-950/30 px-3 py-2 text-[11px] font-bold text-amber-100 hover:border-amber-400/60 hover:text-amber-50"
+                        >
+                            About & Trust
+                        </Link>
+                    </div>
+                </div>
+
                 {error && (
                     <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-2 rounded-lg text-sm">
                         {error}
@@ -99,19 +128,22 @@ export default function KeysPage() {
                     <label className="block text-xs text-slate-500 uppercase mb-2">
                         Or Import Your Own Private Key (64 hex chars)
                     </label>
+                    <p className="text-[10px] text-slate-500 mb-3">
+                        Educational use only. Never paste a real mainnet private key.
+                    </p>
                     <div className="flex gap-2">
                         <input
                             type="text"
                             value={customPrivKey}
                             onChange={(e) => setCustomPrivKey(e.target.value.replace(/[^0-9a-fA-F]/g, ''))}
                             placeholder="Enter 256-bit private key in hex..."
-                            className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                            className="min-h-11 flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/50"
                             maxLength={64}
                         />
                         <button
                             onClick={handleDeriveCustom}
                             disabled={customPrivKey.length !== 64}
-                            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm"
+                            className="min-h-11 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm"
                         >
                             Derive
                         </button>
@@ -137,14 +169,41 @@ export default function KeysPage() {
                                     <p className="text-slate-500 text-xs mb-4">
                                         A 256-bit random integer. This is the secret you must protect forever.
                                     </p>
+                                    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <div className="text-[10px] text-slate-600">
+                                            {revealPrivateKey ? "Visible (treat as sensitive)" : "Hidden by default"}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setRevealPrivateKey((v) => !v)}
+                                                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/30 px-3 py-2 text-xs font-bold text-slate-200 hover:border-violet-500/40 hover:text-violet-200"
+                                            >
+                                                {revealPrivateKey ? "Hide" : "Reveal"} key
+                                            </button>
+                                            {revealPrivateKey ? (
+                                                <CopyButton
+                                                    text={keys.privateKey}
+                                                    label="Copy key"
+                                                    className="bg-slate-950/30"
+                                                />
+                                            ) : null}
+                                        </div>
+                                    </div>
                                     <div className="font-mono text-sm break-all text-slate-200 bg-slate-950 p-4 rounded border border-slate-800/50">
-                                        {keys.privateKey}
+                                        {revealPrivateKey
+                                            ? keys.privateKey
+                                            : `${keys.privateKey.slice(0, 6)}…${keys.privateKey.slice(-6)} (hidden)`}
                                     </div>
-                                    <div className="mt-2 h-2 w-full rounded-full overflow-hidden flex">
-                                        {keys.privateKey.split('').map((char, i) => (
-                                            <div key={i} className="flex-1" style={{ backgroundColor: `hsl(${parseInt(char, 16) * 22}, 70%, 50%)` }}></div>
-                                        ))}
-                                    </div>
+                                    {revealPrivateKey ? (
+                                        <div className="mt-2 h-2 w-full rounded-full overflow-hidden flex">
+                                            {keys.privateKey.split('').map((char, i) => (
+                                                <div key={i} className="flex-1" style={{ backgroundColor: `hsl(${parseInt(char, 16) * 22}, 70%, 50%)` }}></div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="mt-2 h-2 w-full rounded-full bg-slate-800/60" />
+                                    )}
                                     <div className="mt-2 text-[10px] text-slate-600">
                                         Entropy: 256 bits = 2^256 possibilities ≈ 10^77 (more than atoms in universe)
                                     </div>
@@ -213,7 +272,7 @@ export default function KeysPage() {
                                 <div className="flex-1 bg-slate-900/50 border border-slate-800 p-6 rounded-2xl">
                                     <h3 className="text-emerald-400 text-xs uppercase tracking-widest mb-1">Step 3: Address Derivation</h3>
                                     <p className="text-slate-500 text-xs mb-6">
-                                        Real Bitcoin addresses with proper checksums. These can receive actual Bitcoin!
+                                        Real-format Bitcoin addresses with proper checksums. Educational only: do not fund keys generated in a browser demo.
                                     </p>
 
                                     <div className="grid grid-cols-1 gap-4">
@@ -224,7 +283,14 @@ export default function KeysPage() {
                                                     <div className="text-amber-500 font-bold">Legacy (P2PKH)</div>
                                                     <div className="text-[10px] text-slate-600">Base58Check • Version 0x00</div>
                                                 </div>
-                                                <div className="text-[10px] text-amber-500/50 uppercase">Starts with 1</div>
+                                                <div className="flex items-center gap-2">
+                                                    <CopyButton
+                                                        text={keys.legacyAddress}
+                                                        label="Copy"
+                                                        className="px-2 py-1 text-[10px] bg-slate-900/60"
+                                                    />
+                                                    <div className="text-[10px] text-amber-500/50 uppercase">Starts with 1</div>
+                                                </div>
                                             </div>
                                             <div className="font-mono text-sm text-amber-200 break-all bg-slate-900/50 p-3 rounded">
                                                 {keys.legacyAddress}
@@ -243,7 +309,14 @@ export default function KeysPage() {
                                                     <div className="text-emerald-500 font-bold">Native SegWit (P2WPKH)</div>
                                                     <div className="text-[10px] text-slate-600">Bech32 • Witness v0</div>
                                                 </div>
-                                                <div className="text-[10px] text-emerald-500/50 uppercase">Starts with bc1q</div>
+                                                <div className="flex items-center gap-2">
+                                                    <CopyButton
+                                                        text={keys.segwitAddress}
+                                                        label="Copy"
+                                                        className="px-2 py-1 text-[10px] bg-slate-900/60"
+                                                    />
+                                                    <div className="text-[10px] text-emerald-500/50 uppercase">Starts with bc1q</div>
+                                                </div>
                                             </div>
                                             <div className="font-mono text-sm text-emerald-200 break-all bg-slate-900/50 p-3 rounded">
                                                 {keys.segwitAddress}
@@ -262,7 +335,14 @@ export default function KeysPage() {
                                                     <div className="text-violet-500 font-bold">Taproot (P2TR)</div>
                                                     <div className="text-[10px] text-slate-600">Bech32m • Witness v1</div>
                                                 </div>
-                                                <div className="text-[10px] text-violet-500/50 uppercase">Starts with bc1p</div>
+                                                <div className="flex items-center gap-2">
+                                                    <CopyButton
+                                                        text={keys.taprootAddress}
+                                                        label="Copy"
+                                                        className="px-2 py-1 text-[10px] bg-slate-900/60"
+                                                    />
+                                                    <div className="text-[10px] text-violet-500/50 uppercase">Starts with bc1p</div>
+                                                </div>
                                             </div>
                                             <div className="font-mono text-sm text-violet-200 break-all bg-slate-900/50 p-3 rounded">
                                                 {keys.taprootAddress}
