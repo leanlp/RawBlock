@@ -64,10 +64,10 @@ export default function PathPage() {
   const currentMissingPrereqs = getMissingPrerequisites(currentNode.id, completedNodeIds);
   const nextNodeId = path.orderedNodes[stepIndex + 1] ?? null;
   const nextNode = nextNodeId ? graphStore.getNode(nextNodeId) : null;
-  const nextMissingPrereqs = nextNode
-    ? getMissingPrerequisites(nextNode.id, [...completedNodeIds, currentNode.id])
-    : [];
-  const canAdvance = Boolean(nextNode) && nextMissingPrereqs.length === 0;
+  const currentIsComplete =
+    completedStepIndexes.includes(stepIndex) || completedNodeIds.includes(currentNode.id);
+  const nextMissingPrereqs = nextNode ? getMissingPrerequisites(nextNode.id, completedNodeIds) : [];
+  const canAdvance = Boolean(nextNode) && currentIsComplete && nextMissingPrereqs.length === 0;
 
   const linkedPrereqTitles = useMemo(
     () =>
@@ -147,12 +147,13 @@ export default function PathPage() {
               return (
                 <li
                   key={nodeId}
-                  className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm"
+                  className="flex items-start justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm"
                 >
-                  <span>
-                    {index + 1}. {node?.title ?? nodeId}
+                  <span className="min-w-0 flex-1 break-words text-slate-200">
+                    <span className="text-slate-500">{index + 1}.</span>{" "}
+                    <span className="text-slate-100">{node?.title ?? nodeId}</span>
                   </span>
-                  <span className="text-xs text-slate-400">{status}</span>
+                  <span className="shrink-0 text-xs text-slate-400">{status}</span>
                 </li>
               );
             })}

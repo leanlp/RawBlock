@@ -1,10 +1,26 @@
 
+import { sha256 } from "@noble/hashes/sha2.js";
+import { ripemd160 } from "@noble/hashes/legacy.js";
+
+function bytesToHex(bytes: Uint8Array): string {
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToBytes(hex: string): Uint8Array {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+        bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+    }
+    return bytes;
+}
+
 export type StackItem = string; // Representing data as hex strings for simplicity
 export type Stack = StackItem[];
 
 export interface ScriptState {
     stack: Stack;
     altStack: Stack;
+    execStack: boolean[]; // Flow control (OP_IF/OP_ELSE/OP_ENDIF)
     pointer: number;
     script: string[]; // Tokenized script
     completed: boolean;
@@ -37,6 +53,12 @@ export const OPCODES = {
     'OP_VERIFY': 'Fail if top is not true',
     'OP_EQUAL': 'True if top two equal',
     'OP_EQUALVERIFY': 'Equal + Verify',
+    'OP_IF': 'Conditional execution (if top is true)',
+    'OP_ELSE': 'Conditional execution (else branch)',
+    'OP_ENDIF': 'End conditional execution',
+    'OP_TRUE': 'Push true (1)',
+    'OP_FALSE': 'Push false (0)',
+    'OP_CHECKSEQUENCEVERIFY': 'Relative timelock check (Mock)',
 
     // Arithmetic
     'OP_ADD': 'Add top two numbers',
@@ -51,11 +73,29 @@ export const OPCODES = {
 } as const;
 
 export class OpcodeEngine {
+
+    static isHexLike(value: string): boolean {
+        return /^[0-9a-fA-F]+$/.test(value) && value.length % 2 === 0;
+    }
+
+    static toBytes(value: string): Uint8Array {
+        if (OpcodeEngine.isHexLike(value)) return hexToBytes(value);
+        return new TextEncoder().encode(value);
+    }
+
+    static toBool(value: string): boolean {
+        const trimmed = value.trim();
+        if (!trimmed) return false;
+        if (/^-?\d+$/.test(trimmed)) return Number.parseInt(trimmed, 10) !== 0;
+        if (OpcodeEngine.isHexLike(trimmed)) return /[1-9a-fA-F]/.test(trimmed);
+        return true;
+    }
     
     static initialState(scriptStr: string): ScriptState {
         return {
             stack: [],
             altStack: [],
+            execStack: [],
             pointer: 0,
             script: scriptStr.trim().split(/\s+/).filter(s => s.length > 0),
             completed: false,
@@ -73,8 +113,8 @@ export class OpcodeEngine {
         const op = state.script[state.pointer];
         const newStack = [...state.stack];
         const newAltStack = [...state.altStack];
+        const newExecStack = [...state.execStack];
         let newError: string | null = null;
-        let jumped = false; // logic for flow control if implemented
 
         // Helper: Pop
         const pop = () => {
@@ -86,96 +126,156 @@ export class OpcodeEngine {
         const push = (val: string) => newStack.push(val);
 
         try {
-            // --- CONSTANTS ---
-            if (op.startsWith('OP_') && !isNaN(parseInt(op.replace('OP_', '')))) {
-                push(op.replace('OP_', ''));
+            const isExecuting = newExecStack.every(Boolean);
+
+            // --- FLOW CONTROL (always processed) ---
+            if (op === "OP_IF" || op === "OP_NOTIF") {
+                if (isExecuting) {
+                    const condition = pop();
+                    const truthy = OpcodeEngine.toBool(condition);
+                    newExecStack.push(op === "OP_NOTIF" ? !truthy : truthy);
+                } else {
+                    // In a non-executing branch, OP_IF does not consume stack, but still nests.
+                    newExecStack.push(false);
+                }
+            } else if (op === "OP_ELSE") {
+                if (newExecStack.length === 0) throw new Error("OP_ELSE without OP_IF");
+                const outerExecuting = newExecStack.slice(0, -1).every(Boolean);
+                if (outerExecuting) {
+                    newExecStack[newExecStack.length - 1] = !newExecStack[newExecStack.length - 1];
+                }
+            } else if (op === "OP_ENDIF") {
+                if (newExecStack.length === 0) throw new Error("OP_ENDIF without OP_IF");
+                newExecStack.pop();
             }
-            // --- DATA PUSHES (Hex strings not starting with OP_) ---
-            else if (!op.startsWith('OP_')) {
+
+            // --- NORMAL EXECUTION (skipped when inside a false branch) ---
+            else if (!isExecuting) {
+                // Skip opcodes and pushes while inside a non-executing branch.
+            }
+
+            // --- CONSTANTS ---
+            else if (op === "OP_TRUE") {
+                push("1");
+            } else if (op === "OP_FALSE") {
+                push("0");
+            } else if (/^OP_\d+$/.test(op)) {
+                push(op.replace("OP_", ""));
+            }
+            // --- DATA PUSHES (Hex / words not starting with OP_) ---
+            else if (!op.startsWith("OP_")) {
                 push(op);
             }
             // --- STACK OPS ---
-            else if (op === 'OP_DUP') {
+            else if (op === "OP_DUP") {
                 const top = pop();
                 push(top);
                 push(top);
-            }
-            else if (op === 'OP_DROP') {
+            } else if (op === "OP_DROP") {
                 pop();
-            }
-            else if (op === 'OP_2DUP') {
+            } else if (op === "OP_2DUP") {
                 if (newStack.length < 2) throw new Error("Stack underflow");
                 const item1 = newStack[newStack.length - 1];
                 const item2 = newStack[newStack.length - 2];
                 push(item2);
                 push(item1);
+            } else if (op === "OP_SWAP") {
+                const top = pop();
+                const second = pop();
+                push(top);
+                push(second);
+            } else if (op === "OP_OVER") {
+                if (newStack.length < 2) throw new Error("Stack underflow");
+                push(newStack[newStack.length - 2]);
+            } else if (op === "OP_ROT") {
+                if (newStack.length < 3) throw new Error("Stack underflow");
+                const x3 = pop();
+                const x2 = pop();
+                const x1 = pop();
+                push(x2);
+                push(x3);
+                push(x1);
+            } else if (op === "OP_DEPTH") {
+                push(String(newStack.length));
             }
-            else if (op === 'OP_SWAP') {
-                 const top = pop();
-                 const second = pop();
-                 push(top);
-                 push(second);
-            }
-            else if (op === 'OP_OVER') {
-                 if (newStack.length < 2) throw new Error("Stack underflow");
-                 push(newStack[newStack.length - 2]);
-            }
-            // --- ARITHMETIC ---
-            else if (op === 'OP_ADD') {
-                const a = parseInt(pop());
-                const b = parseInt(pop());
-                if (isNaN(a) || isNaN(b)) throw new Error("Invalid numbers for ADD");
-                push((a + b).toString());
-            }
-            else if (op === 'OP_SUB') {
-                const a = parseInt(pop());
-                const b = parseInt(pop());
-                push((b - a).toString()); // b is deeper, a is top
-            }
-            else if (op === 'OP_1ADD') {
-                const a = parseInt(pop());
-                push((a + 1).toString());
-            }
-            // --- LOGIC ---
-            else if (op === 'OP_EQUAL') {
+            // --- SPLICE ---
+            else if (op === "OP_CAT") {
                 const a = pop();
                 const b = pop();
-                push(a === b ? '1' : '0');
+                if (OpcodeEngine.isHexLike(a) && OpcodeEngine.isHexLike(b)) {
+                    push(`${b}${a}`);
+                } else {
+                    push(`${b}${a}`);
+                }
             }
-            else if (op === 'OP_EQUALVERIFY') {
-                 const a = pop();
-                 const b = pop();
-                 if (a !== b) throw new Error("OP_EQUALVERIFY failed");
+            // --- ARITHMETIC ---
+            else if (op === "OP_ADD") {
+                const a = Number.parseInt(pop(), 10);
+                const b = Number.parseInt(pop(), 10);
+                if (Number.isNaN(a) || Number.isNaN(b)) throw new Error("Invalid numbers for ADD");
+                push(String(a + b));
+            } else if (op === "OP_SUB") {
+                const a = Number.parseInt(pop(), 10);
+                const b = Number.parseInt(pop(), 10);
+                if (Number.isNaN(a) || Number.isNaN(b)) throw new Error("Invalid numbers for SUB");
+                push(String(b - a)); // b is deeper, a is top
+            } else if (op === "OP_1ADD") {
+                const a = Number.parseInt(pop(), 10);
+                if (Number.isNaN(a)) throw new Error("Invalid number for 1ADD");
+                push(String(a + 1));
+            } else if (op === "OP_1SUB") {
+                const a = Number.parseInt(pop(), 10);
+                if (Number.isNaN(a)) throw new Error("Invalid number for 1SUB");
+                push(String(a - 1));
+            }
+            // --- LOGIC ---
+            else if (op === "OP_VERIFY") {
+                const val = pop();
+                if (!OpcodeEngine.toBool(val)) throw new Error("OP_VERIFY failed");
+            } else if (op === "OP_EQUAL") {
+                const a = pop();
+                const b = pop();
+                push(a === b ? "1" : "0");
+            } else if (op === "OP_EQUALVERIFY") {
+                const a = pop();
+                const b = pop();
+                if (a !== b) throw new Error("OP_EQUALVERIFY failed");
+            }
+            // --- TIMELOCK (Mock) ---
+            else if (op === "OP_CHECKSEQUENCEVERIFY") {
+                if (newStack.length === 0) throw new Error("Stack underflow");
+                const top = newStack[newStack.length - 1];
+                const n = Number.parseInt(top, 10);
+                if (Number.isNaN(n) || n < 0) throw new Error("OP_CHECKSEQUENCEVERIFY requires non-negative integer");
+                // Contextless demo: we don't have tx input sequence here, so we only validate the operand.
             }
             // --- ALT STACK ---
-            else if (op === 'OP_TOALTSTACK') {
+            else if (op === "OP_TOALTSTACK") {
                 newAltStack.push(pop());
-            }
-            else if (op === 'OP_FROMALTSTACK') {
+            } else if (op === "OP_FROMALTSTACK") {
                 if (newAltStack.length === 0) throw new Error("Alt Stack underflow");
                 push(newAltStack.pop()!);
             }
-            // --- CRYPTO (Simulated) ---
-            else if (op === 'OP_HASH160') {
+            // --- CRYPTO ---
+            else if (op === "OP_SHA256") {
                 const top = pop();
-                // Simple logical demo hash: "HASH160(<val>)"
-                // Simulating what a real visualizer usually shows if not actually verifying bytes
-                push(`HASH160(${top.substring(0, 6)}...)`); 
-            }
-            else if (op === 'OP_CHECKSIG') {
-                const pubKey = pop();
-                const sig = pop();
-                // We'll trust any signature that contains "SIG" and matches pubkey logically?
-                // For demo: Always TRUE if sig is valid hex and pubkey is valid hex
-                push('1'); // Simulated valid signature
-            }
-            else {
+                const digest = sha256(OpcodeEngine.toBytes(top));
+                push(bytesToHex(digest));
+            } else if (op === "OP_HASH160") {
+                const top = pop();
+                const digest = ripemd160(sha256(OpcodeEngine.toBytes(top)));
+                push(bytesToHex(digest));
+            } else if (op === "OP_CHECKSIG") {
+                pop(); // pubKey (ignored)
+                pop(); // signature (ignored)
+                push("1"); // Mocked valid signature
+            } else {
                 // If it looks like hex, treat as push (fallback)
-                 if (/^[0-9a-fA-F]+$/.test(op)) {
-                     push(op);
-                 } else {
+                if (/^[0-9a-fA-F]+$/.test(op)) {
+                    push(op);
+                } else {
                     newError = `Unknown Opcode: ${op}`;
-                 }
+                }
             }
 
         } catch (e: any) {
@@ -195,6 +295,7 @@ export class OpcodeEngine {
         return {
             stack: newStack,
             altStack: newAltStack,
+            execStack: newExecStack,
             pointer: nextPointer,
             script: state.script,
             completed: !!newError || complete,

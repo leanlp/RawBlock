@@ -9,7 +9,13 @@ export default function Footer() {
                     © {new Date().getFullYear()} Raw Block. All rights reserved.
                 </p>
 
-                <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center justify-center gap-4">
+                    <Link
+                        href="/about"
+                        className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center gap-2 text-sm min-h-11"
+                    >
+                        About & Trust
+                    </Link>
                     <Link
                         href="https://x.com/rawblocknet"
                         target="_blank"

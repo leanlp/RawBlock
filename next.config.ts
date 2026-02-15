@@ -34,6 +34,86 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/vitals",
+        destination: "/explorer/vitals",
+        permanent: true,
+      },
+      {
+        source: "/labs",
+        destination: "/lab/script",
+        permanent: true,
+      },
+      {
+        source: "/labs/script-lab",
+        destination: "/lab/script",
+        permanent: true,
+      },
+      {
+        source: "/labs/script-lab/:path*",
+        destination: "/lab/script",
+        permanent: true,
+      },
+      {
+        source: "/labs/consensus-debugger",
+        destination: "/lab/consensus",
+        permanent: true,
+      },
+      {
+        source: "/labs/consensus-debugger/:path*",
+        destination: "/lab/consensus",
+        permanent: true,
+      },
+      {
+        source: "/labs/:path*",
+        destination: "/lab/:path*",
+        permanent: true,
+      },
+      {
+        source: "/knowledge",
+        destination: "/research",
+        permanent: true,
+      },
+      {
+        source: "/knowledge/academy",
+        destination: "/academy",
+        permanent: true,
+      },
+      {
+        source: "/knowledge/academy/:path*",
+        destination: "/academy/:path*",
+        permanent: true,
+      },
+      {
+        source: "/knowledge/vulnerabilities",
+        destination: "/research/vulnerabilities",
+        permanent: true,
+      },
+      {
+        source: "/knowledge/attacks",
+        destination: "/research/attacks",
+        permanent: true,
+      },
+      {
+        source: "/knowledge/assumptions",
+        destination: "/research/assumptions",
+        permanent: true,
+      },
+      {
+        source: "/knowledge/policy",
+        destination: "/research/policy-vs-consensus",
+        permanent: true,
+      },
+      {
+        source: "/knowledge/policy-vs-consensus",
+        destination: "/research/policy-vs-consensus",
+        permanent: true,
+      },
+      {
+        source: "/knowledge/:path*",
+        destination: "/research",
+        permanent: true,
+      },
+      {
         source: "/sitemap",
         destination: "/sitemap.xml",
         permanent: true,

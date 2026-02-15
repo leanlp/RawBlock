@@ -46,7 +46,10 @@ async function fetchTextWithRevalidate(url: string, revalidate = 30): Promise<st
   return response.text();
 }
 
-async function fetchBlockHeight(): Promise<{ height: number | null; source: "mempool" | "blockstream" | "unavailable" }> {
+async function fetchBlockHeight(): Promise<{
+  height: number | null;
+  source: "mempool" | "blockstream" | "unavailable";
+}> {
   try {
     const tip = await fetchTextWithRevalidate(`${MEMPOOL_API}/blocks/tip/height`);
     return { height: Number.parseInt(tip, 10), source: "mempool" };
@@ -114,7 +117,23 @@ type MempoolHashrateResponse =
       currentHashrate?: number;
     };
 
-async function fetchHashrateEh(): Promise<{ hashrateEh: number | null; source: "mempool" | "unavailable" }> {
+function normalizeHashrateToEh(rawHashrate: number): number | null {
+  if (!Number.isFinite(rawHashrate) || rawHashrate <= 0) return null;
+
+  const absolute = Math.abs(rawHashrate);
+
+  // Upstream providers may expose hashrate in H/s, TH/s, PH/s, or EH/s.
+  // Normalize to EH/s defensively to avoid 1000x display mistakes.
+  if (absolute >= 1e15) return rawHashrate / 1e18; // H/s -> EH/s
+  if (absolute >= 1e9) return rawHashrate / 1e6; // TH/s -> EH/s
+  if (absolute >= 1e4) return rawHashrate / 1e3; // PH/s -> EH/s
+  return rawHashrate; // Already EH/s
+}
+
+async function fetchHashrateEh(): Promise<{
+  hashrateEh: number | null;
+  source: "mempool" | "unavailable";
+}> {
   try {
     const payload = await fetchJsonWithRevalidate<MempoolHashrateResponse>(
       `${MEMPOOL_API}/v1/mining/hashrate/3d`,
@@ -132,8 +151,12 @@ async function fetchHashrateEh(): Promise<{ hashrateEh: number | null; source: "
       return { hashrateEh: null, source: "unavailable" };
     }
 
-    const eh = hashrate / 1e18;
-    return { hashrateEh: Number.isFinite(eh) ? Number(eh.toFixed(2)) : null, source: "mempool" };
+    const eh = normalizeHashrateToEh(hashrate);
+    if (eh === null || !Number.isFinite(eh)) {
+      return { hashrateEh: null, source: "unavailable" };
+    }
+
+    return { hashrateEh: Number(eh.toFixed(2)), source: "mempool" };
   } catch {
     return { hashrateEh: null, source: "unavailable" };
   }
@@ -157,6 +180,7 @@ async function fetchMempoolSnapshot(): Promise<{
     const mempoolTxCount = Number.isFinite(mempool.count) ? mempool.count : null;
     const mempoolVsizeMb =
       Number.isFinite(mempool.vsize) ? Number((mempool.vsize / 1_000_000).toFixed(0)) : null;
+
     const recentTxs = (recent ?? [])
       .map((item) => {
         const txid = typeof item.txid === "string" ? item.txid : "";
@@ -179,11 +203,16 @@ async function fetchMempoolSnapshot(): Promise<{
           time: safeTime,
         } satisfies RecentMempoolTx;
       })
-      .filter((item) => item.txid.length > 12)
+      .filter((row) => row.txid.length > 12)
       .slice(0, 5);
-    const recentTxIds = recentTxs.map((item) => item.txid);
 
-    return { mempoolTxCount, mempoolVsizeMb, recentTxIds, recentTxs, source: "mempool" };
+    return {
+      mempoolTxCount,
+      mempoolVsizeMb,
+      recentTxIds: recentTxs.map((tx) => tx.txid),
+      recentTxs,
+      source: "mempool",
+    };
   } catch {
     return {
       mempoolTxCount: null,
@@ -195,7 +224,9 @@ async function fetchMempoolSnapshot(): Promise<{
   }
 }
 
-function resolveSource(...sources: Array<BitcoinLiveMetrics["source"] | "blockstream" | "mempool" | "unavailable">): BitcoinLiveMetrics["source"] {
+function resolveSource(
+  ...sources: Array<BitcoinLiveMetrics["source"] | "blockstream" | "mempool" | "unavailable">
+): BitcoinLiveMetrics["source"] {
   const uniq = new Set(sources.filter((source) => source !== "unavailable"));
   if (uniq.size === 0) return "unavailable";
   if (uniq.size === 1) return [...uniq][0] as BitcoinLiveMetrics["source"];
@@ -236,3 +267,4 @@ export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
     source: resolveSource(mempoolData.source, heightData.source, feeData.source, hashrateData.source),
   };
 }
+

@@ -29,7 +29,7 @@ export default function VulnerabilitiesResearchPage() {
 
   return (
     <main className="page-shell bg-slate-950">
-      <div className="page-wrap-wide">
+      <div className="page-wrap-wide reading-flow">
         <div className="md:hidden">
           <Header />
         </div>

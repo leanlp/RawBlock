@@ -23,7 +23,7 @@ export default function AcademyLandingPage() {
 
   return (
     <main className="page-shell bg-slate-950">
-      <div className="page-wrap">
+      <div className="page-wrap reading-flow">
         <div className="md:hidden">
           <Header />
         </div>

@@ -17,6 +17,8 @@ export default function HashingPage() {
     const [isMining, setIsMining] = useState(false);
     const [hashrate, setHashrate] = useState(0);
     const [targetZeros, setTargetZeros] = useState(3); // Difficulty (Leading zeros)
+    const MIN_TARGET_ZEROS = 1;
+    const MAX_TARGET_ZEROS = 6;
 
     // Output
     const [blockHash, setBlockHash] = useState("");
@@ -126,9 +128,27 @@ export default function HashingPage() {
                         <div className="text-right">
                             <div className="text-[10px] text-slate-500 uppercase tracking-widest">Target Difficulty</div>
                             <div className="flex items-center gap-2">
-                                <button onClick={() => setTargetZeros(Math.max(1, targetZeros - 1))} className="text-slate-500 hover:text-white min-h-11 min-w-11 inline-flex items-center justify-center">-</button>
-                                <span className="font-bold text-xl text-rose-500">{targetZeros} Zeros</span>
-                                <button onClick={() => setTargetZeros(Math.min(64, targetZeros + 1))} className="text-slate-500 hover:text-white min-h-11 min-w-11 inline-flex items-center justify-center">+</button>
+                                <button
+                                    type="button"
+                                    onClick={() => setTargetZeros((prev) => Math.max(MIN_TARGET_ZEROS, prev - 1))}
+                                    disabled={isMining || targetZeros <= MIN_TARGET_ZEROS}
+                                    className="text-slate-500 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed min-h-11 min-w-11 inline-flex items-center justify-center"
+                                    title={isMining ? "Stop mining to adjust difficulty" : "Decrease difficulty"}
+                                >
+                                    -
+                                </button>
+                                <span className="font-bold text-xl text-rose-500">
+                                    {targetZeros} Zeros <span className="text-xs text-slate-500 font-normal">({MIN_TARGET_ZEROS}-{MAX_TARGET_ZEROS})</span>
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setTargetZeros((prev) => Math.min(MAX_TARGET_ZEROS, prev + 1))}
+                                    disabled={isMining || targetZeros >= MAX_TARGET_ZEROS}
+                                    className="text-slate-500 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed min-h-11 min-w-11 inline-flex items-center justify-center"
+                                    title={isMining ? "Stop mining to adjust difficulty" : "Increase difficulty"}
+                                >
+                                    +
+                                </button>
                             </div>
                         </div>
                     </div>
