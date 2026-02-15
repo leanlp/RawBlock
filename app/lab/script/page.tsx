@@ -7,11 +7,11 @@ import { OpcodeEngine, ScriptState, OPCODES } from "../../../components/script-l
 import { motion } from "framer-motion";
 
 const PRESETS = {
-    "P2PKH (Valid)": "OP_DUP OP_HASH160 abcd1234abcd1234 OP_EQUALVERIFY OP_CHECKSIG",
+    "P2PKH (Valid)": "deadbeef 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 OP_DUP OP_HASH160 751e76e8199196d454941c45d1b3a323f1433bd6 OP_EQUALVERIFY OP_CHECKSIG",
     "TimeLock (Mock)": "OP_10 OP_CHECKSEQUENCEVERIFY OP_DROP OP_TRUE",
     "Addition": "OP_1 OP_1 OP_ADD OP_2 OP_EQUAL",
     "If-Else Logic": "OP_1 OP_IF OP_10 OP_ELSE OP_20 OP_ENDIF",
-    "Hash Collision (Fail)": "OP_SHA256 deadbeef OP_SHA256 badf00d OP_EQUAL",
+    "Hash Collision (Fail)": "deadbeef OP_SHA256 badf00d OP_SHA256 OP_EQUAL",
 };
 
 export default function ScriptLabPage() {

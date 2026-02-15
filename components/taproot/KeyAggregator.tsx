@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     generatePrivateKey,
@@ -32,6 +32,11 @@ export default function KeyAggregator() {
     const [aggregatedPubKey, setAggregatedPubKey] = useState<Uint8Array | null>(null);
     const [verificationResult, setVerificationResult] = useState<boolean | null>(null);
     const [isSigningAll, setIsSigningAll] = useState(false);
+    const signersRef = useRef<Signer[]>([]);
+
+    useEffect(() => {
+        signersRef.current = signers;
+    }, [signers]);
 
     const createSigner = (id: number, name: string): Signer => {
         const privKey = generatePrivateKey();
@@ -47,9 +52,11 @@ export default function KeyAggregator() {
     };
 
     const addSigner = () => {
-        const id = signers.length + 1;
-        const newSigner = createSigner(id, `Signer ${id}`);
-        setSigners([...signers, newSigner]);
+        setSigners((prev) => {
+            const nextId = prev.length ? Math.max(...prev.map((s) => s.id)) + 1 : 1;
+            return [...prev, createSigner(nextId, `Signer ${nextId}`)];
+        });
+        setVerificationResult(null);
     };
 
     // Initialize with two signers
@@ -81,32 +88,32 @@ export default function KeyAggregator() {
 
 
     const removeSigner = (id: number) => {
-        setSigners(signers.filter(s => s.id !== id));
+        setSigners((prev) => prev.filter((s) => s.id !== id));
+        setVerificationResult(null);
     };
 
     // Sign message with a specific signer
     const signWithSigner = useCallback(async (signerId: number) => {
         if (!messageHash) return;
 
-        const signer = signers.find(s => s.id === signerId);
+        const signer = signersRef.current.find((s) => s.id === signerId);
         if (!signer) return;
 
         try {
             const sig = await signSchnorr(messageHash, signer.privateKey);
-            setSigners(prev => prev.map(s =>
-                s.id === signerId ? { ...s, signature: sig } : s
-            ));
+            setSigners((prev) => prev.map((s) => (s.id === signerId ? { ...s, signature: sig } : s)));
         } catch (err) {
             console.error("Signing error:", err);
         }
-    }, [messageHash, signers]);
+    }, [messageHash]);
 
     // Sign with all signers
     const signWithAll = async () => {
         if (!messageHash) return;
         setIsSigningAll(true);
 
-        for (const signer of signers) {
+        const snapshot = [...signersRef.current];
+        for (const signer of snapshot) {
             await signWithSigner(signer.id);
             await new Promise(r => setTimeout(r, 300)); // Visual delay
         }
