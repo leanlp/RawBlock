@@ -20,6 +20,8 @@ export default function VitalsPage() {
 
   const describeSource = (source: string) => {
     switch (source) {
+      case "rawblock":
+        return { label: "rawblock node gateway", detail: "Bitcoin Core + electrs stack" };
       case "mempool":
         return { label: "mempool.space", detail: "Public API" };
       case "blockstream":

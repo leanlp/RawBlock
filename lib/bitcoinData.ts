@@ -16,7 +16,7 @@ export type BitcoinLiveMetrics = {
   blocksUntilHalving: number | null;
   daysUntilHalving: number | null;
   lastUpdated: string;
-  source: "mempool" | "blockstream" | "mixed" | "unavailable";
+  source: "rawblock" | "mempool" | "blockstream" | "mixed" | "unavailable";
 };
 
 export type RecentMempoolTx = {
@@ -29,6 +29,10 @@ export type RecentMempoolTx = {
 
 const MEMPOOL_API = "https://mempool.space/api";
 const BLOCKSTREAM_API = "https://blockstream.info/api";
+const NODE_GATEWAY_API =
+  process.env.RAWBLOCK_API_URL?.replace(/\/$/, "") ??
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
+  null;
 
 async function fetchJsonWithRevalidate<T>(url: string, revalidate = 30): Promise<T> {
   const response = await fetch(url, { next: { revalidate } });
@@ -132,8 +136,25 @@ function normalizeHashrateToEh(rawHashrate: number): number | null {
 
 async function fetchHashrateEh(): Promise<{
   hashrateEh: number | null;
-  source: "mempool" | "unavailable";
+  source: "rawblock" | "mempool" | "unavailable";
 }> {
+  // Prefer node-backed hashrate from our own gateway when configured.
+  if (NODE_GATEWAY_API) {
+    try {
+      const payload = await fetchJsonWithRevalidate<{ hashrate?: number | null }>(
+        `${NODE_GATEWAY_API}/api/network-stats`,
+      );
+
+      const rawHashrate = Number(payload?.hashrate ?? 0);
+      const eh = normalizeHashrateToEh(rawHashrate);
+      if (eh !== null && Number.isFinite(eh)) {
+        return { hashrateEh: Number(eh.toFixed(2)), source: "rawblock" };
+      }
+    } catch {
+      // Fallback to public hashrate providers below.
+    }
+  }
+
   try {
     const payload = await fetchJsonWithRevalidate<MempoolHashrateResponse>(
       `${MEMPOOL_API}/v1/mining/hashrate/3d`,
@@ -267,4 +288,3 @@ export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
     source: resolveSource(mempoolData.source, heightData.source, feeData.source, hashrateData.source),
   };
 }
-
