@@ -39,6 +39,26 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/utxo",
+        destination: "/analysis/utxo",
+        permanent: true,
+      },
+      {
+        source: "/utxo-set",
+        destination: "/analysis/utxo",
+        permanent: true,
+      },
+      {
+        source: "/lab/hash",
+        destination: "/lab/hashing",
+        permanent: true,
+      },
+      {
+        source: "/game/lightning",
+        destination: "/lab/lightning",
+        permanent: true,
+      },
+      {
         source: "/labs",
         destination: "/lab/script",
         permanent: true,

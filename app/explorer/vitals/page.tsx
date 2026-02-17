@@ -6,6 +6,8 @@ import { useFeeMarketData, formatFeeTime } from "@/hooks/useFeeMarketData";
 import { formatSatVb } from "@/lib/feeBands";
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
+import InfoTooltip from "@/components/InfoTooltip";
+import Link from "next/link";
 
 export default function VitalsPage() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
@@ -14,6 +16,23 @@ export default function VitalsPage() {
   const renderFee = (value: number | null) => {
     const formatted = formatSatVb(value);
     return formatted === "Data temporarily unavailable" ? formatted : `${formatted} sat/vB`;
+  };
+
+  const describeSource = (source: string) => {
+    switch (source) {
+      case "rawblock":
+        return { label: "rawblock node gateway", detail: "Bitcoin Core + electrs stack" };
+      case "mempool":
+        return { label: "mempool.space", detail: "Public API" };
+      case "blockstream":
+        return { label: "blockstream.info", detail: "Public API" };
+      case "mixed":
+        return { label: "mempool.space + blockstream.info", detail: "Public APIs (fallback)" };
+      case "unavailable":
+        return { label: "Unavailable", detail: "No upstream provider reached" };
+      default:
+        return { label: source, detail: "Unknown source" };
+    }
   };
 
   return (
@@ -88,8 +107,27 @@ export default function VitalsPage() {
             </div>
 
             <div className="md:col-span-2 rounded-xl border border-slate-800 bg-slate-900/60 p-5 text-xs text-slate-400">
-              <p>Source: {metrics.source}</p>
-              <p>Last updated: {new Date(metrics.lastUpdated).toLocaleString()}</p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <InfoTooltip
+                    content="These vitals are sourced from public APIs (mempool.space / blockstream.info) and normalized for safe unit display. For node-backed precision, connect Rawblock to your own backend API."
+                    label="Vitals data sources"
+                  />
+                  <div className="space-y-1">
+                    <p>
+                      Data source: <span className="text-slate-200">{describeSource(metrics.source).label}</span>{" "}
+                      <span className="text-slate-500">({describeSource(metrics.source).detail})</span>
+                    </p>
+                    <p>Last updated: {new Date(metrics.lastUpdated).toLocaleString()}</p>
+                  </div>
+                </div>
+                <Link
+                  href="/about"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/30 px-3 py-2 text-[11px] font-bold text-slate-200 hover:border-cyan-500/40 hover:text-cyan-200"
+                >
+                  About & Trust
+                </Link>
+              </div>
             </div>
           </div>
         ) : null}
