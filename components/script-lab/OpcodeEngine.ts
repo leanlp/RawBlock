@@ -17,6 +17,9 @@ function hexToBytes(hex: string): Uint8Array {
 export type StackItem = string; // Representing data as hex strings for simplicity
 export type Stack = StackItem[];
 
+const MAX_SCRIPT_TOKENS = 1000;
+const MAX_EXECUTION_STEPS = 2000;
+
 export interface ScriptState {
     stack: Stack;
     altStack: Stack;
@@ -54,6 +57,7 @@ export const OPCODES = {
     'OP_EQUAL': 'True if top two equal',
     'OP_EQUALVERIFY': 'Equal + Verify',
     'OP_IF': 'Conditional execution (if top is true)',
+    'OP_NOTIF': 'Conditional execution (if top is false)',
     'OP_ELSE': 'Conditional execution (else branch)',
     'OP_ENDIF': 'End conditional execution',
     'OP_TRUE': 'Push true (1)',
@@ -92,14 +96,16 @@ export class OpcodeEngine {
     }
     
     static initialState(scriptStr: string): ScriptState {
+        const tokens = scriptStr.trim().split(/\s+/).filter(s => s.length > 0);
+        const tooLarge = tokens.length > MAX_SCRIPT_TOKENS;
         return {
             stack: [],
             altStack: [],
             execStack: [],
             pointer: 0,
-            script: scriptStr.trim().split(/\s+/).filter(s => s.length > 0),
+            script: tooLarge ? tokens.slice(0, MAX_SCRIPT_TOKENS) : tokens,
             completed: false,
-            error: null,
+            error: tooLarge ? `Script too large (${tokens.length} tokens). Max allowed is ${MAX_SCRIPT_TOKENS}.` : null,
             history: []
         };
     }
@@ -108,6 +114,13 @@ export class OpcodeEngine {
         if (state.completed || state.error) return state;
         if (state.pointer >= state.script.length) {
             return { ...state, completed: true };
+        }
+        if (state.history.length >= MAX_EXECUTION_STEPS) {
+            return {
+                ...state,
+                completed: true,
+                error: `Execution step limit reached (${MAX_EXECUTION_STEPS}).`,
+            };
         }
 
         const op = state.script[state.pointer];
@@ -278,8 +291,8 @@ export class OpcodeEngine {
                 }
             }
 
-        } catch (e: any) {
-            newError = e.message;
+        } catch (error: unknown) {
+            newError = error instanceof Error ? error.message : "Interpreter error";
         }
 
         const nextPointer = state.pointer + 1;

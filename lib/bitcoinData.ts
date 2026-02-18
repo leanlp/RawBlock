@@ -2,6 +2,7 @@ import {
   BITCOIN_BLOCK_TIME_MINUTES,
   BITCOIN_HALVING_INTERVAL_BLOCKS,
 } from "@/lib/constants/bitcoinProtocol";
+import { convertHashrateToEh, normalizeHashrateToEh } from "@/lib/hashrate";
 
 export type BitcoinLiveMetrics = {
   blockHeight: number | null;
@@ -17,6 +18,36 @@ export type BitcoinLiveMetrics = {
   daysUntilHalving: number | null;
   lastUpdated: string;
   source: "rawblock" | "mempool" | "blockstream" | "mixed" | "unavailable";
+  provenance: BitcoinMetricProvenanceMap;
+};
+
+export type BitcoinMetricUpstream =
+  | "rawblock"
+  | "electrs"
+  | "mempool"
+  | "blockstream"
+  | "mixed"
+  | "unavailable";
+
+export type BitcoinMetricSourceClass =
+  | "local-node"
+  | "electrs"
+  | "fallback"
+  | "mixed"
+  | "unavailable";
+
+export type BitcoinMetricProvenance = {
+  sourceClass: BitcoinMetricSourceClass;
+  upstream: BitcoinMetricUpstream;
+  timestamp: string;
+};
+
+export type BitcoinMetricProvenanceMap = {
+  blockHeight: BitcoinMetricProvenance;
+  hashrate: BitcoinMetricProvenance;
+  fees: BitcoinMetricProvenance;
+  halving: BitcoinMetricProvenance;
+  mempool: BitcoinMetricProvenance;
 };
 
 export type RecentMempoolTx = {
@@ -121,19 +152,6 @@ type MempoolHashrateResponse =
       currentHashrate?: number;
     };
 
-function normalizeHashrateToEh(rawHashrate: number): number | null {
-  if (!Number.isFinite(rawHashrate) || rawHashrate <= 0) return null;
-
-  const absolute = Math.abs(rawHashrate);
-
-  // Upstream providers may expose hashrate in H/s, TH/s, PH/s, or EH/s.
-  // Normalize to EH/s defensively to avoid 1000x display mistakes.
-  if (absolute >= 1e15) return rawHashrate / 1e18; // H/s -> EH/s
-  if (absolute >= 1e9) return rawHashrate / 1e6; // TH/s -> EH/s
-  if (absolute >= 1e4) return rawHashrate / 1e3; // PH/s -> EH/s
-  return rawHashrate; // Already EH/s
-}
-
 async function fetchHashrateEh(): Promise<{
   hashrateEh: number | null;
   source: "rawblock" | "mempool" | "unavailable";
@@ -146,7 +164,8 @@ async function fetchHashrateEh(): Promise<{
       );
 
       const rawHashrate = Number(payload?.hashrate ?? 0);
-      const eh = normalizeHashrateToEh(rawHashrate);
+      // rawblock `/api/network-stats` is sourced from Bitcoin Core `networkhashps` (H/s).
+      const eh = convertHashrateToEh(rawHashrate, "H/s");
       if (eh !== null && Number.isFinite(eh)) {
         return { hashrateEh: Number(eh.toFixed(2)), source: "rawblock" };
       }
@@ -254,6 +273,30 @@ function resolveSource(
   return "mixed";
 }
 
+function classifySource(source: BitcoinMetricUpstream): BitcoinMetricSourceClass {
+  switch (source) {
+    case "rawblock":
+      return "local-node";
+    case "electrs":
+      return "electrs";
+    case "mempool":
+    case "blockstream":
+      return "fallback";
+    case "mixed":
+      return "mixed";
+    default:
+      return "unavailable";
+  }
+}
+
+function makeProvenance(source: BitcoinMetricUpstream, timestamp: string): BitcoinMetricProvenance {
+  return {
+    sourceClass: classifySource(source),
+    upstream: source,
+    timestamp,
+  };
+}
+
 export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
   const [mempoolData, heightData, feeData, hashrateData] = await Promise.all([
     fetchMempoolSnapshot(),
@@ -261,6 +304,7 @@ export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
     fetchFees(),
     fetchHashrateEh(),
   ]);
+  const nowIso = new Date().toISOString();
 
   const blockHeight = heightData.height;
   const blocksUntilHalving =
@@ -271,6 +315,12 @@ export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
     blocksUntilHalving === null
       ? null
       : Math.ceil((blocksUntilHalving * BITCOIN_BLOCK_TIME_MINUTES) / (60 * 24));
+  const mergedSource = resolveSource(
+    mempoolData.source,
+    heightData.source,
+    feeData.source,
+    hashrateData.source,
+  );
 
   return {
     blockHeight,
@@ -284,7 +334,14 @@ export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
     recentTxs: mempoolData.recentTxs,
     blocksUntilHalving,
     daysUntilHalving,
-    lastUpdated: new Date().toISOString(),
-    source: resolveSource(mempoolData.source, heightData.source, feeData.source, hashrateData.source),
+    lastUpdated: nowIso,
+    source: mergedSource,
+    provenance: {
+      blockHeight: makeProvenance(heightData.source, nowIso),
+      hashrate: makeProvenance(hashrateData.source, nowIso),
+      fees: makeProvenance(feeData.source, nowIso),
+      halving: makeProvenance(heightData.source, nowIso),
+      mempool: makeProvenance(mempoolData.source, nowIso),
+    },
   };
 }

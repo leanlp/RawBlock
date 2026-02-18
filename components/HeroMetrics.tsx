@@ -62,6 +62,33 @@ const HERO_FALLBACK_METRICS: BitcoinLiveMetrics = {
   daysUntilHalving: 790,
   lastUpdated: new Date().toISOString(),
   source: "unavailable",
+  provenance: {
+    blockHeight: {
+      sourceClass: "unavailable",
+      upstream: "unavailable",
+      timestamp: new Date().toISOString(),
+    },
+    hashrate: {
+      sourceClass: "unavailable",
+      upstream: "unavailable",
+      timestamp: new Date().toISOString(),
+    },
+    fees: {
+      sourceClass: "unavailable",
+      upstream: "unavailable",
+      timestamp: new Date().toISOString(),
+    },
+    halving: {
+      sourceClass: "unavailable",
+      upstream: "unavailable",
+      timestamp: new Date().toISOString(),
+    },
+    mempool: {
+      sourceClass: "unavailable",
+      upstream: "unavailable",
+      timestamp: new Date().toISOString(),
+    },
+  },
 };
 
 const HERO_FALLBACK_FEES = {
