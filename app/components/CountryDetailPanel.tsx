@@ -24,7 +24,7 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
     const [expandedNodeIndex, setExpandedNodeIndex] = React.useState<number | null>(null);
 
     return (
-        <div className="fixed right-0 top-0 h-full w-96 bg-slate-900/95 border-l border-emerald-500/30 shadow-2xl backdrop-blur-xl transform transition-transform duration-300 z-50 overflow-y-auto">
+        <div className="fixed right-0 top-0 h-full w-full sm:w-96 bg-slate-900/95 border-l border-emerald-500/30 shadow-2xl backdrop-blur-xl transform transition-transform duration-300 z-50 overflow-y-auto">
             <div className="p-6">
                 <div className="flex justify-between items-start mb-8">
                     <div>

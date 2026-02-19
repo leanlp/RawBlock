@@ -114,14 +114,21 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
 
     return (
         <Card className="w-full h-[500px] p-0 overflow-hidden relative" variant="panel" accent="cyan">
-            <div className="absolute top-4 left-4 z-10 pointer-events-none">
-                <h2 className="text-sm font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2 drop-shadow-md">
+            <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-auto z-10 pointer-events-none">
+                <h2 className="text-xs sm:text-sm font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2 drop-shadow-md">
                     <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
                     Global Nodes
                 </h2>
-                <div className="text-xs text-slate-400 mt-1 font-mono pl-4 drop-shadow-sm">
-                    Connected: <span className="text-cyan-400 font-bold">{peers.length}</span> |
-                    Located: <span className="text-emerald-400 font-bold">{locatedPeers.length + locatedKnownPeers.length}</span>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] sm:text-xs font-mono">
+                    <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
+                        Connected: <span className="text-cyan-400 font-bold">{peers.length}</span>
+                    </span>
+                    <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
+                        Known: <span className="text-sky-400 font-bold">{knownPeers.length}</span>
+                    </span>
+                    <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
+                        Located: <span className="text-emerald-400 font-bold">{locatedPeers.length + locatedKnownPeers.length}</span>
+                    </span>
                 </div>
             </div>
 
@@ -197,7 +204,7 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                 style={{ backgroundColor: "#0f172a", color: "#f1f5f9", borderRadius: "8px" }}
             />
 
-            <div className="absolute bottom-4 right-4 flex gap-4 text-[10px] text-slate-500 font-mono pointer-events-none">
+            <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex gap-3 sm:gap-4 text-[10px] text-slate-500 font-mono pointer-events-none">
                 <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-cyan-400"></div> OUTBOUND</div>
                 <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div> INBOUND</div>
             </div>

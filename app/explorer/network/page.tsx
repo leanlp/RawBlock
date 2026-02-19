@@ -229,6 +229,24 @@ export default function NetworkPage() {
         });
     }, [selectedCountry, peers, knownPeers]);
 
+    const deepScanButtonLabel =
+        dataMode === "demo"
+            ? "Deep Scan (Live API Required)"
+            : scanning
+                ? "Scanning..."
+                : knownPeers.length > 0
+                    ? `Re-Scan (${knownPeers.length})`
+                    : "Deep Scan";
+
+    const deepScanButtonClass = `px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase border transition-all ${scanning
+        ? 'bg-cyan-900/50 border-cyan-800 text-cyan-400 cursor-wait'
+        : dataMode === "demo"
+            ? 'bg-slate-900/40 border-slate-800 text-slate-500 cursor-not-allowed'
+            : knownPeers.length > 0
+                ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 hover:border-emerald-300'
+                : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-cyan-500 hover:text-cyan-400'
+        }`;
+
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-cyan-900 selection:text-cyan-100 pb-20 relative overflow-x-hidden">
             {selectedCountry && (
@@ -294,28 +312,24 @@ export default function NetworkPage() {
                                     focusCoordinates={mapFocus}
                                 />
 
-                                <div className="absolute top-4 right-4">
+                                <div className="absolute top-4 right-4 hidden sm:block">
                                     <button
                                         onClick={handleDeepScan}
                                         disabled={dataMode === "demo" || scanning}
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase border transition-all ${scanning
-                                                ? 'bg-cyan-900/50 border-cyan-800 text-cyan-400 cursor-wait'
-                                                : dataMode === "demo"
-                                                    ? 'bg-slate-900/40 border-slate-800 text-slate-500 cursor-not-allowed'
-                                                    : knownPeers.length > 0
-                                                        ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 hover:border-emerald-300'
-                                                        : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-cyan-500 hover:text-cyan-400'
-                                            }`}
+                                        className={deepScanButtonClass}
                                     >
-                                        {dataMode === "demo"
-                                            ? "Deep Scan (Live API Required)"
-                                            : scanning
-                                                ? 'Scanning...'
-                                                : knownPeers.length > 0
-                                                    ? `Re-Scan (${knownPeers.length})`
-                                                    : 'Deep Scan'}
+                                        {deepScanButtonLabel}
                                     </button>
                                 </div>
+                            </div>
+                            <div className="sm:hidden flex justify-end">
+                                <button
+                                    onClick={handleDeepScan}
+                                    disabled={dataMode === "demo" || scanning}
+                                    className={deepScanButtonClass}
+                                >
+                                    {deepScanButtonLabel}
+                                </button>
                             </div>
 
                             {/* Peer Section */}

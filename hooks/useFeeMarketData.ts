@@ -41,6 +41,14 @@ type FeeMarketStatsResponse = {
     mempoolMinSatVB?: number | string;
     minRelaySatVB?: number | string;
   };
+  percentiles?: {
+    p10?: number | string;
+    p25?: number | string;
+    p50?: number | string;
+    p75?: number | string;
+    p90?: number | string;
+    p95?: number | string;
+  };
 };
 
 type FeeMarketState = {
@@ -51,6 +59,8 @@ type FeeMarketState = {
   currentTimestamp: number | null;
   stats: FeeMarketStats | null;
 };
+
+const BLOCKSTREAM_API = "https://blockstream.info/api";
 
 function sameFeeSnapshot(a: FeeSnapshot, b: FeeSnapshot): boolean {
   const eps = 0.001;
@@ -121,6 +131,33 @@ function normalizeOrderedFees(fast: unknown, medium: unknown, slow: unknown): Fe
   };
 }
 
+async function fetchBlockstreamFeeSnapshot(): Promise<FeeSnapshot | null> {
+  try {
+    const response = await fetch(`${BLOCKSTREAM_API}/fee-estimates`, { cache: "no-store" });
+    if (!response.ok) return null;
+
+    const estimates = (await response.json()) as Record<string, number>;
+    return normalizeOrderedFees(
+      estimates["1"] ?? estimates["2"],
+      estimates["3"] ?? estimates["4"] ?? estimates["2"],
+      estimates["6"] ?? estimates["8"] ?? estimates["12"],
+    );
+  } catch {
+    return null;
+  }
+}
+
+async function fetchWithTimeout(url: string, timeoutMs = 2500): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { cache: "no-store", signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function toHistoryPoint(entry: unknown): FeeHistoryPoint | null {
   if (!entry || typeof entry !== "object") return null;
 
@@ -177,9 +214,9 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
       const [historyRes, currentRes, statsRes] = await Promise.allSettled([
-        fetch(`${baseUrl}/api/fee-history`, { cache: "no-store" }),
-        fetch(`${baseUrl}/api/network-stats`, { cache: "no-store" }),
-        fetch(`${baseUrl}/api/fee-market-stats`, { cache: "no-store" }),
+        fetchWithTimeout(`${baseUrl}/api/fee-history`),
+        fetchWithTimeout(`${baseUrl}/api/network-stats`),
+        fetchWithTimeout(`${baseUrl}/api/fee-market-stats`),
       ]);
 
       let normalizedHistory: FeeHistoryPoint[] | null = null;
@@ -201,6 +238,7 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
       }
 
       let normalizedStats: FeeMarketStats | null = null;
+      let normalizedCurrentFromStats: FeeSnapshot | null = null;
       if (isFulfilledOk(statsRes)) {
         const payload = (await statsRes.value.json()) as FeeMarketStatsResponse;
         const minObservedSatVB = parseFee(payload.snapshot?.minObservedSatVB);
@@ -227,6 +265,31 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
             minRelaySatVB,
           };
         }
+
+        normalizedCurrentFromStats = normalizeOrderedFees(
+          payload.percentiles?.p95 ?? payload.percentiles?.p90,
+          payload.percentiles?.p75 ?? payload.percentiles?.p50,
+          payload.percentiles?.p50 ?? payload.percentiles?.p25 ?? payload.snapshot?.minObservedSatVB,
+        );
+      }
+
+      const statsEndpointAvailable = isFulfilledOk(statsRes);
+      let blockstreamCurrent: FeeSnapshot | null = null;
+
+      if (normalizedCurrentFromStats) {
+        normalizedCurrent = normalizedCurrentFromStats;
+        normalizedCurrentTimestamp = Date.now();
+      }
+
+      // Legacy backends can floor fees around 1 sat/vB. When fee-market stats
+      // endpoint is unavailable, prefer raw explorer-style fee estimates.
+      if (normalizedCurrent === null || !statsEndpointAvailable) {
+        blockstreamCurrent = await fetchBlockstreamFeeSnapshot();
+      }
+
+      if (blockstreamCurrent && (normalizedCurrent === null || !statsEndpointAvailable)) {
+        normalizedCurrent = blockstreamCurrent;
+        normalizedCurrentTimestamp = Date.now();
       }
 
       setState((prev) => {
@@ -236,7 +299,11 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
         const history = alignHistoryWithCurrent(historyBase, current);
         const stats = normalizedStats ?? prev.stats;
         const hasAnyData = history.length > 0 || current !== null || stats !== null;
-        const allFailed = !isFulfilledOk(historyRes) && !isFulfilledOk(currentRes) && !isFulfilledOk(statsRes);
+        const allFailed =
+          !isFulfilledOk(historyRes) &&
+          !isFulfilledOk(currentRes) &&
+          !isFulfilledOk(statsRes) &&
+          blockstreamCurrent === null;
 
         return {
           loading: false,

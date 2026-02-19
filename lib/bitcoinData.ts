@@ -69,9 +69,23 @@ type NodeNetworkStatsResponse = {
   height?: number;
   hashrate?: number;
   fees?: {
-    fast?: number;
-    medium?: number;
-    slow?: number;
+    fast?: number | string;
+    medium?: number | string;
+    slow?: number | string;
+  };
+};
+
+type NodeFeeMarketStatsResponse = {
+  snapshot?: {
+    minObservedSatVB?: number | string;
+  };
+  percentiles?: {
+    p10?: number | string;
+    p25?: number | string;
+    p50?: number | string;
+    p75?: number | string;
+    p90?: number | string;
+    p95?: number | string;
   };
 };
 
@@ -106,6 +120,24 @@ async function fetchTextWithRevalidate(url: string, revalidate = 30): Promise<st
   return response.text();
 }
 
+async function fetchJsonWithTimeout<T>(url: string, revalidate = 30, timeoutMs = 2500): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      next: { revalidate },
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`Failed ${url}: ${response.status}`);
+    }
+    return response.json() as Promise<T>;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchBlockHeight(): Promise<{
   height: number | null;
   source: "mempool" | "blockstream" | "unavailable";
@@ -129,6 +161,50 @@ function normalizeSatVB(value: number | null | undefined): number | null {
   return Number(value.toFixed(2));
 }
 
+function parseSatVB(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return normalizeSatVB(value);
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value);
+    if (Number.isFinite(parsed)) {
+      return normalizeSatVB(parsed);
+    }
+  }
+  return null;
+}
+
+function normalizeOrderedFeesFromAny(
+  fast: unknown,
+  medium: unknown,
+  slow: unknown,
+): { fast: number; medium: number; slow: number } | null {
+  const parsedFast = parseSatVB(fast);
+  const parsedMedium = parseSatVB(medium);
+  const parsedSlow = parseSatVB(slow);
+  if (parsedFast === null || parsedMedium === null || parsedSlow === null) return null;
+
+  const ordered = [parsedSlow, parsedMedium, parsedFast].sort((a, b) => a - b);
+  return {
+    slow: ordered[0],
+    medium: ordered[1],
+    fast: ordered[2],
+  };
+}
+
+function readBlockstreamEstimate(
+  estimates: Record<string, number>,
+  preferredTargets: number[],
+): number | null {
+  for (const target of preferredTargets) {
+    const raw = Number(estimates[String(target)]);
+    if (Number.isFinite(raw) && raw >= 0) {
+      return normalizeSatVB(raw);
+    }
+  }
+  return null;
+}
+
 async function fetchFees(): Promise<{
   feeFast: number | null;
   feeHalfHour: number | null;
@@ -136,36 +212,52 @@ async function fetchFees(): Promise<{
   source: "mempool" | "blockstream" | "unavailable";
 }> {
   try {
-    const fees = await fetchJsonWithRevalidate<{
-      fastestFee: number;
-      halfHourFee: number;
-      hourFee: number;
-    }>(`${MEMPOOL_API}/v1/fees/recommended`);
+    // Prefer blockstream fee-estimates for explorer-style raw precision.
+    const estimates = await fetchJsonWithRevalidate<Record<string, number>>(
+      `${BLOCKSTREAM_API}/fee-estimates`,
+    );
+    const feeFast = readBlockstreamEstimate(estimates, [1, 2]);
+    const feeHalfHour = readBlockstreamEstimate(estimates, [3, 4, 5]);
+    const feeHour = readBlockstreamEstimate(estimates, [6, 8, 10, 12]);
 
     return {
-      feeFast: normalizeSatVB(fees.fastestFee),
-      feeHalfHour: normalizeSatVB(fees.halfHourFee),
-      feeHour: normalizeSatVB(fees.hourFee),
-      source: "mempool",
+      feeFast,
+      feeHalfHour,
+      feeHour,
+      source: "blockstream",
     };
   } catch {
     try {
-      const estimates = await fetchJsonWithRevalidate<Record<string, number>>(
-        `${BLOCKSTREAM_API}/fee-estimates`,
-      );
+      const fees = await fetchJsonWithRevalidate<{
+        fastestFee: number;
+        halfHourFee: number;
+        hourFee: number;
+      }>(`${MEMPOOL_API}/v1/fees/recommended`);
       return {
-        feeFast: normalizeSatVB(estimates["1"] ?? null),
-        feeHalfHour: normalizeSatVB(estimates["3"] ?? estimates["2"] ?? null),
-        feeHour: normalizeSatVB(estimates["6"] ?? null),
-        source: "blockstream",
+        feeFast: normalizeSatVB(fees.fastestFee),
+        feeHalfHour: normalizeSatVB(fees.halfHourFee),
+        feeHour: normalizeSatVB(fees.hourFee),
+        source: "mempool",
       };
     } catch {
-      return {
-        feeFast: null,
-        feeHalfHour: null,
-        feeHour: null,
-        source: "unavailable",
-      };
+      try {
+        const estimates = await fetchJsonWithRevalidate<Record<string, number>>(
+          `${BLOCKSTREAM_API}/fee-estimates`,
+        );
+        return {
+          feeFast: readBlockstreamEstimate(estimates, [1, 2]),
+          feeHalfHour: readBlockstreamEstimate(estimates, [3, 4, 5]),
+          feeHour: readBlockstreamEstimate(estimates, [6, 8, 10, 12]),
+          source: "blockstream",
+        };
+      } catch {
+        return {
+          feeFast: null,
+          feeHalfHour: null,
+          feeHour: null,
+          source: "unavailable",
+        };
+      }
     }
   }
 }
@@ -207,16 +299,24 @@ async function fetchNodeGatewaySnapshot(): Promise<{
   let recentTxs: RecentMempoolTx[] = [];
 
   try {
-    const stats = await fetchJsonWithRevalidate<NodeNetworkStatsResponse>(
+    const stats = await fetchJsonWithTimeout<NodeNetworkStatsResponse>(
       `${NODE_GATEWAY_API}/api/network-stats`,
       10,
+      2500,
     );
     const height = Number(stats?.height);
     blockHeight = Number.isFinite(height) ? height : null;
 
-    feeFast = normalizeSatVB(Number(stats?.fees?.fast ?? NaN));
-    feeHalfHour = normalizeSatVB(Number(stats?.fees?.medium ?? NaN));
-    feeHour = normalizeSatVB(Number(stats?.fees?.slow ?? NaN));
+    const networkStatsFees = normalizeOrderedFeesFromAny(
+      stats?.fees?.fast,
+      stats?.fees?.medium,
+      stats?.fees?.slow,
+    );
+    if (networkStatsFees) {
+      feeFast = networkStatsFees.fast;
+      feeHalfHour = networkStatsFees.medium;
+      feeHour = networkStatsFees.slow;
+    }
 
     const rawHashrate = Number(stats?.hashrate ?? NaN);
     if (Number.isFinite(rawHashrate)) {
@@ -228,7 +328,33 @@ async function fetchNodeGatewaySnapshot(): Promise<{
   }
 
   try {
-    const vitals = await fetchJsonWithRevalidate<NodeVitalsResponse>(`${NODE_GATEWAY_API}/api/vitals`, 10);
+    const marketStats = await fetchJsonWithTimeout<NodeFeeMarketStatsResponse>(
+      `${NODE_GATEWAY_API}/api/fee-market-stats`,
+      10,
+      2500,
+    );
+    const marketFees = normalizeOrderedFeesFromAny(
+      marketStats?.percentiles?.p95 ?? marketStats?.percentiles?.p90,
+      marketStats?.percentiles?.p75 ?? marketStats?.percentiles?.p50,
+      marketStats?.percentiles?.p50 ??
+        marketStats?.percentiles?.p25 ??
+        marketStats?.snapshot?.minObservedSatVB,
+    );
+    if (marketFees) {
+      feeFast = marketFees.fast;
+      feeHalfHour = marketFees.medium;
+      feeHour = marketFees.slow;
+    }
+  } catch {
+    // Legacy backends may not expose /api/fee-market-stats.
+  }
+
+  try {
+    const vitals = await fetchJsonWithTimeout<NodeVitalsResponse>(
+      `${NODE_GATEWAY_API}/api/vitals`,
+      10,
+      2500,
+    );
     const size = Number(vitals?.mempool?.size ?? NaN);
     const bytes = Number(vitals?.mempool?.bytes ?? NaN);
     mempoolTxCount = Number.isFinite(size) ? size : null;
@@ -238,9 +364,10 @@ async function fetchNodeGatewaySnapshot(): Promise<{
   }
 
   try {
-    const recent = await fetchJsonWithRevalidate<NodeMempoolRecentEntry[]>(
+    const recent = await fetchJsonWithTimeout<NodeMempoolRecentEntry[]>(
       `${NODE_GATEWAY_API}/api/mempool-recent`,
       10,
+      2500,
     );
     recentTxs = (recent ?? [])
       .map((row) => {
