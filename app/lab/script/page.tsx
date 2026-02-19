@@ -708,7 +708,7 @@ export default function ScriptLabPage() {
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <button
                   type="button"
                   onClick={() => void step()}
@@ -1037,14 +1037,23 @@ export default function ScriptLabPage() {
                 <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">Verification Flags</p>
                 <div className="max-h-52 space-y-1 overflow-y-auto pr-1">
                   {availableFlags.map((flag) => (
-                    <label key={flag} className="flex min-h-11 cursor-pointer items-center gap-2 rounded border border-slate-800 px-2 text-xs text-slate-300">
+                    <label
+                      key={flag}
+                      className="flex min-h-11 cursor-pointer items-center gap-2 rounded border border-slate-800 px-2 text-xs text-slate-300 hover:border-cyan-500/30 hover:bg-cyan-500/5"
+                    >
                       <input
                         type="checkbox"
                         checked={realFlags.includes(flag)}
                         onChange={() => toggleRealFlag(flag)}
-                        className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-cyan-500 focus:ring-cyan-500"
+                        className="peer sr-only"
                       />
-                      <span>{flag}</span>
+                      <span
+                        aria-hidden="true"
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-slate-600 bg-slate-900 ring-cyan-500/70 transition peer-checked:border-cyan-400 peer-checked:bg-cyan-500/15 peer-focus-visible:ring-2"
+                      >
+                        <span className="h-2.5 w-2.5 rounded-sm bg-cyan-400 opacity-0 transition peer-checked:opacity-100" />
+                      </span>
+                      <span className="break-words">{flag}</span>
                     </label>
                   ))}
                 </div>

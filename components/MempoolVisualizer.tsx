@@ -108,7 +108,7 @@ export default function MempoolVisualizer() {
 
     const fetchBlock = async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+            const apiUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
             const res = await fetch(`${apiUrl}/api/candidate-block`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const json = await res.json();

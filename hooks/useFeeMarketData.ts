@@ -174,7 +174,7 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
       const [historyRes, currentRes, statsRes] = await Promise.allSettled([
         fetch(`${baseUrl}/api/fee-history`, { cache: "no-store" }),

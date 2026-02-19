@@ -32,7 +32,7 @@ export default function BlockPage() {
         if (!id) return;
         setLoading(true);
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
         const rawId = Array.isArray(id) ? id[0] : id;
         const normalizedId = String(rawId ?? "").trim();
         const isHeightLookup = /^[0-9]+$/.test(normalizedId);

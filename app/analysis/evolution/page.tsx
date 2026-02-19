@@ -22,11 +22,7 @@ interface EvolutionData {
 }
 
 const COLORS = ['#ef4444', '#f59e0b', '#10b981']; // Red (Legacy), Amber (Segwit), Emerald (Taproot)
-const fallbackApiBaseUrl =
-    typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname)
-        ? "http://localhost:8080"
-        : "https://api.rawblock.net";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || fallbackApiBaseUrl;
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
 export default function EvolutionPage() {
     const [data, setData] = useState<EvolutionData | null>(null);

@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import Header from '../../../../components/Header';
 import CopyButton from '../../../../components/CopyButton';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
 interface UTXO {
     txid: string;

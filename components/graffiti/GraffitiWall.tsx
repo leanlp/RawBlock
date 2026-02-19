@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import io from "socket.io-client";
 
 interface GraffitiMsg {
     txid: string;
@@ -10,27 +9,64 @@ interface GraffitiMsg {
     time: number;
 }
 
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+
 export default function GraffitiWall() {
     const [messages, setMessages] = useState<GraffitiMsg[]>([]);
-    const [socket, setSocket] = useState<any>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Fetch historical (from server memory)
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/graffiti-recent`)
-            .then(res => res.json())
-            .then(data => setMessages(data as GraffitiMsg[]));
+        const controller = new AbortController();
+        fetch(`${API_BASE_URL}/api/graffiti-recent`, { signal: controller.signal, cache: "no-store" })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                return res.json();
+            })
+            .then((data) => {
+                setMessages(Array.isArray(data) ? (data as GraffitiMsg[]) : []);
+            })
+            .catch((err) => {
+                const isAbortError =
+                    controller.signal.aborted ||
+                    (err instanceof DOMException && err.name === "AbortError");
+                if (!isAbortError) {
+                    setMessages([]);
+                }
+            });
 
-        // Connect Socket
-        const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
-        setSocket(newSocket);
-
-        newSocket.on('graffiti:new', (msg: GraffitiMsg) => {
-            setMessages(prev => [msg, ...prev].slice(0, 100)); // Keep last 100
-        });
+        let socket: WebSocket | null = null;
+        try {
+            const wsBase = API_BASE_URL.replace(/^http/i, "ws").replace(/\/$/, "");
+            socket = new WebSocket(`${wsBase}/ws`);
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(String(event.data ?? "{}")) as {
+                        type?: string;
+                        payload?: GraffitiMsg;
+                    };
+                    if (data?.type !== "graffiti:new" || !data.payload) {
+                        return;
+                    }
+                    const msg = data.payload;
+                    if (!msg.txid || !msg.text) {
+                        return;
+                    }
+                    setMessages((prev) => [msg, ...prev].slice(0, 100));
+                } catch {
+                    // Ignore malformed websocket payloads.
+                }
+            };
+            socket.onerror = () => {};
+            socket.onclose = () => {};
+        } catch {
+            // history-only mode if websocket fails.
+        }
 
         return () => {
-            newSocket.disconnect();
+            controller.abort();
+            socket?.close();
         };
     }, []);
 

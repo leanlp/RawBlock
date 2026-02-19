@@ -16,7 +16,7 @@ interface BlockInfo {
     miner: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rawblock.net";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 const MEMPOOL_BLOCKS_URL = "https://mempool.space/api/v1/blocks";
 
 interface MempoolBlockInfo {

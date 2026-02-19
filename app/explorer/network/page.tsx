@@ -47,7 +47,7 @@ interface KnownPeer {
 
 type DataMode = "live" | "demo";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
 const DEMO_PEERS: Peer[] = [
     { id: 1, addr: "203.0.113.11:8333", ip: "203.0.113.11", subver: "/Satoshi:26.0.0/", inbound: false, ping: 0.042, version: 70016, location: { country: "US", city: "New York", ll: [40.71, -74.00] }, bytes_sent: 0, bytes_recv: 0 },

@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+const API_GATEWAY_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+
 const CONTACTS = [
   { label: "X (Twitter)", href: "https://x.com/rawblocknet" },
   { label: "LinkedIn", href: "https://linkedin.com/company/rawblock" },
@@ -20,7 +22,7 @@ const DATA_STACK = [
   },
   {
     label: "Rawblock API (our node gateway)",
-    href: "https://api.rawblock.net/api/network-stats",
+    href: `${API_GATEWAY_BASE_URL}/api/network-stats`,
     notes:
       "Our public-facing API layer that serves data from the node + indexer stack and streams real-time events to the UI.",
   },

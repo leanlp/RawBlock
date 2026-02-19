@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV !== "production";
 const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "";
 const configuredConnectSrc = (() => {
   if (!configuredApiUrl) return [];
@@ -12,19 +11,7 @@ const configuredConnectSrc = (() => {
     return [];
   }
 })();
-const devConnectSrc = isDev
-  ? [
-      "http://localhost:8080",
-      "http://127.0.0.1:8080",
-      "ws://localhost:8080",
-      "ws://127.0.0.1:8080",
-      "http://localhost:4000",
-      "http://127.0.0.1:4000",
-      "ws://localhost:4000",
-      "ws://127.0.0.1:4000",
-    ]
-  : [];
-const connectSrc = ["'self'", "https:", "wss:", ...configuredConnectSrc, ...devConnectSrc]
+const connectSrc = ["'self'", "https:", "wss:", ...configuredConnectSrc]
   .filter((value, index, values) => values.indexOf(value) === index)
   .join(" ");
 

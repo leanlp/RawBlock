@@ -70,7 +70,7 @@ export default function ConsensusDebuggerPage() {
         setUseDemo(false);
 
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
             let targetBlock = query;
 
             // If no query, we need to find the latest block height first
