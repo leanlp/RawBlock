@@ -86,15 +86,21 @@ interface GeoFeature {
     properties: Record<string, string>;
 }
 
+type LocatedPeer = Peer & { location: PeerLocation & { ll: [number, number] } };
+type LocatedKnownPeer = KnownPeer & { location: PeerLocation & { ll: [number, number] } };
+
 const hasCoordinates = (location?: PeerLocation | null): location is PeerLocation & { ll: [number, number] } =>
     Array.isArray(location?.ll) &&
     location.ll.length === 2 &&
     Number.isFinite(location.ll[0]) &&
     Number.isFinite(location.ll[1]);
 
+const hasPeerCoordinates = (peer: Peer): peer is LocatedPeer => hasCoordinates(peer.location);
+const hasKnownPeerCoordinates = (node: KnownPeer): node is LocatedKnownPeer => hasCoordinates(node.location);
+
 export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selectedCountryCode, focusCoordinates = null }: PeerMapProps) {
-    const locatedPeers = useMemo(() => peers.filter((peer) => hasCoordinates(peer.location)), [peers]);
-    const locatedKnownPeers = useMemo(() => knownPeers.filter((node) => hasCoordinates(node.location)), [knownPeers]);
+    const locatedPeers = useMemo(() => peers.filter(hasPeerCoordinates), [peers]);
+    const locatedKnownPeers = useMemo(() => knownPeers.filter(hasKnownPeerCoordinates), [knownPeers]);
 
     const position = useMemo(() => {
         if (focusCoordinates && focusCoordinates.length === 2) {

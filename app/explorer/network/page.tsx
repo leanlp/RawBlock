@@ -20,6 +20,8 @@ interface Peer {
         country: string;
         city: string;
         ll: [number, number];
+        countryCode?: string;
+        countryName?: string;
     } | null;
     bytes_sent: number;
     bytes_recv: number;
@@ -71,9 +73,9 @@ const haversineDistanceKm = (from: [number, number], to: [number, number]) => {
     return earthRadiusKm * c;
 };
 
-const hasCoordinates = (
-    node: { location?: NodeLocation | null }
-): node is { location: NodeLocation & { ll: [number, number] } } => {
+const hasCoordinates = <T extends { location?: NodeLocation | null }>(
+    node: T
+): node is T & { location: NodeLocation & { ll: [number, number] } } => {
     const ll = node?.location?.ll;
     return Array.isArray(ll) && ll.length === 2 && Number.isFinite(ll[0]) && Number.isFinite(ll[1]);
 };
