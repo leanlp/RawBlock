@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type FeeHistoryPoint = {
   timestamp: number;
@@ -15,6 +15,15 @@ export type FeeSnapshot = {
   slow: number;
 };
 
+export type FeeMarketStats = {
+  minObservedSatVB: number;
+  avgObservedSatVB: number;
+  maxObservedSatVB: number;
+  policyFloorSatVB: number;
+  mempoolMinSatVB: number;
+  minRelaySatVB: number;
+};
+
 type NetworkStatsResponse = {
   fees?: {
     fast?: number | string;
@@ -23,21 +32,74 @@ type NetworkStatsResponse = {
   };
 };
 
+type FeeMarketStatsResponse = {
+  snapshot?: {
+    minObservedSatVB?: number | string;
+    avgObservedSatVB?: number | string;
+    maxObservedSatVB?: number | string;
+    policyFloorSatVB?: number | string;
+    mempoolMinSatVB?: number | string;
+    minRelaySatVB?: number | string;
+  };
+};
+
 type FeeMarketState = {
   loading: boolean;
   error: string | null;
   history: FeeHistoryPoint[];
   current: FeeSnapshot | null;
+  currentTimestamp: number | null;
+  stats: FeeMarketStats | null;
 };
-const FRONTEND_FEE_FLOOR = 0.2;
+
+function sameFeeSnapshot(a: FeeSnapshot, b: FeeSnapshot): boolean {
+  const eps = 0.001;
+  return (
+    Math.abs(a.fast - b.fast) <= eps &&
+    Math.abs(a.medium - b.medium) <= eps &&
+    Math.abs(a.slow - b.slow) <= eps
+  );
+}
+
+function alignHistoryWithCurrent(history: FeeHistoryPoint[], current: FeeSnapshot | null): FeeHistoryPoint[] {
+  if (!current) return history;
+
+  const now = Date.now();
+  const livePoint: FeeHistoryPoint = {
+    timestamp: now,
+    fast: current.fast,
+    medium: current.medium,
+    slow: current.slow,
+  };
+
+  if (history.length === 0) {
+    return [livePoint];
+  }
+
+  const last = history[history.length - 1];
+  const lastSnapshot: FeeSnapshot = {
+    fast: last.fast,
+    medium: last.medium,
+    slow: last.slow,
+  };
+
+  // Keep chart tail coherent with the cards. If latest history is stale or differs
+  // from live snapshot, append a real-time point from /api/network-stats.
+  const staleMs = 2 * 60 * 1000;
+  if (now-last.timestamp > staleMs || !sameFeeSnapshot(lastSnapshot, current)) {
+    return [...history, livePoint].slice(-192);
+  }
+
+  return history;
+}
 
 function parseFee(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
-    return Number(Math.max(FRONTEND_FEE_FLOOR, value).toFixed(2));
+    return Number(Math.max(0, value).toFixed(3));
   }
   if (typeof value === "string") {
     const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? Number(Math.max(FRONTEND_FEE_FLOOR, parsed).toFixed(2)) : null;
+    return Number.isFinite(parsed) ? Number(Math.max(0, parsed).toFixed(3)) : null;
   }
   return null;
 }
@@ -104,17 +166,20 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
     error: null,
     history: [],
     current: null,
+    currentTimestamp: null,
+    stats: null,
   });
 
   const fetchData = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-      const [historyRes, currentRes] = await Promise.allSettled([
+      const [historyRes, currentRes, statsRes] = await Promise.allSettled([
         fetch(`${baseUrl}/api/fee-history`, { cache: "no-store" }),
         fetch(`${baseUrl}/api/network-stats`, { cache: "no-store" }),
+        fetch(`${baseUrl}/api/fee-market-stats`, { cache: "no-store" }),
       ]);
 
       let normalizedHistory: FeeHistoryPoint[] | null = null;
@@ -128,55 +193,98 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
       }
 
       let normalizedCurrent: FeeSnapshot | null = null;
+      let normalizedCurrentTimestamp: number | null = null;
       if (isFulfilledOk(currentRes)) {
         const payload = (await currentRes.value.json()) as NetworkStatsResponse;
         normalizedCurrent = normalizeOrderedFees(payload.fees?.fast, payload.fees?.medium, payload.fees?.slow);
+        normalizedCurrentTimestamp = Date.now();
+      }
+
+      let normalizedStats: FeeMarketStats | null = null;
+      if (isFulfilledOk(statsRes)) {
+        const payload = (await statsRes.value.json()) as FeeMarketStatsResponse;
+        const minObservedSatVB = parseFee(payload.snapshot?.minObservedSatVB);
+        const avgObservedSatVB = parseFee(payload.snapshot?.avgObservedSatVB);
+        const maxObservedSatVB = parseFee(payload.snapshot?.maxObservedSatVB);
+        const policyFloorSatVB = parseFee(payload.snapshot?.policyFloorSatVB);
+        const mempoolMinSatVB = parseFee(payload.snapshot?.mempoolMinSatVB);
+        const minRelaySatVB = parseFee(payload.snapshot?.minRelaySatVB);
+
+        if (
+          minObservedSatVB !== null &&
+          avgObservedSatVB !== null &&
+          maxObservedSatVB !== null &&
+          policyFloorSatVB !== null &&
+          mempoolMinSatVB !== null &&
+          minRelaySatVB !== null
+        ) {
+          normalizedStats = {
+            minObservedSatVB,
+            avgObservedSatVB,
+            maxObservedSatVB,
+            policyFloorSatVB,
+            mempoolMinSatVB,
+            minRelaySatVB,
+          };
+        }
       }
 
       setState((prev) => {
-        const history = normalizedHistory ?? prev.history;
         const current = normalizedCurrent ?? prev.current;
-        const hasAnyData = history.length > 0 || current !== null;
-        const bothFailed = !isFulfilledOk(historyRes) && !isFulfilledOk(currentRes);
+        const currentTimestamp = normalizedCurrentTimestamp ?? prev.currentTimestamp;
+        const historyBase = normalizedHistory ?? prev.history;
+        const history = alignHistoryWithCurrent(historyBase, current);
+        const stats = normalizedStats ?? prev.stats;
+        const hasAnyData = history.length > 0 || current !== null || stats !== null;
+        const allFailed = !isFulfilledOk(historyRes) && !isFulfilledOk(currentRes) && !isFulfilledOk(statsRes);
 
         return {
           loading: false,
-          error: bothFailed && !hasAnyData ? "Unable to load fee market data." : null,
+          error: allFailed && !hasAnyData ? "Unable to load fee market data." : null,
           history,
           current,
+          currentTimestamp,
+          stats,
         };
       });
     } catch {
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: prev.history.length > 0 || prev.current ? prev.error : "Unable to load fee market data.",
+        error: prev.history.length > 0 || prev.current || prev.stats ? prev.error : "Unable to load fee market data.",
       }));
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
+    const bootstrap = window.setTimeout(() => {
+      void fetchData();
+    }, 0);
     const timer = window.setInterval(fetchData, pollIntervalMs);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearTimeout(bootstrap);
+      window.clearInterval(timer);
+    };
   }, [fetchData, pollIntervalMs]);
 
-  const cardFees = useMemo(() => {
-    const latest = state.history.length ? state.history[state.history.length - 1] : null;
-    if (latest) {
-      return {
-        fast: latest.fast,
-        medium: latest.medium,
-        slow: latest.slow,
-      };
-    }
-
-    return {
-      fast: state.current?.fast ?? null,
-      medium: state.current?.medium ?? null,
-      slow: state.current?.slow ?? null,
-    };
-  }, [state.current, state.history]);
+  const latest = state.history.length ? state.history[state.history.length - 1] : null;
+  const cardFees = state.current
+    ? {
+        fast: state.current.fast,
+        medium: state.current.medium,
+        slow: state.current.slow,
+      }
+    : latest
+      ? {
+          fast: latest.fast,
+          medium: latest.medium,
+          slow: latest.slow,
+        }
+      : {
+          fast: null,
+          medium: null,
+          slow: null,
+        };
 
   const hasData =
     state.history.length > 0 ||

@@ -29,13 +29,13 @@ export default function EvolutionPage() {
 
     useEffect(() => {
         // Initial Fetch
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/evolution`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/evolution`)
             .then(res => res.json())
             .then(setData)
             .catch(console.error);
 
         // Socket
-        const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
+        const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
         socket.on('evolution:update', (newData: EvolutionData) => {
             setData(newData);
         });

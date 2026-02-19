@@ -33,9 +33,15 @@ export default function BlockPage() {
         setLoading(true);
 
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const rawId = Array.isArray(id) ? id[0] : id;
+        const normalizedId = String(rawId ?? "").trim();
+        const isHeightLookup = /^[0-9]+$/.test(normalizedId);
+        const blockEndpoint = isHeightLookup
+            ? `${baseUrl}/api/block/height/${normalizedId}`
+            : `${baseUrl}/api/block/${normalizedId}`;
 
         // Fetch the block
-        fetch(`${baseUrl}/api/block/${id}`)
+        fetch(blockEndpoint)
             .then(res => {
                 if (!res.ok) throw new Error("Block not found");
                 return res.json();
@@ -71,7 +77,9 @@ export default function BlockPage() {
         {
             name: "Transactions",
             children: (block.transactions || []).slice(0, 500).map((tx, i) => ({ // Limit to 500 for perf
-                name: tx.txid.substring(0, 6) + "...",
+                // Keep Recharts node names unique to avoid duplicate-key collisions.
+                name: `${tx.txid}-${i}`,
+                txid: tx.txid,
                 size: tx.weight, // Rect size = weight
                 fee: tx.fee, // For tooltip
                 isSegwit: tx.isSegwit
@@ -81,7 +89,7 @@ export default function BlockPage() {
 
     // Custom Content for TreeMap Node
     const CustomizedContent = (props: any) => {
-        const { root, depth, x, y, width, height, index, payload, colors, rank, name } = props;
+        const { x, y, width, height, payload } = props;
 
         return (
             <g>
@@ -95,21 +103,9 @@ export default function BlockPage() {
                         stroke: '#1e293b',
                         strokeWidth: 1,
                         userSelect: 'none',
-                        opacity: 0.8
+                        opacity: 0.9
                     }}
                 />
-                {width > 30 && height > 20 && (
-                    <text
-                        x={x + width / 2}
-                        y={y + height / 2}
-                        textAnchor="middle"
-                        fill="#fff"
-                        fontSize={10}
-                        style={{ pointerEvents: 'none' }}
-                    >
-                        {name}
-                    </text>
-                )}
             </g>
         );
     };
@@ -192,7 +188,7 @@ export default function BlockPage() {
                                 </h2>
                                 <p className="text-slate-500 text-sm max-w-2xl">
                                     Visualizing the Top 500 transactions packed into this block. Size represents weight (vBytes).
-                                    Green = SegWit, Amber = Legacy.
+                                    Green = SegWit, Amber = Legacy. Hover a tile to inspect transaction details.
                                 </p>
 
                                 <div className="h-[500px] w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
@@ -205,12 +201,17 @@ export default function BlockPage() {
                                             content={<CustomizedContent />}
                                         >
                                             <Tooltip
+                                                cursor={{
+                                                    stroke: "#22d3ee",
+                                                    strokeWidth: 2,
+                                                    fillOpacity: 0.96,
+                                                }}
                                                 content={({ payload }) => {
                                                     if (!payload || !payload.length) return null;
                                                     const data = payload[0].payload;
                                                     return (
                                                         <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl text-xs">
-                                                            <div className="font-mono text-slate-300 mb-1">TXID: {data.name}</div>
+                                                            <div className="font-mono text-slate-300 mb-1">TXID: {data.txid ?? data.name}</div>
                                                             <div className="text-slate-400">Weight: <span className="text-white">{data.size} wu</span></div>
                                                             <div className="text-slate-400">Type: <span className={data.isSegwit ? "text-emerald-400" : "text-amber-400"}>{data.isSegwit ? "SegWit (Efficient)" : "Legacy (Heavy)"}</span></div>
                                                         </div>

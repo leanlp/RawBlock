@@ -191,7 +191,16 @@ function DecoderContent() {
                 try {
                     const fallbackTx = await decodeViaMempool(txQuery.trim());
                     setResult({ ...fallbackTx, type: 'transaction' });
-                    setError("Live backend unavailable. Showing public fallback decode.");
+                    const liveError = err instanceof Error ? err.message : "";
+                    const localIndexMiss =
+                        liveError.toLowerCase().includes("txindex") ||
+                        liveError.toLowerCase().includes("prun") ||
+                        liveError.toLowerCase().includes("not found on local node");
+                    setError(
+                        localIndexMiss
+                            ? "Local node could not decode this tx (likely pruned or missing txindex). Showing public fallback decode."
+                            : "Live backend unavailable. Showing public fallback decode."
+                    );
                     setDataSource("fallback");
                     return;
                 } catch {

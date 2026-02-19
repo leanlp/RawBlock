@@ -65,6 +65,31 @@ const NODE_GATEWAY_API =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
   null;
 
+type NodeNetworkStatsResponse = {
+  height?: number;
+  hashrate?: number;
+  fees?: {
+    fast?: number;
+    medium?: number;
+    slow?: number;
+  };
+};
+
+type NodeVitalsResponse = {
+  mempool?: {
+    size?: number;
+    bytes?: number;
+  };
+  peers?: number;
+};
+
+type NodeMempoolRecentEntry = {
+  txid?: string;
+  fee?: number; // BTC
+  size?: number; // vsize
+  time?: number;
+};
+
 async function fetchJsonWithRevalidate<T>(url: string, revalidate = 30): Promise<T> {
   const response = await fetch(url, { next: { revalidate } });
   if (!response.ok) {
@@ -98,18 +123,18 @@ async function fetchBlockHeight(): Promise<{
   }
 }
 
+function normalizeSatVB(value: number | null | undefined): number | null {
+  if (value === null || value === undefined || !Number.isFinite(value)) return null;
+  // Preserve actual fee precision (e.g., 0.2 sat/vB) for low-fee market conditions.
+  return Number(value.toFixed(2));
+}
+
 async function fetchFees(): Promise<{
   feeFast: number | null;
   feeHalfHour: number | null;
   feeHour: number | null;
   source: "mempool" | "blockstream" | "unavailable";
 }> {
-  const normalizeFee = (value: number | null | undefined): number | null => {
-    if (value === null || value === undefined || !Number.isFinite(value)) return null;
-    // Preserve actual fee precision (e.g., 0.2 sat/vB) for low-fee market conditions.
-    return Number(value.toFixed(2));
-  };
-
   try {
     const fees = await fetchJsonWithRevalidate<{
       fastestFee: number;
@@ -118,9 +143,9 @@ async function fetchFees(): Promise<{
     }>(`${MEMPOOL_API}/v1/fees/recommended`);
 
     return {
-      feeFast: normalizeFee(fees.fastestFee),
-      feeHalfHour: normalizeFee(fees.halfHourFee),
-      feeHour: normalizeFee(fees.hourFee),
+      feeFast: normalizeSatVB(fees.fastestFee),
+      feeHalfHour: normalizeSatVB(fees.halfHourFee),
+      feeHour: normalizeSatVB(fees.hourFee),
       source: "mempool",
     };
   } catch {
@@ -129,9 +154,9 @@ async function fetchFees(): Promise<{
         `${BLOCKSTREAM_API}/fee-estimates`,
       );
       return {
-        feeFast: normalizeFee(estimates["1"] ?? null),
-        feeHalfHour: normalizeFee(estimates["3"] ?? estimates["2"] ?? null),
-        feeHour: normalizeFee(estimates["6"] ?? null),
+        feeFast: normalizeSatVB(estimates["1"] ?? null),
+        feeHalfHour: normalizeSatVB(estimates["3"] ?? estimates["2"] ?? null),
+        feeHour: normalizeSatVB(estimates["6"] ?? null),
         source: "blockstream",
       };
     } catch {
@@ -143,6 +168,130 @@ async function fetchFees(): Promise<{
       };
     }
   }
+}
+
+async function fetchNodeGatewaySnapshot(): Promise<{
+  blockHeight: number | null;
+  feeFast: number | null;
+  feeHalfHour: number | null;
+  feeHour: number | null;
+  hashrateEh: number | null;
+  mempoolTxCount: number | null;
+  mempoolVsizeMb: number | null;
+  recentTxIds: string[];
+  recentTxs: RecentMempoolTx[];
+  source: "rawblock" | "unavailable";
+}> {
+  if (!NODE_GATEWAY_API) {
+    return {
+      blockHeight: null,
+      feeFast: null,
+      feeHalfHour: null,
+      feeHour: null,
+      hashrateEh: null,
+      mempoolTxCount: null,
+      mempoolVsizeMb: null,
+      recentTxIds: [],
+      recentTxs: [],
+      source: "unavailable",
+    };
+  }
+
+  let blockHeight: number | null = null;
+  let feeFast: number | null = null;
+  let feeHalfHour: number | null = null;
+  let feeHour: number | null = null;
+  let hashrateEh: number | null = null;
+  let mempoolTxCount: number | null = null;
+  let mempoolVsizeMb: number | null = null;
+  let recentTxs: RecentMempoolTx[] = [];
+
+  try {
+    const stats = await fetchJsonWithRevalidate<NodeNetworkStatsResponse>(
+      `${NODE_GATEWAY_API}/api/network-stats`,
+      10,
+    );
+    const height = Number(stats?.height);
+    blockHeight = Number.isFinite(height) ? height : null;
+
+    feeFast = normalizeSatVB(Number(stats?.fees?.fast ?? NaN));
+    feeHalfHour = normalizeSatVB(Number(stats?.fees?.medium ?? NaN));
+    feeHour = normalizeSatVB(Number(stats?.fees?.slow ?? NaN));
+
+    const rawHashrate = Number(stats?.hashrate ?? NaN);
+    if (Number.isFinite(rawHashrate)) {
+      const eh = convertHashrateToEh(rawHashrate, "H/s");
+      hashrateEh = eh !== null && Number.isFinite(eh) ? Number(eh.toFixed(2)) : null;
+    }
+  } catch {
+    // Keep fallback path available.
+  }
+
+  try {
+    const vitals = await fetchJsonWithRevalidate<NodeVitalsResponse>(`${NODE_GATEWAY_API}/api/vitals`, 10);
+    const size = Number(vitals?.mempool?.size ?? NaN);
+    const bytes = Number(vitals?.mempool?.bytes ?? NaN);
+    mempoolTxCount = Number.isFinite(size) ? size : null;
+    mempoolVsizeMb = Number.isFinite(bytes) ? Number((bytes / 1_000_000).toFixed(0)) : null;
+  } catch {
+    // Keep fallback path available.
+  }
+
+  try {
+    const recent = await fetchJsonWithRevalidate<NodeMempoolRecentEntry[]>(
+      `${NODE_GATEWAY_API}/api/mempool-recent`,
+      10,
+    );
+    recentTxs = (recent ?? [])
+      .map((row) => {
+        const txid = typeof row.txid === "string" ? row.txid : "";
+        const feeBtc = Number(row.fee);
+        const size = Number(row.size);
+        const time = Number(row.time);
+        const feeSat = Number.isFinite(feeBtc) && feeBtc >= 0 ? Math.round(feeBtc * 100_000_000) : null;
+        const vsize = Number.isFinite(size) && size > 0 ? Math.round(size) : null;
+        const safeTime = Number.isFinite(time) && time > 0 ? Math.round(time) : null;
+        const feeRate =
+          feeSat !== null && vsize !== null && vsize > 0
+            ? Number((feeSat / vsize).toFixed(2))
+            : null;
+
+        return {
+          txid,
+          feeSat,
+          vsize,
+          feeRate,
+          time: safeTime,
+        } satisfies RecentMempoolTx;
+      })
+      .filter((row) => row.txid.length > 12)
+      .slice(0, 5);
+  } catch {
+    // Keep fallback path available.
+  }
+
+  const hasNodeData =
+    blockHeight !== null ||
+    hashrateEh !== null ||
+    feeFast !== null ||
+    feeHalfHour !== null ||
+    feeHour !== null ||
+    mempoolTxCount !== null ||
+    mempoolVsizeMb !== null ||
+    recentTxs.length > 0;
+
+  return {
+    blockHeight,
+    feeFast,
+    feeHalfHour,
+    feeHour,
+    hashrateEh,
+    mempoolTxCount,
+    mempoolVsizeMb,
+    recentTxIds: recentTxs.map((tx) => tx.txid),
+    recentTxs,
+    source: hasNodeData ? "rawblock" : "unavailable",
+  };
 }
 
 type MempoolHashrateResponse =
@@ -298,15 +447,76 @@ function makeProvenance(source: BitcoinMetricUpstream, timestamp: string): Bitco
 }
 
 export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
+  const nodeData = await fetchNodeGatewaySnapshot();
+
+  const needsHeightFallback = nodeData.blockHeight === null;
+  const needsFeesFallback =
+    nodeData.feeFast === null || nodeData.feeHalfHour === null || nodeData.feeHour === null;
+  const needsHashrateFallback = nodeData.hashrateEh === null;
+  const needsMempoolFallback =
+    nodeData.mempoolTxCount === null ||
+    nodeData.mempoolVsizeMb === null ||
+    (nodeData.mempoolTxCount !== 0 && nodeData.recentTxs.length === 0);
+
   const [mempoolData, heightData, feeData, hashrateData] = await Promise.all([
-    fetchMempoolSnapshot(),
-    fetchBlockHeight(),
-    fetchFees(),
-    fetchHashrateEh(),
+    needsMempoolFallback
+      ? fetchMempoolSnapshot()
+      : Promise.resolve({
+          mempoolTxCount: null,
+          mempoolVsizeMb: null,
+          recentTxIds: [],
+          recentTxs: [],
+          source: "unavailable" as const,
+        }),
+    needsHeightFallback
+      ? fetchBlockHeight()
+      : Promise.resolve({
+          height: null,
+          source: "unavailable" as const,
+        }),
+    needsFeesFallback
+      ? fetchFees()
+      : Promise.resolve({
+          feeFast: null,
+          feeHalfHour: null,
+          feeHour: null,
+          source: "unavailable" as const,
+        }),
+    needsHashrateFallback
+      ? fetchHashrateEh()
+      : Promise.resolve({
+          hashrateEh: null,
+          source: "unavailable" as const,
+        }),
   ]);
   const nowIso = new Date().toISOString();
 
-  const blockHeight = heightData.height;
+  const blockHeight = nodeData.blockHeight ?? heightData.height;
+  const blockHeightSource: BitcoinMetricUpstream =
+    nodeData.blockHeight !== null ? "rawblock" : heightData.source;
+
+  const feeFast = nodeData.feeFast ?? feeData.feeFast;
+  const feeHalfHour = nodeData.feeHalfHour ?? feeData.feeHalfHour;
+  const feeHour = nodeData.feeHour ?? feeData.feeHour;
+  const feesSource: BitcoinMetricUpstream =
+    nodeData.feeFast !== null && nodeData.feeHalfHour !== null && nodeData.feeHour !== null
+      ? "rawblock"
+      : feeData.source;
+
+  const hashrateEh = nodeData.hashrateEh ?? hashrateData.hashrateEh;
+  const hashrateSource: BitcoinMetricUpstream =
+    nodeData.hashrateEh !== null ? "rawblock" : hashrateData.source;
+
+  const useNodeMempool =
+    nodeData.mempoolTxCount !== null &&
+    nodeData.mempoolVsizeMb !== null &&
+    (nodeData.mempoolTxCount === 0 || nodeData.recentTxs.length > 0);
+  const mempoolTxCount = useNodeMempool ? nodeData.mempoolTxCount : mempoolData.mempoolTxCount;
+  const mempoolVsizeMb = useNodeMempool ? nodeData.mempoolVsizeMb : mempoolData.mempoolVsizeMb;
+  const recentTxIds = useNodeMempool ? nodeData.recentTxIds : mempoolData.recentTxIds;
+  const recentTxs = useNodeMempool ? nodeData.recentTxs : mempoolData.recentTxs;
+  const mempoolSource: BitcoinMetricUpstream = useNodeMempool ? "rawblock" : mempoolData.source;
+
   const blocksUntilHalving =
     blockHeight === null
       ? null
@@ -316,32 +526,32 @@ export async function getBitcoinLiveMetrics(): Promise<BitcoinLiveMetrics> {
       ? null
       : Math.ceil((blocksUntilHalving * BITCOIN_BLOCK_TIME_MINUTES) / (60 * 24));
   const mergedSource = resolveSource(
-    mempoolData.source,
-    heightData.source,
-    feeData.source,
-    hashrateData.source,
+    mempoolSource,
+    blockHeightSource,
+    feesSource,
+    hashrateSource,
   );
 
   return {
     blockHeight,
-    feeFast: feeData.feeFast,
-    feeHalfHour: feeData.feeHalfHour,
-    feeHour: feeData.feeHour,
-    hashrateEh: hashrateData.hashrateEh,
-    mempoolTxCount: mempoolData.mempoolTxCount,
-    mempoolVsizeMb: mempoolData.mempoolVsizeMb,
-    recentTxIds: mempoolData.recentTxIds,
-    recentTxs: mempoolData.recentTxs,
+    feeFast,
+    feeHalfHour,
+    feeHour,
+    hashrateEh,
+    mempoolTxCount,
+    mempoolVsizeMb,
+    recentTxIds,
+    recentTxs,
     blocksUntilHalving,
     daysUntilHalving,
     lastUpdated: nowIso,
     source: mergedSource,
     provenance: {
-      blockHeight: makeProvenance(heightData.source, nowIso),
-      hashrate: makeProvenance(hashrateData.source, nowIso),
-      fees: makeProvenance(feeData.source, nowIso),
-      halving: makeProvenance(heightData.source, nowIso),
-      mempool: makeProvenance(mempoolData.source, nowIso),
+      blockHeight: makeProvenance(blockHeightSource, nowIso),
+      hashrate: makeProvenance(hashrateSource, nowIso),
+      fees: makeProvenance(feesSource, nowIso),
+      halving: makeProvenance(blockHeightSource, nowIso),
+      mempool: makeProvenance(mempoolSource, nowIso),
     },
   };
 }

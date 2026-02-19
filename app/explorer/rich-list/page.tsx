@@ -1,39 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 
-// Static imports - all whale data embedded in frontend
-import whale01 from '../../../data/whales/whale_01.json';
-import whale02 from '../../../data/whales/whale_02.json';
-import whale03 from '../../../data/whales/whale_03.json';
-import whale04 from '../../../data/whales/whale_04.json';
-import whale05 from '../../../data/whales/whale_05.json';
-import whale06 from '../../../data/whales/whale_06.json';
-import whale07 from '../../../data/whales/whale_07.json';
-import whale08 from '../../../data/whales/whale_08.json';
-import whale09 from '../../../data/whales/whale_09.json';
-import whale10 from '../../../data/whales/whale_10.json';
-import whale11 from '../../../data/whales/whale_11.json';
-import whale12 from '../../../data/whales/whale_12.json';
-import whale13 from '../../../data/whales/whale_13.json';
-import whale14 from '../../../data/whales/whale_14.json';
-import whale15 from '../../../data/whales/whale_15.json';
-import whale16 from '../../../data/whales/whale_16.json';
-import whale17 from '../../../data/whales/whale_17.json';
-import whale18 from '../../../data/whales/whale_18.json';
-import whale19 from '../../../data/whales/whale_19.json';
-import whale20 from '../../../data/whales/whale_20.json';
-
-// All whales array for easy access
-const allWhales = [
-    whale01, whale02, whale03, whale04, whale05,
-    whale06, whale07, whale08, whale09, whale10,
-    whale11, whale12, whale13, whale14, whale15,
-    whale16, whale17, whale18, whale19, whale20
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 interface WhaleData {
     rank: number;
@@ -47,27 +19,38 @@ export default function RichListPage() {
     const router = useRouter();
     const [decoderQuery, setDecoderQuery] = useState("");
     const [filter, setFilter] = useState("");
+    const [whales, setWhales] = useState<WhaleData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const whales: WhaleData[] = useMemo(
-        () =>
-            allWhales.map((w) => ({
-                rank: w.rank,
-                address: w.address,
-                balance: w.balance,
-                utxoCount: w.utxoCount,
-                fetchedAt: w.fetchedAt,
-            })),
-        [],
-    );
+    useEffect(() => {
+        const controller = new AbortController();
+
+        const fetchWhales = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const res = await fetch(`${API_URL}/api/rich-list`, { cache: 'no-store', signal: controller.signal });
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                const data = (await res.json()) as WhaleData[];
+                setWhales(Array.isArray(data) ? data : []);
+            } catch (err) {
+                if ((err as Error).name === 'AbortError') return;
+                console.error('Failed to load rich list:', err);
+                setError('Unable to load rich list snapshot from backend.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWhales();
+        return () => controller.abort();
+    }, []);
 
     const handleViewWhale = (rank: number) => {
         router.push(`/explorer/rich-list/${rank}`);
-    };
-
-    const formatDate = (isoString?: string) => {
-        if (!isoString) return '';
-        const date = new Date(isoString);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     };
 
     const totalBtc = whales.reduce((sum, w) => sum + w.balance, 0);
@@ -95,7 +78,7 @@ export default function RichListPage() {
                             Whale Watch
                         </h1>
                         <p className="page-subtitle uppercase tracking-widest">
-                            Top 20 addresses by balance • static snapshot
+                            Top 20 addresses by balance
                         </p>
                     </div>
                     <Link href="/" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors self-start md:self-auto inline-flex items-center min-h-11">
@@ -103,12 +86,14 @@ export default function RichListPage() {
                     </Link>
                 </div>
 
-                {/* Data Source Notice */}
-                <div className="bg-sky-900/20 border border-sky-500/30 rounded-lg px-4 py-3 text-xs text-sky-200/90">
-                    ℹ️ <span className="font-bold">Static address snapshot</span> — This table ranks single addresses, not entities.
-                    Exchanges/custodians may represent many users. Use the Decoder for details.
-                    Last updated: {formatDate(whales[0]?.fetchedAt)}
-                </div>
+                {loading ? (
+                    <div className="text-sm text-slate-400">Loading weekly snapshot...</div>
+                ) : null}
+                {error ? (
+                    <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-200">
+                        {error}
+                    </div>
+                ) : null}
 
                 {/* Quick Actions */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

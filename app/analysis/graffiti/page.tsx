@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import io from "socket.io-client";
 import Link from "next/link";
 import Header from "../../../components/Header";
 
@@ -14,11 +13,14 @@ interface GraffitiMsg {
     time: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rawblock.net";
+const fallbackApiBaseUrl =
+    typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname)
+        ? "http://localhost:8080"
+        : "https://api.rawblock.net";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || fallbackApiBaseUrl;
 
 export default function GraffitiPage() {
     const [messages, setMessages] = useState<GraffitiMsg[]>([]);
-    const [connectionStatus, setConnectionStatus] = useState<"connecting" | "live" | "offline">("connecting");
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -31,34 +33,47 @@ export default function GraffitiPage() {
             })
             .then((data) => setMessages(Array.isArray(data) ? (data as GraffitiMsg[]) : []))
             .catch((err) => {
-                console.error("Failed to fetch graffiti feed:", err);
+                const message =
+                    typeof err === "object" && err !== null && "message" in err
+                        ? String((err as { message?: unknown }).message ?? "")
+                        : String(err ?? "");
+                const isAbortError =
+                    controller.signal.aborted ||
+                    (err instanceof DOMException && err.name === "AbortError") ||
+                    (typeof err === "object" &&
+                        err !== null &&
+                        "name" in err &&
+                        (err as { name?: string }).name === "AbortError") ||
+                    message.toLowerCase().includes("abort");
+                if (isAbortError) return;
                 setMessages([]);
             });
 
-        // Connect Socket
-        const newSocket = io(API_BASE_URL, {
-            transports: ["websocket", "polling"],
-            reconnectionAttempts: 2,
-            timeout: 5000,
-        });
-
-        newSocket.on("connect", () => {
-            setConnectionStatus("live");
-        });
-
-        newSocket.on('graffiti:new', (msg: GraffitiMsg) => {
-            setMessages(prev => [msg, ...prev].slice(0, 100)); // Keep last 100
-        });
-
-        newSocket.on("connect_error", (err: Error) => {
-            console.error("Graffiti socket connection error:", err.message);
-            setConnectionStatus("offline");
-            newSocket.disconnect();
-        });
+        let socket: WebSocket | null = null;
+        try {
+            const wsBase = API_BASE_URL.replace(/^http/i, "ws").replace(/\/$/, "");
+            socket = new WebSocket(`${wsBase}/ws`);
+            socket.onopen = () => {};
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(String(event.data ?? "{}")) as { type?: string; payload?: unknown };
+                    if (data?.type !== "graffiti:new") return;
+                    const msg = data.payload as GraffitiMsg;
+                    if (!msg?.txid || !msg?.text) return;
+                    setMessages((prev) => [msg, ...prev].slice(0, 100));
+                } catch {
+                    // Ignore malformed websocket payloads.
+                }
+            };
+            socket.onerror = () => {};
+            socket.onclose = () => {};
+        } catch {
+            // No websocket available: history-only mode.
+        }
 
         return () => {
             controller.abort();
-            newSocket.disconnect();
+            socket?.close();
         };
     }, []);
 
@@ -79,10 +94,6 @@ export default function GraffitiPage() {
                         Graffiti_Wall <span className="animate-pulse">_</span>
                     </h1>
                     <Link href="/" className="text-xs hover:text-green-300 hover:underline inline-flex items-center min-h-11">[ RETURN_TO_HOME ]</Link>
-                </div>
-
-                <div className="text-[11px] text-green-700">
-                    Socket: {connectionStatus === "live" ? "live" : connectionStatus === "connecting" ? "connecting..." : "offline (history mode)"}
                 </div>
 
                 <div className="bg-black/90 border border-green-800 rounded-sm p-4 h-[80vh] overflow-y-auto shadow-[0_0_20px_rgba(0,255,0,0.1)] custom-scrollbar relative">

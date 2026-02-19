@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Card, { MetricValue, PanelHeader } from "./Card";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
 import { formatFeeTime, useFeeMarketData } from "@/hooks/useFeeMarketData";
-import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ReferenceArea, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import { formatSatVb } from "@/lib/feeBands";
 import type { BitcoinLiveMetrics, RecentMempoolTx } from "@/lib/bitcoinData";
@@ -130,13 +131,15 @@ function getShortTxid(txid: string): string {
   return `${txid.slice(0, 8)}...${txid.slice(-4)}`;
 }
 
-function formatTxAge(time: number | null, fallbackTime: number | null): string {
+function formatTxAge(time: number | null, fallbackTime: number | null, nowSec: number | null): string {
+  if (nowSec === null) return "Age n/a";
+
   const sourceTime = time ?? fallbackTime;
   if (sourceTime === null || !Number.isFinite(sourceTime)) return "Age n/a";
 
   const sourceSeconds =
     sourceTime > 1_000_000_000_000 ? Math.floor(sourceTime / 1000) : Math.floor(sourceTime);
-  const ageSeconds = Math.max(0, Math.floor(Date.now() / 1000) - sourceSeconds);
+  const ageSeconds = Math.max(0, nowSec - sourceSeconds);
 
   if (ageSeconds < 60) return `${ageSeconds}s ago`;
   if (ageSeconds < 3600) return `${Math.floor(ageSeconds / 60)}m ago`;
@@ -157,9 +160,43 @@ function getFeeRateTone(feeRate: number | null): string {
   return "border-emerald-500/50 text-emerald-300";
 }
 
+type HeroFeeTooltipProps = {
+  active?: boolean;
+  label?: number | string;
+  payload?: Array<{
+    name?: string;
+    value?: number;
+    color?: string;
+  }>;
+};
+
+function HeroFeeTooltipContent({ active, label, payload }: HeroFeeTooltipProps) {
+  if (!active || !payload || payload.length === 0) return null;
+
+  return (
+    <div className="min-w-[170px] rounded-lg border border-slate-700/90 bg-slate-950/95 px-2.5 py-2 shadow-2xl backdrop-blur-md">
+      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        {formatFeeTime(Number(label))}
+      </p>
+      <div className="space-y-1 text-[11px]">
+        {payload.map((entry) => (
+          <div key={entry.name} className="flex items-center justify-between gap-3">
+            <span className="flex items-center gap-1.5 text-slate-300">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color ?? "#94a3b8" }} />
+              {entry.name}
+            </span>
+            <span className="font-mono text-slate-100">{formatSatVb(entry.value ?? 0)} sat/vB</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function HeroMetrics() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
   const { history: feeHistory, cardFees } = useFeeMarketData(30_000);
+  const [clientNowSec, setClientNowSec] = useState<number | null>(null);
 
   const hasLiveMetrics = Boolean(metrics);
   const displayMetrics = metrics ?? HERO_FALLBACK_METRICS;
@@ -170,11 +207,34 @@ export default function HeroMetrics() {
   const displayFeeHalfHour = cardFees.medium ?? HERO_FALLBACK_FEES.medium;
   const displayFeeHour = cardFees.slow ?? HERO_FALLBACK_FEES.slow;
   const displayFeeHistory = feeHistory.length > 0 ? feeHistory : HERO_FALLBACK_FEE_HISTORY;
+  const heroFeeMeta = useMemo(() => {
+    if (displayFeeHistory.length === 0) return null;
+    const latest = displayFeeHistory[displayFeeHistory.length - 1];
+    const first = displayFeeHistory[0];
+    const minSlow = Math.min(...displayFeeHistory.map((point) => point.slow));
+    const maxFast = Math.max(...displayFeeHistory.map((point) => point.fast));
+    const yMax = Math.max(3, Math.ceil(maxFast * 1.15));
+
+    return {
+      minSlow,
+      yMax,
+      calmBandTop: Math.min(1, yMax),
+      normalBandTop: Math.min(5, yMax),
+      expressDelta: latest.fast - first.fast,
+    };
+  }, [displayFeeHistory]);
   const connectingMode = status === "loading" && !hasLiveMetrics;
   const snapshotMode = status !== "loading" && !hasLiveMetrics;
   const liveMode = hasLiveMetrics && !error;
   const staleMode = hasLiveMetrics && Boolean(error);
   const streamFallbackTime = Math.floor(new Date(displayMetrics.lastUpdated).getTime() / 1000);
+
+  useEffect(() => {
+    const updateNow = () => setClientNowSec(Math.floor(Date.now() / 1000));
+    updateNow();
+    const timer = window.setInterval(updateNow, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   return (
     <div className="w-full mb-12">
@@ -281,7 +341,7 @@ export default function HeroMetrics() {
         <Link href="/explorer/fees" className="block w-full h-full">
           <Card variant="panel" className="h-full" onClick={() => {}}>
             <PanelHeader>Fee Market (sat/vB)</PanelHeader>
-            <div className="space-y-2">
+            <div className="space-y-2 rounded-lg border border-slate-800/80 bg-slate-950/40 p-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-400">Fast</span>
                 <span className="font-mono text-red-400 font-bold">
@@ -304,36 +364,95 @@ export default function HeroMetrics() {
                 </span>
               </div>
             </div>
+            {heroFeeMeta ? (
+              <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-mono">
+                <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                  Floor {formatSatVb(heroFeeMeta.minSlow)}
+                </span>
+                <span
+                  className={`rounded-full border px-2 py-0.5 ${
+                    heroFeeMeta.expressDelta >= 0
+                      ? "border-red-500/25 bg-red-500/10 text-red-300"
+                      : "border-cyan-500/25 bg-cyan-500/10 text-cyan-300"
+                  }`}
+                >
+                  Δ24h {heroFeeMeta.expressDelta >= 0 ? "+" : ""}
+                  {formatSatVb(heroFeeMeta.expressDelta)}
+                </span>
+              </div>
+            ) : null}
             {displayFeeHistory.length > 0 ? (
-              <div className="mt-3 h-20 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-1">
+              <div className="mt-3 h-24 rounded-lg border border-slate-800/80 bg-slate-950/50 px-2 py-1.5">
                 <SafeResponsiveContainer width="100%" height="100%" minHeight={64}>
                   <AreaChart data={displayFeeHistory} margin={{ top: 4, right: 4, left: 2, bottom: 0 }}>
                     <defs>
                       <linearGradient id="hero-fee-economy" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.32} />
                         <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="hero-fee-standard" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.18} />
+                        <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.28} />
                         <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="hero-fee-express" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.18} />
+                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="2 4" stroke="#1e293b" vertical={false} />
-                    <XAxis dataKey="timestamp" hide />
-                    <YAxis hide scale="linear" domain={[0, "auto"]} />
-                    <Tooltip
-                      labelFormatter={(value) => formatFeeTime(Number(value))}
-                      formatter={(value, name) => [`${formatSatVb(Number(value))} sat/vB`, String(name)]}
-                      contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155", color: "#f1f5f9" }}
-                      labelStyle={{ color: "#94a3b8" }}
+
+                    <ReferenceArea
+                      y1={0}
+                      y2={heroFeeMeta?.calmBandTop ?? 1}
+                      fill="#10b981"
+                      fillOpacity={0.06}
                     />
-                    <Area type="monotone" dataKey="slow" stroke="#10b981" fill="url(#hero-fee-economy)" strokeWidth={1.5} name="Economy" />
-                    <Area type="monotone" dataKey="medium" stroke="#f59e0b" fill="url(#hero-fee-standard)" strokeWidth={1.5} name="Standard" />
-                    <Area type="monotone" dataKey="fast" stroke="#ef4444" fill="url(#hero-fee-express)" strokeWidth={1.5} name="Express" />
+                    <ReferenceArea
+                      y1={heroFeeMeta?.calmBandTop ?? 1}
+                      y2={heroFeeMeta?.normalBandTop ?? 5}
+                      fill="#f59e0b"
+                      fillOpacity={0.05}
+                    />
+                    <ReferenceArea
+                      y1={heroFeeMeta?.normalBandTop ?? 5}
+                      y2={heroFeeMeta?.yMax ?? "auto"}
+                      fill="#ef4444"
+                      fillOpacity={0.05}
+                    />
+                    <CartesianGrid strokeDasharray="3 4" stroke="#1e293b" vertical={false} />
+                    <XAxis dataKey="timestamp" hide />
+                    <YAxis hide scale="linear" domain={[0, heroFeeMeta?.yMax ?? "auto"]} />
+                    <ReferenceLine y={1} stroke="#38bdf8" strokeDasharray="4 4" strokeOpacity={0.55} />
+                    <Tooltip
+                      cursor={{ stroke: "#94a3b8", strokeDasharray: "6 6", strokeWidth: 1 }}
+                      content={<HeroFeeTooltipContent />}
+                    />
+                    <Area
+                      type="monotoneX"
+                      dataKey="slow"
+                      stroke="#10b981"
+                      fill="url(#hero-fee-economy)"
+                      strokeWidth={1.6}
+                      name="Economy"
+                      activeDot={{ r: 3, stroke: "#052e16", strokeWidth: 1.2 }}
+                    />
+                    <Area
+                      type="monotoneX"
+                      dataKey="medium"
+                      stroke="#f59e0b"
+                      fill="url(#hero-fee-standard)"
+                      strokeWidth={1.6}
+                      name="Standard"
+                      activeDot={{ r: 3, stroke: "#451a03", strokeWidth: 1.2 }}
+                    />
+                    <Area
+                      type="monotoneX"
+                      dataKey="fast"
+                      stroke="#ef4444"
+                      fill="url(#hero-fee-express)"
+                      strokeWidth={1.8}
+                      name="Express"
+                      activeDot={{ r: 3, stroke: "#450a0a", strokeWidth: 1.2 }}
+                    />
                   </AreaChart>
                 </SafeResponsiveContainer>
               </div>
@@ -364,7 +483,7 @@ export default function HeroMetrics() {
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-slate-400">
                       <span>{formatVsize(tx.vsize)}</span>
                       <span className="text-slate-600">•</span>
-                      <span>{formatTxAge(tx.time, streamFallbackTime)}</span>
+                      <span>{formatTxAge(tx.time, streamFallbackTime, clientNowSec)}</span>
                     </div>
                   </div>
                 ))}

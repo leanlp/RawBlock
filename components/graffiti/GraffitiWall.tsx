@@ -17,12 +17,12 @@ export default function GraffitiWall() {
 
     useEffect(() => {
         // Fetch historical (from server memory)
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/graffiti-recent`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/graffiti-recent`)
             .then(res => res.json())
             .then(data => setMessages(data as GraffitiMsg[]));
 
         // Connect Socket
-        const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
+        const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
         setSocket(newSocket);
 
         newSocket.on('graffiti:new', (msg: GraffitiMsg) => {

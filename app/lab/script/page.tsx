@@ -45,7 +45,7 @@ const PRESETS = {
     requiresTruthyTop: true,
   },
   "Hash Collision (Fail)": {
-    script: "deadbeef OP_SHA256 badf00d OP_SHA256 OP_EQUAL",
+    script: "deadbeef OP_SHA256 badf00d0 OP_SHA256 OP_EQUAL",
     overview: "Shows how hash comparisons fail when preimages differ.",
     objective: "Observe deterministic mismatch outcome.",
     hint: "Consensus false is an empty stack item, shown as blank hex.",

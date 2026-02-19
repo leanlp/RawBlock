@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
+import { createRequire } from "node:module";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const require = createRequire(import.meta.url);
 
 type ScriptFormat = "asm" | "hex" | "auto";
 type VerifyMode = "verify" | "trace";
@@ -199,11 +202,25 @@ function toHexBuffers(items: string[] | undefined, label: string): Buffer[] {
 }
 
 async function loadBitcore(): Promise<BitcoreLike> {
-  const imported = await import("bitcore-lib");
-  const bitcore = ((imported as unknown as { default?: unknown }).default ?? imported) as BitcoreLike;
+  const globalScope = globalThis as typeof globalThis & {
+    __rawblockBitcore?: BitcoreLike;
+    _bitcore?: string;
+  };
+  if (globalScope.__rawblockBitcore) {
+    return globalScope.__rawblockBitcore;
+  }
+
+  // bitcore-lib sets/guards global._bitcore; in Next dev this can throw on module reload.
+  if (globalScope._bitcore) {
+    delete globalScope._bitcore;
+  }
+
+  const imported = require("bitcore-lib") as unknown;
+  const bitcore = ((imported as { default?: unknown }).default ?? imported) as BitcoreLike;
   if (!bitcore.Script?.Interpreter) {
     throw new Error("bitcore-lib interpreter not available");
   }
+  globalScope.__rawblockBitcore = bitcore;
   return bitcore;
 }
 

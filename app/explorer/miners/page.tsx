@@ -61,10 +61,12 @@ export default function MinersPage() {
     const [error, setError] = useState<string | null>(null);
     const [modeNotice, setModeNotice] = useState<string | null>(null);
 
-    const fetchData = useCallback(() => {
-        setLoading(true);
-        setError(null);
-        setModeNotice(null);
+    const fetchData = useCallback((silent = false) => {
+        if (!silent) {
+            setLoading(true);
+            setError(null);
+            setModeNotice(null);
+        }
 
         const fetchPrimary = async (): Promise<MinerData> => {
             if (!API_URL) {
@@ -111,9 +113,15 @@ export default function MinersPage() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            fetchData();
+            fetchData(false);
         }, 0);
-        return () => clearTimeout(timer);
+        const interval = setInterval(() => {
+            fetchData(true);
+        }, 15000);
+        return () => {
+            clearTimeout(timer);
+            clearInterval(interval);
+        };
     }, [fetchData]);
 
     return (

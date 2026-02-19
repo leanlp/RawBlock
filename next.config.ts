@@ -1,5 +1,19 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV !== "production";
+const devConnectSrc = isDev
+  ? [
+      "http://localhost:8080",
+      "http://127.0.0.1:8080",
+      "ws://localhost:8080",
+      "ws://127.0.0.1:8080",
+      "http://localhost:4000",
+      "http://127.0.0.1:4000",
+      "ws://localhost:4000",
+      "ws://127.0.0.1:4000",
+    ]
+  : [];
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -10,7 +24,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline' https:",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
-  "connect-src 'self' https: wss:",
+  `connect-src 'self' https: wss: ${devConnectSrc.join(" ")}`.trim(),
   "frame-src 'self' https:",
   "manifest-src 'self'",
   "upgrade-insecure-requests",
@@ -26,7 +40,7 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
         ],
       },
     ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import Header from '../../../components/Header';
 import PeerMap from '../../components/PeerMap';
 import CountryDetailPanel from '../../components/CountryDetailPanel';
@@ -25,9 +25,27 @@ interface Peer {
     bytes_recv: number;
 }
 
+interface NodeLocation {
+    country?: string;
+    countryCode?: string;
+    countryName?: string;
+    city?: string;
+    ll?: [number, number];
+}
+
+interface KnownPeer {
+    id?: number | string;
+    addr?: string;
+    subver?: string;
+    ping?: number;
+    location?: NodeLocation | null;
+    services?: number;
+    time?: number;
+}
+
 type DataMode = "live" | "demo";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 const DEMO_PEERS: Peer[] = [
     { id: 1, addr: "203.0.113.11:8333", ip: "203.0.113.11", subver: "/Satoshi:26.0.0/", inbound: false, ping: 0.042, version: 70016, location: { country: "US", city: "New York", ll: [40.71, -74.00] }, bytes_sent: 0, bytes_recv: 0 },
@@ -37,16 +55,42 @@ const DEMO_PEERS: Peer[] = [
     { id: 5, addr: "198.51.100.91:8333", ip: "198.51.100.91", subver: "/Satoshi:25.0.0/", inbound: false, ping: 0.073, version: 70016, location: { country: "GB", city: "London", ll: [51.50, -0.12] }, bytes_sent: 0, bytes_recv: 0 },
 ];
 
+const toRadians = (value: number) => (value * Math.PI) / 180;
+
+const haversineDistanceKm = (from: [number, number], to: [number, number]) => {
+    const earthRadiusKm = 6371;
+    const dLat = toRadians(to[0] - from[0]);
+    const dLon = toRadians(to[1] - from[1]);
+    const lat1 = toRadians(from[0]);
+    const lat2 = toRadians(to[0]);
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusKm * c;
+};
+
+const hasCoordinates = (
+    node: { location?: NodeLocation | null }
+): node is { location: NodeLocation & { ll: [number, number] } } => {
+    const ll = node?.location?.ll;
+    return Array.isArray(ll) && ll.length === 2 && Number.isFinite(ll[0]) && Number.isFinite(ll[1]);
+};
+
 export default function NetworkPage() {
     const [peers, setPeers] = useState<Peer[]>([]);
-    const [knownPeers, setKnownPeers] = useState<Peer[]>([]);
+    const [knownPeers, setKnownPeers] = useState<KnownPeer[]>([]);
     const [dataMode, setDataMode] = useState<DataMode>(API_URL ? "live" : "demo");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [scanning, setScanning] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState<{ code: string, name: string } | null>(null);
+    const [mapFocus, setMapFocus] = useState<[number, number] | null>(null);
+    const autoDeepScanTriggeredRef = useRef(false);
 
     const fetchPeers = useCallback(() => {
+        autoDeepScanTriggeredRef.current = false;
         setLoading(true);
         setError(null);
 
@@ -56,6 +100,7 @@ export default function NetworkPage() {
         const fallbackToDemo = () => {
             setPeers(DEMO_PEERS);
             setKnownPeers([]);
+            setMapFocus(null);
             setDataMode("demo");
             setLoading(false);
         };
@@ -94,25 +139,92 @@ export default function NetworkPage() {
         fetchPeers();
     }, [fetchPeers]);
 
-    const handleDeepScan = async () => {
-        if (dataMode === "demo") return;
-        if (knownPeers.length > 0) return;
+    const focusNearestNode = useCallback(async (nodes: KnownPeer[]) => {
+        const locatedNodes = nodes.filter(hasCoordinates);
+        if (locatedNodes.length === 0) {
+            setMapFocus(null);
+            return;
+        }
+
+        const browserLocation = await new Promise<[number, number] | null>((resolve) => {
+            if (typeof navigator === "undefined" || !navigator.geolocation) {
+                resolve(null);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                ({ coords }) => resolve([coords.latitude, coords.longitude]),
+                () => resolve(null),
+                { enableHighAccuracy: false, timeout: 5000, maximumAge: 60_000 }
+            );
+        });
+
+        let nearestNode = locatedNodes[0];
+        if (browserLocation) {
+            let closestDistance = haversineDistanceKm(browserLocation, nearestNode.location.ll);
+            for (let i = 1; i < locatedNodes.length; i += 1) {
+                const candidate = locatedNodes[i];
+                const distance = haversineDistanceKm(browserLocation, candidate.location.ll);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    nearestNode = candidate;
+                }
+            }
+        } else {
+            let lowestPing = Number.isFinite(nearestNode?.ping) ? Number(nearestNode.ping) : Number.POSITIVE_INFINITY;
+            for (let i = 1; i < locatedNodes.length; i += 1) {
+                const candidate = locatedNodes[i];
+                const candidatePing = Number.isFinite(candidate?.ping) ? Number(candidate.ping) : Number.POSITIVE_INFINITY;
+                if (candidatePing < lowestPing) {
+                    lowestPing = candidatePing;
+                    nearestNode = candidate;
+                }
+            }
+        }
+
+        setMapFocus(nearestNode.location.ll);
+
+        const countryCode = String(nearestNode.location.countryCode || nearestNode.location.country || "").trim();
+        if (countryCode) {
+            setSelectedCountry({
+                code: countryCode,
+                name: String(nearestNode.location.countryName || nearestNode.location.country || countryCode),
+            });
+        }
+    }, []);
+
+    const handleDeepScan = useCallback(async () => {
+        if (dataMode === "demo" || scanning) return;
         setScanning(true);
         try {
             const res = await fetch(`${API_URL}/api/known-nodes`, { cache: "no-store" });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            setKnownPeers(Array.isArray(data) ? (data as Peer[]) : []);
+            const safeNodes = Array.isArray(data) ? (data as KnownPeer[]) : [];
+            setKnownPeers(safeNodes);
+            await focusNearestNode(safeNodes);
         } catch (e) {
             console.error("Deep Scan failed", e);
         } finally {
             setScanning(false);
         }
-    };
+    }, [dataMode, focusNearestNode, scanning]);
+
+    useEffect(() => {
+        if (loading || dataMode !== "live" || peers.length === 0 || scanning || autoDeepScanTriggeredRef.current) {
+            return;
+        }
+        autoDeepScanTriggeredRef.current = true;
+        void handleDeepScan();
+    }, [dataMode, handleDeepScan, loading, peers.length, scanning]);
 
     const selectedCountryNodes = useMemo(() => {
         if (!selectedCountry) return [];
         const allNodes = [...peers, ...knownPeers];
-        return allNodes.filter(n => n.location?.country === selectedCountry.code);
+        return allNodes.filter((node) => {
+            const code = String(node.location?.countryCode || node.location?.country || "").trim();
+            return code === selectedCountry.code;
+        });
     }, [selectedCountry, peers, knownPeers]);
 
     return (
@@ -172,21 +284,25 @@ export default function NetworkPage() {
                                 <PeerMap
                                     peers={peers}
                                     knownPeers={knownPeers}
-                                    onCountrySelect={(code, name) => setSelectedCountry({ code, name })}
+                                    onCountrySelect={(code, name) => {
+                                        setMapFocus(null);
+                                        setSelectedCountry({ code, name });
+                                    }}
                                     selectedCountryCode={selectedCountry?.code}
+                                    focusCoordinates={mapFocus}
                                 />
 
                                 <div className="absolute top-4 right-4">
                                     <button
                                         onClick={handleDeepScan}
-                                        disabled={dataMode === "demo" || scanning || knownPeers.length > 0}
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase border transition-all ${knownPeers.length > 0
-                                            ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 cursor-default'
-                                            : scanning
+                                        disabled={dataMode === "demo" || scanning}
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase border transition-all ${scanning
                                                 ? 'bg-cyan-900/50 border-cyan-800 text-cyan-400 cursor-wait'
                                                 : dataMode === "demo"
                                                     ? 'bg-slate-900/40 border-slate-800 text-slate-500 cursor-not-allowed'
-                                                    : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-cyan-500 hover:text-cyan-400'
+                                                    : knownPeers.length > 0
+                                                        ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 hover:border-emerald-300'
+                                                        : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-cyan-500 hover:text-cyan-400'
                                             }`}
                                     >
                                         {dataMode === "demo"
@@ -194,7 +310,7 @@ export default function NetworkPage() {
                                             : scanning
                                                 ? 'Scanning...'
                                                 : knownPeers.length > 0
-                                                    ? `${knownPeers.length} Nodes`
+                                                    ? `Re-Scan (${knownPeers.length})`
                                                     : 'Deep Scan'}
                                     </button>
                                 </div>
