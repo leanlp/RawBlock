@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Header from "../../../components/Header";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { motion } from "framer-motion";
-import io from "socket.io-client";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 
 interface EvolutionData {
@@ -23,24 +22,43 @@ interface EvolutionData {
 }
 
 const COLORS = ['#ef4444', '#f59e0b', '#10b981']; // Red (Legacy), Amber (Segwit), Emerald (Taproot)
+const fallbackApiBaseUrl =
+    typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname)
+        ? "http://localhost:8080"
+        : "https://api.rawblock.net";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || fallbackApiBaseUrl;
 
 export default function EvolutionPage() {
     const [data, setData] = useState<EvolutionData | null>(null);
 
     useEffect(() => {
-        // Initial Fetch
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/evolution`)
-            .then(res => res.json())
-            .then(setData)
-            .catch(console.error);
+        const controller = new AbortController();
+        let isActive = true;
 
-        // Socket
-        const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
-        socket.on('evolution:update', (newData: EvolutionData) => {
-            setData(newData);
-        });
+        const fetchEvolution = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/evolution`, { cache: "no-store", signal: controller.signal });
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                const payload = (await res.json()) as EvolutionData;
+                if (isActive) {
+                    setData(payload);
+                }
+            } catch (err) {
+                if ((err as Error).name === "AbortError") return;
+                console.error("Failed to load evolution payload:", err);
+            }
+        };
 
-        return () => { socket.disconnect(); };
+        fetchEvolution();
+        const pollTimer = window.setInterval(fetchEvolution, 15_000);
+
+        return () => {
+            isActive = false;
+            controller.abort();
+            window.clearInterval(pollTimer);
+        };
     }, []);
 
     const chartData = data ? [

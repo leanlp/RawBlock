@@ -191,7 +191,11 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                 </ComposableMap>
             </MotionConfig>
 
-            <Tooltip id="peer-tooltip" style={{ backgroundColor: "#0f172a", color: "#f1f5f9", borderRadius: "8px", border: "1px solid #1e293b" }} />
+            <Tooltip
+                id="peer-tooltip"
+                border="1px solid #1e293b"
+                style={{ backgroundColor: "#0f172a", color: "#f1f5f9", borderRadius: "8px" }}
+            />
 
             <div className="absolute bottom-4 right-4 flex gap-4 text-[10px] text-slate-500 font-mono pointer-events-none">
                 <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-cyan-400"></div> OUTBOUND</div>

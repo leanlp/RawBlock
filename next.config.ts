@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "";
+const configuredConnectSrc = (() => {
+  if (!configuredApiUrl) return [];
+  try {
+    const parsed = new URL(configuredApiUrl);
+    const wsProtocol = parsed.protocol === "https:" ? "wss:" : "ws:";
+    return [`${parsed.protocol}//${parsed.host}`, `${wsProtocol}//${parsed.host}`];
+  } catch {
+    return [];
+  }
+})();
 const devConnectSrc = isDev
   ? [
       "http://localhost:8080",
@@ -13,6 +24,9 @@ const devConnectSrc = isDev
       "ws://127.0.0.1:4000",
     ]
   : [];
+const connectSrc = ["'self'", "https:", "wss:", ...configuredConnectSrc, ...devConnectSrc]
+  .filter((value, index, values) => values.indexOf(value) === index)
+  .join(" ");
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -24,7 +38,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline' https:",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
-  `connect-src 'self' https: wss: ${devConnectSrc.join(" ")}`.trim(),
+  `connect-src ${connectSrc}`,
   "frame-src 'self' https:",
   "manifest-src 'self'",
   "upgrade-insecure-requests",

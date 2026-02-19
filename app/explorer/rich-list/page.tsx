@@ -158,7 +158,7 @@ export default function RichListPage() {
                         <div className="text-xs text-slate-500 uppercase mt-1">Total UTXOs</div>
                     </div>
                     <div className="bg-slate-900/50 border border-purple-500/30 rounded-xl p-5 text-center">
-                        <div className="text-3xl font-bold text-purple-400">20</div>
+                        <div className="text-3xl font-bold text-purple-400">{whales.length.toLocaleString()}</div>
                         <div className="text-xs text-slate-500 uppercase mt-1">Addresses Tracked</div>
                     </div>
                 </div>

@@ -3,13 +3,12 @@ import "./globals.css";
 import AppShell from "../components/layout/AppShell";
 import { validateContentSchemas } from "@/lib/content/validate";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "Raw Block | Bitcoin Explorer",
   description: "Advanced visualization for Bitcoin Core nodes: Blocks, Mempool, P2P Network, and Script debugging.",
 };
-
-import { Analytics } from "@vercel/analytics/react";
 
 const uiFont = Space_Grotesk({
   subsets: ["latin"],
@@ -24,6 +23,9 @@ const codeFont = JetBrains_Mono({
 });
 
 validateContentSchemas();
+const enableVercelAnalytics =
+  process.env.VERCEL === "1" ||
+  process.env.NEXT_PUBLIC_ENABLE_VERCEL_ANALYTICS === "1";
 
 export default function RootLayout({
   children,
@@ -47,7 +49,7 @@ export default function RootLayout({
       >
         <AppShell>
           {children}
-          <Analytics />
+          {enableVercelAnalytics ? <Analytics /> : null}
         </AppShell>
       </body>
     </html>
