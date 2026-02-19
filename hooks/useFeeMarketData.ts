@@ -15,6 +15,12 @@ export type FeeSnapshot = {
   slow: number;
 };
 
+export type FeeLongHorizon = {
+  satVB: number;
+  targetBlocks: number;
+  source: "blockstream";
+};
+
 export type FeeMarketStats = {
   minObservedSatVB: number;
   avgObservedSatVB: number;
@@ -58,6 +64,7 @@ type FeeMarketState = {
   current: FeeSnapshot | null;
   currentTimestamp: number | null;
   stats: FeeMarketStats | null;
+  longHorizon: FeeLongHorizon | null;
 };
 
 const BLOCKSTREAM_API = "https://blockstream.info/api";
@@ -147,6 +154,30 @@ async function fetchBlockstreamFeeSnapshot(): Promise<FeeSnapshot | null> {
   }
 }
 
+async function fetchBlockstreamLongHorizonFee(): Promise<FeeLongHorizon | null> {
+  try {
+    const response = await fetch(`${BLOCKSTREAM_API}/fee-estimates`, { cache: "no-store" });
+    if (!response.ok) return null;
+
+    const estimates = (await response.json()) as Record<string, number>;
+    const preferredTargets = [144, 72, 36, 24];
+    for (const target of preferredTargets) {
+      const fee = parseFee(estimates[String(target)]);
+      if (fee !== null) {
+        return {
+          satVB: fee,
+          targetBlocks: target,
+          source: "blockstream",
+        };
+      }
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchWithTimeout(url: string, timeoutMs = 2500): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -205,6 +236,7 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
     current: null,
     currentTimestamp: null,
     stats: null,
+    longHorizon: null,
   });
 
   const fetchData = useCallback(async () => {
@@ -213,10 +245,11 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
     try {
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
-      const [historyRes, currentRes, statsRes] = await Promise.allSettled([
+      const [historyRes, currentRes, statsRes, longHorizonRes] = await Promise.allSettled([
         fetchWithTimeout(`${baseUrl}/api/fee-history`),
         fetchWithTimeout(`${baseUrl}/api/network-stats`),
         fetchWithTimeout(`${baseUrl}/api/fee-market-stats`),
+        fetchBlockstreamLongHorizonFee(),
       ]);
 
       let normalizedHistory: FeeHistoryPoint[] | null = null;
@@ -272,6 +305,8 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
           payload.percentiles?.p50 ?? payload.percentiles?.p25 ?? payload.snapshot?.minObservedSatVB,
         );
       }
+      const longHorizonFee =
+        longHorizonRes.status === "fulfilled" ? longHorizonRes.value : null;
 
       const statsEndpointAvailable = isFulfilledOk(statsRes);
       let blockstreamCurrent: FeeSnapshot | null = null;
@@ -298,6 +333,7 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
         const historyBase = normalizedHistory ?? prev.history;
         const history = alignHistoryWithCurrent(historyBase, current);
         const stats = normalizedStats ?? prev.stats;
+        const longHorizon = longHorizonFee ?? prev.longHorizon;
         const hasAnyData = history.length > 0 || current !== null || stats !== null;
         const allFailed =
           !isFulfilledOk(historyRes) &&
@@ -312,6 +348,7 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
           current,
           currentTimestamp,
           stats,
+          longHorizon,
         };
       });
     } catch {

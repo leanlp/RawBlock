@@ -44,7 +44,7 @@ const UPSTREAM_LABEL: Record<BitcoinMetricUpstream, string> = {
 
 export default function VitalsPage() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
-  const { history, cardFees, loading: feeLoading, hasData: hasFeeData, retry: retryFees } = useFeeMarketData(30_000);
+  const { history, cardFees, longHorizon, loading: feeLoading, hasData: hasFeeData, retry: retryFees } = useFeeMarketData(30_000);
 
   const renderFee = (value: number | null) => {
     const formatted = formatSatVb(value);
@@ -152,6 +152,10 @@ export default function VitalsPage() {
                 <p>Fast: {renderFee(cardFees.fast)}</p>
                 <p>30 min: {renderFee(cardFees.medium)}</p>
                 <p>60 min: {renderFee(cardFees.slow)}</p>
+                <p>
+                  24h+ ({longHorizon?.targetBlocks ?? 144} blk):{" "}
+                  {longHorizon ? `${formatSatVb(longHorizon.satVB)} sat/vB` : "Data temporarily unavailable"}
+                </p>
               </div>
               {renderProvenance(metrics.provenance?.fees ?? fallbackProvenance(metrics.lastUpdated))}
             </div>
@@ -209,6 +213,17 @@ export default function VitalsPage() {
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-emerald-300">
                 60m {renderFee(cardFees.slow)}
               </span>
+              {longHorizon ? (
+                <span
+                  className={`rounded-full border px-2 py-1 ${
+                    longHorizon.satVB < 1
+                      ? "border-violet-500/30 bg-violet-500/10 text-violet-300"
+                      : "border-slate-700 bg-slate-900/80 text-slate-300"
+                  }`}
+                >
+                  24h+ {formatSatVb(longHorizon.satVB)} sat/vB
+                </span>
+              ) : null}
             </div>
           </div>
 

@@ -42,7 +42,7 @@ function FeeTooltipContent({ active, label, payload }: FeeTooltipProps) {
 }
 
 export default function FeesPage() {
-  const { history, cardFees, stats, currentTimestamp, loading, error, hasData, retry } = useFeeMarketData(30_000);
+  const { history, cardFees, stats, longHorizon, currentTimestamp, loading, error, hasData, retry } = useFeeMarketData(30_000);
 
   const chartMeta = useMemo(() => {
     if (history.length === 0) return null;
@@ -186,6 +186,17 @@ export default function FeesPage() {
                       }`}
                     >
                       Sync lag: {chartMeta.syncLagSeconds}s
+                    </span>
+                  ) : null}
+                  {longHorizon ? (
+                    <span
+                      className={`rounded-full border px-3 py-1 ${
+                        longHorizon.satVB < (chartMeta.policyFloor ?? 1)
+                          ? "border-violet-500/35 bg-violet-500/10 text-violet-300"
+                          : "border-slate-700/80 bg-slate-900/70 text-slate-300"
+                      }`}
+                    >
+                      Long horizon ({longHorizon.targetBlocks} blocks): {formatSatVb(longHorizon.satVB)} sat/vB
                     </span>
                   ) : null}
                 </div>

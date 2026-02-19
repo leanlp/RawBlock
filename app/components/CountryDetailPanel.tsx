@@ -91,16 +91,20 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
                                 onClick={() => setExpandedNodeIndex(expandedNodeIndex === i ? null : i)}
                                 className={`bg-slate-800/50 p-3 rounded border transition-all cursor-pointer group ${expandedNodeIndex === i ? 'border-emerald-500/50 bg-slate-800' : 'border-slate-700/50 hover:border-emerald-500/30'}`}
                             >
-                                <div className="mb-1 flex items-center justify-between gap-2">
-                                    <span className="max-w-[58vw] truncate text-xs text-slate-400 font-mono group-hover:text-emerald-400 transition-colors sm:max-w-40">{node.addr}</span>
-                                    <span className="max-w-[42%] shrink-0 truncate text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">
+                                <div className="mb-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                                    <span className="min-w-0 max-w-full break-all text-xs text-slate-400 font-mono group-hover:text-emerald-400 transition-colors sm:max-w-40 sm:truncate">
+                                        {node.addr}
+                                    </span>
+                                    <span className="max-w-full self-start truncate text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded sm:max-w-[42%] sm:self-auto">
                                         {node.subver ? node.subver.replace(/\//g, '').substring(0, 15) : 'Unknown'}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between gap-2">
-                                    <span className="max-w-[58vw] truncate text-xs text-slate-300 sm:max-w-44">{node.location?.city}</span>
+                                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                                    <span className="min-w-0 max-w-full break-words text-xs text-slate-300 sm:max-w-44 sm:truncate">
+                                        {node.location?.city || 'Unknown'}
+                                    </span>
                                     {node.location?.ll && (
-                                        <span className="shrink-0 text-[10px] text-emerald-500/70 font-mono tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="text-[10px] text-emerald-500/70 font-mono tracking-tighter sm:shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                             {node.location.ll[0].toFixed(2)}, {node.location.ll[1].toFixed(2)}
                                         </span>
                                     )}

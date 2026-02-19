@@ -273,7 +273,7 @@ export default function Sidebar() {
     return (
         <>
             {/* Quick Route Controls (Mobile) */}
-            <div className={`md:hidden fixed top-4 left-16 z-[79] ${mobileOpen ? "hidden" : "flex"} flex-row gap-2 transition-all duration-300 ${isScrollingDown ? "pointer-events-none -translate-y-3 opacity-0" : isScrolled ? "translate-y-0 opacity-85" : "translate-y-0 opacity-100"}`}>
+            <div className={`md:hidden fixed left-16 z-[79] top-[calc(env(safe-area-inset-top)+0.75rem)] ${mobileOpen ? "hidden" : "flex"} flex-row gap-2 transition-all duration-300 ${isScrollingDown ? "pointer-events-none -translate-y-3 opacity-0" : isScrolled ? "translate-y-0 opacity-85" : "translate-y-0 opacity-100"}`}>
                 <Link
                     href={previousPath}
                     className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
@@ -303,7 +303,7 @@ export default function Sidebar() {
             {/* Mobile Hamburger Button */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className={`md:hidden fixed top-4 left-4 z-[90] flex h-11 w-11 items-center justify-center rounded-lg text-slate-300 transition-all duration-300 hover:text-cyan-400 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/90 backdrop-blur-sm"}`}
+                className={`md:hidden fixed left-4 z-[90] top-[calc(env(safe-area-inset-top)+0.75rem)] flex h-11 w-11 items-center justify-center rounded-lg text-slate-300 transition-all duration-300 hover:text-cyan-400 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/90 backdrop-blur-sm"}`}
                 aria-label="Toggle menu"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
