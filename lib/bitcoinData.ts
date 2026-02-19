@@ -60,10 +60,22 @@ export type RecentMempoolTx = {
 
 const MEMPOOL_API = "https://mempool.space/api";
 const BLOCKSTREAM_API = "https://blockstream.info/api";
-const NODE_GATEWAY_API =
-  process.env.RAWBLOCK_API_URL?.replace(/\/$/, "") ??
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
-  null;
+function resolveNodeGatewayApiUrl(): string | null {
+  const candidates = [process.env.NEXT_PUBLIC_API_URL, process.env.RAWBLOCK_API_URL];
+  for (const candidate of candidates) {
+    const trimmed = candidate?.trim();
+    if (!trimmed) continue;
+    try {
+      const parsed = new URL(trimmed);
+      return `${parsed.protocol}//${parsed.host}${parsed.pathname}`.replace(/\/$/, "");
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+const NODE_GATEWAY_API = resolveNodeGatewayApiUrl();
 
 type NodeNetworkStatsResponse = {
   height?: number;

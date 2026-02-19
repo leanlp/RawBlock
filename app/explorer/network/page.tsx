@@ -185,14 +185,6 @@ export default function NetworkPage() {
         }
 
         setMapFocus(nearestNode.location.ll);
-
-        const countryCode = String(nearestNode.location.countryCode || nearestNode.location.country || "").trim();
-        if (countryCode) {
-            setSelectedCountry({
-                code: countryCode,
-                name: String(nearestNode.location.countryName || nearestNode.location.country || countryCode),
-            });
-        }
     }, []);
 
     const handleDeepScan = useCallback(async () => {

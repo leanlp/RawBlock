@@ -24,7 +24,7 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
     const [expandedNodeIndex, setExpandedNodeIndex] = React.useState<number | null>(null);
 
     return (
-        <div className="fixed right-0 top-0 h-full w-full sm:w-96 bg-slate-900/95 border-l border-emerald-500/30 shadow-2xl backdrop-blur-xl transform transition-transform duration-300 z-50 overflow-y-auto">
+        <div className="fixed right-0 top-0 h-full w-full sm:w-96 bg-slate-900/95 border-l border-emerald-500/30 shadow-2xl backdrop-blur-xl transform transition-transform duration-300 z-[95] overflow-y-auto">
             <div className="p-6">
                 <div className="flex justify-between items-start mb-8">
                     <div>
@@ -54,9 +54,9 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
                         {topCities.map(([city, count]) => (
                             <div key={city} className="flex items-center gap-3">
                                 <div className="flex-1">
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-slate-300 font-medium">{city}</span>
-                                        <span className="text-emerald-400 font-mono">{count}</span>
+                                    <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                                        <span className="min-w-0 truncate text-slate-300 font-medium">{city}</span>
+                                        <span className="shrink-0 text-emerald-400 font-mono">{count}</span>
                                     </div>
                                     <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
                                         <div
@@ -91,16 +91,16 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
                                 onClick={() => setExpandedNodeIndex(expandedNodeIndex === i ? null : i)}
                                 className={`bg-slate-800/50 p-3 rounded border transition-all cursor-pointer group ${expandedNodeIndex === i ? 'border-emerald-500/50 bg-slate-800' : 'border-slate-700/50 hover:border-emerald-500/30'}`}
                             >
-                                <div className="flex justify-between items-center mb-1">
-                                    <span className="text-xs text-slate-400 font-mono truncate max-w-[55vw] md:max-w-40 group-hover:text-emerald-400 transition-colors">{node.addr}</span>
-                                    <span className="text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">
+                                <div className="mb-1 flex items-center justify-between gap-2">
+                                    <span className="max-w-[58vw] truncate text-xs text-slate-400 font-mono group-hover:text-emerald-400 transition-colors sm:max-w-40">{node.addr}</span>
+                                    <span className="max-w-[42%] shrink-0 truncate text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">
                                         {node.subver ? node.subver.replace(/\//g, '').substring(0, 15) : 'Unknown'}
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-xs text-slate-300">{node.location?.city}</span>
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="max-w-[58vw] truncate text-xs text-slate-300 sm:max-w-44">{node.location?.city}</span>
                                     {node.location?.ll && (
-                                        <span className="text-[10px] text-emerald-500/70 font-mono tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="shrink-0 text-[10px] text-emerald-500/70 font-mono tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
                                             {node.location.ll[0].toFixed(2)}, {node.location.ll[1].toFixed(2)}
                                         </span>
                                     )}
@@ -109,9 +109,18 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
                                 {/* Expanded Details */}
                                 {expandedNodeIndex === i && (
                                     <div className="mt-3 pt-3 border-t border-slate-700/50 text-[10px] font-mono space-y-1 text-slate-400 animate-in fade-in zoom-in-95 duration-200">
-                                        <div className="flex justify-between"><span>Services:</span> <span className="text-slate-300">{node.services}</span></div>
-                                        <div className="flex justify-between"><span>Time:</span> <span className="text-slate-300">{new Date(node.time * 1000).toLocaleString()}</span></div>
-                                        <div className="flex justify-between"><span>Coordinates:</span> <span className="text-slate-300">{node.location?.ll.join(', ')}</span></div>
+                                        <div className="flex items-start justify-between gap-3">
+                                            <span>Services:</span>
+                                            <span className="max-w-[65%] break-words text-right text-slate-300">{node.services}</span>
+                                        </div>
+                                        <div className="flex items-start justify-between gap-3">
+                                            <span>Time:</span>
+                                            <span className="max-w-[65%] break-words text-right text-slate-300">{new Date(node.time * 1000).toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex items-start justify-between gap-3">
+                                            <span>Coordinates:</span>
+                                            <span className="max-w-[65%] break-words text-right text-slate-300">{node.location?.ll.join(', ')}</span>
+                                        </div>
                                     </div>
                                 )}
                             </div>
