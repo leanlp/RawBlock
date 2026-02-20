@@ -101,49 +101,49 @@ export default function BlockHeaderInspector({
         extra?: string;
         action?: "open-merkle";
     }> = [
-        {
-            key: "version",
-            label: "Version",
-            value: typeof header.version === "number" ? `${header.version} (${derived.versionHex})` : "Unavailable",
-            extra: derived.versionSignals,
-        },
-        {
-            key: "bits",
-            label: "Bits / Target",
-            value: formatBits(header.bits),
-            extra: `Difficulty: ${derived.difficulty}`,
-        },
-        {
-            key: "nonce",
-            label: "Nonce",
-            value: typeof header.nonce === "number" ? `${header.nonce} (0x${header.nonce.toString(16)})` : "Unavailable",
-            extra: "32-bit mining iteration field",
-        },
-        {
-            key: "time",
-            label: "Timestamp",
-            value: new Date(header.time * 1000).toLocaleString(),
-            extra: header.mediantime ? `Median Time: ${new Date(header.mediantime * 1000).toLocaleString()}` : undefined,
-        },
-        {
-            key: "merkleroot",
-            label: "Merkle Root",
-            value: shortHash(header.merkleroot ?? computedMerkleRoot ?? undefined),
-            extra:
-                derived.merkleMatch === null
-                    ? "Header root unavailable from API"
-                    : derived.merkleMatch
-                        ? "Matches computed tx tree root"
-                        : "Header root mismatch with computed tx tree",
-            action: "open-merkle",
-        },
-        {
-            key: "previousblockhash",
-            label: "Previous Block Hash",
-            value: shortHash(header.previousblockhash),
-            extra: `Height #${header.height.toLocaleString()} commits to parent chainwork`,
-        },
-    ];
+            {
+                key: "version",
+                label: "Version",
+                value: typeof header.version === "number" ? `${header.version} (${derived.versionHex})` : "Unavailable",
+                extra: derived.versionSignals,
+            },
+            {
+                key: "bits",
+                label: "Bits / Target",
+                value: formatBits(header.bits),
+                extra: `Difficulty: ${derived.difficulty}`,
+            },
+            {
+                key: "nonce",
+                label: "Nonce",
+                value: typeof header.nonce === "number" ? `${header.nonce} (0x${header.nonce.toString(16)})` : "Unavailable",
+                extra: "32-bit mining iteration field",
+            },
+            {
+                key: "time",
+                label: "Timestamp",
+                value: new Date(header.time * 1000).toLocaleString(),
+                extra: header.mediantime ? `Median Time: ${new Date(header.mediantime * 1000).toLocaleString()}` : undefined,
+            },
+            {
+                key: "merkleroot",
+                label: "Merkle Root",
+                value: shortHash(header.merkleroot ?? computedMerkleRoot ?? undefined),
+                extra:
+                    derived.merkleMatch === null
+                        ? "Header root unavailable from API"
+                        : derived.merkleMatch
+                            ? "Matches computed tx tree root"
+                            : "Header root mismatch with computed tx tree",
+                action: "open-merkle",
+            },
+            {
+                key: "previousblockhash",
+                label: "Previous Block Hash",
+                value: shortHash(header.previousblockhash),
+                extra: `Height #${header.height.toLocaleString()} commits to parent chainwork`,
+            },
+        ];
 
     return (
         <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
@@ -171,11 +171,10 @@ export default function BlockHeaderInspector({
                                 onOpenMerklePanel();
                             }
                         }}
-                        className={`rounded-lg border p-3 text-left transition ${
-                            selectedField === card.key
-                                ? "border-cyan-500/60 bg-cyan-500/10 shadow-[0_0_0_1px_rgba(6,182,212,0.25)]"
-                                : "border-slate-800 bg-slate-950/40 hover:border-slate-700"
-                        }`}
+                        className={`rounded-lg border p-3 text-left transition ${selectedField === card.key
+                            ? "border-cyan-500/60 bg-cyan-500/10 shadow-[0_0_0_1px_rgba(6,182,212,0.25)]"
+                            : "border-slate-800 bg-slate-950/40 hover:border-slate-700"
+                            }`}
                     >
                         <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">{card.label}</div>
                         <div className="mt-1 break-all font-mono text-sm text-slate-100">{card.value}</div>

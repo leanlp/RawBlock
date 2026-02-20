@@ -7,6 +7,7 @@ import NodeRealDataPanel from "@/components/academy/NodeRealDataPanel";
 import NodeSecurityPanel from "@/components/academy/NodeSecurityPanel";
 import NodeSources from "@/components/academy/NodeSources";
 import NodeStory from "@/components/academy/NodeStory";
+import QuizModule from "@/components/academy/QuizModule";
 import GlossaryText from "@/components/glossary/GlossaryText";
 import { claimsById } from "@/data/content/claims";
 import { getAcademyNodeContent } from "@/lib/content/academy";
@@ -372,6 +373,8 @@ export default async function AcademyNodePage({ params }: AcademyNodePageProps) 
                 </ul>
               )}
             </section>
+
+            <QuizModule nodeId={node.id} />
           </div>
 
           <aside className="space-y-4 lg:col-span-4 lg:sticky lg:top-6 self-start">

@@ -630,7 +630,7 @@ export default function ScriptLabPage() {
   }, [realTraceMaxSteps, runConsensusTrace, scriptInput]);
 
   return (
-    <main className="min-h-screen bg-slate-950 p-4 font-mono text-slate-200 md:p-8">
+    <main className="min-h-screen bg-slate-950 p-4 font-mono text-slate-200 md:p-8 overflow-x-hidden">
       <div className="mx-auto flex w-full max-w-7xl flex-col space-y-6">
         <Header />
 
@@ -721,11 +721,10 @@ export default function ScriptLabPage() {
                   type="button"
                   onClick={() => setIsPlaying((prev) => !prev)}
                   disabled={state.completed || !!state.error || realLoading}
-                  className={`min-h-11 rounded-lg px-3 text-sm font-bold ${
-                    isAutoPlaying
+                  className={`min-h-11 rounded-lg px-3 text-sm font-bold ${isAutoPlaying
                       ? "border border-red-500/50 bg-red-500/20 text-red-300"
                       : "bg-emerald-600 text-white hover:bg-emerald-500"
-                  } disabled:cursor-not-allowed disabled:opacity-40`}
+                    } disabled:cursor-not-allowed disabled:opacity-40`}
                 >
                   {isAutoPlaying ? "Pause" : "Run"}
                 </button>
@@ -733,13 +732,12 @@ export default function ScriptLabPage() {
             </div>
 
             <div
-              className={`rounded-xl border p-4 ${
-                validation.status === "pass"
+              className={`rounded-xl border p-4 ${validation.status === "pass"
                   ? "border-emerald-500/40 bg-emerald-900/20"
                   : validation.status === "fail"
                     ? "border-red-500/40 bg-red-900/20"
                     : "border-slate-800 bg-slate-900"
-              }`}
+                }`}
             >
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Validation Engine</p>
               <p className="mt-2 text-sm text-slate-200">{validation.summary}</p>
@@ -802,13 +800,12 @@ export default function ScriptLabPage() {
                 return (
                   <div
                     key={`${opcode}-${index}`}
-                    className={`rounded p-2 text-xs transition-all ${
-                      isCurrent
+                    className={`rounded p-2 text-xs transition-all ${isCurrent
                         ? "border border-yellow-500/50 bg-yellow-500/20 font-bold text-yellow-300"
                         : isPast
                           ? "text-slate-600"
                           : "text-slate-300"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span>{opcode}</span>
@@ -833,13 +830,12 @@ export default function ScriptLabPage() {
                     <div key={`${entry.name}-${entry.code}`} className="flex items-center justify-between rounded border border-slate-800 p-1.5">
                       <span className="text-slate-300">{entry.name}</span>
                       <span
-                        className={`rounded px-1.5 py-0.5 ${
-                          entry.status === "enabled"
+                        className={`rounded px-1.5 py-0.5 ${entry.status === "enabled"
                             ? "bg-emerald-500/20 text-emerald-300"
                             : entry.status === "disabled"
                               ? "bg-red-500/20 text-red-300"
                               : "bg-amber-500/20 text-amber-300"
-                        }`}
+                          }`}
                       >
                         {entry.status} ({entry.code})
                       </span>
@@ -881,11 +877,10 @@ export default function ScriptLabPage() {
                   key={fixture.id}
                   type="button"
                   onClick={() => loadConsensusFixture(fixture)}
-                  className={`min-h-11 rounded-lg border p-2 text-left ${
-                    selectedFixtureId === fixture.id
+                  className={`min-h-11 rounded-lg border p-2 text-left ${selectedFixtureId === fixture.id
                       ? "border-cyan-500/50 bg-cyan-500/10"
                       : "border-slate-800 bg-slate-900/70 hover:border-slate-700"
-                  }`}
+                    }`}
                 >
                   <p className="text-xs font-bold text-slate-200">{fixture.name}</p>
                   <p className="mt-1 text-[10px] text-slate-400">{fixture.objective}</p>
@@ -1060,13 +1055,12 @@ export default function ScriptLabPage() {
               </div>
 
               <div
-                className={`rounded-lg border p-3 ${
-                  realResult?.verified
+                className={`rounded-lg border p-3 ${realResult?.verified
                     ? "border-emerald-500/40 bg-emerald-900/20"
                     : realResult
                       ? "border-red-500/40 bg-red-900/20"
                       : "border-slate-800 bg-slate-950/40"
-                }`}
+                  }`}
               >
                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Consensus Result</p>
                 {selectedFixture ? (
@@ -1103,13 +1097,12 @@ export default function ScriptLabPage() {
               </div>
 
               <div
-                className={`rounded-lg border p-3 ${
-                  realTraceResult
+                className={`rounded-lg border p-3 ${realTraceResult
                     ? realTraceResult.error
                       ? "border-red-500/40 bg-red-900/20"
                       : "border-emerald-500/40 bg-emerald-900/20"
                     : "border-slate-800 bg-slate-950/40"
-                }`}
+                  }`}
               >
                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Trace Result (Real Interpreter)</p>
                 {realTraceError ? <p className="mt-2 text-xs text-red-300">{realTraceError}</p> : null}

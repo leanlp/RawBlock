@@ -81,6 +81,7 @@ interface TxHexSegment {
     label: string;
     start: number;
     end: number;
+    byteLength: number;
     hex: string;
     kind: SegmentKind;
     note?: string;
@@ -193,7 +194,8 @@ function parseTransactionHex(rawHex?: string): ParsedTxHex | null {
         segments.push({
             label,
             start,
-            end: end - 1,
+            end: length > 0 ? end - 1 : start,
+            byteLength: length,
             hex: bytesToHex(slice),
             kind,
             note,
@@ -329,6 +331,13 @@ function checkStatusClasses(status: CheckStatus): string {
     if (status === "fail") return "border-red-500/40 bg-red-500/10 text-red-200";
     if (status === "warn") return "border-amber-500/40 bg-amber-500/10 text-amber-200";
     return "border-slate-700 bg-slate-900/50 text-slate-300";
+}
+
+function formatSegmentRange(segment: TxHexSegment): string {
+    if (segment.byteLength === 0) {
+        return `${segment.start} (0 bytes)`;
+    }
+    return `${segment.start}-${segment.end}`;
 }
 
 function buildSanityChecks(tx: TxData, parsed: ParsedTxHex | null): SanityCheck[] {
@@ -545,7 +554,7 @@ export default function TxHexWorkbench({ tx }: TxHexWorkbenchProps) {
                     <div className="grid grid-cols-[78px_1fr] gap-1 rounded border border-slate-800 bg-slate-900/60 p-2 text-[11px]">
                         {parsed.segments.map((segment, index) => {
                             const active = index === selectedSegmentIndex;
-                            const range = `${segment.start}-${segment.end}`;
+                            const range = formatSegmentRange(segment);
                             return (
                                 <button
                                     key={`${segment.label}-${segment.start}`}
@@ -554,22 +563,20 @@ export default function TxHexWorkbench({ tx }: TxHexWorkbenchProps) {
                                     className={`contents text-left ${active ? "font-semibold" : ""}`}
                                 >
                                     <span
-                                        className={`rounded px-2 py-1 font-mono ${
-                                            active
-                                                ? "bg-cyan-500/20 text-cyan-200"
-                                                : "bg-slate-950/60 text-slate-400"
-                                        }`}
+                                        className={`rounded px-2 py-1 font-mono ${active
+                                            ? "bg-cyan-500/20 text-cyan-200"
+                                            : "bg-slate-950/60 text-slate-400"
+                                            }`}
                                     >
                                         {range}
                                     </span>
                                     <span
-                                        className={`rounded px-2 py-1 ${
-                                            active
-                                                ? "bg-cyan-500/15 text-cyan-100"
-                                                : segment.label.includes("marker_flag")
-                                                    ? "bg-amber-500/10 text-amber-200"
-                                                    : "bg-slate-950/40 text-slate-300"
-                                        }`}
+                                        className={`rounded px-2 py-1 ${active
+                                            ? "bg-cyan-500/15 text-cyan-100"
+                                            : segment.label.includes("marker_flag")
+                                                ? "bg-amber-500/10 text-amber-200"
+                                                : "bg-slate-950/40 text-slate-300"
+                                            }`}
                                     >
                                         {segment.label}
                                     </span>
@@ -582,7 +589,7 @@ export default function TxHexWorkbench({ tx }: TxHexWorkbenchProps) {
                         <div className="rounded border border-slate-800 bg-slate-900/70 p-3">
                             <div className="text-xs text-slate-500">Selected segment</div>
                             <div className="font-semibold text-cyan-200">{selectedSegment.label}</div>
-                            <div className="mt-2 text-xs text-slate-400">offset {selectedSegment.start}..{selectedSegment.end}</div>
+                            <div className="mt-2 text-xs text-slate-400">offset {formatSegmentRange(selectedSegment)}</div>
                             {selectedSegment.note ? <div className="mt-1 text-xs text-slate-400">{selectedSegment.note}</div> : null}
                             <div className="mt-2 max-h-32 overflow-y-auto break-all rounded border border-slate-800 bg-slate-950/70 p-2 font-mono text-[11px] text-violet-200">
                                 {selectedSegment.hex || "<empty>"}
@@ -609,11 +616,10 @@ export default function TxHexWorkbench({ tx }: TxHexWorkbenchProps) {
                             key={mode}
                             type="button"
                             onClick={() => setViewMode(mode)}
-                            className={`rounded border px-3 py-2 text-xs uppercase tracking-[0.15em] ${
-                                viewMode === mode
-                                    ? "border-cyan-500/50 bg-cyan-500/10 text-cyan-200"
-                                    : "border-slate-700 bg-slate-950/60 text-slate-300 hover:border-slate-600"
-                            }`}
+                            className={`rounded border px-3 py-2 text-xs uppercase tracking-[0.15em] ${viewMode === mode
+                                ? "border-cyan-500/50 bg-cyan-500/10 text-cyan-200"
+                                : "border-slate-700 bg-slate-950/60 text-slate-300 hover:border-slate-600"
+                                }`}
                         >
                             {mode}
                         </button>

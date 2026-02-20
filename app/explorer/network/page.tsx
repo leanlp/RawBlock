@@ -1,12 +1,21 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef, Suspense } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Header from '../../../components/Header';
-import PeerMap from '../../components/PeerMap';
+import dynamic from 'next/dynamic';
+
+const PeerMap = dynamic(() => import('../../components/PeerMap'), {
+    ssr: false,
+    loading: () => <div className="animate-pulse h-[600px] w-full bg-slate-900/50 rounded-xl" />
+});
 import CountryDetailPanel from '../../components/CountryDetailPanel';
 import Card, { CardRow } from '../../../components/Card';
 import { LoadingState, ErrorState } from '../../../components/EmptyState';
 import PageHeader from '../../../components/PageHeader';
+import NetworkAnalyticsPanel from '../../../components/network/NetworkAnalyticsPanel';
+import ProvenanceBadge from '../../../components/ProvenanceBadge';
+import ScreenshotExport from '../../../components/ScreenshotExport';
 
 interface Peer {
     id: number;
@@ -80,7 +89,11 @@ const hasCoordinates = <T extends { location?: NodeLocation | null }>(
     return Array.isArray(ll) && ll.length === 2 && Number.isFinite(ll[0]) && Number.isFinite(ll[1]);
 };
 
-export default function NetworkPage() {
+function NetworkContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
     const [peers, setPeers] = useState<Peer[]>([]);
     const [knownPeers, setKnownPeers] = useState<KnownPeer[]>([]);
     const [dataMode, setDataMode] = useState<DataMode>(API_URL ? "live" : "demo");
@@ -89,7 +102,34 @@ export default function NetworkPage() {
     const [scanning, setScanning] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState<{ code: string, name: string } | null>(null);
     const [mapFocus, setMapFocus] = useState<[number, number] | null>(null);
+
+    // Initialize from URL state
+    const initialLatency = (searchParams.get("latency") as "all" | "fast" | "medium" | "slow") || "all";
+    const [pingFilter, setPingFilter] = useState<"all" | "fast" | "medium" | "slow">(initialLatency);
+
+    // Sync state to URL
+    const handlePingFilter = useCallback((filter: "all" | "fast" | "medium" | "slow") => {
+        setPingFilter(filter);
+        const params = new URLSearchParams(searchParams.toString());
+        if (filter === "all") {
+            params.delete("latency");
+        } else {
+            params.set("latency", filter);
+        }
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }, [pathname, router, searchParams]);
     const autoDeepScanTriggeredRef = useRef(false);
+
+    const filteredPeers = useMemo(() => {
+        return peers.filter(p => {
+            if (pingFilter === "all") return true;
+            const ms = p.ping * 1000;
+            if (pingFilter === "fast") return ms < 50;
+            if (pingFilter === "medium") return ms >= 50 && ms <= 150;
+            if (pingFilter === "slow") return ms > 150;
+            return true;
+        });
+    }, [peers, pingFilter]);
 
     const fetchPeers = useCallback(() => {
         autoDeepScanTriggeredRef.current = false;
@@ -97,7 +137,7 @@ export default function NetworkPage() {
         setError(null);
 
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8_000);
+        const timeout = setTimeout(() => controller.abort(new Error("Timeout")), 8_000);
 
         const fallbackToDemo = () => {
             setPeers(DEMO_PEERS);
@@ -129,7 +169,9 @@ export default function NetworkPage() {
                 setLoading(false);
             })
             .catch(err => {
-                console.error("Failed to fetch peers:", err);
+                if (err.name !== 'AbortError' && err.message !== 'Timeout') {
+                    console.error("Failed to fetch peers:", err);
+                }
                 fallbackToDemo();
             })
             .finally(() => {
@@ -252,7 +294,7 @@ export default function NetworkPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Header />
 
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <PageHeader
                         title="Global Network"
                         subtitle={
@@ -263,58 +305,65 @@ export default function NetworkPage() {
                         icon="🌐"
                         gradient="from-emerald-400 to-cyan-400"
                     />
-
-                    {dataMode === "demo" && (
-                        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
-                            Live peer discovery is unavailable. Rendering demo peer data so this view remains usable.
-                        </div>
+                    {!loading && !error && (
+                        <ProvenanceBadge
+                            source={dataMode === 'live' ? 'Live Node' : 'Public API Fallback'}
+                            timestamp={new Date().toISOString().split('T')[0]}
+                            className="self-start md:self-auto"
+                        />
                     )}
+                </div>
 
-                    {loading && <LoadingState message="Connecting to peer telemetry..." />}
+                {!loading && !error && peers.length > 0 && (
+                    <NetworkAnalyticsPanel
+                        peers={peers}
+                        onPingFilter={handlePingFilter}
+                        currentPingFilter={pingFilter}
+                    />
+                )}
 
-                    {!loading && error && <ErrorState message={error} onRetry={fetchPeers} />}
+                {dataMode === "demo" && (
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                        Live peer discovery is unavailable. Rendering demo peer data so this view remains usable.
+                    </div>
+                )}
 
-                    {!loading && !error && peers.length === 0 && (
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="text-6xl mb-4">🌍</div>
-                            <h3 className="text-xl font-bold text-white mb-2">No Peers Found</h3>
-                            <p className="text-slate-400 max-w-md mx-auto mb-8">
-                                Your node does not seem to be connected to any peers. Check your network connection.
-                            </p>
-                            <button
-                                onClick={fetchPeers}
-                                className="px-6 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-200 transition-colors"
-                            >
-                                Retry
-                            </button>
-                        </div>
-                    )}
+                {loading && <LoadingState message="Connecting to peer telemetry..." />}
 
-                    {!loading && !error && peers.length > 0 && (
-                        <>
-                            <div className="relative">
-                                <PeerMap
-                                    peers={peers}
-                                    knownPeers={knownPeers}
-                                    onCountrySelect={(code, name) => {
-                                        setMapFocus(null);
-                                        setSelectedCountry({ code, name });
-                                    }}
-                                    selectedCountryCode={selectedCountry?.code}
-                                    focusCoordinates={mapFocus}
-                                />
+                {!loading && error && <ErrorState message={error} onRetry={fetchPeers} />}
 
-                                <div className="absolute top-4 right-4 hidden sm:block">
-                                    <button
-                                        onClick={handleDeepScan}
-                                        disabled={dataMode === "demo" || scanning}
-                                        className={deepScanButtonClass}
-                                    >
-                                        {deepScanButtonLabel}
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="sm:hidden flex justify-end">
+                {!loading && !error && peers.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <div className="text-6xl mb-4">🌍</div>
+                        <h3 className="text-xl font-bold text-white mb-2">No Peers Found</h3>
+                        <p className="text-slate-400 max-w-md mx-auto mb-8">
+                            Your node does not seem to be connected to any peers. Check your network connection.
+                        </p>
+                        <button
+                            onClick={fetchPeers}
+                            className="px-6 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-200 transition-colors"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                )}
+
+                {!loading && !error && peers.length > 0 && (
+                    <>
+                        <div className="relative" id="network-map-export-target">
+                            <PeerMap
+                                peers={filteredPeers}
+                                knownPeers={knownPeers}
+                                onCountrySelect={(code, name) => {
+                                    setMapFocus(null);
+                                    setSelectedCountry({ code, name });
+                                }}
+                                selectedCountryCode={selectedCountry?.code}
+                                focusCoordinates={mapFocus}
+                            />
+
+                            <div className="absolute top-4 right-4 hidden sm:flex items-center gap-2">
+                                <ScreenshotExport targetId="network-map-export-target" filename={`network-map-${Date.now()}`} buttonText="Export PNG" />
                                 <button
                                     onClick={handleDeepScan}
                                     disabled={dataMode === "demo" || scanning}
@@ -323,107 +372,124 @@ export default function NetworkPage() {
                                     {deepScanButtonLabel}
                                 </button>
                             </div>
+                        </div>
+                        <div className="sm:hidden flex justify-end">
+                            <button
+                                onClick={handleDeepScan}
+                                disabled={dataMode === "demo" || scanning}
+                                className={deepScanButtonClass}
+                            >
+                                {deepScanButtonLabel}
+                            </button>
+                        </div>
 
-                            {/* Peer Section */}
-                            <Card variant="panel" className="p-0 overflow-hidden flex flex-col">
-                                <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Active Connections</h3>
-                                    <span className="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">{peers.length} Peers</span>
-                                </div>
+                        {/* Peer Section */}
+                        <Card variant="panel" className="p-0 overflow-hidden flex flex-col">
+                            <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Active Connections</h3>
+                                <span className="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">{filteredPeers.length} Peers</span>
+                            </div>
 
-                                {/* Mobile Card View */}
-                                <div className="md:hidden p-4 space-y-3">
-                                    {peers.slice(0, 20).map((peer) => (
-                                        <Card key={peer.id} className="p-4" hoverable={false}>
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="font-mono text-sm text-cyan-300 truncate max-w-[60vw] md:max-w-44">
-                                                    {peer.addr}
-                                                </span>
-                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${peer.inbound
-                                                    ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                                                    : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                                                    }`}>
-                                                    {peer.inbound ? 'IN' : 'OUT'}
-                                                </span>
-                                            </div>
-                                            <CardRow
-                                                label="Location"
-                                                value={peer.location ? `${peer.location.city}, ${peer.location.country}` : 'Unknown'}
-                                            />
-                                            <CardRow
-                                                label="Client"
-                                                value={peer.subver.replace(/\//g, '').substring(0, 20)}
-                                            />
-                                            <CardRow
-                                                label="Ping"
-                                                value={`${(peer.ping * 1000).toFixed(0)} ms`}
-                                                mono
-                                            />
-                                        </Card>
-                                    ))}
-                                    {peers.length > 20 && (
-                                        <p className="text-center text-xs text-slate-500 py-2">
-                                            Showing 20 of {peers.length} peers
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Desktop Table View */}
-                                <div className="hidden md:block overflow-x-auto">
-                                    <table className="w-full text-left text-sm text-slate-400">
-                                        <thead className="bg-slate-900/80 text-xs uppercase text-slate-500">
-                                            <tr>
-                                                <th className="px-6 py-3 font-medium">IP Address</th>
-                                                <th className="px-6 py-3 font-medium">Location</th>
-                                                <th className="px-6 py-3 font-medium">Client</th>
-                                                <th className="px-6 py-3 font-medium text-right">Direction</th>
-                                                <th className="px-6 py-3 font-medium text-right">Ping</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-800/50">
-                                            {peers.slice(0, 20).map((peer) => (
-                                                <tr key={peer.id} className="hover:bg-slate-800/30 transition-colors">
-                                                    <td className="px-6 py-4 font-mono text-cyan-300/80 max-w-40 truncate" title={peer.addr}>
-                                                        {peer.addr}
-                                                    </td>
-                                                    <td className="px-6 py-4 max-w-[60vw] md:max-w-44 truncate">
-                                                        {peer.location ? (
-                                                            <span title={`${peer.location.city}, ${peer.location.country}`}>
-                                                                {peer.location.city}, {peer.location.country}
-                                                            </span>
-                                                        ) : <span className="text-slate-600 italic">Unknown</span>}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-300 whitespace-nowrap inline-block max-w-40 truncate align-middle" title={peer.subver}>
-                                                            {peer.subver.replace(/\//g, '')}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${peer.inbound
-                                                            ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                                                            : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                                                            }`}>
-                                                            {peer.inbound ? 'INBOUND' : 'OUTBOUND'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right font-mono text-slate-300">
-                                                        {(peer.ping * 1000).toFixed(0)} ms
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                {peers.length > 20 && (
-                                    <div className="hidden md:block px-6 py-3 bg-slate-900/30 text-center text-xs text-slate-500 border-t border-slate-800">
-                                        showing top 20 of {peers.length} peers
-                                    </div>
+                            {/* Mobile Card View */}
+                            <div className="md:hidden p-4 space-y-3">
+                                {filteredPeers.slice(0, 20).map((peer) => (
+                                    <Card key={peer.id} className="p-4" hoverable={false}>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="font-mono text-sm text-cyan-300 truncate max-w-[60vw] md:max-w-44">
+                                                {peer.addr}
+                                            </span>
+                                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${peer.inbound
+                                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                                : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                                                }`}>
+                                                {peer.inbound ? 'IN' : 'OUT'}
+                                            </span>
+                                        </div>
+                                        <CardRow
+                                            label="Location"
+                                            value={peer.location ? `${peer.location.city}, ${peer.location.country}` : 'Unknown'}
+                                        />
+                                        <CardRow
+                                            label="Client"
+                                            value={peer.subver.replace(/\//g, '').substring(0, 20)}
+                                        />
+                                        <CardRow
+                                            label="Ping"
+                                            value={`${(peer.ping * 1000).toFixed(0)} ms`}
+                                            mono
+                                        />
+                                    </Card>
+                                ))}
+                                {filteredPeers.length > 20 && (
+                                    <p className="text-center text-xs text-slate-500 py-2">
+                                        Showing 20 of {filteredPeers.length} peers
+                                    </p>
                                 )}
-                            </Card>
-                        </>
-                    )}
-                </div>
+                            </div>
+
+                            {/* Desktop Table View */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-left text-sm text-slate-400">
+                                    <thead className="bg-slate-900/80 text-xs uppercase text-slate-500">
+                                        <tr>
+                                            <th className="px-6 py-3 font-medium">IP Address</th>
+                                            <th className="px-6 py-3 font-medium">Location</th>
+                                            <th className="px-6 py-3 font-medium">Client</th>
+                                            <th className="px-6 py-3 font-medium text-right">Direction</th>
+                                            <th className="px-6 py-3 font-medium text-right">Ping</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-800/50">
+                                        {filteredPeers.slice(0, 20).map((peer) => (
+                                            <tr key={peer.id} className="hover:bg-slate-800/30 transition-colors">
+                                                <td className="px-6 py-4 font-mono text-cyan-300/80 max-w-40 truncate" title={peer.addr}>
+                                                    {peer.addr}
+                                                </td>
+                                                <td className="px-6 py-4 max-w-[60vw] md:max-w-44 truncate">
+                                                    {peer.location ? (
+                                                        <span title={`${peer.location.city}, ${peer.location.country}`}>
+                                                            {peer.location.city}, {peer.location.country}
+                                                        </span>
+                                                    ) : <span className="text-slate-600 italic">Unknown</span>}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-300 whitespace-nowrap inline-block max-w-40 truncate align-middle" title={peer.subver}>
+                                                        {peer.subver.replace(/\//g, '')}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${peer.inbound
+                                                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                                        : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                                                        }`}>
+                                                        {peer.inbound ? 'INBOUND' : 'OUTBOUND'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right font-mono text-slate-300">
+                                                    {(peer.ping * 1000).toFixed(0)} ms
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {filteredPeers.length > 20 && (
+                                <div className="hidden md:block px-6 py-3 bg-slate-900/30 text-center text-xs text-slate-500 border-t border-slate-800">
+                                    showing top 20 of {filteredPeers.length} peers
+                                </div>
+                            )}
+                        </Card>
+                    </>
+                )}
             </div>
         </main>
+    );
+}
+
+export default function NetworkPage() {
+    return (
+        <Suspense fallback={<LoadingState message="Loading Network Explorer..." />}>
+            <NetworkContent />
+        </Suspense>
     );
 }

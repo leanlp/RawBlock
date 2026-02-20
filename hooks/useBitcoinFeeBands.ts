@@ -28,7 +28,7 @@ export function useBitcoinFeeBands(pollIntervalMs = 30_000) {
   const fetchBands = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const response = await fetch("/api/bitcoin/fee-blocks", { cache: "no-store" });
+      const response = await fetch("/api/bitcoin/fee-blocks");
       const payload = (await response.json()) as FeeBlockResponse;
       if (!response.ok || !payload.ok || !payload.blocks?.length) {
         throw new Error(payload.error ?? "Unable to fetch fee blocks");

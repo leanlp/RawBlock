@@ -9,6 +9,7 @@ import { Treemap, Tooltip } from "recharts";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import BlockHeaderInspector from "@/components/block/BlockHeaderInspector";
 import MerkleProofPanel from "@/components/block/MerkleProofPanel";
+import CoinbaseDecoder from "@/components/block/CoinbaseDecoder";
 import { computeMerkleRoot } from "@/utils/merkle";
 
 interface BlockData {
@@ -205,18 +206,18 @@ export default function BlockPage() {
                             icon="📦"
                             gradient="from-blue-400 to-indigo-500"
                             actions={
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-shrink-0">
                                     <button
                                         onClick={() => router.push(`/explorer/block/${block.height - 1}`)}
                                         disabled={block.height <= 0}
-                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
+                                        className="px-4 py-2 min-h-11 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
                                     >
                                         ← Prev
                                     </button>
                                     <button
                                         onClick={() => !isLatestBlock && router.push(`/explorer/block/${block.height + 1}`)}
                                         disabled={isLatestBlock}
-                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
+                                        className="px-4 py-2 min-h-11 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
                                         title={isLatestBlock ? "This is the latest block" : ""}
                                     >
                                         {isLatestBlock ? "Latest" : "Next →"}
@@ -278,6 +279,10 @@ export default function BlockPage() {
                             isOpen={isMerklePanelOpen}
                             onClose={() => setMerklePanelOpen(false)}
                         />
+
+                        {block.transactions && block.transactions.length > 0 && (
+                            <CoinbaseDecoder coinbaseTxid={block.transactions[0].txid} />
+                        )}
 
                         {/* Block DNA Visualization */}
                         {block.transactions && block.transactions.length > 0 && (

@@ -12,6 +12,7 @@ import Header from '../../../components/Header';
 import CopyButton from '../../../components/CopyButton';
 import InfoTooltip from '../../../components/InfoTooltip';
 import TxHexWorkbench from '../../../components/decoder/TxHexWorkbench';
+import AddressAnalyticsPanel from '../../../components/decoder/AddressAnalyticsPanel';
 
 export const dynamic = "force-dynamic";
 
@@ -362,13 +363,12 @@ function DecoderContent() {
                 {/* Results Container */}
                 {result ? (
                     <div
-                        className={`mb-6 rounded-lg border px-4 py-3 text-xs ${
-                            dataSource === "live"
-                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-                                : dataSource === "fallback"
-                                    ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
-                                    : "border-slate-800 bg-slate-900/40 text-slate-300"
-                        }`}
+                        className={`mb-6 rounded-lg border px-4 py-3 text-xs ${dataSource === "live"
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+                            : dataSource === "fallback"
+                                ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+                                : "border-slate-800 bg-slate-900/40 text-slate-300"
+                            }`}
                     >
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div className="flex items-start gap-2">
@@ -457,8 +457,17 @@ function DecoderContent() {
                             <BalanceChart utxos={result.utxos} />
                         </div>
 
+                        {/* Address Analytics */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                            <AddressAnalyticsPanel
+                                address={result.address}
+                                utxos={result.utxos}
+                                currentHeight={840000} // Mocked block height
+                            />
+                        </div>
+
                         {/* UTXO List */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
                             <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
                                 <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                                 UNSPENT OUTPUTS (UTXOs) - {result.utxoCount}

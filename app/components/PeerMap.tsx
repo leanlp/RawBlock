@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { Tooltip } from 'react-tooltip';
 import { MotionConfig } from "framer-motion";
@@ -102,6 +102,8 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
     const locatedPeers = useMemo(() => peers.filter(hasPeerCoordinates), [peers]);
     const locatedKnownPeers = useMemo(() => knownPeers.filter(hasKnownPeerCoordinates), [knownPeers]);
 
+    const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+
     const position = useMemo(() => {
         if (focusCoordinates && focusCoordinates.length === 2) {
             return { coordinates: [focusCoordinates[1], focusCoordinates[0]], zoom: 6 };
@@ -114,100 +116,148 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
 
     return (
         <Card className="w-full h-[500px] p-0 overflow-hidden relative" variant="panel" accent="cyan">
-            <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-auto z-10 pointer-events-none">
-                <h2 className="text-xs sm:text-sm font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2 drop-shadow-md">
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-                    Global Nodes
-                </h2>
-                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] sm:text-xs font-mono">
-                    <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
-                        Connected: <span className="text-cyan-400 font-bold">{peers.length}</span>
-                    </span>
-                    <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
-                        Known: <span className="text-sky-400 font-bold">{knownPeers.length}</span>
-                    </span>
-                    <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
-                        Located: <span className="text-emerald-400 font-bold">{locatedPeers.length + locatedKnownPeers.length}</span>
-                    </span>
+            <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-auto z-10 pointer-events-none flex justify-between items-start">
+                <div>
+                    <h2 className="text-xs sm:text-sm font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2 drop-shadow-md">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                        Global Nodes
+                    </h2>
+                    <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] sm:text-xs font-mono">
+                        <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
+                            Connected: <span className="text-cyan-400 font-bold">{peers.length}</span>
+                        </span>
+                        <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
+                            Known: <span className="text-sky-400 font-bold">{knownPeers.length}</span>
+                        </span>
+                        <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
+                            Located: <span className="text-emerald-400 font-bold">{locatedPeers.length + locatedKnownPeers.length}</span>
+                        </span>
+                    </div>
+                </div>
+
+                {/* Mobile View Toggle */}
+                <div className="md:hidden flex pointer-events-auto bg-slate-900/90 rounded-lg border border-slate-700 overflow-hidden backdrop-blur shadow-xl">
+                    <button
+                        onClick={() => setViewMode('map')}
+                        className={`px-3 py-2 text-xs font-bold transition-colors ${viewMode === 'map' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        Map
+                    </button>
+                    <div className="w-px bg-slate-700"></div>
+                    <button
+                        onClick={() => setViewMode('list')}
+                        className={`px-3 py-2 text-xs font-bold transition-colors ${viewMode === 'list' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        List
+                    </button>
                 </div>
             </div>
 
-            <MotionConfig transition={{ duration: 1 }}>
-                <ComposableMap
-                    projection="geoMercator"
-                    projectionConfig={{
-                        scale: 100 * position.zoom,
-                        center: position.coordinates as [number, number]
-                    }}
-                    style={{ width: "100%", height: "100%", transition: "all 1s ease-in-out" }}
-                >
-                    <Geographies geography={GEO_URL}>
-                        {({ geographies }: { geographies: GeoFeature[] }) =>
-                            geographies.map((geo) => {
-                                // Robust code resolution
-                                const geoName = geo.properties.NAME || geo.properties.name;
-                                const code = geo.properties.ISO_A2 || NAME_TO_ISO[geoName] || geo.properties.ISO_A3;
-                                const isSelected = selectedCountryCode === code;
-
-                                return (
-                                    <Geography
-                                        key={geo.rsmKey}
-                                        geography={geo}
-                                        onClick={() => {
-                                            if (onCountrySelect && code) {
-                                                onCountrySelect(code, geoName);
-                                            }
-                                        }}
-                                        fill={isSelected ? "rgba(34, 211, 238, 0.2)" : "#1e293b"}
-                                        stroke={isSelected ? "#22d3ee" : "#0f172a"}
-                                        strokeWidth={isSelected ? 1 : 0.5}
-                                        style={{
-                                            default: { outline: "none", transition: "all 250ms" },
-                                            hover: { fill: "#334155", outline: "none", cursor: "pointer" },
-                                            pressed: { outline: "none" },
-                                        }}
-                                    />
-                                )
-                            })
-                        }
-                    </Geographies>
-
-                    {/* Known Node Markers (Outer Rim) */}
-                    {locatedKnownPeers.map((node, i) => (
-                        <Marker
-                            key={`known-${node.id ?? i}`}
-                            coordinates={[node.location.ll[1], node.location.ll[0]]}
-                            data-tooltip-id="peer-tooltip"
-                            data-tooltip-content={`Known Node (${node.location.city || "Unknown"}, ${node.location.country || "Unknown"})`}
+            {viewMode === 'map' ? (
+                <>
+                    <MotionConfig transition={{ duration: 1 }}>
+                        <ComposableMap
+                            projection="geoMercator"
+                            projectionConfig={{
+                                scale: 100 * position.zoom,
+                                center: position.coordinates as [number, number]
+                            }}
+                            style={{ width: "100%", height: "100%", transition: "all 1s ease-in-out" }}
+                            className={`${viewMode === 'map' ? '' : 'hidden pointer-events-none'}`}
                         >
-                            <circle r={1.5} fill="#475569" fillOpacity={0.6} />
-                        </Marker>
-                    ))}
+                            <Geographies geography={GEO_URL}>
+                                {({ geographies }: { geographies: GeoFeature[] }) =>
+                                    geographies.map((geo) => {
+                                        // Robust code resolution
+                                        const geoName = geo.properties.NAME || geo.properties.name;
+                                        const code = geo.properties.ISO_A2 || NAME_TO_ISO[geoName] || geo.properties.ISO_A3;
+                                        const isSelected = selectedCountryCode === code;
 
-                    {/* Peer Markers */}
-                    {locatedPeers.map((peer) => (
-                        <Marker
-                            key={peer.id}
-                            coordinates={[peer.location.ll[1], peer.location.ll[0]]} // [lon, lat] - GeoJSON uses Lon,Lat order!
-                            data-tooltip-id="peer-tooltip"
-                            data-tooltip-content={`${peer.subver} (${peer.location.city || "Unknown"}, ${peer.location.country || "Unknown"}) - Ping: ${(peer.ping * 1000).toFixed(0)}ms`}
-                        >
-                            <circle r={4} fill={peer.inbound ? "#f43f5e" : "#22d3ee"} stroke="#fff" strokeWidth={1} className="animate-pulse" />
-                        </Marker>
-                    ))}
-                </ComposableMap>
-            </MotionConfig>
+                                        return (
+                                            <Geography
+                                                key={geo.rsmKey}
+                                                geography={geo}
+                                                onClick={() => {
+                                                    if (onCountrySelect && code) {
+                                                        onCountrySelect(code, geoName);
+                                                    }
+                                                }}
+                                                fill={isSelected ? "rgba(34, 211, 238, 0.2)" : "#1e293b"}
+                                                stroke={isSelected ? "#22d3ee" : "#0f172a"}
+                                                strokeWidth={isSelected ? 1 : 0.5}
+                                                style={{
+                                                    default: { outline: "none", transition: "all 250ms" },
+                                                    hover: { fill: "#334155", outline: "none", cursor: "pointer" },
+                                                    pressed: { outline: "none" },
+                                                }}
+                                            />
+                                        )
+                                    })
+                                }
+                            </Geographies>
 
-            <Tooltip
-                id="peer-tooltip"
-                border="1px solid #1e293b"
-                style={{ backgroundColor: "#0f172a", color: "#f1f5f9", borderRadius: "8px" }}
-            />
+                            {/* Known Node Markers (Outer Rim) */}
+                            {locatedKnownPeers.map((node, i) => (
+                                <Marker
+                                    key={`known-${node.id ?? i}`}
+                                    coordinates={[node.location.ll[1], node.location.ll[0]]}
+                                    data-tooltip-id="peer-tooltip"
+                                    data-tooltip-content={`Known Node (${node.location.city || "Unknown"}, ${node.location.country || "Unknown"})`}
+                                >
+                                    <circle r={1.5} fill="#475569" fillOpacity={0.6} />
+                                </Marker>
+                            ))}
 
-            <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex gap-3 sm:gap-4 text-[10px] text-slate-500 font-mono pointer-events-none">
-                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-cyan-400"></div> OUTBOUND</div>
-                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div> INBOUND</div>
-            </div>
+                            {/* Peer Markers */}
+                            {locatedPeers.map((peer) => (
+                                <Marker
+                                    key={peer.id}
+                                    coordinates={[peer.location.ll[1], peer.location.ll[0]]} // [lon, lat] - GeoJSON uses Lon,Lat order!
+                                    data-tooltip-id="peer-tooltip"
+                                    data-tooltip-content={`${peer.subver} (${peer.location.city || "Unknown"}, ${peer.location.country || "Unknown"}) - Ping: ${(peer.ping * 1000).toFixed(0)}ms`}
+                                >
+                                    <circle r={4} fill={peer.inbound ? "#f43f5e" : "#22d3ee"} stroke="#fff" strokeWidth={1} className="animate-pulse" />
+                                </Marker>
+                            ))}
+                        </ComposableMap>
+                    </MotionConfig>
+
+                    <Tooltip
+                        id="peer-tooltip"
+                        border="1px solid #1e293b"
+                        style={{ backgroundColor: "#0f172a", color: "#f1f5f9", borderRadius: "8px" }}
+                    />
+
+                    <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex gap-3 sm:gap-4 text-[10px] text-slate-500 font-mono pointer-events-none">
+                        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-cyan-400"></div> OUTBOUND</div>
+                        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div> INBOUND</div>
+                    </div>
+                </>
+            ) : (
+                <div className="absolute top-[100px] bottom-0 left-0 right-0 overflow-y-auto bg-slate-950/95 backdrop-blur-sm z-20 p-4 border-t border-slate-800">
+                    <div className="space-y-3 pb-8">
+                        {peers.map(p => (
+                            <div key={p.id} className="bg-slate-900 border border-slate-800 rounded-lg p-3">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="truncate font-mono text-xs text-slate-300">
+                                        {p.addr}
+                                    </div>
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${p.inbound ? 'bg-rose-500/10 text-rose-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
+                                        {p.inbound ? 'IN' : 'OUT'}
+                                    </span>
+                                </div>
+                                <div className="text-xs text-slate-500 truncate mb-2">
+                                    {p.subver}
+                                </div>
+                                <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono">
+                                    <span>{p.location?.country || "Loc Unknown"}</span>
+                                    <span>{(p.ping * 1000).toFixed(0)}ms</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </Card>
     );
 }

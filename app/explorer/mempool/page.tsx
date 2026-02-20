@@ -5,7 +5,8 @@ import MempoolVisualizer from "../../../components/MempoolVisualizer";
 import NetworkHud from "../../../components/NetworkHud";
 import Header from "../../../components/Header";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
-import MempoolPressureSimulator from "../../../components/mempool-game/MempoolPressureSimulator";
+import ProvenanceBadge from "../../../components/ProvenanceBadge";
+import ScreenshotExport from "../../../components/ScreenshotExport";
 
 // Types
 interface Transaction {
@@ -357,24 +358,16 @@ export default function MempoolPage() {
                         <div className="flex items-center justify-end gap-2">
                             <span className="font-semibold text-slate-500 uppercase tracking-wider">Stream</span>
                             {dataMode === "snapshot" ? (
-                                <span className="text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                                    Snapshot mode
-                                </span>
+                                <ProvenanceBadge source="Cached Snapshot" />
                             ) : streamPhase === "live" && connected ? (
-                                <span className="flex items-center gap-1.5 text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                    </span>
-                                    Live
-                                </span>
+                                <ProvenanceBadge source="Live Node" />
                             ) : streamPhase === "connecting" ? (
-                                <span className="flex items-center gap-1.5 text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+                                <span className="flex items-center gap-1.5 text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase">
                                     <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-cyan-400"></span>
-                                    Connecting...
+                                    Connecting
                                 </span>
                             ) : (
-                                <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">Disconnected</span>
+                                <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase">Disconnected</span>
                             )}
                         </div>
                         {statusTimestamp ? (
@@ -442,10 +435,10 @@ export default function MempoolPage() {
             )}
 
             {/* Mempool Visualization */}
-            <MempoolPressureSimulator />
-
-            {/* Mempool Visualization */}
-            <div className="mb-8">
+            <div className="mb-8 relative" id="mempool-visualizer-container">
+                <div className="absolute top-2 right-2 z-10 opacity-50 hover:opacity-100 transition-opacity">
+                    <ScreenshotExport targetId="mempool-visualizer-container" filename={`mempool-snapshot-${Date.now()}`} buttonText="" />
+                </div>
                 <MempoolVisualizer />
             </div>
 
