@@ -11,6 +11,7 @@ import EducationPanel from '../../../components/EducationPanel';
 import Header from '../../../components/Header';
 import CopyButton from '../../../components/CopyButton';
 import InfoTooltip from '../../../components/InfoTooltip';
+import TxHexWorkbench from '../../../components/decoder/TxHexWorkbench';
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,10 @@ export interface TxInput {
     scriptSig: { asm: string; hex: string };
     sequence: number;
     coinbase?: string;
+    txinwitness?: string[];
+    prevout?: {
+        value?: number;
+    };
 }
 
 export interface TxOutput {
@@ -37,6 +42,8 @@ export interface DecodedTx {
     vsize: number;
     weight: number;
     locktime: number;
+    hex?: string;
+    fee?: number;
     vin: TxInput[];
     vout: TxOutput[];
 }
@@ -68,6 +75,10 @@ interface MempoolTxInput {
     scriptsig_asm?: string;
     sequence?: number;
     is_coinbase?: boolean;
+    witness?: string[];
+    prevout?: {
+        value?: number;
+    };
 }
 
 interface MempoolTxOutput {
@@ -83,6 +94,7 @@ interface MempoolTx {
     locktime?: number;
     size?: number;
     weight?: number;
+    fee?: number;
     vin?: MempoolTxInput[];
     vout?: MempoolTxOutput[];
 }
@@ -92,20 +104,26 @@ function isLikelyTxid(value: string): boolean {
 }
 
 async function decodeViaMempool(txid: string): Promise<DecodedTx> {
-    const res = await fetch(`${MEMPOOL_TX_API}/${txid}`, { cache: "no-store" });
-    if (!res.ok) {
-        throw new Error(`Fallback decoder failed (HTTP ${res.status})`);
+    const [txRes, hexRes] = await Promise.all([
+        fetch(`${MEMPOOL_TX_API}/${txid}`, { cache: "no-store" }),
+        fetch(`${MEMPOOL_TX_API}/${txid}/hex`, { cache: "no-store" }),
+    ]);
+    if (!txRes.ok) {
+        throw new Error(`Fallback decoder failed (HTTP ${txRes.status})`);
     }
-    const tx = (await res.json()) as MempoolTx;
+    const tx = (await txRes.json()) as MempoolTx;
+    const rawHex = hexRes.ok ? (await hexRes.text()).trim() : undefined;
     const weight = Number(tx.weight ?? 0);
     return {
         txid: tx.txid,
         hash: tx.txid,
         version: Number(tx.version ?? 0),
         size: Number(tx.size ?? 0),
-        vsize: Math.max(1, Math.floor(weight / 4)),
+        vsize: Math.max(1, Math.ceil(weight / 4)),
         weight,
         locktime: Number(tx.locktime ?? 0),
+        fee: Number(tx.fee ?? 0),
+        hex: rawHex,
         vin: (tx.vin ?? []).map((input) => ({
             txid: String(input.txid ?? ""),
             vout: Number(input.vout ?? 0),
@@ -114,6 +132,10 @@ async function decodeViaMempool(txid: string): Promise<DecodedTx> {
                 hex: String(input.scriptsig ?? ""),
             },
             sequence: Number(input.sequence ?? 0),
+            txinwitness: (input.witness ?? []).map((item) => String(item ?? "")),
+            prevout: {
+                value: Number(input.prevout?.value ?? 0),
+            },
             ...(input.is_coinbase ? { coinbase: "true" } : {}),
         })),
         vout: (tx.vout ?? []).map((output, index) => ({
@@ -531,6 +553,8 @@ function DecoderContent() {
                                         </div>
                                     </div>
                                 </div>
+
+                                <TxHexWorkbench tx={result} />
 
                                 {/* Privacy Sentinel */}
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">

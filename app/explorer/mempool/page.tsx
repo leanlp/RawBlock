@@ -5,6 +5,7 @@ import MempoolVisualizer from "../../../components/MempoolVisualizer";
 import NetworkHud from "../../../components/NetworkHud";
 import Header from "../../../components/Header";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
+import MempoolPressureSimulator from "../../../components/mempool-game/MempoolPressureSimulator";
 
 // Types
 interface Transaction {
@@ -439,6 +440,9 @@ export default function MempoolPage() {
                     </div>
                 </div>
             )}
+
+            {/* Mempool Visualization */}
+            <MempoolPressureSimulator />
 
             {/* Mempool Visualization */}
             <div className="mb-8">

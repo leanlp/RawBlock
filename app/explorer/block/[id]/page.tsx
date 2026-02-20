@@ -1,24 +1,71 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Header from "../../../../components/Header";
 import PageHeader from "../../../../components/PageHeader";
 import Card from "../../../../components/Card";
-import { motion } from "framer-motion";
 import { Treemap, Tooltip } from "recharts";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
+import BlockHeaderInspector from "@/components/block/BlockHeaderInspector";
+import MerkleProofPanel from "@/components/block/MerkleProofPanel";
+import { computeMerkleRoot } from "@/utils/merkle";
 
 interface BlockData {
     hash: string;
     height: number;
     time: number;
+    mediantime?: number;
+    version?: number;
+    bits?: string;
+    nonce?: number;
+    merkleroot?: string;
+    previousblockhash?: string;
     size: number;
     weight: number;
     miner: string;
     txCount: number;
     reward: number;
-    transactions: any[];
+    transactions: Array<{
+        txid: string;
+        wtxid?: string;
+        weight: number;
+        vsize: number;
+        size: number;
+        fee: number;
+        isSegwit: boolean;
+    }>;
+}
+
+interface BlockTreemapContentProps {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    payload?: {
+        isSegwit?: boolean;
+    };
+}
+
+function BlockTreemapContent(props: BlockTreemapContentProps) {
+    const { x = 0, y = 0, width = 0, height = 0, payload } = props;
+    return (
+        <g>
+            <rect
+                x={x}
+                y={y}
+                width={width}
+                height={height}
+                style={{
+                    fill: payload?.isSegwit ? "#10b981" : "#f59e0b",
+                    stroke: "#1e293b",
+                    strokeWidth: 1,
+                    userSelect: "none",
+                    opacity: 0.9,
+                }}
+            />
+        </g>
+    );
 }
 
 export default function BlockPage() {
@@ -27,10 +74,13 @@ export default function BlockPage() {
     const [block, setBlock] = useState<BlockData | null>(null);
     const [loading, setLoading] = useState(true);
     const [latestHeight, setLatestHeight] = useState<number>(Infinity);
+    const [computedMerkleRoot, setComputedMerkleRoot] = useState<string | null>(null);
+    const [merkleError, setMerkleError] = useState<string | null>(null);
+    const [isMerklePanelOpen, setMerklePanelOpen] = useState(false);
 
     useEffect(() => {
         if (!id) return;
-        setLoading(true);
+        queueMicrotask(() => setLoading(true));
 
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
         const rawId = Array.isArray(id) ? id[0] : id;
@@ -64,6 +114,45 @@ export default function BlockPage() {
             .catch(() => { });
     }, [id]);
 
+    useEffect(() => {
+        if (!block || !Array.isArray(block.transactions) || block.transactions.length === 0) {
+            queueMicrotask(() => {
+                setComputedMerkleRoot(null);
+                setMerkleError(null);
+            });
+            return;
+        }
+
+        const txids = block.transactions
+            .map((tx) => String(tx.txid ?? "").trim())
+            .filter((txid) => txid.length === 64);
+
+        if (txids.length === 0) {
+            queueMicrotask(() => {
+                setComputedMerkleRoot(null);
+                setMerkleError("No valid txids available to build merkle tree.");
+            });
+            return;
+        }
+
+        let cancelled = false;
+        computeMerkleRoot(txids)
+            .then((root) => {
+                if (cancelled) return;
+                setComputedMerkleRoot(root);
+                setMerkleError(null);
+            })
+            .catch((err: unknown) => {
+                if (cancelled) return;
+                setComputedMerkleRoot(null);
+                setMerkleError(err instanceof Error ? err.message : "Failed to compute merkle root.");
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [block]);
+
     const formatSize = (bytes: number) => {
         if (bytes > 1000000) return (bytes / 1000000).toFixed(2) + " MB";
         return (bytes / 1000).toFixed(2) + " KB";
@@ -73,42 +162,22 @@ export default function BlockPage() {
     const isLatestBlock = block ? block.height >= latestHeight : false;
 
     // Prepare TreeMap Data
-    const treeMapData = block ? [
-        {
-            name: "Transactions",
-            children: (block.transactions || []).slice(0, 500).map((tx, i) => ({ // Limit to 500 for perf
-                // Keep Recharts node names unique to avoid duplicate-key collisions.
-                name: `${tx.txid}-${i}`,
-                txid: tx.txid,
-                size: tx.weight, // Rect size = weight
-                fee: tx.fee, // For tooltip
-                isSegwit: tx.isSegwit
-            }))
-        }
-    ] : [];
-
-    // Custom Content for TreeMap Node
-    const CustomizedContent = (props: any) => {
-        const { x, y, width, height, payload } = props;
-
-        return (
-            <g>
-                <rect
-                    x={x}
-                    y={y}
-                    width={width}
-                    height={height}
-                    style={{
-                        fill: (payload && payload.isSegwit) ? '#10b981' : '#f59e0b', // Green (Segwit) vs Amber (Legacy)
-                        stroke: '#1e293b',
-                        strokeWidth: 1,
-                        userSelect: 'none',
-                        opacity: 0.9
-                    }}
-                />
-            </g>
-        );
-    };
+    const treeMapData = useMemo(() => {
+        if (!block) return [];
+        return [
+            {
+                name: "Transactions",
+                children: (block.transactions || []).slice(0, 500).map((tx, i) => ({
+                    // Keep Recharts node names unique to avoid duplicate-key collisions.
+                    name: `${tx.txid}-${i}`,
+                    txid: tx.txid,
+                    size: tx.weight, // Rect size = weight
+                    fee: tx.fee, // For tooltip
+                    isSegwit: tx.isSegwit,
+                })),
+            },
+        ];
+    }, [block]);
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 font-sans">
@@ -180,6 +249,36 @@ export default function BlockPage() {
                             </div>
                         </Card>
 
+                        <BlockHeaderInspector
+                            header={{
+                                hash: block.hash,
+                                height: block.height,
+                                txCount: block.txCount ?? block.transactions?.length ?? 0,
+                                time: block.time,
+                                mediantime: block.mediantime,
+                                version: block.version,
+                                bits: block.bits,
+                                nonce: block.nonce,
+                                merkleroot: block.merkleroot,
+                                previousblockhash: block.previousblockhash,
+                            }}
+                            computedMerkleRoot={computedMerkleRoot}
+                            onOpenMerklePanel={() => setMerklePanelOpen(true)}
+                        />
+
+                        {merkleError ? (
+                            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                                Merkle proof precompute warning: {merkleError}
+                            </div>
+                        ) : null}
+
+                        <MerkleProofPanel
+                            txids={block.transactions.map((tx) => tx.txid)}
+                            headerMerkleRoot={block.merkleroot}
+                            isOpen={isMerklePanelOpen}
+                            onClose={() => setMerklePanelOpen(false)}
+                        />
+
                         {/* Block DNA Visualization */}
                         {block.transactions && block.transactions.length > 0 && (
                             <div className="space-y-4">
@@ -198,7 +297,7 @@ export default function BlockPage() {
                                             dataKey="size"
                                             aspectRatio={4 / 3}
                                             stroke="#1e293b"
-                                            content={<CustomizedContent />}
+                                            content={<BlockTreemapContent />}
                                         >
                                             <Tooltip
                                                 cursor={{
