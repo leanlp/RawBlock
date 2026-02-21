@@ -3,19 +3,12 @@
 import { motion } from "framer-motion";
 import Link from 'next/link';
 import { useState } from "react";
-import { Oxanium } from "next/font/google";
 import HeroMetrics from "./HeroMetrics";
 import Card from "./Card";
 import { GUIDED_LESSONS } from "../data/guided-learning";
 import { useGuidedLearning } from "./providers/GuidedLearningProvider";
 import { CANONICAL_PATH_ID, getCanonicalPath } from "@/lib/graph/pathEngine";
 import { useTranslation } from "@/lib/i18n";
-
-const brandDisplayFont = Oxanium({
-    subsets: ["latin"],
-    weight: ["700", "800"],
-    display: "swap",
-});
 
 type FeatureItem = {
     titleKey: string;
@@ -247,7 +240,7 @@ export default function DashboardHome() {
                 className="text-center mb-8"
             >
                 <h1
-                    className={`${brandDisplayFont.className} home-brand-title mb-5 !text-[clamp(2.4rem,8vw,5.25rem)] !leading-[0.9] font-extrabold uppercase tracking-[0.06em] select-none`}
+                    className="home-brand-title mb-5 !text-[clamp(2.4rem,8vw,5.25rem)] !leading-[0.9] font-extrabold uppercase tracking-[0.06em] select-none"
                 >
                     <span className="bg-gradient-to-b from-slate-100 via-slate-200 to-slate-400 bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(148,163,184,0.2)]">RAW </span>
                     <span className="bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_2px_20px_rgba(6,182,212,0.35)]">BLOCK</span>

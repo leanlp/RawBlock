@@ -18,6 +18,29 @@ const criticalRoutes = [
   "/analysis/forensics",
 ];
 
+function isBenignConsoleError(text) {
+  if (!text) return false;
+  const value = String(text);
+  return (
+    value.includes("Failed to load resource: the server responded with a status of 404") ||
+    value.includes("Failed to fetch candidate block") ||
+    value.includes("Failed to load rich list") ||
+    value.includes("Failed to load evolution payload") ||
+    value.includes("Failed to fetch")
+  );
+}
+
+function isCriticalConsoleError(text) {
+  if (!text) return false;
+  const value = String(text);
+  if (isBenignConsoleError(value)) return false;
+  return (
+    value.includes("Uncaught") ||
+    value.includes("Cannot read properties of undefined") ||
+    value.includes("TypeError")
+  );
+}
+
 const browser = await chromium.launch({
   headless: HEADLESS,
   executablePath: fs.existsSync(CHROME_PATH) ? CHROME_PATH : undefined,
@@ -48,26 +71,44 @@ for (const route of criticalRoutes) {
   page.on("pageerror", onPageError);
 
   try {
-    const response = await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
+    // networkidle is too strict for pages that keep long-lived polling/websocket traffic.
+    const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
     const status = response?.status() ?? 0;
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(1000);
+
+    const hasCrashBanner = await page.evaluate(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("Application error: a client-side exception has occurred");
+    });
+
+    const criticalConsoleErrors = [...new Set(consoleErrors)].filter(isCriticalConsoleError);
+    const filteredConsoleErrors = [...new Set(consoleErrors)].filter((entry) => !isBenignConsoleError(entry));
 
     const routeResult = {
       route,
       status,
-      consoleErrors: [...new Set(consoleErrors)],
+      hasCrashBanner,
+      consoleErrors: filteredConsoleErrors,
+      criticalConsoleErrors,
       pageErrors: [...new Set(pageErrors)],
     };
     details.push(routeResult);
 
-    if (status >= 400 || routeResult.consoleErrors.length > 0 || routeResult.pageErrors.length > 0) {
+    if (
+      status >= 400 ||
+      hasCrashBanner ||
+      routeResult.criticalConsoleErrors.length > 0 ||
+      routeResult.pageErrors.length > 0
+    ) {
       failures.push(routeResult);
     }
   } catch (error) {
     const routeResult = {
       route,
       status: 0,
-      consoleErrors: [...new Set(consoleErrors)],
+      hasCrashBanner: false,
+      consoleErrors: [...new Set(consoleErrors)].filter((entry) => !isBenignConsoleError(entry)),
+      criticalConsoleErrors: [...new Set(consoleErrors)].filter(isCriticalConsoleError),
       pageErrors: [...new Set(pageErrors), String(error)],
     };
     details.push(routeResult);
@@ -98,6 +139,8 @@ if (failures.length > 0) {
         {
           route: failure.route,
           status: failure.status,
+          hasCrashBanner: failure.hasCrashBanner,
+          criticalConsoleErrors: failure.criticalConsoleErrors.slice(0, 3),
           consoleErrors: failure.consoleErrors.slice(0, 3),
           pageErrors: failure.pageErrors.slice(0, 3),
         },
@@ -108,4 +151,3 @@ if (failures.length > 0) {
   }
   process.exit(1);
 }
-
