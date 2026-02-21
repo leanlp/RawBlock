@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback, useRef, Suspense } from 'react';
+import { useEffect, useState, useMemo, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Header from '../../../components/Header';
 import dynamic from 'next/dynamic';
@@ -99,7 +99,6 @@ function NetworkContent() {
     const [dataMode, setDataMode] = useState<DataMode>(API_URL ? "live" : "demo");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [scanning, setScanning] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState<{ code: string, name: string } | null>(null);
     const [mapFocus, setMapFocus] = useState<[number, number] | null>(null);
 
@@ -118,8 +117,6 @@ function NetworkContent() {
         }
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     }, [pathname, router, searchParams]);
-    const autoDeepScanTriggeredRef = useRef(false);
-
     const filteredPeers = useMemo(() => {
         return peers.filter(p => {
             if (pingFilter === "all") return true;
@@ -130,9 +127,7 @@ function NetworkContent() {
             return true;
         });
     }, [peers, pingFilter]);
-
     const fetchPeers = useCallback(() => {
-        autoDeepScanTriggeredRef.current = false;
         setLoading(true);
         setError(null);
 
@@ -229,30 +224,38 @@ function NetworkContent() {
         setMapFocus(nearestNode.location.ll);
     }, []);
 
-    const handleDeepScan = useCallback(async () => {
-        if (dataMode === "demo" || scanning) return;
-        setScanning(true);
-        try {
-            const res = await fetch(`${API_URL}/api/known-nodes`, { cache: "no-store" });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            const safeNodes = Array.isArray(data) ? (data as KnownPeer[]) : [];
-            setKnownPeers(safeNodes);
-            await focusNearestNode(safeNodes);
-        } catch (e) {
-            console.error("Deep Scan failed", e);
-        } finally {
-            setScanning(false);
-        }
-    }, [dataMode, focusNearestNode, scanning]);
-
     useEffect(() => {
-        if (loading || dataMode !== "live" || peers.length === 0 || scanning || autoDeepScanTriggeredRef.current) {
+        if (loading || dataMode !== "live") {
             return;
         }
-        autoDeepScanTriggeredRef.current = true;
-        void handleDeepScan();
-    }, [dataMode, handleDeepScan, loading, peers.length, scanning]);
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8_000);
+
+        fetch(`${API_URL}/api/known-nodes`, { cache: "no-store", signal: controller.signal })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                return res.json();
+            })
+            .then((data) => {
+                const safeNodes = Array.isArray(data) ? (data as KnownPeer[]) : [];
+                setKnownPeers(safeNodes);
+                void focusNearestNode(safeNodes);
+            })
+            .catch(() => {
+                setKnownPeers([]);
+            })
+            .finally(() => {
+                clearTimeout(timeout);
+            });
+
+        return () => {
+            controller.abort();
+            clearTimeout(timeout);
+        };
+    }, [dataMode, focusNearestNode, loading]);
 
     const selectedCountryNodes = useMemo(() => {
         if (!selectedCountry) return [];
@@ -262,24 +265,6 @@ function NetworkContent() {
             return code === selectedCountry.code;
         });
     }, [selectedCountry, peers, knownPeers]);
-
-    const deepScanButtonLabel =
-        dataMode === "demo"
-            ? "Deep Scan (Live API Required)"
-            : scanning
-                ? "Scanning..."
-                : knownPeers.length > 0
-                    ? `Re-Scan (${knownPeers.length})`
-                    : "Deep Scan";
-
-    const deepScanButtonClass = `px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase border transition-all ${scanning
-        ? 'bg-cyan-900/50 border-cyan-800 text-cyan-400 cursor-wait'
-        : dataMode === "demo"
-            ? 'bg-slate-900/40 border-slate-800 text-slate-500 cursor-not-allowed'
-            : knownPeers.length > 0
-                ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 hover:border-emerald-300'
-                : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-cyan-500 hover:text-cyan-400'
-        }`;
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-cyan-900 selection:text-cyan-100 pb-20 relative overflow-x-hidden">
@@ -363,24 +348,8 @@ function NetworkContent() {
                             />
 
                             <div className="absolute top-4 right-4 hidden sm:flex items-center gap-2">
-                                <ScreenshotExport targetId="network-map-export-target" filename={`network-map-${Date.now()}`} buttonText="Export PNG" />
-                                <button
-                                    onClick={handleDeepScan}
-                                    disabled={dataMode === "demo" || scanning}
-                                    className={deepScanButtonClass}
-                                >
-                                    {deepScanButtonLabel}
-                                </button>
+                                <ScreenshotExport targetId="network-map-export-target" filename="network-map" buttonText="Export PNG" />
                             </div>
-                        </div>
-                        <div className="sm:hidden flex justify-end">
-                            <button
-                                onClick={handleDeepScan}
-                                disabled={dataMode === "demo" || scanning}
-                                className={deepScanButtonClass}
-                            >
-                                {deepScanButtonLabel}
-                            </button>
                         </div>
 
                         {/* Peer Section */}

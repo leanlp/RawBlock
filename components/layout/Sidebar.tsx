@@ -91,7 +91,6 @@ const ORDERED_MENU_PATHS = NAV_ITEMS.flatMap((section) => section.items.map((ite
 export default function Sidebar() {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [isScrolled, setIsScrolled] = useState(false);
     const [isScrollingDown, setIsScrollingDown] = useState(false);
     const { progressPercent, currentLessonIndex, completedLessons } = useGuidedLearning();
     const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
@@ -119,14 +118,11 @@ export default function Sidebar() {
     })();
     const previousPath = ORDERED_MENU_PATHS[(activeIndex - 1 + ORDERED_MENU_PATHS.length) % ORDERED_MENU_PATHS.length];
     const nextPath = ORDERED_MENU_PATHS[(activeIndex + 1) % ORDERED_MENU_PATHS.length];
-    const showQuickRouteControls = !mobileOpen && !isScrolled && !isScrollingDown;
-
     useEffect(() => {
         let lastY = window.scrollY;
 
         const handleScroll = () => {
             const currentY = window.scrollY;
-            setIsScrolled(currentY > 16);
             setIsScrollingDown(currentY > lastY + 2 && currentY > 48);
             lastY = currentY;
         };
@@ -314,7 +310,7 @@ export default function Sidebar() {
                 <div className="flex items-center gap-6">
                     <Link
                         href={previousPath}
-                        className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                        className="flex min-h-11 min-w-11 flex-col items-center justify-center px-2 py-2 text-slate-400 hover:text-cyan-400 transition-colors"
                         aria-label="Previous menu page"
                     >
                         <ChevronLeft size={24} className="mb-1" />
@@ -331,7 +327,7 @@ export default function Sidebar() {
 
                     <Link
                         href={nextPath}
-                        className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                        className="flex min-h-11 min-w-11 flex-col items-center justify-center px-2 py-2 text-slate-400 hover:text-cyan-400 transition-colors"
                         aria-label="Next menu page"
                     >
                         <ChevronRight size={24} className="mb-1" />
