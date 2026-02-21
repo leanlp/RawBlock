@@ -193,9 +193,8 @@ export default function MempoolPage() {
                 setError("An unexpected error occurred");
             }
         } finally {
-            setLoading(false);
         }
-    }, []);
+    }, [t.mempool.demoMode]);
 
     const connectSocket = useCallback(() => {
         if (!API_URL) return;
@@ -424,7 +423,7 @@ export default function MempoolPage() {
                         </div>
                         <div>
                             <h4 className="text-amber-500 font-bold uppercase tracking-wider text-sm flex items-center gap-2">
-                                RBF Conflict Detected
+                                {t.mempool.rbfConflict}
                             </h4>
                             <div className="text-xs text-slate-400 mt-1 font-mono">
                                 <p>{t.mempool.target} <span className="text-slate-200">{rbfAlert.txid.substring(0, 8)}...</span></p>

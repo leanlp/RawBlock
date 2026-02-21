@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import ProvenanceBadge from '../../../components/ProvenanceBadge';
-import SafeResponsiveContainer from '@/components/charts/SafeResponsiveContainer';
 import { useTranslation } from "@/lib/i18n";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
@@ -32,6 +31,14 @@ const normalizeWhale = (value: unknown): WhaleData => {
         utxoCount: Math.max(0, Math.floor(toFiniteNumber(candidate.utxoCount, 0))),
         fetchedAt: typeof candidate.fetchedAt === "string" ? candidate.fetchedAt : "",
     };
+};
+
+// Mock Address Labels for Top Addresses
+const knownWhales: Record<string, { label: string, color: string }> = {
+    "34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo": { label: "Binance Cold Storage", color: "text-amber-400 border-amber-500/30 bg-amber-500/10" },
+    "bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97": { label: "Bitfinex Cold Wallet", color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" },
+    "1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ": { label: "Unknown Miner", color: "text-slate-400 border-slate-500/30 bg-slate-500/10" },
+    "3M219KR5vEneNb47ewrPfWyb5jQ2RNwwGL": { label: "Mt. Gox Hack", color: "text-rose-400 border-rose-500/30 bg-rose-500/10" },
 };
 
 export default function RichListPage() {
@@ -77,19 +84,11 @@ export default function RichListPage() {
     const totalBtc = whales.reduce((sum, w) => sum + w.balance, 0);
     const totalUtxos = whales.reduce((sum, w) => sum + w.utxoCount, 0);
 
-    // Mock Address Labels for Top Addresses
-    const knownWhales: Record<string, { label: string, color: string }> = {
-        "34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo": { label: "Binance Cold Storage", color: "text-amber-400 border-amber-500/30 bg-amber-500/10" },
-        "bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97": { label: "Bitfinex Cold Wallet", color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" },
-        "1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ": { label: "Unknown Miner", color: "text-slate-400 border-slate-500/30 bg-slate-500/10" },
-        "3M219KR5vEneNb47ewrPfWyb5jQ2RNwwGL": { label: "Mt. Gox Hack", color: "text-rose-400 border-rose-500/30 bg-rose-500/10" },
-    };
-
     const enhancedWhales = useMemo(() => {
         return whales.map(w => {
             // Mock a semi-deterministic 7d change based on address characters
             const changeChar = w.address.charCodeAt(w.address.length - 1);
-            let flowDirection = changeChar % 3 === 0 ? -1 : changeChar % 2 === 0 ? 1 : 0; // -1 out, 1 in, 0 flat
+            const flowDirection = changeChar % 3 === 0 ? -1 : changeChar % 2 === 0 ? 1 : 0; // -1 out, 1 in, 0 flat
             const flowAmount = flowDirection !== 0 ? (changeChar * 25) + (w.rank * 10) : 0;
 
             return {
@@ -123,7 +122,7 @@ export default function RichListPage() {
                             🏆 {t.nav.items.richList}
                         </h1>
                         <div className="page-subtitle uppercase tracking-widest flex items-center gap-4">
-                            <span>{t.richList.subtitle} by balance</span>
+                            <span>{t.richList.subtitleDesc}</span>
                             {!loading && !error && (
                                 <ProvenanceBadge
                                     source="Cached Snapshot"
@@ -133,12 +132,12 @@ export default function RichListPage() {
                         </div>
                     </div>
                     <Link href="/" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors self-start md:self-auto inline-flex items-center min-h-11">
-                        ← Back to Dashboard
+                        ← {t.richList.backToDashboard}
                     </Link>
                 </div>
 
                 {loading ? (
-                    <div className="text-sm text-slate-400">Loading weekly snapshot...</div>
+                    <div className="text-sm text-slate-400">{t.richList.loadingSnapshot}</div>
                 ) : null}
                 {error ? (
                     <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-200">
@@ -150,7 +149,7 @@ export default function RichListPage() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
                         <div className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">
-                            Open In Decoder
+                            {t.richList.openInDecoder}
                         </div>
                         <form
                             onSubmit={(e) => {
@@ -164,32 +163,32 @@ export default function RichListPage() {
                             <input
                                 value={decoderQuery}
                                 onChange={(e) => setDecoderQuery(e.target.value)}
-                                placeholder="Paste an address or txid..."
+                                placeholder={t.richList.pastePlaceholder}
                                 className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
                             />
                             <button
                                 type="submit"
                                 className="min-h-11 whitespace-nowrap rounded-lg border border-slate-700 bg-slate-900 px-4 text-xs font-bold text-cyan-300 hover:border-cyan-500/50 hover:text-cyan-200"
                             >
-                                Open
+                                {t.richList.open}
                             </button>
                         </form>
                         <div className="mt-2 text-[10px] text-slate-600">
-                            Tip: In demo mode, the Decoder supports txid-only fallback.
+                            {t.richList.decoderTip}
                         </div>
                     </div>
                     <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
                         <div className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">
-                            Filter This Table
+                            {t.richList.filterTable}
                         </div>
                         <input
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            placeholder="Filter by rank or address..."
+                            placeholder={t.richList.filterPlaceholder}
                             className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                         />
                         <div className="mt-2 text-[10px] text-slate-600">
-                            Showing {filteredWhales.length} of {whales.length}.
+                            {t.richList.showing} {filteredWhales.length} {t.richList.of} {whales.length}.
                         </div>
                     </div>
                 </div>
@@ -200,17 +199,17 @@ export default function RichListPage() {
                         <div className="text-3xl font-bold text-amber-400">
                             {totalBtc.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </div>
-                        <div className="text-xs text-slate-500 uppercase mt-1">Total BTC</div>
+                        <div className="text-xs text-slate-500 uppercase mt-1">{t.richList.totalBtc}</div>
                     </div>
                     <div className="bg-slate-900/50 border border-cyan-500/30 rounded-xl p-5 text-center">
                         <div className="text-3xl font-bold text-cyan-400">
                             {totalUtxos.toLocaleString()}
                         </div>
-                        <div className="text-xs text-slate-500 uppercase mt-1">Total UTXOs</div>
+                        <div className="text-xs text-slate-500 uppercase mt-1">{t.richList.totalUtxos}</div>
                     </div>
                     <div className="bg-slate-900/50 border border-purple-500/30 rounded-xl p-5 text-center">
                         <div className="text-3xl font-bold text-purple-400">{whales.length.toLocaleString()}</div>
-                        <div className="text-xs text-slate-500 uppercase mt-1">Addresses Tracked</div>
+                        <div className="text-xs text-slate-500 uppercase mt-1">{t.richList.addressesTracked}</div>
                     </div>
                 </div>
 
@@ -220,12 +219,12 @@ export default function RichListPage() {
                         <table className="w-full text-left border-collapse min-w-full">
                             <thead>
                                 <tr className="border-b border-slate-800 bg-slate-900/80 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                    <th className="p-2 md:p-4 w-20 text-center">Rank</th>
-                                    <th className="p-2 md:p-4">Address</th>
-                                    <th className="p-2 md:p-4 text-right">Balance (BTC)</th>
-                                    <th className="p-2 md:p-4 text-right hidden lg:table-cell">7d Flow</th>
-                                    <th className="p-2 md:p-4 text-right hidden md:table-cell">UTXOs</th>
-                                    <th className="p-2 md:p-4 w-32 text-center hidden md:table-cell">Action</th>
+                                    <th className="p-2 md:p-4 w-20 text-center">{t.richList.rank}</th>
+                                    <th className="p-2 md:p-4">{t.richList.address}</th>
+                                    <th className="p-2 md:p-4 text-right">{t.richList.balanceBtc}</th>
+                                    <th className="p-2 md:p-4 text-right hidden lg:table-cell">{t.richList.flow7d}</th>
+                                    <th className="p-2 md:p-4 text-right hidden md:table-cell">{t.richList.utxos}</th>
+                                    <th className="p-2 md:p-4 w-32 text-center hidden md:table-cell">{t.richList.action}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/50">
@@ -281,7 +280,7 @@ export default function RichListPage() {
                                                     }}
                                                     className="min-h-11 text-[10px] bg-slate-800 hover:bg-cyan-900/50 text-slate-400 hover:text-cyan-300 border border-slate-700 rounded px-3 py-1 transition-all"
                                                 >
-                                                    VIEW UTXOS
+                                                    {t.richList.viewUtxos}
                                                 </button>
                                                 <button
                                                     type="button"
@@ -291,7 +290,7 @@ export default function RichListPage() {
                                                     }}
                                                     className="min-h-11 text-[10px] bg-slate-800 hover:bg-amber-900/40 text-slate-400 hover:text-amber-300 border border-slate-700 rounded px-3 py-1 transition-all"
                                                 >
-                                                    DECODE
+                                                    {t.richList.decode}
                                                 </button>
                                             </div>
                                         </td>

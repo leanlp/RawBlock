@@ -286,6 +286,37 @@ const en = {
     label: "Language",
   },
 
+  // Components
+  components: {
+    provenance: {
+      liveNode: "Live Node",
+      cachedSnapshot: "Cached Snapshot",
+      publicApiFallback: "Public API Fallback",
+      liveTooltip: "Data served directly from the local node RPC connection via websocket/REST.",
+      cachedTooltip: "Data served from a recent server-side cache to optimize performance.",
+      fallbackTooltip: "Data served from a public external explorer because the local node is unavailable or lacks indexes.",
+    },
+    networkHud: {
+      yourNode: "Your Node",
+      peers: "Peers",
+      hashrate: "Hashrate",
+      difficulty: "Difficulty",
+      blocks: "Blocks",
+      fees: "Fees (sat/vB)",
+      highPriority: "High Priority",
+      economy: "Economy",
+    },
+    networkAnalytics: {
+      clientDistribution: "Node Client Distribution",
+      latencyFilters: "Latency & Time Filters",
+      asnInference: "ASN / ISP Inference",
+      allConnections: "All Connections",
+      fast: "Fast (< 50ms)",
+      medium: "Medium (50-150ms)",
+      slow: "Slow (> 150ms)",
+    },
+  },
+
   // Pages ── Explorer
   mempool: {
     title: "Live Mempool Feed",
@@ -309,6 +340,10 @@ const en = {
     dataFromNode: "Data provided by local Bitcoin Core node via WebSocket.",
     dataFromSnapshot: "Data provided by public mempool snapshot feed (demo mode).",
     demoMode: "Demo mode: showing public mempool snapshot data.",
+    visualization: "Mempool Visualization",
+    height: "Height:",
+    txs: "TXs:",
+    totalFees: "Total Fees:",
   },
 
   network: {
@@ -329,6 +364,13 @@ const en = {
     demoNotice: "Live peer discovery is unavailable. Rendering demo peer data so this view remains usable.",
     connectingTelemetry: "Connecting to peer telemetry...",
     loadingNetworkExplorer: "Loading Network Explorer...",
+    globalNodes: "Global Nodes",
+    map: "Map",
+    list: "List",
+    connected: "Connected:",
+    known: "Known:",
+    located: "Located:",
+    locUnknown: "Loc Unknown",
   },
 
   decoder: {
@@ -413,13 +455,32 @@ const en = {
 
   richList: {
     title: "Rich List",
-    subtitle: "Top Bitcoin addresses by confirmed balance, scanned from the UTXO set.",
+    subtitle: "CACHED SNAPSHOT",
+    subtitleDesc: "Top Bitcoin addresses by confirmed balance, scanned from the UTXO set.",
     rank: "Rank",
     address: "Address",
     balance: "Balance",
     utxos: "UTXOs",
     viewDetail: "View Detail",
     connectingRichList: "Scanning rich list...",
+    backToDashboard: "Back to Dashboard",
+    openInDecoder: "Open In Decoder",
+    pastePlaceholder: "Paste an address or txid...",
+    open: "Open",
+    decoderTip: "Tip: In demo mode, the Decoder supports txid-only fallback.",
+    filterTable: "Filter This Table",
+    filterPlaceholder: "Filter by rank or address...",
+    showing: "Showing",
+    of: "of",
+    totalBtc: "Total BTC",
+    totalUtxos: "Total UTXOs",
+    addressesTracked: "Addresses Tracked",
+    balanceBtc: "Balance (BTC)",
+    flow7d: "7d Flow",
+    action: "Action",
+    viewUtxos: "VIEW UTXOS",
+    decode: "DECODE",
+    loadingSnapshot: "Loading weekly snapshot...",
   },
 
   blockDetail: {

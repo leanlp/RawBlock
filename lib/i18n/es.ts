@@ -288,6 +288,37 @@ const es: TranslationKeys = {
     label: "Idioma",
   },
 
+  // Components
+  components: {
+    provenance: {
+      liveNode: "Nodo en Vivo",
+      cachedSnapshot: "Snapshot en Caché",
+      publicApiFallback: "Respaldo API Pública",
+      liveTooltip: "Datos servidos directamente desde la conexión RPC del nodo local vía websocket/REST.",
+      cachedTooltip: "Datos servidos desde un caché reciente del servidor para optimizar el rendimiento.",
+      fallbackTooltip: "Datos servidos desde un explorador externo público porque el nodo local no está disponible o carece de índices.",
+    },
+    networkHud: {
+      yourNode: "Tu Nodo",
+      peers: "Pares",
+      hashrate: "Tasa de Hash",
+      difficulty: "Dificultad",
+      blocks: "Bloques",
+      fees: "Comisiones (sat/vB)",
+      highPriority: "Prioridad Alta",
+      economy: "Economía",
+    },
+    networkAnalytics: {
+      clientDistribution: "Distribución de Clientes de Nodo",
+      latencyFilters: "Filtros de Latencia y Tiempo",
+      asnInference: "Inferencia de ASN / ISP",
+      allConnections: "Todas las Conexiones",
+      fast: "Rápido (< 50ms)",
+      medium: "Medio (50-150ms)",
+      slow: "Lento (> 150ms)",
+    },
+  },
+
   // Páginas ── Explorador
   mempool: {
     title: "Feed de Mempool en Vivo",
@@ -311,6 +342,10 @@ const es: TranslationKeys = {
     dataFromNode: "Datos proporcionados por nodo Bitcoin Core local vía WebSocket.",
     dataFromSnapshot: "Datos proporcionados por feed público de mempool (modo demo).",
     demoMode: "Modo demo: mostrando datos de instantánea pública de mempool.",
+    visualization: "Visualización de Mempool",
+    height: "Altura:",
+    txs: "TXs:",
+    totalFees: "Comisiones Totales:",
   },
 
   network: {
@@ -331,6 +366,13 @@ const es: TranslationKeys = {
     demoNotice: "La descubierta de pares en vivo no está disponible. Renderizando datos de pares de demostración para que esta vista sea usable.",
     connectingTelemetry: "Conectando a telemetría de pares...",
     loadingNetworkExplorer: "Cargando Explorador de Red...",
+    globalNodes: "Nodos Globales",
+    map: "Mapa",
+    list: "Lista",
+    connected: "Conectados:",
+    known: "Conocidos:",
+    located: "Localizados:",
+    locUnknown: "Loc. Desconocida",
   },
 
   decoder: {
@@ -415,13 +457,32 @@ const es: TranslationKeys = {
 
   richList: {
     title: "Lista de Ricos",
-    subtitle: "Principales direcciones de Bitcoin por balance confirmado, escaneadas del set UTXO.",
+    subtitle: "SNAPSHOT EN CACHÉ",
+    subtitleDesc: "Principales direcciones de Bitcoin por balance confirmado, escaneadas del set UTXO.",
     rank: "Rango",
     address: "Dirección",
     balance: "Balance",
     utxos: "UTXOs",
     viewDetail: "Ver Detalle",
     connectingRichList: "Escaneando lista de ricos...",
+    backToDashboard: "Volver al Panel",
+    openInDecoder: "Abrir En Decodificador",
+    pastePlaceholder: "Pega una dirección o txid...",
+    open: "Abrir",
+    decoderTip: "Consejo: En modo demo, el Decodificador soporta respaldo solo con txid.",
+    filterTable: "Filtrar Esta Tabla",
+    filterPlaceholder: "Filtrar por rango o dirección...",
+    showing: "Mostrando",
+    of: "de",
+    totalBtc: "BTC Total",
+    totalUtxos: "UTXOs Totales",
+    addressesTracked: "Direcciones Rastreadas",
+    balanceBtc: "Saldo (BTC)",
+    flow7d: "Flujo 7d",
+    action: "Acción",
+    viewUtxos: "VER UTXOS",
+    decode: "DECODIFICAR",
+    loadingSnapshot: "Cargando snapshot semanal...",
   },
 
   blockDetail: {

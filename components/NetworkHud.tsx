@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface NetworkStats {
     version: string;
@@ -17,6 +18,7 @@ interface NetworkStats {
 }
 
 export default function NetworkHud() {
+    const { t } = useTranslation();
     const [stats, setStats] = useState<NetworkStats | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -61,12 +63,12 @@ export default function NetworkHud() {
                 {/* Node Identity */}
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col">
-                        <span className="text-slate-500 uppercase tracking-widest text-[10px]">Your Node</span>
+                        <span className="text-slate-500 uppercase tracking-widest text-[10px]">{t.components.networkHud.yourNode}</span>
                         <span className="text-cyan-400 font-bold">{stats.version}</span>
                     </div>
                     <div className="h-6 w-px bg-slate-800"></div>
                     <div className="flex flex-col">
-                        <span className="text-slate-500 uppercase tracking-widest text-[10px]">Peers</span>
+                        <span className="text-slate-500 uppercase tracking-widest text-[10px]">{t.components.networkHud.peers}</span>
                         <span className="text-emerald-400 font-bold flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             {stats.peers}
@@ -77,33 +79,33 @@ export default function NetworkHud() {
                 {/* Global Stats */}
                 <div className="hidden md:flex items-center gap-6">
                     <div className="text-center">
-                        <div className="text-slate-500 uppercase tracking-widest text-[10px]">Hashrate</div>
+                        <div className="text-slate-500 uppercase tracking-widest text-[10px]">{t.components.networkHud.hashrate}</div>
                         <div className="text-slate-300 font-bold">{formatHashrate(stats.hashrate)}</div>
                     </div>
                     <div className="text-center">
-                        <div className="text-slate-500 uppercase tracking-widest text-[10px]">Difficulty</div>
+                        <div className="text-slate-500 uppercase tracking-widest text-[10px]">{t.components.networkHud.difficulty}</div>
                         <div className="text-slate-300 font-bold">{formatDiff(stats.difficulty)}</div>
                     </div>
                     <div className="text-center">
-                        <div className="text-slate-500 uppercase tracking-widest text-[10px]">Blocks</div>
+                        <div className="text-slate-500 uppercase tracking-widest text-[10px]">{t.components.networkHud.blocks}</div>
                         <div className="text-slate-300 font-bold">{stats.blocks.toLocaleString()}</div>
                     </div>
                 </div>
 
                 {/* Fee Estimator */}
                 <div className="bg-slate-900 border border-slate-700 rounded-lg p-2 flex items-center gap-4">
-                    <div className="text-slate-500 uppercase tracking-widest text-[10px] mr-1">Fees (sat/vB)</div>
+                    <div className="text-slate-500 uppercase tracking-widest text-[10px] mr-1">{t.components.networkHud.fees}</div>
 
                     <div className="flex flex-col items-center">
                         <span className="text-fuchsia-400 font-bold text-sm">{stats.fees.fast}</span>
-                        <span className="text-slate-600 text-[9px]">High Priority</span>
+                        <span className="text-slate-600 text-[9px]">{t.components.networkHud.highPriority}</span>
                     </div>
 
                     <div className="w-px h-6 bg-slate-800"></div>
 
                     <div className="flex flex-col items-center">
                         <span className="text-blue-400 font-bold text-sm">{stats.fees.slow}</span>
-                        <span className="text-slate-600 text-[9px]">Economy</span>
+                        <span className="text-slate-600 text-[9px]">{t.components.networkHud.economy}</span>
                     </div>
                 </div>
 

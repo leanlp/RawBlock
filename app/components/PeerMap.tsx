@@ -5,6 +5,7 @@ import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps
 import { Tooltip } from 'react-tooltip';
 import { MotionConfig } from "framer-motion";
 import Card from '../../components/Card';
+import { useTranslation } from "@/lib/i18n";
 
 // Use a reliable TopoJSON source for the world map
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -143,6 +144,7 @@ const formatPingMs = (pingSeconds?: number): string => {
 };
 
 export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selectedCountryCode, focusCoordinates = null }: PeerMapProps) {
+    const { t } = useTranslation();
     const locatedPeers = useMemo(() => peers.filter(hasPeerCoordinates), [peers]);
     const locatedKnownPeers = useMemo(() => knownPeers.filter(hasKnownPeerCoordinates), [knownPeers]);
     const hasKnownDataset = knownPeers.length > 0;
@@ -176,17 +178,17 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                 <div>
                     <h2 className="text-xs sm:text-sm font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2 drop-shadow-md">
                         <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-                        Global Nodes
+                        {t.network.globalNodes}
                     </h2>
                     <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] sm:text-xs font-mono">
                         <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
-                            Connected: <span className="text-cyan-400 font-bold">{peers.length}</span>
+                            {t.network.connected} <span className="text-cyan-400 font-bold">{peers.length}</span>
                         </span>
                         <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
-                            Known: <span className="text-sky-400 font-bold">{displayedKnownCount}</span>
+                            {t.network.known} <span className="text-sky-400 font-bold">{displayedKnownCount}</span>
                         </span>
                         <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
-                            Located: <span className="text-emerald-400 font-bold">{displayedLocatedCount}</span>
+                            {t.network.located} <span className="text-emerald-400 font-bold">{displayedLocatedCount}</span>
                         </span>
                     </div>
                 </div>
@@ -197,14 +199,14 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                         onClick={() => setViewMode('map')}
                         className={`px-3 py-2 text-xs font-bold transition-colors ${viewMode === 'map' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
                     >
-                        Map
+                        {t.network.map}
                     </button>
                     <div className="w-px bg-slate-700"></div>
                     <button
                         onClick={() => setViewMode('list')}
                         className={`px-3 py-2 text-xs font-bold transition-colors ${viewMode === 'list' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
                     >
-                        List
+                        {t.network.list}
                     </button>
                 </div>
             </div>
@@ -308,7 +310,7 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                                     {p.subver}
                                 </div>
                                 <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono">
-                                    <span>{p.location?.country || "Loc Unknown"}</span>
+                                    <span>{p.location?.country || t.network.locUnknown}</span>
                                     <span>{formatPingMs(p.ping)}</span>
                                 </div>
                             </div>

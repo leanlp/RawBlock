@@ -1,4 +1,5 @@
 import { Info } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 interface ProvenanceBadgeProps {
     source: "Live Node" | "Cached Snapshot" | "Public API Fallback";
@@ -8,6 +9,7 @@ interface ProvenanceBadgeProps {
 }
 
 export default function ProvenanceBadge({ source, timestamp, latencyMs, className = "" }: ProvenanceBadgeProps) {
+    const { t } = useTranslation();
     const isLive = source === "Live Node";
     const isFallback = source === "Public API Fallback";
     const isCached = source === "Cached Snapshot";
@@ -28,7 +30,9 @@ export default function ProvenanceBadge({ source, timestamp, latencyMs, classNam
                     {isFallback && <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>}
                 </span>
                 <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
-                    {source}
+                    {isLive && t.components.provenance.liveNode}
+                    {isCached && t.components.provenance.cachedSnapshot}
+                    {isFallback && t.components.provenance.publicApiFallback}
                 </span>
             </div>
 
@@ -45,9 +49,9 @@ export default function ProvenanceBadge({ source, timestamp, latencyMs, classNam
             <div className="group relative ml-1 flex items-center justify-center cursor-help">
                 <Info size={12} className="text-slate-600 hover:text-slate-400 transition-colors" />
                 <div className="absolute top-full right-0 mt-2 w-48 p-2 rounded bg-slate-800 text-xs text-slate-300 border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
-                    {isLive && "Data served directly from the local node RPC connection via websocket/REST."}
-                    {isCached && "Data served from a recent server-side cache to optimize performance."}
-                    {isFallback && "Data served from a public external explorer because the local node is unavailable or lacks indexes."}
+                    {isLive && t.components.provenance.liveTooltip}
+                    {isCached && t.components.provenance.cachedTooltip}
+                    {isFallback && t.components.provenance.fallbackTooltip}
                 </div>
             </div>
 

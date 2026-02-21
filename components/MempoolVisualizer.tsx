@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { Treemap, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
+import { useTranslation } from "@/lib/i18n";
 
 interface BlockTransaction {
-    [key: string]: any;
+    [key: string]: unknown;
     txid: string;
     weight: number;
     fee: number;
@@ -25,8 +26,8 @@ interface BlockTemplate {
 type VisualizationMode = 'treemap' | 'stream';
 
 // Treemap Custom Content
-const TreemapContent = (props: any) => {
-    const { x, y, width, height, payload } = props;
+const TreemapContent = (props: { x?: number, y?: number, width?: number, height?: number, payload?: { feeRate?: number } }) => {
+    const { x = 0, y = 0, width = 0, height = 0, payload } = props;
     const feeRate = payload?.feeRate || 1;
 
     let color = "#1e293b";
@@ -100,6 +101,7 @@ const StreamView = ({ transactions }: { transactions: BlockTransaction[] }) => {
 };
 
 export default function MempoolVisualizer() {
+    const { t } = useTranslation();
     const [data, setData] = useState<BlockTemplate | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -181,7 +183,7 @@ export default function MempoolVisualizer() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
                         </span>
-                        Mempool Visualization
+                        {t.mempool.visualization}
                     </h3>
                 </div>
 
@@ -206,15 +208,15 @@ export default function MempoolVisualizer() {
             {/* Stats Bar */}
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 text-xs font-mono bg-slate-900/50 px-4 py-3 rounded-lg border border-slate-800">
                 <div className="flex items-center gap-2">
-                    <span className="text-slate-500">Height:</span>
+                    <span className="text-slate-500">{t.mempool.height}</span>
                     <span className="text-cyan-400 font-bold">{data.height.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-slate-500">TXs:</span>
+                    <span className="text-slate-500">{t.mempool.txs}</span>
                     <span className="text-purple-400 font-bold">{vizData.length}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-slate-500">Total Fees:</span>
+                    <span className="text-slate-500">{t.mempool.totalFees}</span>
                     <span className="text-emerald-400 font-bold">{(data.totalFees / 100000000).toFixed(4)} BTC</span>
                 </div>
             </div>
