@@ -538,7 +538,7 @@ function DecoderContent() {
                                             </div>
                                             <div className="max-w-full break-all text-xs text-cyan-300 select-all">{result.txid}</div>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div>
                                                 <div className="mb-1 text-xs text-slate-600">SIZE</div>
                                                 <div className="text-xl text-slate-200">{result.size} <span className="text-xs text-slate-600">B</span></div>

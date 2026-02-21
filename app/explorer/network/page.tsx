@@ -140,6 +140,28 @@ const haversineDistanceKm = (from: [number, number], to: [number, number]) => {
     return earthRadiusKm * c;
 };
 
+const sanitizePingMs = (pingSeconds?: number): number | null => {
+    if (!Number.isFinite(pingSeconds) || Number(pingSeconds) < 0) return null;
+    const ms = Number(pingSeconds) * 1000;
+    if (!Number.isFinite(ms) || ms > 10_000) return null;
+    return ms;
+};
+
+const formatPingValue = (pingSeconds?: number) => {
+    const ms = sanitizePingMs(pingSeconds);
+    return ms === null ? "N/A" : `${Math.round(ms)} ms`;
+};
+
+const formatLocation = (location?: NodeLocation | null) => {
+    if (!location) return "Unknown";
+    const city = (location.city || "").trim();
+    const country = (location.countryName || location.countryCode || location.country || "").trim();
+    if (city && country) return `${city}, ${country}`;
+    if (city) return city;
+    if (country) return country;
+    return "Unknown";
+};
+
 const hasCoordinates = <T extends { location?: NodeLocation | null }>(
     node: T
 ): node is T & { location: NodeLocation & { ll: [number, number] } } => {
@@ -178,7 +200,8 @@ function NetworkContent() {
     const filteredPeers = useMemo(() => {
         return peers.filter(p => {
             if (pingFilter === "all") return true;
-            const ms = p.ping * 1000;
+            const ms = sanitizePingMs(p.ping);
+            if (ms === null) return false;
             if (pingFilter === "fast") return ms < 50;
             if (pingFilter === "medium") return ms >= 50 && ms <= 150;
             if (pingFilter === "slow") return ms > 150;
@@ -317,8 +340,24 @@ function NetworkContent() {
 
     const selectedCountryNodes = useMemo(() => {
         if (!selectedCountry) return [];
+        const knownMatches = knownPeers.filter((node) => {
+            const selectedCode = normalizeCountryCode(selectedCountry.code);
+            const selectedName = normalizeCountryName(selectedCountry.name);
+            const nodeCodeA = normalizeCountryCode(node.location?.countryCode);
+            const nodeCodeB = normalizeCountryCode(node.location?.country);
+            const nodeNameA = normalizeCountryName(node.location?.countryName);
+            const nodeNameB = normalizeCountryName(node.location?.country);
+
+            const codeMatch =
+                !!selectedCode && (nodeCodeA === selectedCode || nodeCodeB === selectedCode);
+            const nameMatch =
+                !!selectedName && (nodeNameA === selectedName || nodeNameB === selectedName);
+
+            return codeMatch || nameMatch;
+        });
+        if (knownMatches.length > 0) return knownMatches;
         return peers.filter((node) => peerMatchesCountry(node, selectedCountry.code, selectedCountry.name));
-    }, [selectedCountry, peers]);
+    }, [knownPeers, peers, selectedCountry]);
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-cyan-900 selection:text-cyan-100 pb-20 relative overflow-x-hidden">
@@ -395,8 +434,21 @@ function NetworkContent() {
                                 knownPeers={knownPeers}
                                 onCountrySelect={(code, name) => {
                                     setMapFocus(null);
+                                    const hasKnownNodes = knownPeers.some((node) => {
+                                        const selectedCode = normalizeCountryCode(code);
+                                        const selectedName = normalizeCountryName(name);
+                                        const nodeCodeA = normalizeCountryCode(node.location?.countryCode);
+                                        const nodeCodeB = normalizeCountryCode(node.location?.country);
+                                        const nodeNameA = normalizeCountryName(node.location?.countryName);
+                                        const nodeNameB = normalizeCountryName(node.location?.country);
+                                        const codeMatch =
+                                            !!selectedCode && (nodeCodeA === selectedCode || nodeCodeB === selectedCode);
+                                        const nameMatch =
+                                            !!selectedName && (nodeNameA === selectedName || nodeNameB === selectedName);
+                                        return codeMatch || nameMatch;
+                                    });
                                     const hasActiveNodes = peers.some((node) => peerMatchesCountry(node, code, name));
-                                    setSelectedCountry(hasActiveNodes ? { code, name } : null);
+                                    setSelectedCountry(hasKnownNodes || hasActiveNodes ? { code, name } : null);
                                 }}
                                 selectedCountryCode={selectedCountry?.code}
                                 focusCoordinates={mapFocus}
@@ -431,7 +483,7 @@ function NetworkContent() {
                                         </div>
                                         <CardRow
                                             label="Location"
-                                            value={peer.location ? `${peer.location.city}, ${peer.location.country}` : 'Unknown'}
+                                            value={formatLocation(peer.location)}
                                         />
                                         <CardRow
                                             label="Client"
@@ -439,7 +491,7 @@ function NetworkContent() {
                                         />
                                         <CardRow
                                             label="Ping"
-                                            value={`${(peer.ping * 1000).toFixed(0)} ms`}
+                                            value={formatPingValue(peer.ping)}
                                             mono
                                         />
                                     </Card>
@@ -471,8 +523,8 @@ function NetworkContent() {
                                                 </td>
                                                 <td className="px-6 py-4 max-w-[60vw] md:max-w-44 truncate">
                                                     {peer.location ? (
-                                                        <span title={`${peer.location.city}, ${peer.location.country}`}>
-                                                            {peer.location.city}, {peer.location.country}
+                                                        <span title={formatLocation(peer.location)}>
+                                                            {formatLocation(peer.location)}
                                                         </span>
                                                     ) : <span className="text-slate-600 italic">Unknown</span>}
                                                 </td>
@@ -490,7 +542,7 @@ function NetworkContent() {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right font-mono text-slate-300">
-                                                    {(peer.ping * 1000).toFixed(0)} ms
+                                                    {formatPingValue(peer.ping)}
                                                 </td>
                                             </tr>
                                         ))}

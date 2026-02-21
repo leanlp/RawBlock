@@ -38,7 +38,7 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
                         </h2>
                         <div className="mt-3 flex items-center gap-2">
                             <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold font-mono">
-                                {nodes.length} ACTIVE NODES
+                                {nodes.length} MAPPED NODES
                             </span>
                         </div>
                     </div>

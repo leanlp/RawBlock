@@ -395,7 +395,7 @@ export default function ConsensusDebuggerPage() {
                                                 <div className="text-xs text-slate-500 uppercase tracking-widest mb-3">
                                                     📊 Technical Details
                                                 </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                                                     {Object.entries(currentStep.details).map(([key, value]) => (
                                                         <div key={key} className="bg-slate-900/50 rounded-lg p-2">
                                                             <div className="text-xs text-slate-500 capitalize">{key.replace(/([A-Z])/g, ' $1')}</div>

@@ -136,7 +136,7 @@ export default function MiningSimPage() {
                 </div>
 
                 {/* CONTROLS */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl">
                         <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-4">Network Hashrate</h3>
                         <div className="text-4xl font-black text-amber-500 mb-2">{hashrate}%</div>

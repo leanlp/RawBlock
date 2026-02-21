@@ -134,17 +134,29 @@ const hasCoordinates = (location?: PeerLocation | null): location is PeerLocatio
 const hasPeerCoordinates = (peer: Peer): peer is LocatedPeer => hasCoordinates(peer.location);
 const hasKnownPeerCoordinates = (node: KnownPeer): node is LocatedKnownPeer => hasCoordinates(node.location);
 
+const formatPingMs = (pingSeconds?: number): string => {
+    if (!Number.isFinite(pingSeconds) || Number(pingSeconds) < 0) return "N/A";
+    const ms = Number(pingSeconds) * 1000;
+    // Hide extreme outliers that usually indicate stale or invalid RTT samples.
+    if (!Number.isFinite(ms) || ms > 10_000) return "N/A";
+    return `${Math.round(ms)}ms`;
+};
+
 export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selectedCountryCode, focusCoordinates = null }: PeerMapProps) {
     const locatedPeers = useMemo(() => peers.filter(hasPeerCoordinates), [peers]);
     const locatedKnownPeers = useMemo(() => knownPeers.filter(hasKnownPeerCoordinates), [knownPeers]);
+    const hasKnownDataset = knownPeers.length > 0;
+    const displayedKnownCount = hasKnownDataset ? knownPeers.length : peers.length;
+    const displayedLocatedCount = hasKnownDataset ? locatedKnownPeers.length : locatedPeers.length;
     const countriesWithNodes = useMemo(() => {
         const set = new Set<string>();
-        peers.forEach((node) => {
+        const sourceNodes = hasKnownDataset ? knownPeers : peers;
+        sourceNodes.forEach((node) => {
             const code = normalizeCountryCode(node.location?.country) || normalizeCountryCode(node.location?.countryCode);
             if (code) set.add(code);
         });
         return set;
-    }, [peers]);
+    }, [hasKnownDataset, knownPeers, peers]);
 
     const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
@@ -171,10 +183,10 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                             Connected: <span className="text-cyan-400 font-bold">{peers.length}</span>
                         </span>
                         <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
-                            Known: <span className="text-sky-400 font-bold">{knownPeers.length}</span>
+                            Known: <span className="text-sky-400 font-bold">{displayedKnownCount}</span>
                         </span>
                         <span className="rounded bg-slate-950/75 border border-slate-700/80 px-2 py-1 text-slate-300">
-                            Located: <span className="text-emerald-400 font-bold">{locatedPeers.length + locatedKnownPeers.length}</span>
+                            Located: <span className="text-emerald-400 font-bold">{displayedLocatedCount}</span>
                         </span>
                     </div>
                 </div>
@@ -260,7 +272,7 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                                     key={peer.id}
                                     coordinates={[peer.location.ll[1], peer.location.ll[0]]} // [lon, lat] - GeoJSON uses Lon,Lat order!
                                     data-tooltip-id="peer-tooltip"
-                                    data-tooltip-content={`${peer.subver} (${peer.location.city || "Unknown"}, ${peer.location.country || "Unknown"}) - Ping: ${(peer.ping * 1000).toFixed(0)}ms`}
+                                    data-tooltip-content={`${peer.subver} (${peer.location.city || "Unknown"}, ${peer.location.country || "Unknown"}) - Ping: ${formatPingMs(peer.ping)}`}
                                 >
                                     <circle r={4} fill={peer.inbound ? "#f43f5e" : "#22d3ee"} stroke="#fff" strokeWidth={1} className="animate-pulse" />
                                 </Marker>
@@ -297,7 +309,7 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                                 </div>
                                 <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono">
                                     <span>{p.location?.country || "Loc Unknown"}</span>
-                                    <span>{(p.ping * 1000).toFixed(0)}ms</span>
+                                    <span>{formatPingMs(p.ping)}</span>
                                 </div>
                             </div>
                         ))}

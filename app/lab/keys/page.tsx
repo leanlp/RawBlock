@@ -362,7 +362,7 @@ export default function KeysPage() {
                 )}
 
                 {/* Educational Footer */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-12">
                     <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
                         <h4 className="font-bold text-white text-sm mb-2">🔐 Security</h4>
                         <p className="text-xs text-slate-400">

@@ -99,7 +99,7 @@ export default function FeesPage() {
         {!loading && error && !hasData && <ErrorState message={error} onRetry={retry} />}
 
         {hasData ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest text-center mb-2">
@@ -127,7 +127,7 @@ export default function FeesPage() {
               <p className="text-xs text-slate-400 text-center mt-2">~10 Min Confirmation</p>
             </div>
 
-            <div className="md:col-span-3 overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-sm min-h-[420px] relative">
+            <div className="sm:col-span-2 lg:col-span-3 overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-sm min-h-[420px] relative">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.12),transparent_52%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.1),transparent_58%)]" />
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
@@ -166,35 +166,32 @@ export default function FeesPage() {
                     Avg observed: {formatSatVb(chartMeta.observedAvg)} sat/vB
                   </span>
                   <span
-                    className={`rounded-full border px-3 py-1 ${
-                      chartMeta.expressDelta >= 0
-                        ? "border-red-500/25 bg-red-500/10 text-red-300"
-                        : "border-cyan-500/25 bg-cyan-500/10 text-cyan-300"
-                    }`}
+                    className={`rounded-full border px-3 py-1 ${chartMeta.expressDelta >= 0
+                      ? "border-red-500/25 bg-red-500/10 text-red-300"
+                      : "border-cyan-500/25 bg-cyan-500/10 text-cyan-300"
+                      }`}
                   >
                     Express Δ24h: {chartMeta.expressDelta >= 0 ? "+" : ""}
                     {formatSatVb(chartMeta.expressDelta)} sat/vB
                   </span>
                   {chartMeta.syncLagSeconds !== null ? (
                     <span
-                      className={`rounded-full border px-3 py-1 ${
-                        chartMeta.syncLagSeconds <= 60
-                          ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
-                          : chartMeta.syncLagSeconds <= 180
-                            ? "border-amber-500/25 bg-amber-500/10 text-amber-300"
-                            : "border-red-500/25 bg-red-500/10 text-red-300"
-                      }`}
+                      className={`rounded-full border px-3 py-1 ${chartMeta.syncLagSeconds <= 60
+                        ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
+                        : chartMeta.syncLagSeconds <= 180
+                          ? "border-amber-500/25 bg-amber-500/10 text-amber-300"
+                          : "border-red-500/25 bg-red-500/10 text-red-300"
+                        }`}
                     >
                       Sync lag: {chartMeta.syncLagSeconds}s
                     </span>
                   ) : null}
                   {longHorizon ? (
                     <span
-                      className={`rounded-full border px-3 py-1 ${
-                        longHorizon.satVB < (chartMeta.policyFloor ?? 1)
-                          ? "border-violet-500/35 bg-violet-500/10 text-violet-300"
-                          : "border-slate-700/80 bg-slate-900/70 text-slate-300"
-                      }`}
+                      className={`rounded-full border px-3 py-1 ${longHorizon.satVB < (chartMeta.policyFloor ?? 1)
+                        ? "border-violet-500/35 bg-violet-500/10 text-violet-300"
+                        : "border-slate-700/80 bg-slate-900/70 text-slate-300"
+                        }`}
                     >
                       Long horizon ({longHorizon.targetBlocks} blocks): {formatSatVb(longHorizon.satVB)} sat/vB
                     </span>
