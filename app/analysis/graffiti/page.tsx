@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Header from "../../../components/Header";
+import { useTranslation } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ interface GraffitiMsg {
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
 export default function GraffitiPage() {
+    const { t } = useTranslation();
     const [messages, setMessages] = useState<GraffitiMsg[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +51,7 @@ export default function GraffitiPage() {
         try {
             const wsBase = API_BASE_URL.replace(/^http/i, "ws").replace(/\/$/, "");
             socket = new WebSocket(`${wsBase}/ws`);
-            socket.onopen = () => {};
+            socket.onopen = () => { };
             socket.onmessage = (event) => {
                 try {
                     const data = JSON.parse(String(event.data ?? "{}")) as { type?: string; payload?: unknown };
@@ -61,8 +63,8 @@ export default function GraffitiPage() {
                     // Ignore malformed websocket payloads.
                 }
             };
-            socket.onerror = () => {};
-            socket.onclose = () => {};
+            socket.onerror = () => { };
+            socket.onclose = () => { };
         } catch {
             // No websocket available: history-only mode.
         }
@@ -87,7 +89,7 @@ export default function GraffitiPage() {
                 {/* Custom Header for this "Hacker" mode */}
                 <div className="border-b border-green-900/50 pb-6 flex flex-wrap justify-between items-center gap-3">
                     <h1 className="text-2xl font-bold tracking-tighter uppercase glitch-text">
-                        Graffiti_Wall <span className="animate-pulse">_</span>
+                        {t.graffiti.title} <span className="animate-pulse">_</span>
                     </h1>
                     <Link href="/" className="text-xs hover:text-green-300 hover:underline inline-flex items-center min-h-11">[ RETURN_TO_HOME ]</Link>
                 </div>

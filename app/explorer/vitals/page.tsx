@@ -9,6 +9,7 @@ import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts"
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import InfoTooltip from "@/components/InfoTooltip";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n";
 
 const SOURCE_CLASS_META: Record<BitcoinMetricSourceClass, { label: string; chipClass: string }> = {
   "local-node": {
@@ -45,6 +46,7 @@ const UPSTREAM_LABEL: Record<BitcoinMetricUpstream, string> = {
 export default function VitalsPage() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
   const { history, cardFees, longHorizon, loading: feeLoading, hasData: hasFeeData, retry: retryFees } = useFeeMarketData(30_000);
+  const { t } = useTranslation();
 
   const renderFee = (value: number | null) => {
     const formatted = formatSatVb(value);
@@ -100,15 +102,15 @@ export default function VitalsPage() {
         <div className="flex flex-col md:flex-row justify-between items-center md:items-end pb-6 border-b border-slate-800">
           <div className="text-center md:text-left">
             <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">
-              Protocol Vital Signs
+              {t.vitals.title}
             </h1>
-            <p className="mt-2 text-slate-400 text-sm">Raw Block live Bitcoin telemetry with unified fee intelligence and trend context.</p>
+            <p className="mt-2 text-slate-400 text-sm">{t.vitals.subtitle}</p>
           </div>
         </div>
 
         {status === "loading" && !metrics ? (
           <div>
-            <p className="mb-4 text-sm text-slate-500">Connecting to live telemetry...</p>
+            <p className="mb-4 text-sm text-slate-500">{t.vitals.connectingVitals}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {Array.from({ length: 4 }).map((_, idx) => (
                 <div key={`vitals-skeleton-${idx}`} className="h-40 rounded-xl border border-slate-800 bg-slate-900/50 animate-pulse" />
@@ -133,13 +135,13 @@ export default function VitalsPage() {
         {metrics ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-              <p className="text-xs uppercase tracking-widest text-slate-500">Block Height</p>
+              <p className="text-xs uppercase tracking-widest text-slate-500">{t.hero.blockHeight}</p>
               <p className="mt-2 text-3xl font-bold text-slate-100">{metrics.blockHeight?.toLocaleString() ?? "Data temporarily unavailable"}</p>
               {renderProvenance(metrics.provenance?.blockHeight ?? fallbackProvenance(metrics.lastUpdated))}
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-              <p className="text-xs uppercase tracking-widest text-slate-500">Hashrate</p>
+              <p className="text-xs uppercase tracking-widest text-slate-500">{t.hero.hashrate}</p>
               <p className="mt-2 text-3xl font-bold text-slate-100">
                 {metrics.hashrateEh !== null ? `${metrics.hashrateEh} EH/s` : "Data temporarily unavailable"}
               </p>
@@ -147,7 +149,7 @@ export default function VitalsPage() {
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-              <p className="text-xs uppercase tracking-widest text-slate-500">Fee Recommendations</p>
+              <p className="text-xs uppercase tracking-widest text-slate-500">{t.fees.title}</p>
               <div className="mt-2 space-y-1 text-sm text-slate-200">
                 <p>Fast: {renderFee(cardFees.fast)}</p>
                 <p>30 min: {renderFee(cardFees.medium)}</p>
@@ -161,7 +163,7 @@ export default function VitalsPage() {
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-              <p className="text-xs uppercase tracking-widest text-slate-500">Halving Countdown</p>
+              <p className="text-xs uppercase tracking-widest text-slate-500">{t.hero.daysToHalving}</p>
               <p className="mt-2 text-3xl font-bold text-slate-100">
                 {metrics.daysUntilHalving !== null ? `${metrics.daysUntilHalving} days` : "Data temporarily unavailable"}
               </p>
@@ -215,11 +217,10 @@ export default function VitalsPage() {
               </span>
               {longHorizon ? (
                 <span
-                  className={`rounded-full border px-2 py-1 ${
-                    longHorizon.satVB < 1
+                  className={`rounded-full border px-2 py-1 ${longHorizon.satVB < 1
                       ? "border-violet-500/30 bg-violet-500/10 text-violet-300"
                       : "border-slate-700 bg-slate-900/80 text-slate-300"
-                  }`}
+                    }`}
                 >
                   24h+ {formatSatVb(longHorizon.satVB)} sat/vB
                 </span>

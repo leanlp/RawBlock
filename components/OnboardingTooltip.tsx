@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/lib/i18n";
 
 interface TooltipStep {
     target: string; // CSS selector for the target element
@@ -85,6 +86,7 @@ export default function OnboardingTooltip({ tourId, steps, onComplete }: Onboard
 
     const step = steps[currentStep];
     const position = step.position || "bottom";
+    const { t } = useTranslation();
 
     // Calculate tooltip position
     const getTooltipStyle = (): React.CSSProperties => {
@@ -147,7 +149,7 @@ export default function OnboardingTooltip({ tourId, steps, onComplete }: Onboard
                 >
                     {/* Step indicator */}
                     <div className="text-[10px] text-cyan-500 uppercase tracking-widest mb-2">
-                        Step {currentStep + 1} of {steps.length}
+                        {t.common.stepOf.replace("{0}", String(currentStep + 1)).replace("{1}", String(steps.length))}
                     </div>
 
                     {/* Title */}
@@ -164,7 +166,7 @@ export default function OnboardingTooltip({ tourId, steps, onComplete }: Onboard
                             onClick={handleSkip}
                             className="text-xs text-slate-500 hover:text-slate-400 transition-colors"
                         >
-                            Skip tour
+                            {t.common.skipTour}
                         </button>
 
                         <div className="flex gap-2">
@@ -173,14 +175,14 @@ export default function OnboardingTooltip({ tourId, steps, onComplete }: Onboard
                                     onClick={() => setCurrentStep((prev) => prev - 1)}
                                     className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition-colors"
                                 >
-                                    Back
+                                    {t.common.back}
                                 </button>
                             )}
                             <button
                                 onClick={handleNext}
                                 className="btn-accent-sm"
                             >
-                                {currentStep === steps.length - 1 ? "Finish" : "Next"}
+                                {currentStep === steps.length - 1 ? t.common.finish : t.common.next}
                             </button>
                         </div>
                     </div>
@@ -193,7 +195,8 @@ export default function OnboardingTooltip({ tourId, steps, onComplete }: Onboard
 /**
  * Button to restart a tour
  */
-export function RestartTourButton({ tourId, label = "How to use" }: { tourId: string; label?: string }) {
+export function RestartTourButton({ tourId, label }: { tourId: string; label?: string }) {
+    const { t } = useTranslation();
     const handleRestart = () => {
         localStorage.removeItem(STORAGE_PREFIX + tourId);
         window.location.reload();
@@ -205,7 +208,7 @@ export function RestartTourButton({ tourId, label = "How to use" }: { tourId: st
             className="flex items-center gap-1.5 px-3 py-1.5 min-h-11 text-xs text-slate-400 hover:text-cyan-400 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all"
         >
             <span>❓</span>
-            <span>{label}</span>
+            <span>{label ?? t.common.howToUse}</span>
         </button>
     );
 }

@@ -8,6 +8,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
+import { useTranslation } from "@/lib/i18n";
 
 interface UTXOStats {
     height: number;
@@ -34,6 +35,7 @@ const COLORS = {
 };
 
 export default function UTXOExplorerPage() {
+    const { t } = useTranslation();
     const [stats, setStats] = useState<UTXOStats | null>(null);
     const [distribution, setDistribution] = useState<Distribution | null>(null);
     const [loading, setLoading] = useState(true);
@@ -102,10 +104,10 @@ export default function UTXOExplorerPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end pb-6 border-b border-slate-800">
                     <div>
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
-                            🔬 UTXO Set Explorer
+                            {t.nav.items.utxoSet}
                         </h1>
                         <p className="mt-2 text-slate-400 text-sm">
-                            The complete state of all spendable Bitcoin - {stats ? formatNumber(stats.txouts) : '...'} unspent outputs
+                            {t.utxoExplorer?.subtitle || "The complete state of all spendable Bitcoin"} - {stats ? formatNumber(stats.txouts) : '...'} unspent outputs
                         </p>
                     </div>
                 </div>

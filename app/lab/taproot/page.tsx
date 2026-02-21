@@ -1,10 +1,11 @@
-
 "use client";
 
 import Header from "../../../components/Header";
 import KeyAggregator from "../../../components/taproot/KeyAggregator";
+import { useTranslation } from "@/lib/i18n";
 
 export default function TaprootPage() {
+    const { t } = useTranslation();
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
             <div className="max-w-6xl mx-auto space-y-8">
@@ -12,10 +13,10 @@ export default function TaprootPage() {
 
                 <div className="pb-6 border-b border-slate-800">
                     <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">
-                        Taproot Playground 🌱
+                        {t.taprootPlayground.title} 🌱
                     </h1>
                     <p className="mt-2 text-slate-400 text-sm">
-                        Visualize <strong>Schnorr Signatures</strong> and <strong>Key Aggregation (MuSig)</strong>.
+                        {t.taprootPlayground.subtitle}
                     </p>
                 </div>
 

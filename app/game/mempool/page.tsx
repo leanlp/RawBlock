@@ -4,8 +4,10 @@ import MempoolPressureSimulator from "../../../components/mempool-game/MempoolPr
 import Header from "../../../components/Header";
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n";
 
 export default function MempoolSimulatorPage() {
+    const { t } = useTranslation();
     return (
         <>
             <div className="md:hidden">

@@ -10,6 +10,7 @@ import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer
 import { formatSatVb } from "@/lib/feeBands";
 import type { BitcoinLiveMetrics, RecentMempoolTx } from "@/lib/bitcoinData";
 import type { FeeHistoryPoint } from "@/hooks/useFeeMarketData";
+import { useTranslation } from "@/lib/i18n";
 
 const HERO_FALLBACK_RECENT_TXS: RecentMempoolTx[] = [
   {
@@ -115,9 +116,9 @@ const HERO_FALLBACK_FEE_HISTORY: FeeHistoryPoint[] = (() => {
   }));
 })();
 
-function formatHashrateEh(value: number | null | undefined): string {
+function formatHashrateEh(value: number | null | undefined, unavailableText: string): string {
   if (value === null || value === undefined || !Number.isFinite(value)) {
-    return "Data temporarily unavailable";
+    return unavailableText;
   }
 
   const hasFraction = Math.abs(value % 1) > Number.EPSILON;
@@ -197,6 +198,7 @@ export default function HeroMetrics() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
   const { history: feeHistory, cardFees } = useFeeMarketData(30_000);
   const [clientNowSec, setClientNowSec] = useState<number | null>(null);
+  const { t } = useTranslation();
 
   const hasLiveMetrics = Boolean(metrics);
   const displayMetrics = metrics ?? HERO_FALLBACK_METRICS;
@@ -242,22 +244,22 @@ export default function HeroMetrics() {
         <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
           {snapshotMode && (
             <span className="rounded border border-slate-700 bg-slate-900/70 px-2 py-1 text-[10px] uppercase tracking-widest text-slate-400">
-              Startup Snapshot
+              {t.hero.startupSnapshot}
             </span>
           )}
           {connectingMode && (
             <span className="rounded border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-cyan-300">
-              Connecting to live node...
+              {t.hero.connectingToLiveNode}
             </span>
           )}
           {liveMode && (
             <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-emerald-300">
-              Live Node Data
+              {t.hero.liveNodeData}
             </span>
           )}
           {staleMode && (
             <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] uppercase tracking-widest text-amber-300">
-              Live Feed Delayed (Showing Last Known)
+              {t.hero.liveFeedDelayed}
             </span>
           )}
         </div>
@@ -267,49 +269,49 @@ export default function HeroMetrics() {
         <div className="mb-6 flex items-center justify-center gap-2">
           <div className="h-2 w-2 rounded-full bg-amber-500" />
           <span className="text-xs uppercase tracking-widest text-slate-500">
-            Showing startup snapshot
+            {t.hero.showingStartupSnapshot}
           </span>
           <button
             type="button"
             onClick={retry}
             className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] text-rose-300"
           >
-            Retry
+            {t.hero.retry}
           </button>
         </div>
       ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr">
         <Link href="/explorer/blocks">
-          <Card variant="metric" accent="cyan" onClick={() => {}}>
+          <Card variant="metric" accent="cyan" onClick={() => { }}>
             <MetricValue
               icon="📦"
-              value={displayMetrics.blockHeight?.toLocaleString() ?? "Data temporarily unavailable"}
-              label="Block Height"
-              sublabel={hasLiveMetrics && metrics?.lastUpdated ? new Date(metrics.lastUpdated).toLocaleTimeString() : "Startup snapshot"}
+              value={displayMetrics.blockHeight?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable}
+              label={t.hero.blockHeight}
+              sublabel={hasLiveMetrics && metrics?.lastUpdated ? new Date(metrics.lastUpdated).toLocaleTimeString() : t.hero.startupSnapshotLabel}
               accent="cyan"
             />
           </Card>
         </Link>
 
         <Link href="/explorer/vitals">
-          <Card variant="metric" accent="orange" onClick={() => {}}>
+          <Card variant="metric" accent="orange" onClick={() => { }}>
             <MetricValue
               icon="⛏️"
-              value={formatHashrateEh(displayMetrics.hashrateEh)}
-              label="Hashrate"
-              sublabel="3-day average"
+              value={formatHashrateEh(displayMetrics.hashrateEh, t.hero.dataTemporarilyUnavailable)}
+              label={t.hero.hashrate}
+              sublabel={t.hero.threeDayAverage}
               accent="orange"
             />
           </Card>
         </Link>
 
         <Link href="/explorer/mempool">
-          <Card variant="metric" accent="blue" onClick={() => {}}>
+          <Card variant="metric" accent="blue" onClick={() => { }}>
             <MetricValue
               icon="🌊"
-              value={displayMetrics.mempoolTxCount?.toLocaleString() ?? "Data temporarily unavailable"}
-              label="Pending TXs"
+              value={displayMetrics.mempoolTxCount?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable}
+              label={t.hero.pendingTxs}
               sublabel={
                 displayMetrics.mempoolVsizeMb !== null && displayMetrics.mempoolVsizeMb !== undefined
                   ? `${displayMetrics.mempoolVsizeMb} MB`
@@ -321,14 +323,14 @@ export default function HeroMetrics() {
         </Link>
 
         <Link href="/explorer/vitals">
-          <Card variant="metric" accent="violet" onClick={() => {}}>
+          <Card variant="metric" accent="violet" onClick={() => { }}>
             <MetricValue
               icon="⏳"
-              value={displayMetrics.daysUntilHalving?.toLocaleString() ?? "Data temporarily unavailable"}
-              label="Days to Halving"
+              value={displayMetrics.daysUntilHalving?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable}
+              label={t.hero.daysToHalving}
               sublabel={
                 displayMetrics.blocksUntilHalving !== null && displayMetrics.blocksUntilHalving !== undefined
-                  ? `${displayMetrics.blocksUntilHalving.toLocaleString()} blocks`
+                  ? `${displayMetrics.blocksUntilHalving.toLocaleString()} ${t.hero.blocks}`
                   : ""
               }
               accent="violet"
@@ -339,11 +341,11 @@ export default function HeroMetrics() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link href="/explorer/fees" className="block w-full h-full">
-          <Card variant="panel" className="h-full" onClick={() => {}}>
-            <PanelHeader>Fee Market (sat/vB)</PanelHeader>
+          <Card variant="panel" className="h-full" onClick={() => { }}>
+            <PanelHeader>{t.hero.feeMarket}</PanelHeader>
             <div className="space-y-2 rounded-lg border border-slate-800/80 bg-slate-950/40 p-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400">Fast</span>
+                <span className="text-xs text-slate-400">{t.hero.fast}</span>
                 <span className="font-mono text-red-400 font-bold">
                   {formatSatVb(displayFeeFast)}
                   {" sat/vB"}
@@ -367,14 +369,13 @@ export default function HeroMetrics() {
             {heroFeeMeta ? (
               <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-mono">
                 <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                  Floor {formatSatVb(heroFeeMeta.minSlow)}
+                  {t.hero.floor} {formatSatVb(heroFeeMeta.minSlow)}
                 </span>
                 <span
-                  className={`rounded-full border px-2 py-0.5 ${
-                    heroFeeMeta.expressDelta >= 0
+                  className={`rounded-full border px-2 py-0.5 ${heroFeeMeta.expressDelta >= 0
                       ? "border-red-500/25 bg-red-500/10 text-red-300"
                       : "border-cyan-500/25 bg-cyan-500/10 text-cyan-300"
-                  }`}
+                    }`}
                 >
                   Δ24h {heroFeeMeta.expressDelta >= 0 ? "+" : ""}
                   {formatSatVb(heroFeeMeta.expressDelta)}
@@ -432,7 +433,7 @@ export default function HeroMetrics() {
                       stroke="#10b981"
                       fill="url(#hero-fee-economy)"
                       strokeWidth={1.6}
-                      name="Economy"
+                      name={t.hero.economy}
                       activeDot={{ r: 3, stroke: "#052e16", strokeWidth: 1.2 }}
                     />
                     <Area
@@ -441,7 +442,7 @@ export default function HeroMetrics() {
                       stroke="#f59e0b"
                       fill="url(#hero-fee-standard)"
                       strokeWidth={1.6}
-                      name="Standard"
+                      name={t.hero.standard}
                       activeDot={{ r: 3, stroke: "#451a03", strokeWidth: 1.2 }}
                     />
                     <Area
@@ -450,7 +451,7 @@ export default function HeroMetrics() {
                       stroke="#ef4444"
                       fill="url(#hero-fee-express)"
                       strokeWidth={1.8}
-                      name="Express"
+                      name={t.hero.express}
                       activeDot={{ r: 3, stroke: "#450a0a", strokeWidth: 1.2 }}
                     />
                   </AreaChart>
@@ -461,8 +462,8 @@ export default function HeroMetrics() {
         </Link>
 
         <Link href="/explorer/mempool" className="block w-full h-full">
-          <Card variant="panel" className="h-full" onClick={() => {}}>
-            <PanelHeader>Live Mempool Stream</PanelHeader>
+          <Card variant="panel" className="h-full" onClick={() => { }}>
+            <PanelHeader>{t.hero.liveMempoolStream}</PanelHeader>
             {visibleRecentTxs.length > 0 ? (
               <div className="space-y-1.5">
                 {visibleRecentTxs.map((tx) => (
@@ -488,11 +489,11 @@ export default function HeroMetrics() {
                   </div>
                 ))}
                 <div className="pt-1 text-[10px] uppercase tracking-wider text-cyan-400/90">
-                  View full mempool →
+                  {t.hero.viewFullMempool}
                 </div>
               </div>
             ) : (
-              <div className="text-xs text-slate-400">{error ?? "Data temporarily unavailable"}</div>
+              <div className="text-xs text-slate-400">{error ?? t.hero.dataTemporarilyUnavailable}</div>
             )}
           </Card>
         </Link>

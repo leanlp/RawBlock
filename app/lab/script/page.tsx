@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Header from "../../../components/Header";
 import StackVisualizer from "../../../components/script-lab/StackVisualizer";
+import { useTranslation } from "@/lib/i18n";
 import {
   SCRIPT_CONSENSUS_FIXTURES,
   type ScriptConsensusFixture,
@@ -337,6 +338,7 @@ function evaluateState(state: TraceExecutionState, preset: Preset | null): Valid
 
 export default function ScriptLabPage() {
   const initialModel = useMemo(() => resolveInitialModel(), []);
+  const { t } = useTranslation();
   const [selectedPreset, setSelectedPreset] = useState<SelectedPreset>(initialModel.preset);
   const [scriptInput, setScriptInput] = useState(initialModel.script);
   const [state, setState] = useState<TraceExecutionState>(() => createExecutionState(initialModel.script));
@@ -636,9 +638,9 @@ export default function ScriptLabPage() {
 
         <div className="page-header">
           <h1 className="page-title mx-auto max-w-[92vw] bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-center text-transparent sm:mx-0 sm:max-w-none sm:text-left">
-            Script Lab
+            {t.scriptLab.title}
           </h1>
-          <p className="page-subtitle">Consensus-true Bitcoin Script execution with step trace, fixture validation, and opcode catalog.</p>
+          <p className="page-subtitle">{t.scriptLab.subtitle}</p>
         </div>
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
@@ -722,8 +724,8 @@ export default function ScriptLabPage() {
                   onClick={() => setIsPlaying((prev) => !prev)}
                   disabled={state.completed || !!state.error || realLoading}
                   className={`min-h-11 rounded-lg px-3 text-sm font-bold ${isAutoPlaying
-                      ? "border border-red-500/50 bg-red-500/20 text-red-300"
-                      : "bg-emerald-600 text-white hover:bg-emerald-500"
+                    ? "border border-red-500/50 bg-red-500/20 text-red-300"
+                    : "bg-emerald-600 text-white hover:bg-emerald-500"
                     } disabled:cursor-not-allowed disabled:opacity-40`}
                 >
                   {isAutoPlaying ? "Pause" : "Run"}
@@ -733,10 +735,10 @@ export default function ScriptLabPage() {
 
             <div
               className={`rounded-xl border p-4 ${validation.status === "pass"
-                  ? "border-emerald-500/40 bg-emerald-900/20"
-                  : validation.status === "fail"
-                    ? "border-red-500/40 bg-red-900/20"
-                    : "border-slate-800 bg-slate-900"
+                ? "border-emerald-500/40 bg-emerald-900/20"
+                : validation.status === "fail"
+                  ? "border-red-500/40 bg-red-900/20"
+                  : "border-slate-800 bg-slate-900"
                 }`}
             >
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Validation Engine</p>
@@ -801,10 +803,10 @@ export default function ScriptLabPage() {
                   <div
                     key={`${opcode}-${index}`}
                     className={`rounded p-2 text-xs transition-all ${isCurrent
-                        ? "border border-yellow-500/50 bg-yellow-500/20 font-bold text-yellow-300"
-                        : isPast
-                          ? "text-slate-600"
-                          : "text-slate-300"
+                      ? "border border-yellow-500/50 bg-yellow-500/20 font-bold text-yellow-300"
+                      : isPast
+                        ? "text-slate-600"
+                        : "text-slate-300"
                       }`}
                   >
                     <div className="flex items-center justify-between">
@@ -831,10 +833,10 @@ export default function ScriptLabPage() {
                       <span className="text-slate-300">{entry.name}</span>
                       <span
                         className={`rounded px-1.5 py-0.5 ${entry.status === "enabled"
-                            ? "bg-emerald-500/20 text-emerald-300"
-                            : entry.status === "disabled"
-                              ? "bg-red-500/20 text-red-300"
-                              : "bg-amber-500/20 text-amber-300"
+                          ? "bg-emerald-500/20 text-emerald-300"
+                          : entry.status === "disabled"
+                            ? "bg-red-500/20 text-red-300"
+                            : "bg-amber-500/20 text-amber-300"
                           }`}
                       >
                         {entry.status} ({entry.code})
@@ -878,8 +880,8 @@ export default function ScriptLabPage() {
                   type="button"
                   onClick={() => loadConsensusFixture(fixture)}
                   className={`min-h-11 rounded-lg border p-2 text-left ${selectedFixtureId === fixture.id
-                      ? "border-cyan-500/50 bg-cyan-500/10"
-                      : "border-slate-800 bg-slate-900/70 hover:border-slate-700"
+                    ? "border-cyan-500/50 bg-cyan-500/10"
+                    : "border-slate-800 bg-slate-900/70 hover:border-slate-700"
                     }`}
                 >
                   <p className="text-xs font-bold text-slate-200">{fixture.name}</p>
@@ -1056,10 +1058,10 @@ export default function ScriptLabPage() {
 
               <div
                 className={`rounded-lg border p-3 ${realResult?.verified
-                    ? "border-emerald-500/40 bg-emerald-900/20"
-                    : realResult
-                      ? "border-red-500/40 bg-red-900/20"
-                      : "border-slate-800 bg-slate-950/40"
+                  ? "border-emerald-500/40 bg-emerald-900/20"
+                  : realResult
+                    ? "border-red-500/40 bg-red-900/20"
+                    : "border-slate-800 bg-slate-950/40"
                   }`}
               >
                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Consensus Result</p>
@@ -1098,10 +1100,10 @@ export default function ScriptLabPage() {
 
               <div
                 className={`rounded-lg border p-3 ${realTraceResult
-                    ? realTraceResult.error
-                      ? "border-red-500/40 bg-red-900/20"
-                      : "border-emerald-500/40 bg-emerald-900/20"
-                    : "border-slate-800 bg-slate-950/40"
+                  ? realTraceResult.error
+                    ? "border-red-500/40 bg-red-900/20"
+                    : "border-emerald-500/40 bg-emerald-900/20"
+                  : "border-slate-800 bg-slate-950/40"
                   }`}
               >
                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Trace Result (Real Interpreter)</p>

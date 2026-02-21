@@ -6,8 +6,10 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip 
 import { motion } from "framer-motion";
 import { calculateDIndex, DIndexResult } from "../../../utils/d-index";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
+import { useTranslation } from "@/lib/i18n";
 
 export default function DIndexPage() {
+    const { t } = useTranslation();
     const [result, setResult] = useState<DIndexResult | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -56,9 +58,9 @@ export default function DIndexPage() {
                 <div className="flex flex-col md:flex-row justify-between items-end pb-6 border-b border-slate-800">
                     <div>
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-500">
-                            The D-Index 🌍
+                            {t.dIndex.title} 🌍
                         </h1>
-                        <p className="mt-2 text-slate-400 text-sm">Global Network Health & Decentralization Score.</p>
+                        <p className="mt-2 text-slate-400 text-sm">{t.dIndex.subtitle}</p>
                     </div>
                 </div>
 

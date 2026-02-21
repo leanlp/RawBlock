@@ -13,6 +13,7 @@ import PageHeader from "../../../components/PageHeader";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import MinerForensicsPanel from "../../../components/miners/MinerForensicsPanel";
 import ProvenanceBadge from "../../../components/ProvenanceBadge";
+import { useTranslation } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +75,7 @@ export default function MinersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modeNotice, setModeNotice] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const fetchData = useCallback((silent = false) => {
     if (!silent) {
@@ -150,8 +152,8 @@ export default function MinersPage() {
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <PageHeader
-            title="Miner Identification"
-            subtitle="Forensic analysis of coinbase signatures from recent blocks."
+            title={t.miners.title}
+            subtitle={t.miners.subtitle}
             icon="⛏️"
             gradient="from-amber-400 to-orange-500"
           />
@@ -170,7 +172,7 @@ export default function MinersPage() {
           </div>
         ) : null}
 
-        {loading && <LoadingState message="Connecting to miner telemetry..." />}
+        {loading && <LoadingState message={t.miners.connectingMiner} />}
 
         {!loading && error && (
           <ErrorState message={error} onRetry={fetchData} />
@@ -202,8 +204,7 @@ export default function MinersPage() {
                 >
                   <div className="mb-6">
                     <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                      Hashrate Distribution (Last {data.blocks?.length || 0}{" "}
-                      Blocks)
+                      Hashrate Distribution ({t.blocks.entries}: {data.blocks?.length || 0})
                     </h3>
                   </div>
                   <div className="h-[300px] w-full flex-1">
@@ -289,10 +290,10 @@ export default function MinersPage() {
                   <table className="w-full text-left text-sm text-slate-400">
                     <thead className="bg-slate-900/80 text-xs uppercase text-slate-500">
                       <tr>
-                        <th className="px-6 py-3 font-medium">Height</th>
-                        <th className="px-6 py-3 font-medium">Miner Tag</th>
+                        <th className="px-6 py-3 font-medium">{t.blocks.height}</th>
+                        <th className="px-6 py-3 font-medium">{t.blocks.miner}</th>
                         <th className="px-6 py-3 font-medium text-right">
-                          Time
+                          {t.blocks.headerAge}
                         </th>
                       </tr>
                     </thead>

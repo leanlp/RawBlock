@@ -12,6 +12,7 @@ import {
     type ValidationStep
 } from "../../../utils/consensus-rules";
 import { BITCOIN_BLOCK_TIME_SECONDS } from "../../../lib/constants/bitcoinProtocol";
+import { useTranslation } from "@/lib/i18n";
 
 // Demo block data for when API is unavailable
 const DEMO_BLOCK: BlockData = {
@@ -52,6 +53,7 @@ const DEMO_BLOCK: BlockData = {
 };
 
 export default function ConsensusDebuggerPage() {
+    const { t } = useTranslation();
     const [blockInput, setBlockInput] = useState("");
     const [block, setBlock] = useState<BlockData | null>(null);
     const [steps, setSteps] = useState<ValidationStep[]>([]);
@@ -198,10 +200,10 @@ export default function ConsensusDebuggerPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end pb-4 border-b border-slate-800">
                     <div>
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                            ⚙️ Consensus Rules Debugger
+                            ⚙️ {t.consensusDebugger.title}
                         </h1>
                         <p className="mt-1 text-slate-400 text-sm">
-                            Step through block validation like a Bitcoin Core developer
+                            {t.consensusDebugger.subtitle}
                         </p>
                     </div>
                     {useDemo && (

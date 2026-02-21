@@ -6,6 +6,7 @@ import Header from "../../../components/Header";
 import { motion } from "framer-motion";
 import CopyButton from "../../../components/CopyButton";
 import InfoTooltip from "../../../components/InfoTooltip";
+import { useTranslation } from "@/lib/i18n";
 import {
     generateFullKeyDerivation,
     deriveFromPrivateKey,
@@ -19,6 +20,7 @@ export default function KeysPage() {
     const [showMath, setShowMath] = useState(false);
     const [revealPrivateKey, setRevealPrivateKey] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { t } = useTranslation();
 
     // Generate new key pair with real ECDSA
     const handleGenerate = () => {
@@ -64,10 +66,10 @@ export default function KeysPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end pb-6 border-b border-slate-800">
                     <div>
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-500">
-                            The Key Forge 🗝️
+                            {t.keyForge.title} 🗝️
                         </h1>
                         <p className="mt-2 text-slate-400 text-sm">
-                            Real ECDSA Key Derivation on secp256k1
+                            {t.keyForge.subtitle}
                         </p>
                         <div className="mt-2 flex items-center gap-2">
                             <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">

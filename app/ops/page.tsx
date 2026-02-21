@@ -6,10 +6,12 @@ import PageHeader from "../../components/PageHeader";
 import Card, { CardRow } from "../../components/Card";
 import { LoadingState } from "../../components/EmptyState";
 import { Activity, Server, Clock, ShieldCheck, Database } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function OpsPage() {
     const [loading, setLoading] = useState(true);
     const [opsData, setOpsData] = useState<any>(null);
+    const { t } = useTranslation();
 
     useEffect(() => {
         // Simulating Ops Check / Health Endpoints
@@ -33,15 +35,15 @@ export default function OpsPage() {
 
                 <div className="mb-10">
                     <PageHeader
-                        title="Operations & Trust"
-                        subtitle="Real-time health, uptime, and system integrity metrics for the RawBlock infrastructure."
+                        title={t.ops.title}
+                        subtitle={t.ops.subtitle}
                         icon={<ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-emerald-400" />}
                         gradient="from-emerald-400 to-cyan-500"
                     />
                 </div>
 
                 {loading ? (
-                    <LoadingState message="Running system diagnostics..." />
+                    <LoadingState message={t.common.loading} />
                 ) : (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         {/* Highlights Grid */}

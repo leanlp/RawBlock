@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/Header";
 
 const sections = [
@@ -25,6 +26,7 @@ const sections = [
 ];
 
 export default function ResearchLandingPage() {
+  const { t } = useTranslation();
   return (
     <main className="page-shell bg-slate-950">
       <div className="page-wrap reading-flow">
@@ -33,9 +35,9 @@ export default function ResearchLandingPage() {
         </div>
         <header className="page-header">
           <p className="page-kicker">Research</p>
-          <h1 className="page-title">Security Research Layer</h1>
+          <h1 className="page-title">{t.research.title}</h1>
           <p className="page-subtitle">
-            Explore vulnerabilities, attacks, assumptions, and policy-consensus boundaries as structured protocol data.
+            {t.research.subtitle}
           </p>
         </header>
 

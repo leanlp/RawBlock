@@ -5,6 +5,7 @@ import Header from "../../../components/Header";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { motion } from "framer-motion";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
+import { useTranslation } from "@/lib/i18n";
 
 interface EvolutionData {
     distribution: {
@@ -25,6 +26,7 @@ const COLORS = ['#ef4444', '#f59e0b', '#10b981']; // Red (Legacy), Amber (Segwit
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
 export default function EvolutionPage() {
+    const { t } = useTranslation();
     const [data, setData] = useState<EvolutionData | null>(null);
 
     useEffect(() => {
@@ -75,9 +77,9 @@ export default function EvolutionPage() {
                 <div className="flex flex-col md:flex-row justify-between items-end pb-6 border-b border-slate-800">
                     <div>
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-500">
-                            Chain Evolution 🧬
+                            {t.evolution.title} 🧬
                         </h1>
-                        <p className="mt-2 text-slate-400 text-sm">Analyzing Protocol Adoption & Network Inefficiency.</p>
+                        <p className="mt-2 text-slate-400 text-sm">{t.evolution.subtitle}</p>
                     </div>
                 </div>
 

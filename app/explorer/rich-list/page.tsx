@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
 import ProvenanceBadge from '../../../components/ProvenanceBadge';
+import SafeResponsiveContainer from '@/components/charts/SafeResponsiveContainer';
+import { useTranslation } from "@/lib/i18n";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
@@ -33,6 +35,7 @@ const normalizeWhale = (value: unknown): WhaleData => {
 };
 
 export default function RichListPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const [decoderQuery, setDecoderQuery] = useState("");
     const [filter, setFilter] = useState("");
@@ -117,10 +120,10 @@ export default function RichListPage() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="page-header">
                         <h1 className="page-title bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">
-                            Whale Watch
+                            🏆 {t.nav.items.richList}
                         </h1>
                         <div className="page-subtitle uppercase tracking-widest flex items-center gap-4">
-                            <span>Top 20 addresses by balance</span>
+                            <span>{t.richList.subtitle} by balance</span>
                             {!loading && !error && (
                                 <ProvenanceBadge
                                     source="Cached Snapshot"
