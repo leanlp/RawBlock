@@ -4,14 +4,47 @@ import Header from "@/components/Header";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
 import { useFeeMarketData, formatFeeTime } from "@/hooks/useFeeMarketData";
 import { formatSatVb } from "@/lib/feeBands";
+import type { BitcoinMetricProvenance, BitcoinMetricSourceClass, BitcoinMetricUpstream } from "@/lib/bitcoinData";
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import InfoTooltip from "@/components/InfoTooltip";
 import Link from "next/link";
 
+const SOURCE_CLASS_META: Record<BitcoinMetricSourceClass, { label: string; chipClass: string }> = {
+  "local-node": {
+    label: "Local Node",
+    chipClass: "border-emerald-400/40 bg-emerald-500/10 text-emerald-200",
+  },
+  electrs: {
+    label: "Electrs",
+    chipClass: "border-cyan-400/40 bg-cyan-500/10 text-cyan-200",
+  },
+  fallback: {
+    label: "Fallback",
+    chipClass: "border-amber-400/40 bg-amber-500/10 text-amber-200",
+  },
+  mixed: {
+    label: "Mixed",
+    chipClass: "border-indigo-400/40 bg-indigo-500/10 text-indigo-200",
+  },
+  unavailable: {
+    label: "Unavailable",
+    chipClass: "border-red-400/40 bg-red-500/10 text-red-200",
+  },
+};
+
+const UPSTREAM_LABEL: Record<BitcoinMetricUpstream, string> = {
+  rawblock: "rawblock gateway",
+  electrs: "electrs",
+  mempool: "mempool.space",
+  blockstream: "blockstream.info",
+  mixed: "mixed providers",
+  unavailable: "no upstream",
+};
+
 export default function VitalsPage() {
   const { status, metrics, error, retry } = useBitcoinLiveMetrics(30_000);
-  const { history, cardFees, loading: feeLoading, hasData: hasFeeData, retry: retryFees } = useFeeMarketData(30_000);
+  const { history, cardFees, longHorizon, loading: feeLoading, hasData: hasFeeData, retry: retryFees } = useFeeMarketData(30_000);
 
   const renderFee = (value: number | null) => {
     const formatted = formatSatVb(value);
@@ -33,6 +66,30 @@ export default function VitalsPage() {
       default:
         return { label: source, detail: "Unknown source" };
     }
+  };
+
+  const fallbackProvenance = (timestamp: string): BitcoinMetricProvenance => ({
+    sourceClass: "unavailable",
+    upstream: "unavailable",
+    timestamp,
+  });
+
+  const renderProvenance = (provenance: BitcoinMetricProvenance) => {
+    const sourceMeta = SOURCE_CLASS_META[provenance.sourceClass];
+    const upstream = UPSTREAM_LABEL[provenance.upstream] ?? provenance.upstream;
+    const parsedTime = new Date(provenance.timestamp);
+    const timeLabel = Number.isNaN(parsedTime.getTime()) ? "unknown time" : parsedTime.toLocaleTimeString();
+
+    return (
+      <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-800 pt-3">
+        <span className={`inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-bold uppercase tracking-widest ${sourceMeta.chipClass}`}>
+          {sourceMeta.label}
+        </span>
+        <span className="text-[11px] text-slate-500">
+          {upstream} <span className="font-mono text-slate-400">{timeLabel}</span>
+        </span>
+      </div>
+    );
   };
 
   return (
@@ -78,6 +135,7 @@ export default function VitalsPage() {
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
               <p className="text-xs uppercase tracking-widest text-slate-500">Block Height</p>
               <p className="mt-2 text-3xl font-bold text-slate-100">{metrics.blockHeight?.toLocaleString() ?? "Data temporarily unavailable"}</p>
+              {renderProvenance(metrics.provenance?.blockHeight ?? fallbackProvenance(metrics.lastUpdated))}
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
@@ -85,6 +143,7 @@ export default function VitalsPage() {
               <p className="mt-2 text-3xl font-bold text-slate-100">
                 {metrics.hashrateEh !== null ? `${metrics.hashrateEh} EH/s` : "Data temporarily unavailable"}
               </p>
+              {renderProvenance(metrics.provenance?.hashrate ?? fallbackProvenance(metrics.lastUpdated))}
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
@@ -93,7 +152,12 @@ export default function VitalsPage() {
                 <p>Fast: {renderFee(cardFees.fast)}</p>
                 <p>30 min: {renderFee(cardFees.medium)}</p>
                 <p>60 min: {renderFee(cardFees.slow)}</p>
+                <p>
+                  24h+ ({longHorizon?.targetBlocks ?? 144} blk):{" "}
+                  {longHorizon ? `${formatSatVb(longHorizon.satVB)} sat/vB` : "Data temporarily unavailable"}
+                </p>
               </div>
+              {renderProvenance(metrics.provenance?.fees ?? fallbackProvenance(metrics.lastUpdated))}
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
@@ -104,18 +168,19 @@ export default function VitalsPage() {
               <p className="mt-1 text-xs text-slate-400">
                 {metrics.blocksUntilHalving !== null ? `${metrics.blocksUntilHalving.toLocaleString()} blocks remaining` : ""}
               </p>
+              {renderProvenance(metrics.provenance?.halving ?? fallbackProvenance(metrics.lastUpdated))}
             </div>
 
             <div className="md:col-span-2 rounded-xl border border-slate-800 bg-slate-900/60 p-5 text-xs text-slate-400">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-3">
                   <InfoTooltip
-                    content="These vitals are sourced from public APIs (mempool.space / blockstream.info) and normalized for safe unit display. For node-backed precision, connect Rawblock to your own backend API."
+                    content="Each metric card includes provenance (Local Node / Electrs / Fallback), upstream provider, and timestamp so you can validate freshness and trust level at a glance."
                     label="Vitals data sources"
                   />
                   <div className="space-y-1">
                     <p>
-                      Data source: <span className="text-slate-200">{describeSource(metrics.source).label}</span>{" "}
+                      Aggregate source: <span className="text-slate-200">{describeSource(metrics.source).label}</span>{" "}
                       <span className="text-slate-500">({describeSource(metrics.source).detail})</span>
                     </p>
                     <p>Last updated: {new Date(metrics.lastUpdated).toLocaleString()}</p>
@@ -148,6 +213,17 @@ export default function VitalsPage() {
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-emerald-300">
                 60m {renderFee(cardFees.slow)}
               </span>
+              {longHorizon ? (
+                <span
+                  className={`rounded-full border px-2 py-1 ${
+                    longHorizon.satVB < 1
+                      ? "border-violet-500/30 bg-violet-500/10 text-violet-300"
+                      : "border-slate-700 bg-slate-900/80 text-slate-300"
+                  }`}
+                >
+                  24h+ {formatSatVb(longHorizon.satVB)} sat/vB
+                </span>
+              ) : null}
             </div>
           </div>
 

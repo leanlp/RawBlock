@@ -96,7 +96,25 @@ for (const vp of viewports) {
         const visible = allCandidates.filter((el) => {
           const r = el.getBoundingClientRect();
           const cs = getComputedStyle(el);
-          return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none";
+          const className = typeof el.className === "string" ? el.className : "";
+          const isSrOnly = className.includes("sr-only");
+          const clipped =
+            cs.clip === "rect(0px, 0px, 0px, 0px)" ||
+            cs.clipPath.includes("inset(50%)") ||
+            cs.clipPath.includes("inset(100%)");
+          const fullyTransparent = Number.parseFloat(cs.opacity || "1") === 0;
+          const ariaHidden = el.getAttribute("aria-hidden") === "true";
+
+          return (
+            r.width > 0 &&
+            r.height > 0 &&
+            cs.visibility !== "hidden" &&
+            cs.display !== "none" &&
+            !isSrOnly &&
+            !clipped &&
+            !fullyTransparent &&
+            !ariaHidden
+          );
         });
 
         const tapViolations = visible

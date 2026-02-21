@@ -11,6 +11,8 @@ import EducationPanel from '../../../components/EducationPanel';
 import Header from '../../../components/Header';
 import CopyButton from '../../../components/CopyButton';
 import InfoTooltip from '../../../components/InfoTooltip';
+import TxHexWorkbench from '../../../components/decoder/TxHexWorkbench';
+import AddressAnalyticsPanel from '../../../components/decoder/AddressAnalyticsPanel';
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,10 @@ export interface TxInput {
     scriptSig: { asm: string; hex: string };
     sequence: number;
     coinbase?: string;
+    txinwitness?: string[];
+    prevout?: {
+        value?: number;
+    };
 }
 
 export interface TxOutput {
@@ -37,6 +43,8 @@ export interface DecodedTx {
     vsize: number;
     weight: number;
     locktime: number;
+    hex?: string;
+    fee?: number;
     vin: TxInput[];
     vout: TxOutput[];
 }
@@ -68,6 +76,10 @@ interface MempoolTxInput {
     scriptsig_asm?: string;
     sequence?: number;
     is_coinbase?: boolean;
+    witness?: string[];
+    prevout?: {
+        value?: number;
+    };
 }
 
 interface MempoolTxOutput {
@@ -83,6 +95,7 @@ interface MempoolTx {
     locktime?: number;
     size?: number;
     weight?: number;
+    fee?: number;
     vin?: MempoolTxInput[];
     vout?: MempoolTxOutput[];
 }
@@ -92,20 +105,26 @@ function isLikelyTxid(value: string): boolean {
 }
 
 async function decodeViaMempool(txid: string): Promise<DecodedTx> {
-    const res = await fetch(`${MEMPOOL_TX_API}/${txid}`, { cache: "no-store" });
-    if (!res.ok) {
-        throw new Error(`Fallback decoder failed (HTTP ${res.status})`);
+    const [txRes, hexRes] = await Promise.all([
+        fetch(`${MEMPOOL_TX_API}/${txid}`, { cache: "no-store" }),
+        fetch(`${MEMPOOL_TX_API}/${txid}/hex`, { cache: "no-store" }),
+    ]);
+    if (!txRes.ok) {
+        throw new Error(`Fallback decoder failed (HTTP ${txRes.status})`);
     }
-    const tx = (await res.json()) as MempoolTx;
+    const tx = (await txRes.json()) as MempoolTx;
+    const rawHex = hexRes.ok ? (await hexRes.text()).trim() : undefined;
     const weight = Number(tx.weight ?? 0);
     return {
         txid: tx.txid,
         hash: tx.txid,
         version: Number(tx.version ?? 0),
         size: Number(tx.size ?? 0),
-        vsize: Math.max(1, Math.floor(weight / 4)),
+        vsize: Math.max(1, Math.ceil(weight / 4)),
         weight,
         locktime: Number(tx.locktime ?? 0),
+        fee: Number(tx.fee ?? 0),
+        hex: rawHex,
         vin: (tx.vin ?? []).map((input) => ({
             txid: String(input.txid ?? ""),
             vout: Number(input.vout ?? 0),
@@ -114,6 +133,10 @@ async function decodeViaMempool(txid: string): Promise<DecodedTx> {
                 hex: String(input.scriptsig ?? ""),
             },
             sequence: Number(input.sequence ?? 0),
+            txinwitness: (input.witness ?? []).map((item) => String(item ?? "")),
+            prevout: {
+                value: Number(input.prevout?.value ?? 0),
+            },
             ...(input.is_coinbase ? { coinbase: "true" } : {}),
         })),
         vout: (tx.vout ?? []).map((output, index) => ({
@@ -191,7 +214,16 @@ function DecoderContent() {
                 try {
                     const fallbackTx = await decodeViaMempool(txQuery.trim());
                     setResult({ ...fallbackTx, type: 'transaction' });
-                    setError("Live backend unavailable. Showing public fallback decode.");
+                    const liveError = err instanceof Error ? err.message : "";
+                    const localIndexMiss =
+                        liveError.toLowerCase().includes("txindex") ||
+                        liveError.toLowerCase().includes("prun") ||
+                        liveError.toLowerCase().includes("not found on local node");
+                    setError(
+                        localIndexMiss
+                            ? "Local node could not decode this tx (likely pruned or missing txindex). Showing public fallback decode."
+                            : "Live backend unavailable. Showing public fallback decode."
+                    );
                     setDataSource("fallback");
                     return;
                 } catch {
@@ -331,13 +363,12 @@ function DecoderContent() {
                 {/* Results Container */}
                 {result ? (
                     <div
-                        className={`mb-6 rounded-lg border px-4 py-3 text-xs ${
-                            dataSource === "live"
-                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-                                : dataSource === "fallback"
-                                    ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
-                                    : "border-slate-800 bg-slate-900/40 text-slate-300"
-                        }`}
+                        className={`mb-6 rounded-lg border px-4 py-3 text-xs ${dataSource === "live"
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+                            : dataSource === "fallback"
+                                ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+                                : "border-slate-800 bg-slate-900/40 text-slate-300"
+                            }`}
                     >
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div className="flex items-start gap-2">
@@ -426,8 +457,17 @@ function DecoderContent() {
                             <BalanceChart utxos={result.utxos} />
                         </div>
 
+                        {/* Address Analytics */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                            <AddressAnalyticsPanel
+                                address={result.address}
+                                utxos={result.utxos}
+                                currentHeight={840000} // Mocked block height
+                            />
+                        </div>
+
                         {/* UTXO List */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
                             <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
                                 <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                                 UNSPENT OUTPUTS (UTXOs) - {result.utxoCount}
@@ -498,7 +538,7 @@ function DecoderContent() {
                                             </div>
                                             <div className="max-w-full break-all text-xs text-cyan-300 select-all">{result.txid}</div>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div>
                                                 <div className="mb-1 text-xs text-slate-600">SIZE</div>
                                                 <div className="text-xl text-slate-200">{result.size} <span className="text-xs text-slate-600">B</span></div>
@@ -522,6 +562,8 @@ function DecoderContent() {
                                         </div>
                                     </div>
                                 </div>
+
+                                <TxHexWorkbench tx={result} />
 
                                 {/* Privacy Sentinel */}
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">

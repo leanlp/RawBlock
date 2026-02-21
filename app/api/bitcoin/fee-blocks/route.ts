@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const revalidate = 30;
+export const revalidate = 60;
 
 type MempoolFeeBlock = {
   blockVSize: number;
@@ -15,7 +15,7 @@ const MEMPOOL_API = "https://mempool.space/api";
 export async function GET() {
   try {
     const response = await fetch(`${MEMPOOL_API}/v1/fees/mempool-blocks`, {
-      next: { revalidate: 30 },
+      next: { revalidate: 60 },
     });
     if (!response.ok) {
       throw new Error(`Fee blocks fetch failed: ${response.status}`);

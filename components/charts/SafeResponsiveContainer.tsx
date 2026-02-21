@@ -19,7 +19,10 @@ export default function SafeResponsiveContainer({
   height,
 }: SafeResponsiveContainerProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const [ready, setReady] = useState(false);
+  const [size, setSize] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
 
   useEffect(() => {
     const element = hostRef.current;
@@ -28,13 +31,21 @@ export default function SafeResponsiveContainer({
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
-      const { width, height } = entry.contentRect;
-      setReady(width > 0 && height > 0);
+      const nextWidth = Math.max(0, Math.floor(entry.contentRect.width));
+      const nextHeight = Math.max(minHeight, Math.floor(entry.contentRect.height));
+
+      setSize((prev) =>
+        prev.width === nextWidth && prev.height === nextHeight
+          ? prev
+          : { width: nextWidth, height: nextHeight },
+      );
     });
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [minHeight]);
+
+  const ready = size.width > 0 && size.height > 0;
 
   return (
     <div
@@ -43,7 +54,7 @@ export default function SafeResponsiveContainer({
       style={{ minHeight, width: width ?? "100%", height: height ?? "100%" }}
     >
       {ready ? (
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={minHeight}>
+        <ResponsiveContainer width={size.width} height={size.height} minWidth={1} minHeight={minHeight}>
           {children}
         </ResponsiveContainer>
       ) : (

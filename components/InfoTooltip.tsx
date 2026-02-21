@@ -30,10 +30,10 @@ export default function InfoTooltip({
       </button>
       <Tooltip
         id={tooltipId}
+        border="1px solid #334155"
         style={{
           backgroundColor: "#020617",
           color: "#f1f5f9",
-          border: "1px solid #334155",
           borderRadius: "12px",
           maxWidth: "320px",
           zIndex: 50,
@@ -42,4 +42,3 @@ export default function InfoTooltip({
     </>
   );
 }
-

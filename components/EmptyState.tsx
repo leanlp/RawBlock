@@ -83,16 +83,21 @@ export function ErrorState({
     message?: string;
     onRetry?: () => void;
 }) {
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
     return (
         <EmptyState
             icon="⚠️"
             title="Connection Error"
             description={message}
             action={onRetry ? { label: "Try Again", onClick: onRetry } : undefined}
-            secondaryAction={{
-                label: "Check Node",
-                onClick: () => window.open("http://localhost:8080", "_blank")
-            }}
+            secondaryAction={
+                apiUrl
+                    ? {
+                        label: "Check Node",
+                        onClick: () => window.open(apiUrl, "_blank")
+                    }
+                    : undefined
+            }
         />
     );
 }

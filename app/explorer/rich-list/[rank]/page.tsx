@@ -1,39 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Header from '../../../../components/Header';
 import CopyButton from '../../../../components/CopyButton';
 
-// Static imports - all whale data embedded
-import whale01 from '../../../../data/whales/whale_01.json';
-import whale02 from '../../../../data/whales/whale_02.json';
-import whale03 from '../../../../data/whales/whale_03.json';
-import whale04 from '../../../../data/whales/whale_04.json';
-import whale05 from '../../../../data/whales/whale_05.json';
-import whale06 from '../../../../data/whales/whale_06.json';
-import whale07 from '../../../../data/whales/whale_07.json';
-import whale08 from '../../../../data/whales/whale_08.json';
-import whale09 from '../../../../data/whales/whale_09.json';
-import whale10 from '../../../../data/whales/whale_10.json';
-import whale11 from '../../../../data/whales/whale_11.json';
-import whale12 from '../../../../data/whales/whale_12.json';
-import whale13 from '../../../../data/whales/whale_13.json';
-import whale14 from '../../../../data/whales/whale_14.json';
-import whale15 from '../../../../data/whales/whale_15.json';
-import whale16 from '../../../../data/whales/whale_16.json';
-import whale17 from '../../../../data/whales/whale_17.json';
-import whale18 from '../../../../data/whales/whale_18.json';
-import whale19 from '../../../../data/whales/whale_19.json';
-import whale20 from '../../../../data/whales/whale_20.json';
-
-const whalesMap: { [key: number]: typeof whale01 } = {
-    1: whale01, 2: whale02, 3: whale03, 4: whale04, 5: whale05,
-    6: whale06, 7: whale07, 8: whale08, 9: whale09, 10: whale10,
-    11: whale11, 12: whale12, 13: whale13, 14: whale14, 15: whale15,
-    16: whale16, 17: whale17, 18: whale18, 19: whale19, 20: whale20
-};
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
 interface UTXO {
     txid: string;
@@ -43,17 +16,86 @@ interface UTXO {
     blockHeight: number | null;
 }
 
+interface WhaleData {
+    rank: number;
+    address: string;
+    balance: number;
+    utxoCount: number;
+    fetchedAt: string;
+    scanHeight?: number;
+    scanDurationSeconds?: number;
+    utxos: UTXO[];
+}
+
+const toFiniteNumber = (value: unknown, fallback = 0): number => {
+    const parsed = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const normalizeUtxo = (value: unknown): UTXO => {
+    const candidate = (value ?? {}) as Partial<UTXO>;
+    return {
+        txid: typeof candidate.txid === "string" ? candidate.txid : "",
+        vout: Math.max(0, Math.floor(toFiniteNumber(candidate.vout, 0))),
+        value: toFiniteNumber(candidate.value, 0),
+        valueBtc: toFiniteNumber(candidate.valueBtc, 0),
+        blockHeight: candidate.blockHeight == null ? null : Math.max(0, Math.floor(toFiniteNumber(candidate.blockHeight, 0))),
+    };
+};
+
+const normalizeWhale = (value: unknown): WhaleData => {
+    const candidate = (value ?? {}) as Partial<WhaleData>;
+    const rawUtxos = Array.isArray(candidate.utxos) ? candidate.utxos : [];
+    return {
+        rank: Math.max(1, Math.floor(toFiniteNumber(candidate.rank, 1))),
+        address: typeof candidate.address === "string" ? candidate.address : "",
+        balance: toFiniteNumber(candidate.balance, 0),
+        utxoCount: Math.max(0, Math.floor(toFiniteNumber(candidate.utxoCount, 0))),
+        fetchedAt: typeof candidate.fetchedAt === "string" ? candidate.fetchedAt : "",
+        scanHeight: candidate.scanHeight == null ? undefined : Math.max(0, Math.floor(toFiniteNumber(candidate.scanHeight, 0))),
+        scanDurationSeconds: candidate.scanDurationSeconds == null ? undefined : toFiniteNumber(candidate.scanDurationSeconds, 0),
+        utxos: rawUtxos.map(normalizeUtxo),
+    };
+};
+
 export default function WhaleDetailPage() {
     const params = useParams();
-    const rank = parseInt(params.rank as string);
+    const rank = parseInt((params.rank as string) || "", 10);
     const [showAllUtxos, setShowAllUtxos] = useState(false);
+    const [whale, setWhale] = useState<WhaleData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const whale = whalesMap[rank];
+    useEffect(() => {
+        if (!Number.isFinite(rank) || rank <= 0) {
+            setError("Invalid whale rank.");
+            setLoading(false);
+            return;
+        }
 
-    const formatDate = (isoString: string) => {
-        const date = new Date(isoString);
-        return date.toLocaleString();
-    };
+        const controller = new AbortController();
+        const fetchWhale = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const res = await fetch(`${API_URL}/api/rich-list/${rank}`, { cache: "no-store", signal: controller.signal });
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                const data = (await res.json()) as unknown;
+                setWhale(normalizeWhale(data));
+            } catch (err) {
+                if ((err as Error).name === "AbortError") return;
+                console.error("Failed to load whale detail:", err);
+                setError("Unable to load whale detail from backend.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWhale();
+        return () => controller.abort();
+    }, [rank]);
 
     // UTXO Distribution by Value
     const utxoDistribution = useMemo(() => {
@@ -138,6 +180,39 @@ export default function WhaleDetailPage() {
 
     const displayedUtxos = showAllUtxos ? whale?.utxos : (whale?.utxos as UTXO[])?.slice(0, 20);
     const maxTimelineCount = Math.max(...timelineData.map(d => d.count), 1);
+
+    if (loading) {
+        return (
+            <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
+                <div className="max-w-4xl mx-auto">
+                    <div className="md:hidden">
+                        <Header />
+                    </div>
+                    <div className="bg-slate-900/40 border border-slate-700 rounded-lg p-8 text-center text-slate-400">
+                        Loading whale detail...
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    if (error) {
+        return (
+            <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
+                <div className="max-w-4xl mx-auto">
+                    <div className="md:hidden">
+                        <Header />
+                    </div>
+                    <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-8 text-center">
+                        <div className="text-red-400 text-lg mb-4">{error}</div>
+                        <Link href="/explorer/rich-list" className="text-cyan-400 hover:underline inline-flex items-center min-h-11">
+                            ← Back to Whale Watch
+                        </Link>
+                    </div>
+                </div>
+            </main>
+        );
+    }
 
     if (!whale) {
         return (
@@ -298,12 +373,6 @@ export default function WhaleDetailPage() {
                         </div>
                     </div>
                 )}
-
-                {/* Data Source */}
-                <div className="bg-sky-900/20 border border-sky-500/30 rounded-lg px-4 py-3 text-xs text-sky-200/90">
-                    ℹ️ <span className="font-bold">Static address snapshot</span> — This record reflects an address view, not a confirmed entity.
-                    Updated: {formatDate(whale.fetchedAt)}
-                </div>
 
                 {/* UTXOs Table - Simplified */}
                 <div className="bg-slate-900 border border-slate-700 rounded-xl">

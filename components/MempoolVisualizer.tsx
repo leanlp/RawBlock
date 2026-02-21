@@ -108,7 +108,7 @@ export default function MempoolVisualizer() {
 
     const fetchBlock = async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+            const apiUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
             const res = await fetch(`${apiUrl}/api/candidate-block`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const json = await res.json();
@@ -153,7 +153,12 @@ export default function MempoolVisualizer() {
         );
     }
 
-    const vizData = data.transactions.slice(0, 500);
+    const vizData = data.transactions.slice(0, 500).map((tx, index) => ({
+        ...tx,
+        // Recharts treemap internally derives node keys from coordinates + name.
+        // Ensure name is always present and unique to avoid duplicate-key render errors.
+        name: tx.txid ? `${tx.txid}-${index}` : `tx-${index}`,
+    }));
 
     const modes = [
         { id: 'treemap' as VisualizationMode, icon: '🧱', label: 'TreeMap' },

@@ -21,7 +21,7 @@ export default function TaprootPage() {
 
                 <KeyAggregator />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
                     <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
                         <h3 className="font-bold text-white mb-2">Linearity</h3>
                         <p className="text-xs text-slate-400 leading-relaxed">

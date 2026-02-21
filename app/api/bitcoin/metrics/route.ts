@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getBitcoinLiveMetrics } from "@/lib/bitcoinData";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
+export const revalidate = 3600; // Cache for 1 hour (ISR)
 
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
         ok: false,
         error: error instanceof Error ? error.message : "Failed to fetch bitcoin metrics",
       },
-      { status: 503 },
+      { status: 503 }
     );
   }
 }

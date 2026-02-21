@@ -1,24 +1,72 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Header from "../../../../components/Header";
 import PageHeader from "../../../../components/PageHeader";
 import Card from "../../../../components/Card";
-import { motion } from "framer-motion";
 import { Treemap, Tooltip } from "recharts";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
+import BlockHeaderInspector from "@/components/block/BlockHeaderInspector";
+import MerkleProofPanel from "@/components/block/MerkleProofPanel";
+import CoinbaseDecoder from "@/components/block/CoinbaseDecoder";
+import { computeMerkleRoot } from "@/utils/merkle";
 
 interface BlockData {
     hash: string;
     height: number;
     time: number;
+    mediantime?: number;
+    version?: number;
+    bits?: string;
+    nonce?: number;
+    merkleroot?: string;
+    previousblockhash?: string;
     size: number;
     weight: number;
     miner: string;
     txCount: number;
     reward: number;
-    transactions: any[];
+    transactions: Array<{
+        txid: string;
+        wtxid?: string;
+        weight: number;
+        vsize: number;
+        size: number;
+        fee: number;
+        isSegwit: boolean;
+    }>;
+}
+
+interface BlockTreemapContentProps {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    payload?: {
+        isSegwit?: boolean;
+    };
+}
+
+function BlockTreemapContent(props: BlockTreemapContentProps) {
+    const { x = 0, y = 0, width = 0, height = 0, payload } = props;
+    return (
+        <g>
+            <rect
+                x={x}
+                y={y}
+                width={width}
+                height={height}
+                style={{
+                    fill: payload?.isSegwit ? "#10b981" : "#f59e0b",
+                    stroke: "#1e293b",
+                    strokeWidth: 1,
+                    userSelect: "none",
+                    opacity: 0.9,
+                }}
+            />
+        </g>
+    );
 }
 
 export default function BlockPage() {
@@ -27,15 +75,24 @@ export default function BlockPage() {
     const [block, setBlock] = useState<BlockData | null>(null);
     const [loading, setLoading] = useState(true);
     const [latestHeight, setLatestHeight] = useState<number>(Infinity);
+    const [computedMerkleRoot, setComputedMerkleRoot] = useState<string | null>(null);
+    const [merkleError, setMerkleError] = useState<string | null>(null);
+    const [isMerklePanelOpen, setMerklePanelOpen] = useState(false);
 
     useEffect(() => {
         if (!id) return;
-        setLoading(true);
+        queueMicrotask(() => setLoading(true));
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+        const rawId = Array.isArray(id) ? id[0] : id;
+        const normalizedId = String(rawId ?? "").trim();
+        const isHeightLookup = /^[0-9]+$/.test(normalizedId);
+        const blockEndpoint = isHeightLookup
+            ? `${baseUrl}/api/block/height/${normalizedId}`
+            : `${baseUrl}/api/block/${normalizedId}`;
 
         // Fetch the block
-        fetch(`${baseUrl}/api/block/${id}`)
+        fetch(blockEndpoint)
             .then(res => {
                 if (!res.ok) throw new Error("Block not found");
                 return res.json();
@@ -58,6 +115,45 @@ export default function BlockPage() {
             .catch(() => { });
     }, [id]);
 
+    useEffect(() => {
+        if (!block || !Array.isArray(block.transactions) || block.transactions.length === 0) {
+            queueMicrotask(() => {
+                setComputedMerkleRoot(null);
+                setMerkleError(null);
+            });
+            return;
+        }
+
+        const txids = block.transactions
+            .map((tx) => String(tx.txid ?? "").trim())
+            .filter((txid) => txid.length === 64);
+
+        if (txids.length === 0) {
+            queueMicrotask(() => {
+                setComputedMerkleRoot(null);
+                setMerkleError("No valid txids available to build merkle tree.");
+            });
+            return;
+        }
+
+        let cancelled = false;
+        computeMerkleRoot(txids)
+            .then((root) => {
+                if (cancelled) return;
+                setComputedMerkleRoot(root);
+                setMerkleError(null);
+            })
+            .catch((err: unknown) => {
+                if (cancelled) return;
+                setComputedMerkleRoot(null);
+                setMerkleError(err instanceof Error ? err.message : "Failed to compute merkle root.");
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [block]);
+
     const formatSize = (bytes: number) => {
         if (bytes > 1000000) return (bytes / 1000000).toFixed(2) + " MB";
         return (bytes / 1000).toFixed(2) + " KB";
@@ -67,52 +163,22 @@ export default function BlockPage() {
     const isLatestBlock = block ? block.height >= latestHeight : false;
 
     // Prepare TreeMap Data
-    const treeMapData = block ? [
-        {
-            name: "Transactions",
-            children: (block.transactions || []).slice(0, 500).map((tx, i) => ({ // Limit to 500 for perf
-                name: tx.txid.substring(0, 6) + "...",
-                size: tx.weight, // Rect size = weight
-                fee: tx.fee, // For tooltip
-                isSegwit: tx.isSegwit
-            }))
-        }
-    ] : [];
-
-    // Custom Content for TreeMap Node
-    const CustomizedContent = (props: any) => {
-        const { root, depth, x, y, width, height, index, payload, colors, rank, name } = props;
-
-        return (
-            <g>
-                <rect
-                    x={x}
-                    y={y}
-                    width={width}
-                    height={height}
-                    style={{
-                        fill: (payload && payload.isSegwit) ? '#10b981' : '#f59e0b', // Green (Segwit) vs Amber (Legacy)
-                        stroke: '#1e293b',
-                        strokeWidth: 1,
-                        userSelect: 'none',
-                        opacity: 0.8
-                    }}
-                />
-                {width > 30 && height > 20 && (
-                    <text
-                        x={x + width / 2}
-                        y={y + height / 2}
-                        textAnchor="middle"
-                        fill="#fff"
-                        fontSize={10}
-                        style={{ pointerEvents: 'none' }}
-                    >
-                        {name}
-                    </text>
-                )}
-            </g>
-        );
-    };
+    const treeMapData = useMemo(() => {
+        if (!block) return [];
+        return [
+            {
+                name: "Transactions",
+                children: (block.transactions || []).slice(0, 500).map((tx, i) => ({
+                    // Keep Recharts node names unique to avoid duplicate-key collisions.
+                    name: `${tx.txid}-${i}`,
+                    txid: tx.txid,
+                    size: tx.weight, // Rect size = weight
+                    fee: tx.fee, // For tooltip
+                    isSegwit: tx.isSegwit,
+                })),
+            },
+        ];
+    }, [block]);
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 font-sans">
@@ -140,18 +206,18 @@ export default function BlockPage() {
                             icon="📦"
                             gradient="from-blue-400 to-indigo-500"
                             actions={
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-shrink-0">
                                     <button
                                         onClick={() => router.push(`/explorer/block/${block.height - 1}`)}
                                         disabled={block.height <= 0}
-                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
+                                        className="px-4 py-2 min-h-11 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
                                     >
                                         ← Prev
                                     </button>
                                     <button
                                         onClick={() => !isLatestBlock && router.push(`/explorer/block/${block.height + 1}`)}
                                         disabled={isLatestBlock}
-                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
+                                        className="px-4 py-2 min-h-11 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm transition-colors flex items-center gap-2 border border-slate-700"
                                         title={isLatestBlock ? "This is the latest block" : ""}
                                     >
                                         {isLatestBlock ? "Latest" : "Next →"}
@@ -184,6 +250,40 @@ export default function BlockPage() {
                             </div>
                         </Card>
 
+                        <BlockHeaderInspector
+                            header={{
+                                hash: block.hash,
+                                height: block.height,
+                                txCount: block.txCount ?? block.transactions?.length ?? 0,
+                                time: block.time,
+                                mediantime: block.mediantime,
+                                version: block.version,
+                                bits: block.bits,
+                                nonce: block.nonce,
+                                merkleroot: block.merkleroot,
+                                previousblockhash: block.previousblockhash,
+                            }}
+                            computedMerkleRoot={computedMerkleRoot}
+                            onOpenMerklePanel={() => setMerklePanelOpen(true)}
+                        />
+
+                        {merkleError ? (
+                            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                                Merkle proof precompute warning: {merkleError}
+                            </div>
+                        ) : null}
+
+                        <MerkleProofPanel
+                            txids={block.transactions.map((tx) => tx.txid)}
+                            headerMerkleRoot={block.merkleroot}
+                            isOpen={isMerklePanelOpen}
+                            onClose={() => setMerklePanelOpen(false)}
+                        />
+
+                        {block.transactions && block.transactions.length > 0 && (
+                            <CoinbaseDecoder coinbaseTxid={block.transactions[0].txid} />
+                        )}
+
                         {/* Block DNA Visualization */}
                         {block.transactions && block.transactions.length > 0 && (
                             <div className="space-y-4">
@@ -192,7 +292,7 @@ export default function BlockPage() {
                                 </h2>
                                 <p className="text-slate-500 text-sm max-w-2xl">
                                     Visualizing the Top 500 transactions packed into this block. Size represents weight (vBytes).
-                                    Green = SegWit, Amber = Legacy.
+                                    Green = SegWit, Amber = Legacy. Hover a tile to inspect transaction details.
                                 </p>
 
                                 <div className="h-[500px] w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
@@ -202,15 +302,20 @@ export default function BlockPage() {
                                             dataKey="size"
                                             aspectRatio={4 / 3}
                                             stroke="#1e293b"
-                                            content={<CustomizedContent />}
+                                            content={<BlockTreemapContent />}
                                         >
                                             <Tooltip
+                                                cursor={{
+                                                    stroke: "#22d3ee",
+                                                    strokeWidth: 2,
+                                                    fillOpacity: 0.96,
+                                                }}
                                                 content={({ payload }) => {
                                                     if (!payload || !payload.length) return null;
                                                     const data = payload[0].payload;
                                                     return (
                                                         <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl text-xs">
-                                                            <div className="font-mono text-slate-300 mb-1">TXID: {data.name}</div>
+                                                            <div className="font-mono text-slate-300 mb-1">TXID: {data.txid ?? data.name}</div>
                                                             <div className="text-slate-400">Weight: <span className="text-white">{data.size} wu</span></div>
                                                             <div className="text-slate-400">Type: <span className={data.isSegwit ? "text-emerald-400" : "text-amber-400"}>{data.isSegwit ? "SegWit (Efficient)" : "Legacy (Heavy)"}</span></div>
                                                         </div>

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
 import MempoolVisualizer from "../../../components/MempoolVisualizer";
 import NetworkHud from "../../../components/NetworkHud";
 import Header from "../../../components/Header";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
+import ProvenanceBadge from "../../../components/ProvenanceBadge";
+import ScreenshotExport from "../../../components/ScreenshotExport";
 
 // Types
 interface Transaction {
@@ -14,6 +15,17 @@ interface Transaction {
     size: number;
     time: number;
 }
+
+type WsEnvelope = {
+    type?: string;
+    payload?: unknown;
+};
+
+type WsRbfPayload = {
+    txid?: string;
+    replacedTxid?: string;
+    feeDiff?: string | number;
+};
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const FALLBACK_MEMPOOL_RECENT_URL = "https://mempool.space/api/mempool/recent";
@@ -47,6 +59,47 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
     }
 }
 
+function parseRealtimeTx(payload: unknown): Transaction | null {
+    const item = payload as Partial<{
+        txid: string;
+        fee: number;
+        fees: number;
+        feeBTC: number;
+        size: number;
+        vsize: number;
+        vSize: number;
+        time: number;
+        timestamp: number;
+    }>;
+    const txid = String(item.txid ?? "").trim();
+    if (!txid) return null;
+
+    const rawFee = Number(item.feeBTC ?? item.fee ?? item.fees ?? 0);
+    const feeBtc = Number.isFinite(rawFee) ? (rawFee > 1 ? rawFee / 100_000_000 : rawFee) : 0;
+
+    const size = Number(item.size ?? item.vsize ?? item.vSize ?? 0);
+    const safeSize = Number.isFinite(size) && size > 0 ? size : 0;
+
+    const rawTime = Number(item.time ?? item.timestamp ?? Date.now() / 1000);
+    const safeTime = Number.isFinite(rawTime) && rawTime > 0 ? rawTime : Date.now() / 1000;
+
+    return {
+        txid,
+        fee: feeBtc,
+        size: safeSize,
+        time: safeTime,
+    };
+}
+
+function mergeTransactions(current: Transaction[], incoming: Transaction[]) {
+    const combined = [...incoming, ...current];
+    const deduped = combined.filter(
+        (tx, index, self) => index === self.findIndex((other) => other.txid === tx.txid),
+    );
+    deduped.sort((a, b) => b.fee - a.fee);
+    return deduped.slice(0, 500);
+}
+
 export default function MempoolPage() {
     const [data, setData] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -63,8 +116,9 @@ export default function MempoolPage() {
     const { metrics: liveMetrics } = useBitcoinLiveMetrics(30_000);
 
     // Use ref for socket to avoid re-creation
-    const socketRef = useRef<Socket | null>(null);
+    const socketRef = useRef<WebSocket | null>(null);
     const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [rbfAlert, setRbfAlert] = useState<{ txid: string, replacedTxid: string, feeDiff: string } | null>(null);
 
     const clearDisconnectTimer = useCallback(() => {
         if (disconnectTimerRef.current) {
@@ -82,6 +136,18 @@ export default function MempoolPage() {
             setStreamIssue(reason ?? "WebSocket blocked or node unreachable.");
         }, 12_000);
     }, [clearDisconnectTimer]);
+
+    const closeSocket = useCallback(() => {
+        const socket = socketRef.current;
+        if (!socket) return;
+        socketRef.current = null;
+        try {
+            socket.close();
+        } catch {
+            // Ignore close race conditions.
+        }
+        setConnected(false);
+    }, []);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -129,6 +195,117 @@ export default function MempoolPage() {
         }
     }, []);
 
+    const connectSocket = useCallback(() => {
+        if (!API_URL) return;
+
+        closeSocket();
+        beginConnectingWindow();
+
+        try {
+            const wsBase = API_URL.replace(/^http/i, "ws").replace(/\/$/, "");
+            const socket = new WebSocket(`${wsBase}/ws`);
+            socketRef.current = socket;
+
+            socket.onopen = () => {
+                if (socketRef.current !== socket) return;
+                setConnected(true);
+                setDataMode("live");
+                setModeNotice(null);
+                setStreamPhase("live");
+                setStreamIssue(null);
+                clearDisconnectTimer();
+                setLastUpdateAt(Date.now());
+            };
+
+            socket.onmessage = (event) => {
+                if (socketRef.current !== socket) return;
+                let message: WsEnvelope;
+                try {
+                    message = JSON.parse(String(event.data ?? "{}")) as WsEnvelope;
+                } catch {
+                    return;
+                }
+
+                if (message.type === "tx:new") {
+                    const txPayloads = Array.isArray(message.payload) ? message.payload : [message.payload];
+                    const newTxs = txPayloads
+                        .map(parseRealtimeTx)
+                        .filter((tx): tx is Transaction => tx !== null);
+                    if (newTxs.length > 0) {
+                        setData((prev) => mergeTransactions(prev, newTxs));
+                    }
+                    setLastUpdateAt(Date.now());
+                    return;
+                }
+
+                if (message.type === "mempool:lifecycle") {
+                    const payload = (message.payload ?? {}) as Partial<{
+                        type: string;
+                        txid: string;
+                        feeBTC: number;
+                        vsize: number;
+                        timestamp: number;
+                    }>;
+                    const lifecycleType = String(payload.type ?? "").toLowerCase();
+                    const txid = String(payload.txid ?? "").trim();
+
+                    if (txid && (lifecycleType === "removed" || lifecycleType === "confirmed" || lifecycleType === "replacement")) {
+                        setData((prev) => prev.filter((tx) => tx.txid !== txid));
+                    } else if (lifecycleType === "added") {
+                        const tx = parseRealtimeTx(payload);
+                        if (tx) {
+                            setData((prev) => mergeTransactions(prev, [tx]));
+                        }
+                    }
+
+                    setLastUpdateAt(Date.now());
+                    return;
+                }
+
+                if (message.type === "fee:regime") {
+                    const payload = (message.payload ?? {}) as Partial<{ txCount: number }>;
+                    const txCount = Number(payload.txCount ?? NaN);
+                    if (Number.isFinite(txCount) && txCount >= 0) {
+                        setSocketMempoolCount(txCount);
+                    }
+                    setLastUpdateAt(Date.now());
+                    return;
+                }
+
+                if (message.type === "rbf:conflict") {
+                    const payload = (message.payload ?? {}) as WsRbfPayload;
+                    const txid = String(payload.txid ?? "").trim();
+                    const replacedTxid = String(payload.replacedTxid ?? "").trim();
+                    const feeDiffNumber = Number(payload.feeDiff ?? NaN);
+                    const feeDiff = Number.isFinite(feeDiffNumber)
+                        ? feeDiffNumber.toFixed(8)
+                        : String(payload.feeDiff ?? "0");
+
+                    if (txid && replacedTxid) {
+                        setRbfAlert({ txid, replacedTxid, feeDiff });
+                        setTimeout(() => setRbfAlert(null), 5000);
+                    }
+                    setLastUpdateAt(Date.now());
+                }
+            };
+
+            socket.onerror = () => {
+                if (socketRef.current !== socket) return;
+                setConnected(false);
+                beginConnectingWindow("WebSocket blocked or node unreachable.");
+            };
+
+            socket.onclose = () => {
+                if (socketRef.current !== socket) return;
+                setConnected(false);
+                beginConnectingWindow("Reconnecting to node stream...");
+            };
+        } catch {
+            setConnected(false);
+            beginConnectingWindow("WebSocket blocked or node unreachable.");
+        }
+    }, [beginConnectingWindow, clearDisconnectTimer, closeSocket]);
+
     useEffect(() => {
         // Initial Fetch
         fetchData();
@@ -140,80 +317,15 @@ export default function MempoolPage() {
             };
         }
 
-        beginConnectingWindow();
-
-        // Socket Connection for full live mode.
-        socketRef.current = io(API_URL, {
-            transports: ["websocket"],
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-        });
-
-        const socket = socketRef.current;
-
-        socket.on("connect", () => {
-            setConnected(true);
-            setDataMode("live");
-            setModeNotice(null);
-            setStreamPhase("live");
-            setStreamIssue(null);
-            clearDisconnectTimer();
-            setLastUpdateAt(Date.now());
-            console.log("Socket Connected");
-        });
-
-        socket.on("disconnect", () => {
-            setConnected(false);
-            beginConnectingWindow("Reconnecting to node stream...");
-            console.log("Socket Disconnected");
-        });
-
-        socket.on("tx:new", (newTxs: Transaction[]) => {
-            // Add new transactions to the top of the list
-            setData((prev) => {
-                // Merge and dedup
-                const combined = [...newTxs, ...prev];
-                // Identify unique by txid
-                const unique = combined.filter((tx, index, self) =>
-                    index === self.findIndex((t) => (
-                        t.txid === tx.txid
-                    ))
-                );
-                // Sort by fee (desc) 
-                unique.sort((a, b) => b.fee - a.fee);
-
-                // Keep only top 50 
-                return unique.slice(0, 50);
-            });
-            setLastUpdateAt(Date.now());
-        });
-
-        socket.on("mempool:stats", (stats: { count: number }) => {
-            setSocketMempoolCount(stats.count);
-            setLastUpdateAt(Date.now());
-        });
-
-        socket.on("connect_error", (socketErr: Error) => {
-            console.warn("Socket connection failed:", socketErr.message);
-            setConnected(false);
-            beginConnectingWindow("WebSocket blocked or node unreachable.");
-        });
-
-        socket.on("rbf:conflict", (event: { txid: string, replacedTxid: string, feeDiff: string }) => {
-            // Trigger visual alert
-            setRbfAlert(event);
-            // Auto-clear after 5s
-            setTimeout(() => setRbfAlert(null), 5000);
-        });
+        connectSocket();
 
         return () => {
             clearInterval(refresh);
             clearDisconnectTimer();
-            socket.disconnect();
+            closeSocket();
         };
-    }, [beginConnectingWindow, clearDisconnectTimer, fetchData]);
+    }, [clearDisconnectTimer, closeSocket, connectSocket, fetchData]);
 
-    const [rbfAlert, setRbfAlert] = useState<{ txid: string, replacedTxid: string, feeDiff: string } | null>(null);
     const canonicalMempoolCount = liveMetrics?.mempoolTxCount ?? socketMempoolCount;
     const statusTimestamp = lastUpdateAt
         ? new Date(lastUpdateAt)
@@ -224,8 +336,7 @@ export default function MempoolPage() {
     const handleRetryConnection = () => {
         setError(null);
         if (API_URL) {
-            beginConnectingWindow();
-            socketRef.current?.connect();
+            connectSocket();
         }
         fetchData();
     };
@@ -247,24 +358,16 @@ export default function MempoolPage() {
                         <div className="flex items-center justify-end gap-2">
                             <span className="font-semibold text-slate-500 uppercase tracking-wider">Stream</span>
                             {dataMode === "snapshot" ? (
-                                <span className="text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                                    Snapshot mode
-                                </span>
+                                <ProvenanceBadge source="Cached Snapshot" />
                             ) : streamPhase === "live" && connected ? (
-                                <span className="flex items-center gap-1.5 text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                    </span>
-                                    Live
-                                </span>
+                                <ProvenanceBadge source="Live Node" />
                             ) : streamPhase === "connecting" ? (
-                                <span className="flex items-center gap-1.5 text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+                                <span className="flex items-center gap-1.5 text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase">
                                     <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-cyan-400"></span>
-                                    Connecting...
+                                    Connecting
                                 </span>
                             ) : (
-                                <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">Disconnected</span>
+                                <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase">Disconnected</span>
                             )}
                         </div>
                         {statusTimestamp ? (
@@ -332,7 +435,10 @@ export default function MempoolPage() {
             )}
 
             {/* Mempool Visualization */}
-            <div className="mb-8">
+            <div className="mb-8 relative" id="mempool-visualizer-container">
+                <div className="absolute top-2 right-2 z-10 opacity-50 hover:opacity-100 transition-opacity">
+                    <ScreenshotExport targetId="mempool-visualizer-container" filename={`mempool-snapshot-${Date.now()}`} buttonText="" />
+                </div>
                 <MempoolVisualizer />
             </div>
 

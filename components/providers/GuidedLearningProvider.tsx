@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useState,
   type ReactNode,
 } from "react";
 import {
@@ -49,29 +50,33 @@ type GuidedLearningContextValue = LearningProgressState & {
 
 const GuidedLearningContext = createContext<GuidedLearningContextValue | null>(null);
 
-function readInitialState(): LearningProgressState {
-  if (typeof window === "undefined") {
-    return parseLearningProgressState(null);
-  }
-
-  return parseLearningProgressState(localStorage.getItem(LEARNING_PROGRESS_KEY));
-}
-
 export function GuidedLearningProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(learningProgressReducer, undefined, readInitialState);
+  // Keep first render deterministic to avoid SSR/client text mismatches.
+  const [state, dispatch] = useReducer(learningProgressReducer, parseLearningProgressState(null));
+  const [isRestored, setIsRestored] = useState(false);
 
   const currentLessonIndex = state.currentLessonIndex;
   const completedLessons = state.completedLessons;
   const resumedFromSession =
     currentLessonIndex > 0 || completedLessons.length > 0 || Object.keys(state.nodeCompletion).length > 0;
-  const isRestored = true;
 
   useEffect(() => {
+    dispatch({
+      type: "REPLACE_STATE",
+      state: parseLearningProgressState(localStorage.getItem(LEARNING_PROGRESS_KEY)),
+    });
+    setIsRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isRestored) return;
     localStorage.setItem(LEARNING_PROGRESS_KEY, JSON.stringify(state));
     window.dispatchEvent(new CustomEvent(GUIDED_LEARNING_UPDATED_EVENT, { detail: state }));
-  }, [state]);
+  }, [isRestored, state]);
 
   useEffect(() => {
+    if (!isRestored) return;
+
     const refreshFromStorage = () => {
       dispatch({
         type: "REPLACE_STATE",
@@ -84,7 +89,7 @@ export function GuidedLearningProvider({ children }: { children: ReactNode }) {
     return () => {
       window.removeEventListener("storage", refreshFromStorage);
     };
-  }, []);
+  }, [isRestored]);
 
   const setCurrentLessonIndex = useCallback((index: number) => {
     dispatch({ type: "SET_LESSON_INDEX", index });

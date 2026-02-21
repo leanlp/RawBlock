@@ -146,9 +146,9 @@ export function CardRow({
     mono?: boolean;
 }) {
     return (
-        <div className="flex justify-between items-center py-1.5 border-b border-slate-800/50 last:border-0">
-            <span className="text-xs text-slate-500 uppercase tracking-wider">{label}</span>
-            <span className={`text-sm text-slate-300 ${mono ? 'font-mono' : ''}`}>
+        <div className="flex items-start justify-between gap-3 py-1.5 border-b border-slate-800/50 last:border-0">
+            <span className="shrink-0 text-xs text-slate-500 uppercase tracking-wider">{label}</span>
+            <span className={`min-w-0 max-w-[65%] break-words text-right text-sm text-slate-300 ${mono ? 'font-mono' : ''}`}>
                 {value}
             </span>
         </div>

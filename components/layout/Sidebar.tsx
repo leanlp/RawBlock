@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Twitter, Linkedin, ChevronLeft, ChevronRight, House } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Twitter, Linkedin, ChevronLeft, ChevronRight, House, CheckCircle2 } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import { GUIDED_LESSONS } from "../../data/guided-learning";
 import { useGuidedLearning } from "../providers/GuidedLearningProvider";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
+import GlobalSearch from "../explorer/GlobalSearch";
 
 type NavItem = {
     name: string;
@@ -38,7 +39,6 @@ const NAV_ITEMS: NavSection[] = [
             { name: "Fees", path: "/explorer/fees", icon: "💸" },
             { name: "Miners", path: "/explorer/miners", icon: "⛏️" },
             { name: "Vitals", path: "/explorer/vitals", icon: "🩺" },
-            { name: "RPC Console", path: "/explorer/rpc", icon: "💻" },
             { name: "UTXO Set", path: "/analysis/utxo", icon: "🔬" },
         ]
     },
@@ -50,6 +50,7 @@ const NAV_ITEMS: NavSection[] = [
             { name: "Keys", path: "/lab/keys", icon: "🗝️" },
             { name: "Hashing", path: "/lab/hashing", icon: "🔨" },
             { name: "Consensus", path: "/lab/consensus", icon: "⚙️" },
+            { name: "Mempool Sim", path: "/game/mempool", icon: "🧪" },
         ]
     },
     {
@@ -72,6 +73,8 @@ const NAV_ITEMS: NavSection[] = [
     {
         category: "Knowledge",
         items: [
+            { name: "Node Terminal", path: "/explorer/rpc", icon: "💻" },
+            { name: "Operations", path: "/ops", icon: "🛡️" },
             { name: "About", path: "/about", icon: "ℹ️" },
             { name: "Academy", path: "/academy", icon: "🎓" },
             { name: "Research", path: "/research", icon: "📚" },
@@ -88,13 +91,23 @@ const ORDERED_MENU_PATHS = NAV_ITEMS.flatMap((section) => section.items.map((ite
 export default function Sidebar() {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [isScrolled, setIsScrolled] = useState(false);
     const [isScrollingDown, setIsScrollingDown] = useState(false);
-    const { progressPercent, currentLessonIndex } = useGuidedLearning();
+    const { progressPercent, currentLessonIndex, completedLessons } = useGuidedLearning();
     const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
     const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
     const canonicalConceptCount = getCanonicalPath().orderedNodes.length;
     const showLearningJourney = pathname !== "/";
+
+    const completedPaths = useMemo(() => {
+        const paths = new Set<string>();
+        completedLessons.forEach(idx => {
+            const lesson = GUIDED_LESSONS[idx];
+            if (lesson) {
+                lesson.modules.forEach(m => paths.add(m.href));
+            }
+        });
+        return paths;
+    }, [completedLessons]);
 
     const activeIndex = (() => {
         const candidates = ORDERED_MENU_PATHS
@@ -105,13 +118,11 @@ export default function Sidebar() {
     })();
     const previousPath = ORDERED_MENU_PATHS[(activeIndex - 1 + ORDERED_MENU_PATHS.length) % ORDERED_MENU_PATHS.length];
     const nextPath = ORDERED_MENU_PATHS[(activeIndex + 1) % ORDERED_MENU_PATHS.length];
-
     useEffect(() => {
         let lastY = window.scrollY;
 
         const handleScroll = () => {
             const currentY = window.scrollY;
-            setIsScrolled(currentY > 16);
             setIsScrollingDown(currentY > lastY + 2 && currentY > 48);
             lastY = currentY;
         };
@@ -158,8 +169,24 @@ export default function Sidebar() {
         };
     }, [mobileOpen]);
 
+    useEffect(() => {
+        if (!mobileOpen) return;
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setMobileOpen(false);
+            }
+        };
+
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [mobileOpen]);
+
     const sidebarContent = (
         <>
+            <div className="p-3 border-b border-slate-800/50">
+                <GlobalSearch />
+            </div>
             {showLearningJourney && (
                 <div className="border-b border-slate-800/50 px-3 py-3">
                     <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
@@ -207,7 +234,7 @@ export default function Sidebar() {
                                         key={item.path}
                                         href={item.path}
                                         onClick={() => setMobileOpen(false)}
-                                    className={`
+                                        className={`
                                             group relative flex items-center gap-3 px-3 py-2.5 min-h-11 rounded-lg
                                             transition-all duration-200
                                             ${isActive
@@ -218,6 +245,9 @@ export default function Sidebar() {
                                     >
                                         <span className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center text-base leading-none">{item.icon}</span>
                                         <span className="truncate text-[13px] font-medium leading-5 tracking-[0.01em]">{item.name}</span>
+                                        {completedPaths.has(item.path) && (
+                                            <CheckCircle2 className="w-4 h-4 ml-auto text-emerald-500 flex-shrink-0" />
+                                        )}
                                         {isActive && (
                                             <motion.div
                                                 className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-cyan-400 rounded-r-full"
@@ -259,48 +289,52 @@ export default function Sidebar() {
 
     return (
         <>
-            {/* Quick Route Controls (Mobile) */}
-            <div className={`md:hidden fixed top-4 left-16 z-[79] ${mobileOpen ? "hidden" : "flex"} flex-row gap-2 transition-all duration-300 ${isScrollingDown ? "opacity-55" : isScrolled ? "opacity-80" : "opacity-100"}`}>
-                <Link
-                    href={previousPath}
-                    className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
-                    aria-label="Previous menu page"
-                    title="Previous"
+            {/* Mobile Bottom Navigation Bar */}
+            <div className={`md:hidden fixed bottom-0 left-0 right-0 z-[90] bg-slate-950/95 backdrop-blur-xl border-t border-slate-900 flex items-center justify-between px-4 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] transition-transform duration-300 ${isScrollingDown && !mobileOpen ? 'translate-y-full' : 'translate-y-0'}`}>
+                {/* Hamburger Toggle */}
+                <button
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                    className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
                 >
-                    <ChevronLeft size={14} />
-                </Link>
-                <Link
-                    href="/"
-                    className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
-                    aria-label="Go home"
-                    title="Home"
-                >
-                    <House size={14} />
-                </Link>
-                <Link
-                    href={nextPath}
-                    className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-300 shadow-lg shadow-black/20 transition-all duration-300 hover:text-cyan-300 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/85 backdrop-blur-sm"}`}
-                    aria-label="Next menu page"
-                    title="Next"
-                >
-                    <ChevronRight size={14} />
-                </Link>
-            </div>
+                    <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {mobileOpen ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        )}
+                    </svg>
+                    <span className="text-[10px] font-medium tracking-wide">Menu</span>
+                </button>
 
-            {/* Mobile Hamburger Button */}
-            <button
-                onClick={() => setMobileOpen(!mobileOpen)}
-                className={`md:hidden fixed top-4 left-4 z-[80] flex h-11 w-11 items-center justify-center rounded-lg text-slate-300 transition-all duration-300 hover:text-cyan-400 ${isScrollingDown ? "border border-slate-700/50 bg-slate-900/35 backdrop-blur-[2px]" : isScrolled ? "border border-slate-700/70 bg-slate-900/60 backdrop-blur-sm" : "border border-slate-800 bg-slate-900/90 backdrop-blur-sm"}`}
-                aria-label="Toggle menu"
-            >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {mobileOpen ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    )}
-                </svg>
-            </button>
+                {/* Quick Routes inside bottom bar */}
+                <div className="flex items-center gap-6">
+                    <Link
+                        href={previousPath}
+                        className="flex min-h-11 min-w-11 flex-col items-center justify-center px-2 py-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                        aria-label="Previous menu page"
+                    >
+                        <ChevronLeft size={24} className="mb-1" />
+                        <span className="text-[10px] font-medium tracking-wide">Prev</span>
+                    </Link>
+
+                    <Link
+                        href="/"
+                        className="flex items-center justify-center -mt-6 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 w-12 h-12 rounded-full shadow-lg shadow-cyan-500/20"
+                        aria-label="Go home"
+                    >
+                        <House size={20} />
+                    </Link>
+
+                    <Link
+                        href={nextPath}
+                        className="flex min-h-11 min-w-11 flex-col items-center justify-center px-2 py-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                        aria-label="Next menu page"
+                    >
+                        <ChevronRight size={24} className="mb-1" />
+                        <span className="text-[10px] font-medium tracking-wide">Next</span>
+                    </Link>
+                </div>
+            </div>
 
             {/* Mobile Overlay */}
             <AnimatePresence>

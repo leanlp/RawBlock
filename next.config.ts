@@ -1,5 +1,20 @@
 import type { NextConfig } from "next";
 
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "";
+const configuredConnectSrc = (() => {
+  if (!configuredApiUrl) return [];
+  try {
+    const parsed = new URL(configuredApiUrl);
+    const wsProtocol = parsed.protocol === "https:" ? "wss:" : "ws:";
+    return [`${parsed.protocol}//${parsed.host}`, `${wsProtocol}//${parsed.host}`];
+  } catch {
+    return [];
+  }
+})();
+const connectSrc = ["'self'", "https:", "wss:", ...configuredConnectSrc]
+  .filter((value, index, values) => values.indexOf(value) === index)
+  .join(" ");
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -10,7 +25,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline' https:",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
-  "connect-src 'self' https: wss:",
+  `connect-src ${connectSrc}`,
   "frame-src 'self' https:",
   "manifest-src 'self'",
   "upgrade-insecure-requests",
@@ -26,7 +41,8 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
         ],
       },
     ];

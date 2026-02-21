@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { BitcoinLiveMetrics } from "@/lib/bitcoinData";
+import { getBitcoinLiveMetrics, type BitcoinLiveMetrics } from "@/lib/bitcoinData";
 
 type MetricsState = {
   loading: boolean;
@@ -20,18 +20,8 @@ export function useBitcoinLiveMetrics(pollIntervalMs = 30_000) {
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
-      const response = await fetch("/api/bitcoin/metrics", { cache: "no-store" });
-      const payload = (await response.json()) as {
-        ok: boolean;
-        error?: string;
-        metrics?: BitcoinLiveMetrics;
-      };
-
-      if (!response.ok || !payload.ok || !payload.metrics) {
-        throw new Error(payload.error ?? "Data temporarily unavailable");
-      }
-
-      setState({ loading: false, error: null, metrics: payload.metrics });
+      const metrics = await getBitcoinLiveMetrics();
+      setState({ loading: false, error: null, metrics });
     } catch (error) {
       setState((prev) => ({
         loading: false,
