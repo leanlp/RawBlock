@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Twitter, Linkedin, ChevronLeft, ChevronRight, House, CheckCircle2 } from "lucide-react";
+import { Twitter, Linkedin, ChevronLeft, ChevronRight, House, CheckCircle2, Globe } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useGuidedLearning } from "../providers/GuidedLearningProvider";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
@@ -319,20 +319,32 @@ export default function Sidebar() {
         <>
             {/* Mobile Bottom Navigation Bar */}
             <div className={`md:hidden fixed bottom-0 left-0 right-0 z-[90] bg-slate-950/95 backdrop-blur-xl border-t border-slate-900 flex items-center justify-between px-4 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] transition-transform duration-300 ${isScrollingDown && !mobileOpen ? 'translate-y-full' : 'translate-y-0'}`}>
-                {/* Hamburger Toggle */}
-                <button
-                    onClick={() => setMobileOpen(!mobileOpen)}
-                    className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
-                >
-                    <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {mobileOpen ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                        )}
-                    </svg>
-                    <span className="text-[10px] font-medium tracking-wide">{t.nav.menu}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                    {/* Hamburger Toggle */}
+                    <button
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                    >
+                        <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {mobileOpen ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            )}
+                        </svg>
+                        <span className="text-[10px] font-medium tracking-wide">{t.nav.menu}</span>
+                    </button>
+
+                    {/* Language Toggle */}
+                    <button
+                        onClick={toggleLocale}
+                        className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                        aria-label="Toggle Language"
+                    >
+                        <Globe size={24} className="mb-1" />
+                        <span className="text-[10px] font-medium tracking-wide uppercase">{locale === "en" ? "EN" : "ES"}</span>
+                    </button>
+                </div>
 
                 {/* Quick Routes inside bottom bar */}
                 <div className="flex items-center gap-6">
