@@ -61,7 +61,7 @@ export default function AboutPage() {
             href="https://github.com/rawblock"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-cyan-400 text-sm hover:underline"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-cyan-400 text-sm hover:underline"
           >
             {t.about.viewGitHub} →
           </Link>
@@ -102,7 +102,7 @@ export default function AboutPage() {
                 href={source.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-cyan-400 hover:underline font-medium"
+                className="inline-flex min-h-11 items-center rounded-lg px-2 text-sm text-cyan-400 hover:underline font-medium"
               >
                 {source.label}
               </Link>

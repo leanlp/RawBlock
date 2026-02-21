@@ -593,12 +593,12 @@ export default function ScriptLabPage() {
       };
 
       if (!response.ok || !payload.ok || !payload.result) {
-        throw new Error(payload.error ?? "Consensus verification failed.");
+        throw new Error(payload.error ?? t.scriptLab.consensusVerificationFailed);
       }
 
       setRealResult(payload.result);
     } catch (error) {
-      setRealVerifyError(error instanceof Error ? error.message : "Consensus verification failed.");
+      setRealVerifyError(error instanceof Error ? error.message : t.scriptLab.consensusVerificationFailed);
     } finally {
       setRealLoading(false);
     }
@@ -612,6 +612,7 @@ export default function ScriptLabPage() {
     realScriptSigFormat,
     realTxHex,
     realWitnessText,
+    t.scriptLab.consensusVerificationFailed,
   ]);
 
   const runRealTrace = useCallback(async () => {
@@ -625,11 +626,11 @@ export default function ScriptLabPage() {
       setRealTraceResult(result);
       setState(buildExecutionStateFromTrace(scriptInput, result, initialStack));
     } catch (error) {
-      setRealTraceError(error instanceof Error ? error.message : "Consensus trace failed.");
+      setRealTraceError(error instanceof Error ? error.message : t.scriptLab.consensusTraceFailed);
     } finally {
       setRealLoading(false);
     }
-  }, [realTraceMaxSteps, runConsensusTrace, scriptInput]);
+  }, [realTraceMaxSteps, runConsensusTrace, scriptInput, t.scriptLab.consensusTraceFailed]);
 
   return (
     <main className="min-h-screen bg-slate-950 p-4 font-mono text-slate-200 md:p-8 overflow-x-hidden">
@@ -644,15 +645,17 @@ export default function ScriptLabPage() {
         </div>
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Execution Readiness</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{t.scriptLab.executionReadiness}</p>
           <div className="mt-2 grid grid-cols-1 gap-2 text-xs text-slate-300 md:grid-cols-2">
             <p>
-              Step/Run now executes the real interpreter trace endpoint using tx context, flags, and satoshi amounts.
+              {t.scriptLab.readinessLine1}
             </p>
             <p>
-              Real consensus API: <span className="font-semibold text-emerald-300">{opcodeSummary.total || "..."}</span>{" "}
-              total opcodes ({opcodeSummary.enabled} enabled / {opcodeSummary.disabled} disabled / {opcodeSummary.reserved} reserved) via bitcore
-              interpreter.
+              {t.scriptLab.realConsensusApiPrefix} <span className="font-semibold text-emerald-300">{opcodeSummary.total || "..."}</span>{" "}
+              {t.scriptLab.realConsensusApiSuffix
+                .replace("{0}", String(opcodeSummary.enabled))
+                .replace("{1}", String(opcodeSummary.disabled))
+                .replace("{2}", String(opcodeSummary.reserved))}
             </p>
           </div>
         </section>
@@ -661,13 +664,13 @@ export default function ScriptLabPage() {
           <section className="flex flex-col gap-4 lg:col-span-4">
             <div className="flex-1 rounded-xl border border-slate-800 bg-slate-900 p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Script Scenario</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">{t.scriptLab.scriptScenario}</label>
                 <select
                   className="min-h-11 rounded border border-slate-700 bg-slate-950 px-2 text-xs text-slate-300"
                   value={selectedPreset}
                   onChange={(event) => handlePresetChange(event.target.value)}
                 >
-                  <option value="Custom">Custom</option>
+                  <option value="Custom">{t.scriptLab.customScenario}</option>
                   {PRESET_KEYS.map((name) => (
                     <option key={name} value={name}>
                       {name}
@@ -676,8 +679,8 @@ export default function ScriptLabPage() {
                 </select>
               </div>
 
-              <p className="mb-2 text-xs text-slate-400">{activePreset?.overview ?? "Custom script loaded from editor or shared URL."}</p>
-              <p className="mb-4 text-[11px] text-cyan-300">Objective: {activePreset?.objective ?? "Finish with a truthy top stack item."}</p>
+              <p className="mb-2 text-xs text-slate-400">{activePreset?.overview ?? t.scriptLab.customScriptLoaded}</p>
+              <p className="mb-4 text-[11px] text-cyan-300">{t.scriptLab.objectiveLabel}: {activePreset?.objective ?? t.scriptLab.defaultObjective}</p>
 
               <textarea
                 value={scriptInput}
@@ -692,19 +695,19 @@ export default function ScriptLabPage() {
                   onClick={loadCurrentEditor}
                   className="min-h-11 rounded-lg bg-slate-800 px-3 text-xs font-bold uppercase tracking-wide text-slate-200 hover:bg-slate-700"
                 >
-                  Load Editor
+                  {t.scriptLab.loadEditor}
                 </button>
                 <button
                   type="button"
                   onClick={shareScriptUrl}
                   className="min-h-11 rounded-lg border border-indigo-500/40 bg-indigo-500/10 px-3 text-xs font-bold uppercase tracking-wide text-indigo-200 hover:border-indigo-400/60 hover:text-indigo-100"
                 >
-                  Share URL
+                  {t.scriptLab.shareUrl}
                 </button>
               </div>
               {shareState !== "idle" ? (
                 <p className={`mt-2 text-[11px] ${shareState === "copied" ? "text-emerald-300" : "text-red-300"}`}>
-                  {shareState === "copied" ? "Share URL copied to clipboard." : "Could not copy URL."}
+                  {shareState === "copied" ? t.scriptLab.shareUrlCopied : t.scriptLab.shareUrlCopyFailed}
                 </p>
               ) : null}
             </div>
@@ -717,7 +720,7 @@ export default function ScriptLabPage() {
                   disabled={state.completed || !!state.error || isAutoPlaying || realLoading}
                   className="min-h-11 rounded-lg bg-blue-600 px-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40 hover:bg-blue-500"
                 >
-                  Step
+                  {t.scriptLab.step}
                 </button>
                 <button
                   type="button"
@@ -728,7 +731,7 @@ export default function ScriptLabPage() {
                     : "bg-emerald-600 text-white hover:bg-emerald-500"
                     } disabled:cursor-not-allowed disabled:opacity-40`}
                 >
-                  {isAutoPlaying ? "Pause" : "Run"}
+                  {isAutoPlaying ? t.scriptLab.pause : t.scriptLab.run}
                 </button>
               </div>
             </div>
@@ -741,16 +744,16 @@ export default function ScriptLabPage() {
                   : "border-slate-800 bg-slate-900"
                 }`}
             >
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Validation Engine</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{t.scriptLab.validationEngine}</p>
               <p className="mt-2 text-sm text-slate-200">{validation.summary}</p>
               <div className="mt-2 text-xs text-slate-400">
                 <p>
-                  Consensus:{" "}
-                  {validation.consensusPass === null ? "Pending" : validation.consensusPass ? "PASS" : "FAIL"}
+                  {t.scriptLab.consensusLabel}{" "}
+                  {validation.consensusPass === null ? t.scriptLab.pending : validation.consensusPass ? "PASS" : "FAIL"}
                 </p>
                 <p>
-                  Scenario objective:{" "}
-                  {validation.scenarioPass === null ? "Pending" : validation.scenarioPass ? "PASS" : "FAIL"}
+                  {t.scriptLab.scenarioObjectiveLabel}{" "}
+                  {validation.scenarioPass === null ? t.scriptLab.pending : validation.scenarioPass ? "PASS" : "FAIL"}
                 </p>
               </div>
               {validation.details.length > 0 ? (
@@ -760,7 +763,7 @@ export default function ScriptLabPage() {
                   ))}
                 </ul>
               ) : null}
-              <p className="mt-3 text-[11px] text-slate-400">Hint: {activePreset?.hint ?? "Use consensus trace + fixture contexts to reason about stack truth."}</p>
+              <p className="mt-3 text-[11px] text-slate-400">{t.scriptLab.hintLabel} {activePreset?.hint ?? t.scriptLab.defaultHint}</p>
             </div>
           </section>
 
@@ -771,19 +774,19 @@ export default function ScriptLabPage() {
 
             <div className="flex-1 rounded-xl border border-slate-800 bg-slate-900 p-4">
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Execution Trace</p>
-                <p className="text-[11px] text-slate-500">Pointer: {state.pointer}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{t.scriptLab.executionTrace}</p>
+                <p className="text-[11px] text-slate-500">{t.scriptLab.pointerLabel}: {state.pointer}</p>
               </div>
               <div className="max-h-48 space-y-1 overflow-y-auto pr-1 text-xs">
                 {historyPreview.length === 0 ? (
-                  <p className="text-slate-500">No executed opcodes yet.</p>
+                  <p className="text-slate-500">{t.scriptLab.noExecutedOpcodes}</p>
                 ) : (
                   historyPreview.map((entry, index) => (
                     <div key={`${entry.opcode}-${state.history.length - index}`} className="rounded border border-slate-800 bg-slate-950/60 p-2">
                       <p className="font-bold text-cyan-300">
                         pc:{entry.pc} {entry.opcode}
                       </p>
-                      <p className="text-[11px] text-slate-400">Stack after: [{entry.stack.join(", ")}]</p>
+                      <p className="text-[11px] text-slate-400">{t.scriptLab.stackAfterLabel} [{entry.stack.join(", ")}]</p>
                     </div>
                   ))
                 )}
@@ -793,7 +796,7 @@ export default function ScriptLabPage() {
 
           <section className="flex h-[620px] flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-900 lg:col-span-3">
             <div className="border-b border-slate-800 bg-slate-950/50 p-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">Opcode Stream</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">{t.scriptLab.opcodeStream}</h3>
             </div>
             <div className="flex-1 space-y-1 overflow-y-auto p-2">
               {state.script.map((opcode, index) => {
@@ -819,14 +822,17 @@ export default function ScriptLabPage() {
             </div>
 
             <div className="border-t border-slate-800 bg-slate-950/50 p-3">
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">Consensus Opcode Catalog</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">{t.scriptLab.consensusOpcodeCatalog}</p>
               <p className="mb-2 text-[10px] text-slate-500">
-                Real catalog from bitcore interpreter: {opcodeSummary.total} total, {opcodeSummary.enabled} enabled,{" "}
-                {opcodeSummary.disabled} disabled, {opcodeSummary.reserved} reserved.
+                {t.scriptLab.realCatalogSummary
+                  .replace("{0}", String(opcodeSummary.total))
+                  .replace("{1}", String(opcodeSummary.enabled))
+                  .replace("{2}", String(opcodeSummary.disabled))
+                  .replace("{3}", String(opcodeSummary.reserved))}
               </p>
               <div className="max-h-48 space-y-1 overflow-y-auto pr-1 text-[10px]">
                 {opcodeCatalog.length === 0 ? (
-                  <p className="text-slate-500">Catalog unavailable.</p>
+                  <p className="text-slate-500">{t.scriptLab.catalogUnavailable}</p>
                 ) : (
                   opcodeCatalog.map((entry) => (
                     <div key={`${entry.name}-${entry.code}`} className="flex items-center justify-between rounded border border-slate-800 p-1.5">
@@ -852,7 +858,7 @@ export default function ScriptLabPage() {
         <section className="rounded-xl border border-slate-800 bg-slate-900 p-4">
           <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">Consensus Verify (Real Engine)</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">{t.scriptLab.consensusVerifyTitle}</h2>
               <p className="text-xs text-slate-500">
                 Uses bitcore-lib Interpreter with policy/consensus flags, tx context, witness and satoshi input.
               </p>
@@ -1016,7 +1022,7 @@ export default function ScriptLabPage() {
                   disabled={realLoading}
                   className="inline-flex min-h-11 items-center justify-center rounded-lg bg-cyan-600 px-4 text-sm font-bold text-white disabled:opacity-40 hover:bg-cyan-500"
                 >
-                  {realLoading ? "Working..." : "Run Real Consensus Verify"}
+                  {realLoading ? t.scriptLab.working : t.scriptLab.runRealConsensusVerify}
                 </button>
                 <button
                   type="button"
@@ -1024,7 +1030,7 @@ export default function ScriptLabPage() {
                   disabled={realLoading}
                   className="inline-flex min-h-11 items-center justify-center rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 text-sm font-bold text-amber-200 disabled:opacity-40 hover:border-amber-400/50 hover:text-amber-100"
                 >
-                  {realLoading ? "Working..." : "Run Real Trace (Editor Script)"}
+                  {realLoading ? t.scriptLab.working : t.scriptLab.runRealTraceEditor}
                 </button>
               </div>
             </div>

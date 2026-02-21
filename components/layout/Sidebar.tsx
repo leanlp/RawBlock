@@ -338,7 +338,7 @@ export default function Sidebar() {
                     {/* Language Toggle */}
                     <button
                         onClick={toggleLocale}
-                        className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                        className="flex min-h-11 min-w-11 flex-col items-center justify-center px-2 py-1 text-slate-400 hover:text-cyan-400 transition-colors"
                         aria-label="Toggle Language"
                     >
                         <Globe size={24} className="mb-1" />

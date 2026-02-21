@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import BalanceChart from '../../components/BalanceChart';
@@ -175,7 +175,7 @@ function DecoderContent() {
         URL.revokeObjectURL(url);
     };
 
-    const fetchDecodedTx = async (txQuery: string) => {
+    const fetchDecodedTx = useCallback(async (txQuery: string) => {
         setLoading(true);
         setError('');
         setResult(null); // Clear previous result to center loader
@@ -195,9 +195,9 @@ function DecoderContent() {
                 if (!res.ok) {
                     // If it's a 404, specifically mention the node index
                     if (res.status === 404) {
-                        throw new Error("Transaction not found. Your node may be pruning history or lacks -txindex.");
+                        throw new Error(t.decoder.txNotFoundIndexHint);
                     }
-                    throw new Error(data.error || 'Failed to decode');
+                    throw new Error(data.error || t.decoder.failedToDecode);
                 }
                 setResult(data);
                 setDataSource("live");
@@ -205,7 +205,7 @@ function DecoderContent() {
             }
 
             if (!isLikelyTxid(txQuery)) {
-                throw new Error("Live decoder unavailable. In demo mode, paste a 64-character txid.");
+                throw new Error(t.decoder.demoModeTxidOnly);
             }
             const fallbackTx = await decodeViaMempool(txQuery.trim());
             setResult({ ...fallbackTx, type: 'transaction' });
@@ -223,8 +223,8 @@ function DecoderContent() {
                         liveError.toLowerCase().includes("not found on local node");
                     setError(
                         localIndexMiss
-                            ? "Local node could not decode this tx (likely pruned or missing txindex). Showing public fallback decode."
-                            : "Live backend unavailable. Showing public fallback decode."
+                            ? t.decoder.localNodeDecodeFallback
+                            : t.decoder.liveBackendFallback
                     );
                     setDataSource("fallback");
                     return;
@@ -232,11 +232,11 @@ function DecoderContent() {
                     // fall through to default error handling
                 }
             }
-            setError(err instanceof Error ? err.message : 'Failed to decode');
+            setError(err instanceof Error ? err.message : t.decoder.failedToDecode);
         } finally {
             setLoading(false);
         }
-    };
+    }, [t.decoder.demoModeTxidOnly, t.decoder.failedToDecode, t.decoder.liveBackendFallback, t.decoder.localNodeDecodeFallback, t.decoder.txNotFoundIndexHint]);
 
     const handleDecode = (e: React.FormEvent) => {
         e.preventDefault();
@@ -248,7 +248,7 @@ function DecoderContent() {
         if (initialSearch) {
             fetchDecodedTx(initialSearch);
         }
-    }, [initialSearch]);
+    }, [initialSearch, fetchDecodedTx]);
 
     // Type Guard
     const isAddress = (res: DecoderResult): res is AddressInfo => {
@@ -269,7 +269,7 @@ function DecoderContent() {
                 </div>
                 {!API_URL ? (
                     <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
-                        Demo mode: live decoder backend is unavailable. Public fallback supports txid decode only.
+                        {t.decoder.demoModeNotice}
                     </div>
                 ) : null}
                 {/* Header */}
@@ -278,27 +278,27 @@ function DecoderContent() {
                         {result && isAddress(result) ? t.decoder.addressTitle : t.decoder.txTitle}
                     </h1>
                     <Link href="/" className="inline-flex min-h-11 items-center justify-center text-sm text-slate-500 transition-colors hover:text-cyan-400 sm:justify-start">
-                        ← Back to Dashboard
+                        {t.decoder.backToDashboard}
                     </Link>
                 </div>
 
                 {!result && (
                     <div className="mb-8 animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100">
-                        <div className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">Try Real Data:</div>
+                        <div className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">{t.decoder.tryRealData}</div>
                         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                             <button
                                 type="button"
                                 onClick={() => fetchDecodedTx('4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b')}
                                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-xs text-slate-400 transition-all hover:border-cyan-500/50 hover:text-cyan-400 sm:w-auto"
                             >
-                                ⚡ Nakamoto&apos;s Genesis Subsidy
+                                ⚡ {t.decoder.genesisSubsidy}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => fetchDecodedTx('37d966a263350fe747f1c606b159987545844a493dd38d84b070027a895c4517')}
                                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-xs text-slate-400 transition-all hover:border-emerald-500/50 hover:text-emerald-400 sm:w-auto"
                             >
-                                🔒 Segwit Witness
+                                🔒 {t.decoder.segwitWitness}
                             </button>
                         </div>
                     </div>
@@ -313,7 +313,7 @@ function DecoderContent() {
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Enter TXID, Address, or Raw Hex..."
+                                placeholder={t.decoder.placeholder}
                                 className="min-w-0 w-full rounded-l-lg border border-slate-700 bg-slate-900/90 px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500 sm:px-6 sm:py-4"
                             />
                             {result && (
@@ -325,7 +325,7 @@ function DecoderContent() {
                                         setError('');
                                     }}
                                     className="min-h-11 border-y border-slate-700 bg-slate-900/90 px-3 text-slate-500 transition-colors hover:text-slate-300 sm:px-4"
-                                    title="Clear Result"
+                                    title={t.decoder.clearResult}
                                 >
                                     ✕
                                 </button>
@@ -335,7 +335,7 @@ function DecoderContent() {
                                 disabled={loading}
                                 className="min-h-11 shrink-0 rounded-r-lg border-y border-r border-slate-700 bg-slate-800 px-4 font-bold text-cyan-400 transition-colors hover:bg-slate-700 disabled:opacity-50 sm:px-8"
                             >
-                                {loading ? '...' : 'DECODE'}
+                                {loading ? '...' : t.decoder.decode}
                             </button>
                         </div>
                     </div>
@@ -357,7 +357,7 @@ function DecoderContent() {
                             </div>
                         </div>
                         <p className="mt-6 text-slate-500 font-mono text-sm animate-pulse tracking-widest">
-                            Scanning Blockchain...
+                            {t.decoder.scanningBlockchain}
                         </p>
                     </div>
                 )}
@@ -377,32 +377,32 @@ function DecoderContent() {
                                 <InfoTooltip
                                     content={
                                         dataSource === "live"
-                                            ? "Decoded using the configured backend API (Bitcoin Core + electrs/indexing). If your backend is down, some lookups may fall back to public APIs."
+                                            ? t.decoder.liveBackendTooltip
                                             : dataSource === "fallback"
-                                                ? "Fallback decode uses public APIs (mempool.space). Address scans and some advanced lookups may be unavailable in fallback mode."
-                                                : "Data source is unknown for this result."
+                                                ? t.decoder.publicFallbackTooltip
+                                                : t.decoder.unknownDataSourceTooltip
                                     }
-                                    label="Data source details"
+                                    label={t.decoder.dataSourceDetails}
                                 />
                                 <div>
                                     <div className="font-bold">
-                                        Data source:{" "}
+                                        {t.decoder.dataSource}{" "}
                                         {dataSource === "live"
-                                            ? "Live backend"
+                                            ? t.decoder.liveBackend
                                             : dataSource === "fallback"
-                                                ? "Public fallback"
+                                                ? t.decoder.publicFallback
                                                 : dataSource === "demo"
-                                                    ? "Demo"
-                                                    : "Unknown"}
+                                                    ? t.decoder.demo
+                                                    : t.decoder.unknown}
                                     </div>
                                     <div className="opacity-90">
                                         {dataSource === "live"
-                                            ? "Rawblock API (node-backed)."
+                                            ? t.decoder.liveBackendCaption
                                             : dataSource === "fallback"
-                                                ? "mempool.space (tx-only)."
+                                                ? t.decoder.publicFallbackCaption
                                                 : dataSource === "demo"
-                                                    ? "No live backend configured."
-                                                    : "—"}
+                                                    ? t.decoder.noLiveBackendCaption
+                                                    : t.decoder.unavailableDash}
                                     </div>
                                 </div>
                             </div>
@@ -410,7 +410,7 @@ function DecoderContent() {
                                 href="/about"
                                 className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2 text-[11px] font-bold text-slate-200 hover:border-cyan-500/40 hover:text-cyan-200"
                             >
-                                About & Trust
+                                {t.decoder.aboutTrust}
                             </Link>
                         </div>
                     </div>
@@ -427,26 +427,26 @@ function DecoderContent() {
 
                             <h2 className="text-xs text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
-                                Live Node Scan
+                                {t.decoder.liveNodeScan}
                             </h2>
 
                             <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-8">
                                 <div>
-                                    <div className="mb-2 text-xs text-slate-600">ADDRESS</div>
+                                    <div className="mb-2 text-xs text-slate-600">{t.decoder.address}</div>
                                     <div className="break-all font-mono text-[clamp(1rem,2vw,1.5rem)] text-cyan-300 leading-6 select-all">{result.address}</div>
                                     <div className="mt-3 flex flex-wrap gap-2">
-                                        <CopyButton text={result.address} label="Copy address" className="bg-slate-950/40" />
+                                        <CopyButton text={result.address} label={t.decoder.copyAddress} className="bg-slate-950/40" />
                                         <button
                                             type="button"
                                             onClick={() => downloadJson(result, `rawblock-address-${result.address.slice(0, 12)}.json`)}
                                             className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs font-bold text-slate-200 hover:border-cyan-500/40 hover:text-cyan-200"
                                         >
-                                            Download JSON
+                                            {t.decoder.downloadJson}
                                         </button>
                                     </div>
                                 </div>
                                 <div className="text-left md:text-right">
-                                    <div className="mb-2 text-xs text-slate-600">CONFIRMED BALANCE</div>
+                                    <div className="mb-2 text-xs text-slate-600">{t.decoder.confirmedBalance}</div>
                                     <div className="text-[clamp(1.75rem,5vw,3rem)] font-bold tracking-tight text-amber-400 leading-tight">
                                         {result.balance.toLocaleString()} <span className="text-lg text-amber-400/50">BTC</span>
                                     </div>
@@ -472,7 +472,7 @@ function DecoderContent() {
                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
                             <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
                                 <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                UNSPENT OUTPUTS (UTXOs) - {result.utxoCount}
+                                            {t.decoder.unspentOutputs} - {result.utxoCount}
                             </h3>
 
                             <div className="grid gap-3">
@@ -488,7 +488,7 @@ function DecoderContent() {
                                                     {utxo.txid}:{utxo.vout}
                                                 </button>
                                             </div>
-                                            <div className="text-xs text-slate-600">Height: {utxo.height}</div>
+                                            <div className="text-xs text-slate-600">{t.decoder.heightLabel}: {utxo.height}</div>
                                         </div>
                                         <div className="text-right">
                                             <div className="text-sm font-bold text-emerald-400">{utxo.amount} BTC</div>
@@ -497,7 +497,7 @@ function DecoderContent() {
                                 ))}
                                 {result.utxos.length === 0 && (
                                     <div className="p-8 text-center text-slate-600 italic border border-slate-800 rounded-lg border-dashed">
-                                        No unspent outputs found.
+                                        {t.decoder.noUtxos}
                                     </div>
                                 )}
                             </div>
@@ -512,11 +512,11 @@ function DecoderContent() {
                                 {/* 1. Overview Card */}
                                 <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
                                     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <h2 className="text-xs text-slate-500 uppercase tracking-widest">Transaction Overview</h2>
+                                        <h2 className="text-xs text-slate-500 uppercase tracking-widest">{t.decoder.txOverview}</h2>
                                         <div className="flex flex-wrap gap-2">
                                             <CopyButton
                                                 text={JSON.stringify(result, null, 2)}
-                                                label="Copy JSON"
+                                                label={t.decoder.copyJson}
                                                 className="bg-slate-950/40"
                                             />
                                             <button
@@ -524,7 +524,7 @@ function DecoderContent() {
                                                 onClick={() => downloadJson(result, `rawblock-tx-${result.txid}.json`)}
                                                 className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs font-bold text-slate-200 hover:border-cyan-500/40 hover:text-cyan-200"
                                             >
-                                                Download JSON
+                                                {t.decoder.downloadJson}
                                             </button>
                                         </div>
                                     </div>
@@ -534,7 +534,7 @@ function DecoderContent() {
                                                 <span>TXID</span>
                                                 <CopyButton
                                                     text={result.txid}
-                                                    label="Copy"
+                                                    label={t.common.copy}
                                                     className="px-2 py-1 text-[10px] bg-slate-950/40"
                                                 />
                                             </div>
@@ -542,24 +542,24 @@ function DecoderContent() {
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div>
-                                                <div className="mb-1 text-xs text-slate-600">SIZE</div>
+                                                <div className="mb-1 text-xs text-slate-600">{t.decoder.size}</div>
                                                 <div className="text-xl text-slate-200">{result.size} <span className="text-xs text-slate-600">B</span></div>
                                             </div>
                                             <div>
-                                                <div className="mb-1 text-xs text-slate-600">VSIZE</div>
+                                                <div className="mb-1 text-xs text-slate-600">{t.decoder.vsize}</div>
                                                 <div className="text-xl text-slate-200">{result.vsize} <span className="text-xs text-slate-600">vB</span></div>
                                             </div>
                                             <div>
-                                                <div className="mb-1 text-xs text-slate-600">WEIGHT</div>
+                                                <div className="mb-1 text-xs text-slate-600">{t.decoder.weight}</div>
                                                 <div className="text-xl text-slate-200">{result.weight} <span className="text-xs text-slate-600">wu</span></div>
                                             </div>
                                         </div>
                                         <div>
-                                            <div className="mb-1 text-xs text-slate-600">LOCKTIME</div>
+                                                <div className="mb-1 text-xs text-slate-600">{t.decoder.locktime}</div>
                                             <div className="text-xs text-slate-400">{result.locktime}</div>
                                         </div>
                                         <div>
-                                            <div className="mb-1 text-xs text-slate-600">VERSION</div>
+                                                <div className="mb-1 text-xs text-slate-600">{t.decoder.version}</div>
                                             <div className="text-xs text-slate-400">{result.version}</div>
                                         </div>
                                     </div>
@@ -579,7 +579,7 @@ function DecoderContent() {
                                     <div className="space-y-4">
                                         <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
                                             <div className="w-2 h-2 bg-rose-500 rounded-full"></div>
-                                            INPUTS ({result.vin.length})
+                                            {t.decoder.inputs} ({result.vin.length})
                                         </h3>
                                         <div className="space-y-2">
                                             {result.vin.slice(0, 50).map((vin, i) => (
@@ -591,19 +591,19 @@ function DecoderContent() {
                                                     {!vin.coinbase && (
                                                         <>
                                                             <div className="mb-2">
-                                                                <div className="text-xs text-slate-600">PREVOUT TXID</div>
+                                                                <div className="text-xs text-slate-600">{t.decoder.prevoutTxid}</div>
                                                                 <button
                                                                     onClick={() => fetchDecodedTx(vin.txid)}
                                                                     className="inline-flex min-h-11 items-center break-all text-left font-mono text-xs text-rose-300/80 hover:text-rose-300 hover:underline"
-                                                                    title="Click to decode ancestor transaction"
+                                                                    title={t.decoder.decodeAncestor}
                                                                 >
                                                                     {vin.txid}
                                                                 </button>
                                                             </div>
                                                             <div>
-                                                                <div className="mb-1 text-xs text-slate-600">SCRIPT SIG (ASM)</div>
+                                                                <div className="mb-1 text-xs text-slate-600">{t.decoder.scriptSigAsm}</div>
                                                                 <div className="break-all rounded border border-slate-800/30 bg-slate-950/50 p-2 font-mono text-xs text-slate-500">
-                                                                    <InteractiveScript asm={vin.scriptSig.asm || 'N/A'} />
+                                                                    <InteractiveScript asm={vin.scriptSig.asm || t.decoder.notAvailable} />
                                                                 </div>
                                                             </div>
                                                         </>
@@ -611,14 +611,14 @@ function DecoderContent() {
 
                                                     {vin.coinbase && (
                                                         <div className="text-center py-2">
-                                                            <span className="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded">COINBASE (Newly Mined)</span>
+                                                            <span className="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded">{t.decoder.coinbaseLabel}</span>
                                                         </div>
                                                     )}
                                                 </div>
                                             ))}
                                             {result.vin.length > 50 && (
                                                 <div className="text-center text-xs text-slate-500 italic py-2">
-                                                    Showing 50 of {result.vin.length} inputs
+                                                    {t.decoder.showingOfInputs.replace("{0}", "50").replace("{1}", String(result.vin.length))}
                                                 </div>
                                             )}
                                         </div>
@@ -628,7 +628,7 @@ function DecoderContent() {
                                     <div className="space-y-4">
                                         <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
                                             <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                            OUTPUTS ({result.vout.length})
+                                            {t.decoder.outputs} ({result.vout.length})
                                         </h3>
                                         <div className="space-y-2">
                                             {result.vout.slice(0, 50).map((vout, i) => (
@@ -639,14 +639,14 @@ function DecoderContent() {
                                                     </div>
 
                                                     <div className="mb-2">
-                                                        <div className="text-xs text-slate-600">ADDRESS</div>
+                                                        <div className="text-xs text-slate-600">{t.decoder.address}</div>
                                                         <div className="text-xs font-mono text-slate-300 break-all bg-slate-950/50 p-2 rounded border border-slate-800/50">
-                                                            {vout.scriptPubKey.address || 'OP_RETURN / Non-Standard'}
+                                                            {vout.scriptPubKey.address || t.decoder.opReturnNonStandard}
                                                         </div>
                                                     </div>
 
                                                     <div>
-                                                        <div className="mb-1 text-xs text-slate-600">SCRIPT PUBKEY (ASM)</div>
+                                                        <div className="mb-1 text-xs text-slate-600">{t.decoder.scriptPubKeyAsm}</div>
                                                         <div className="text-xs font-mono text-slate-500 break-all bg-slate-950/50 p-2 rounded border border-slate-800/30">
                                                             <InteractiveScript asm={vout.scriptPubKey.asm} />
                                                         </div>
@@ -655,7 +655,7 @@ function DecoderContent() {
                                             ))}
                                             {result.vout.length > 50 && (
                                                 <div className="text-center text-xs text-slate-500 italic py-2">
-                                                    Showing 50 of {result.vout.length} outputs
+                                                    {t.decoder.showingOfOutputs.replace("{0}", "50").replace("{1}", String(result.vout.length))}
                                                 </div>
                                             )}
                                         </div>
@@ -673,9 +673,14 @@ function DecoderContent() {
     );
 }
 
+function DecoderFallback() {
+    const { t } = useTranslation();
+    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">{t.decoder.connectingDecoder}</div>;
+}
+
 export default function DecoderPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">Connecting decoder workspace...</div>}>
+        <Suspense fallback={<DecoderFallback />}>
             <DecoderContent />
         </Suspense>
     );
