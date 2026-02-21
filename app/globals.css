@@ -3,6 +3,9 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --font-ui: "Space Grotesk", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-code: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-display: "Oxanium", "Eurostile", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -117,6 +120,10 @@ body::before {
 /* ===== TYPOGRAPHY SYSTEM ===== */
 .heading {
   @apply font-sans font-bold tracking-tight;
+}
+
+.home-brand-title {
+  font-family: var(--font-display);
 }
 
 .heading-xl {

@@ -46,7 +46,7 @@ export default function ScreenshotExport({ targetId, filename, className = "", b
         <button
             onClick={captureImage}
             disabled={status === "loading" || status === "success"}
-            className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 text-xs font-bold text-slate-300 transition-all hover:bg-slate-700 hover:text-cyan-300 disabled:opacity-50 disabled:pointer-events-none ${className}`}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 text-xs font-bold text-slate-300 transition-all hover:bg-slate-700 hover:text-cyan-300 disabled:opacity-50 disabled:pointer-events-none ${className}`}
             title="Export as PNG"
         >
             {status === "idle" && <Camera size={14} />}
