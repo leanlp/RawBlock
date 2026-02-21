@@ -11,6 +11,7 @@ const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
 
 interface PeerLocation {
     country?: string;
+    countryCode?: string;
     city?: string;
     ll?: [number, number]; // [lat, lon]
 }
@@ -38,6 +39,41 @@ interface PeerMapProps {
     selectedCountryCode?: string | null;
     focusCoordinates?: [number, number] | null; // [lat, lon]
 }
+
+const ISO3_TO_ISO2: Record<string, string> = {
+    ARG: "AR",
+    USA: "US",
+    GBR: "GB",
+    DEU: "DE",
+    FRA: "FR",
+    ESP: "ES",
+    ITA: "IT",
+    CAN: "CA",
+    BRA: "BR",
+    CHL: "CL",
+    MEX: "MX",
+    ZAF: "ZA",
+    AUS: "AU",
+    JPN: "JP",
+    CHN: "CN",
+    IND: "IN",
+    NLD: "NL",
+    SWE: "SE",
+    NOR: "NO",
+    CHE: "CH",
+    POL: "PL",
+    TUR: "TR",
+    UKR: "UA",
+    RUS: "RU",
+};
+
+const normalizeCountryCode = (value?: string): string | null => {
+    if (!value) return null;
+    const raw = String(value).trim().toUpperCase();
+    if (raw.length === 2) return raw;
+    if (raw.length === 3) return ISO3_TO_ISO2[raw] || raw;
+    return null;
+};
 
 // Simple centroid lookup for demo (replace with d3-geo or full list later)
 const COUNTRY_CENTERS: Record<string, [number, number]> = {
@@ -101,6 +137,14 @@ const hasKnownPeerCoordinates = (node: KnownPeer): node is LocatedKnownPeer => h
 export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selectedCountryCode, focusCoordinates = null }: PeerMapProps) {
     const locatedPeers = useMemo(() => peers.filter(hasPeerCoordinates), [peers]);
     const locatedKnownPeers = useMemo(() => knownPeers.filter(hasKnownPeerCoordinates), [knownPeers]);
+    const countriesWithNodes = useMemo(() => {
+        const set = new Set<string>();
+        peers.forEach((node) => {
+            const code = normalizeCountryCode(node.location?.country) || normalizeCountryCode(node.location?.countryCode);
+            if (code) set.add(code);
+        });
+        return set;
+    }, [peers]);
 
     const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
@@ -170,15 +214,17 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                                     geographies.map((geo) => {
                                         // Robust code resolution
                                         const geoName = geo.properties.NAME || geo.properties.name;
-                                        const code = geo.properties.ISO_A2 || NAME_TO_ISO[geoName] || geo.properties.ISO_A3;
+                                        const resolvedCode = geo.properties.ISO_A2 || NAME_TO_ISO[geoName] || geo.properties.ISO_A3;
+                                        const code = normalizeCountryCode(resolvedCode || "") || resolvedCode;
                                         const isSelected = selectedCountryCode === code;
+                                        const hasNodesInCountry = !!(code && countriesWithNodes.has(code));
 
                                         return (
                                             <Geography
                                                 key={geo.rsmKey}
                                                 geography={geo}
                                                 onClick={() => {
-                                                    if (onCountrySelect && code) {
+                                                    if (onCountrySelect && code && hasNodesInCountry) {
                                                         onCountrySelect(code, geoName);
                                                     }
                                                 }}
@@ -187,7 +233,7 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
                                                 strokeWidth={isSelected ? 1 : 0.5}
                                                 style={{
                                                     default: { outline: "none", transition: "all 250ms" },
-                                                    hover: { fill: "#334155", outline: "none", cursor: "pointer" },
+                                                    hover: { fill: "#334155", outline: "none", cursor: hasNodesInCountry ? "pointer" : "default" },
                                                     pressed: { outline: "none" },
                                                 }}
                                             />

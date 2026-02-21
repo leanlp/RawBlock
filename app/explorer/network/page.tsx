@@ -66,6 +66,64 @@ const DEMO_PEERS: Peer[] = [
     { id: 5, addr: "198.51.100.91:8333", ip: "198.51.100.91", subver: "/Satoshi:25.0.0/", inbound: false, ping: 0.073, version: 70016, location: { country: "GB", city: "London", ll: [51.50, -0.12] }, bytes_sent: 0, bytes_recv: 0 },
 ];
 
+const ISO3_TO_ISO2: Record<string, string> = {
+    ARG: "AR",
+    USA: "US",
+    GBR: "GB",
+    DEU: "DE",
+    FRA: "FR",
+    ESP: "ES",
+    ITA: "IT",
+    CAN: "CA",
+    BRA: "BR",
+    CHL: "CL",
+    MEX: "MX",
+    ZAF: "ZA",
+    AUS: "AU",
+    JPN: "JP",
+    CHN: "CN",
+    IND: "IN",
+    NLD: "NL",
+    SWE: "SE",
+    NOR: "NO",
+    CHE: "CH",
+    POL: "PL",
+    TUR: "TR",
+    UKR: "UA",
+    RUS: "RU",
+};
+
+const normalizeCountryCode = (value?: string | null): string | null => {
+    if (!value) return null;
+    const raw = String(value).trim().toUpperCase();
+    if (raw.length === 2) return raw;
+    if (raw.length === 3) return ISO3_TO_ISO2[raw] || raw;
+    return null;
+};
+
+const normalizeCountryName = (value?: string | null): string | null => {
+    if (!value) return null;
+    const raw = String(value).trim().toLowerCase();
+    return raw || null;
+};
+
+const peerMatchesCountry = (node: Peer, countryCode: string, countryName: string) => {
+    const selectedCode = normalizeCountryCode(countryCode);
+    const selectedName = normalizeCountryName(countryName);
+
+    const nodeCodeA = normalizeCountryCode(node.location?.countryCode);
+    const nodeCodeB = normalizeCountryCode(node.location?.country);
+    const nodeNameA = normalizeCountryName(node.location?.countryName);
+    const nodeNameB = normalizeCountryName(node.location?.country);
+
+    const codeMatch =
+        !!selectedCode && (nodeCodeA === selectedCode || nodeCodeB === selectedCode);
+    const nameMatch =
+        !!selectedName && (nodeNameA === selectedName || nodeNameB === selectedName);
+
+    return codeMatch || nameMatch;
+};
+
 const toRadians = (value: number) => (value * Math.PI) / 180;
 
 const haversineDistanceKm = (from: [number, number], to: [number, number]) => {
@@ -259,12 +317,8 @@ function NetworkContent() {
 
     const selectedCountryNodes = useMemo(() => {
         if (!selectedCountry) return [];
-        const allNodes = [...peers, ...knownPeers];
-        return allNodes.filter((node) => {
-            const code = String(node.location?.countryCode || node.location?.country || "").trim();
-            return code === selectedCountry.code;
-        });
-    }, [selectedCountry, peers, knownPeers]);
+        return peers.filter((node) => peerMatchesCountry(node, selectedCountry.code, selectedCountry.name));
+    }, [selectedCountry, peers]);
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-cyan-900 selection:text-cyan-100 pb-20 relative overflow-x-hidden">
@@ -341,7 +395,8 @@ function NetworkContent() {
                                 knownPeers={knownPeers}
                                 onCountrySelect={(code, name) => {
                                     setMapFocus(null);
-                                    setSelectedCountry({ code, name });
+                                    const hasActiveNodes = peers.some((node) => peerMatchesCountry(node, code, name));
+                                    setSelectedCountry(hasActiveNodes ? { code, name } : null);
                                 }}
                                 selectedCountryCode={selectedCountry?.code}
                                 focusCoordinates={mapFocus}

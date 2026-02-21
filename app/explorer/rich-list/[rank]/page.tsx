@@ -27,6 +27,37 @@ interface WhaleData {
     utxos: UTXO[];
 }
 
+const toFiniteNumber = (value: unknown, fallback = 0): number => {
+    const parsed = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const normalizeUtxo = (value: unknown): UTXO => {
+    const candidate = (value ?? {}) as Partial<UTXO>;
+    return {
+        txid: typeof candidate.txid === "string" ? candidate.txid : "",
+        vout: Math.max(0, Math.floor(toFiniteNumber(candidate.vout, 0))),
+        value: toFiniteNumber(candidate.value, 0),
+        valueBtc: toFiniteNumber(candidate.valueBtc, 0),
+        blockHeight: candidate.blockHeight == null ? null : Math.max(0, Math.floor(toFiniteNumber(candidate.blockHeight, 0))),
+    };
+};
+
+const normalizeWhale = (value: unknown): WhaleData => {
+    const candidate = (value ?? {}) as Partial<WhaleData>;
+    const rawUtxos = Array.isArray(candidate.utxos) ? candidate.utxos : [];
+    return {
+        rank: Math.max(1, Math.floor(toFiniteNumber(candidate.rank, 1))),
+        address: typeof candidate.address === "string" ? candidate.address : "",
+        balance: toFiniteNumber(candidate.balance, 0),
+        utxoCount: Math.max(0, Math.floor(toFiniteNumber(candidate.utxoCount, 0))),
+        fetchedAt: typeof candidate.fetchedAt === "string" ? candidate.fetchedAt : "",
+        scanHeight: candidate.scanHeight == null ? undefined : Math.max(0, Math.floor(toFiniteNumber(candidate.scanHeight, 0))),
+        scanDurationSeconds: candidate.scanDurationSeconds == null ? undefined : toFiniteNumber(candidate.scanDurationSeconds, 0),
+        utxos: rawUtxos.map(normalizeUtxo),
+    };
+};
+
 export default function WhaleDetailPage() {
     const params = useParams();
     const rank = parseInt((params.rank as string) || "", 10);
@@ -51,8 +82,8 @@ export default function WhaleDetailPage() {
                 if (!res.ok) {
                     throw new Error(`HTTP ${res.status}`);
                 }
-                const data = (await res.json()) as WhaleData;
-                setWhale(data);
+                const data = (await res.json()) as unknown;
+                setWhale(normalizeWhale(data));
             } catch (err) {
                 if ((err as Error).name === "AbortError") return;
                 console.error("Failed to load whale detail:", err);

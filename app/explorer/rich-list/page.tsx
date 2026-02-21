@@ -16,6 +16,22 @@ interface WhaleData {
     fetchedAt: string;
 }
 
+const toFiniteNumber = (value: unknown, fallback = 0): number => {
+    const parsed = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const normalizeWhale = (value: unknown): WhaleData => {
+    const candidate = (value ?? {}) as Partial<WhaleData>;
+    return {
+        rank: Math.max(1, Math.floor(toFiniteNumber(candidate.rank, 1))),
+        address: typeof candidate.address === "string" ? candidate.address : "",
+        balance: toFiniteNumber(candidate.balance, 0),
+        utxoCount: Math.max(0, Math.floor(toFiniteNumber(candidate.utxoCount, 0))),
+        fetchedAt: typeof candidate.fetchedAt === "string" ? candidate.fetchedAt : "",
+    };
+};
+
 export default function RichListPage() {
     const router = useRouter();
     const [decoderQuery, setDecoderQuery] = useState("");
@@ -35,8 +51,9 @@ export default function RichListPage() {
                 if (!res.ok) {
                     throw new Error(`HTTP ${res.status}`);
                 }
-                const data = (await res.json()) as WhaleData[];
-                setWhales(Array.isArray(data) ? data : []);
+                const data = (await res.json()) as unknown;
+                const normalized = Array.isArray(data) ? data.map(normalizeWhale) : [];
+                setWhales(normalized);
             } catch (err) {
                 if ((err as Error).name === 'AbortError') return;
                 console.error('Failed to load rich list:', err);

@@ -22,6 +22,10 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
     // State for display limit and expanded node
     const [limit, setLimit] = React.useState(50);
     const [expandedNodeIndex, setExpandedNodeIndex] = React.useState<number | null>(null);
+    const formatNodeTime = (value?: number) => {
+        if (!Number.isFinite(value)) return 'Unknown';
+        return new Date(Number(value) * 1000).toLocaleString();
+    };
 
     return (
         <div className="fixed right-0 top-0 h-full w-full sm:w-96 bg-slate-900/95 border-l border-emerald-500/30 shadow-2xl backdrop-blur-xl transform transition-transform duration-300 z-[95] overflow-y-auto">
@@ -47,90 +51,98 @@ export default function CountryDetailPanel({ countryCode, countryName, nodes, on
                     </button>
                 </div>
 
-                {/* Top Cities Chart (Text based for now) */}
-                <div className="mb-8">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Top Hubs</h3>
-                    <div className="space-y-3">
-                        {topCities.map(([city, count]) => (
-                            <div key={city} className="flex items-center gap-3">
-                                <div className="flex-1">
-                                    <div className="mb-1 flex items-center justify-between gap-3 text-sm">
-                                        <span className="min-w-0 truncate text-slate-300 font-medium">{city}</span>
-                                        <span className="shrink-0 text-emerald-400 font-mono">{count}</span>
+                {nodes.length === 0 ? (
+                    <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-4 text-xs text-slate-300">
+                        No geolocated peers are currently mapped to this country. This can happen when peer geo metadata is missing or unavailable.
+                    </div>
+                ) : (
+                    <>
+                        {/* Top Cities Chart (Text based for now) */}
+                        <div className="mb-8">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Top Hubs</h3>
+                            <div className="space-y-3">
+                                {topCities.map(([city, count]) => (
+                                    <div key={city} className="flex items-center gap-3">
+                                        <div className="flex-1">
+                                            <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                                                <span className="min-w-0 truncate text-slate-300 font-medium">{city}</span>
+                                                <span className="shrink-0 text-emerald-400 font-mono">{count}</span>
+                                            </div>
+                                            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-emerald-500 rounded-full"
+                                                    style={{ width: `${(count / nodes.length) * 100}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-emerald-500 rounded-full"
-                                            style={{ width: `${(count / nodes.length) * 100}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                </div>
+                        </div>
 
-                {/* Node List */}
-                <div>
-                    <div className="flex justify-between items-end mb-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Network Intelligence</h3>
-                        {nodes.length > 50 && (
-                            <button
-                                onClick={() => setLimit(limit === 50 ? nodes.length : 50)}
-                                className="text-[10px] text-cyan-400 hover:text-cyan-300 font-mono border-b border-cyan-500/30"
-                            >
-                                {limit === 50 ? 'SHOW ALL' : 'SHOW LESS'}
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        {nodes.slice(0, limit).map((node, i) => (
-                            <div
-                                key={i}
-                                onClick={() => setExpandedNodeIndex(expandedNodeIndex === i ? null : i)}
-                                className={`bg-slate-800/50 p-3 rounded border transition-all cursor-pointer group ${expandedNodeIndex === i ? 'border-emerald-500/50 bg-slate-800' : 'border-slate-700/50 hover:border-emerald-500/30'}`}
-                            >
-                                <div className="mb-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
-                                    <span className="min-w-0 max-w-full break-all text-xs text-slate-400 font-mono group-hover:text-emerald-400 transition-colors sm:max-w-40 sm:truncate">
-                                        {node.addr}
-                                    </span>
-                                    <span className="max-w-full self-start truncate text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded sm:max-w-[42%] sm:self-auto">
-                                        {node.subver ? node.subver.replace(/\//g, '').substring(0, 15) : 'Unknown'}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
-                                    <span className="min-w-0 max-w-full break-words text-xs text-slate-300 sm:max-w-44 sm:truncate">
-                                        {node.location?.city || 'Unknown'}
-                                    </span>
-                                    {node.location?.ll && (
-                                        <span className="text-[10px] text-emerald-500/70 font-mono tracking-tighter sm:shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                            {node.location.ll[0].toFixed(2)}, {node.location.ll[1].toFixed(2)}
-                                        </span>
-                                    )}
-                                </div>
-
-                                {/* Expanded Details */}
-                                {expandedNodeIndex === i && (
-                                    <div className="mt-3 pt-3 border-t border-slate-700/50 text-[10px] font-mono space-y-1 text-slate-400 animate-in fade-in zoom-in-95 duration-200">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <span>Services:</span>
-                                            <span className="max-w-[65%] break-words text-right text-slate-300">{node.services}</span>
-                                        </div>
-                                        <div className="flex items-start justify-between gap-3">
-                                            <span>Time:</span>
-                                            <span className="max-w-[65%] break-words text-right text-slate-300">{new Date(node.time * 1000).toLocaleString()}</span>
-                                        </div>
-                                        <div className="flex items-start justify-between gap-3">
-                                            <span>Coordinates:</span>
-                                            <span className="max-w-[65%] break-words text-right text-slate-300">{node.location?.ll.join(', ')}</span>
-                                        </div>
-                                    </div>
+                        {/* Node List */}
+                        <div>
+                            <div className="flex justify-between items-end mb-4">
+                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Network Intelligence</h3>
+                                {nodes.length > 50 && (
+                                    <button
+                                        onClick={() => setLimit(limit === 50 ? nodes.length : 50)}
+                                        className="text-[10px] text-cyan-400 hover:text-cyan-300 font-mono border-b border-cyan-500/30"
+                                    >
+                                        {limit === 50 ? 'SHOW ALL' : 'SHOW LESS'}
+                                    </button>
                                 )}
                             </div>
-                        ))}
-                    </div>
-                </div>
+
+                            <div className="space-y-2">
+                                {nodes.slice(0, limit).map((node, i) => (
+                                    <div
+                                        key={node.id ?? node.addr ?? i}
+                                        onClick={() => setExpandedNodeIndex(expandedNodeIndex === i ? null : i)}
+                                        className={`bg-slate-800/50 p-3 rounded border transition-all cursor-pointer group ${expandedNodeIndex === i ? 'border-emerald-500/50 bg-slate-800' : 'border-slate-700/50 hover:border-emerald-500/30'}`}
+                                    >
+                                        <div className="mb-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                                            <span className="min-w-0 max-w-full break-all text-xs text-slate-400 font-mono group-hover:text-emerald-400 transition-colors sm:max-w-40 sm:truncate">
+                                                {node.addr}
+                                            </span>
+                                            <span className="max-w-full self-start truncate text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded sm:max-w-[42%] sm:self-auto">
+                                                {node.subver ? node.subver.replace(/\//g, '').substring(0, 15) : 'Unknown'}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                                            <span className="min-w-0 max-w-full break-words text-xs text-slate-300 sm:max-w-44 sm:truncate">
+                                                {node.location?.city || 'Unknown'}
+                                            </span>
+                                            {node.location?.ll && (
+                                                <span className="text-[10px] text-emerald-500/70 font-mono tracking-tighter sm:shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                    {node.location.ll[0].toFixed(2)}, {node.location.ll[1].toFixed(2)}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Expanded Details */}
+                                        {expandedNodeIndex === i && (
+                                            <div className="mt-3 pt-3 border-t border-slate-700/50 text-[10px] font-mono space-y-1 text-slate-400 animate-in fade-in zoom-in-95 duration-200">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <span>Services:</span>
+                                                    <span className="max-w-[65%] break-words text-right text-slate-300">{node.services}</span>
+                                                </div>
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <span>Time:</span>
+                                                    <span className="max-w-[65%] break-words text-right text-slate-300">{formatNodeTime(node.time)}</span>
+                                                </div>
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <span>Coordinates:</span>
+                                                    <span className="max-w-[65%] break-words text-right text-slate-300">{node.location?.ll.join(', ')}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
