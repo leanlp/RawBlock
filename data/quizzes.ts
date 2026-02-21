@@ -1,3 +1,6 @@
+import { type Locale } from "@/lib/i18n";
+import { NODE_QUIZZES_ES } from "./quizzes.es";
+
 export interface QuizQuestion {
     id: string;
     text: string;
@@ -6,7 +9,7 @@ export interface QuizQuestion {
     explanation: string;
 }
 
-export const NODE_QUIZZES: Record<string, QuizQuestion[]> = {
+export const NODE_QUIZZES_EN: Record<string, QuizQuestion[]> = {
     block: [
         {
             id: "q_block_1",
@@ -54,3 +57,7 @@ export const NODE_QUIZZES: Record<string, QuizQuestion[]> = {
         }
     ]
 };
+
+export function getQuizzes(locale: Locale): Record<string, QuizQuestion[]> {
+    return locale === "es" ? NODE_QUIZZES_ES : NODE_QUIZZES_EN;
+}

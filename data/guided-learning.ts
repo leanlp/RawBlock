@@ -20,74 +20,7 @@ export const DEFAULT_GUIDED_LEARNING_STATE: GuidedLearningState = {
     completedLessons: [],
 };
 
-export const GUIDED_LESSONS: GuidedLesson[] = [
-    {
-        id: "what-is-bitcoin",
-        title: "What is Bitcoin?",
-        summary: "Understand Bitcoin as a decentralized ledger, monetary network, and peer-to-peer protocol.",
-        modules: [
-            { label: "Protocol Vitals", href: "/explorer/vitals" },
-            { label: "Chain Evolution", href: "/analysis/evolution" },
-        ],
-    },
-    {
-        id: "transactions",
-        title: "Transactions",
-        summary: "Learn how transactions move value, use scripts, and get propagated in the mempool.",
-        modules: [
-            { label: "Transaction Decoder", href: "/explorer/decoder" },
-            { label: "Live Mempool", href: "/explorer/mempool" },
-        ],
-    },
-    {
-        id: "utxo-model",
-        title: "UTXO Model",
-        summary: "Understand unspent transaction outputs, coin selection, and spend conditions.",
-        modules: [{ label: "UTXO Set Explorer", href: "/analysis/utxo" }],
-    },
-    {
-        id: "blocks",
-        title: "Blocks",
-        summary: "Explore block structure, ordering, included transactions, and coinbase outputs.",
-        modules: [{ label: "Block Explorer", href: "/explorer/blocks" }],
-    },
-    {
-        id: "mining",
-        title: "Mining",
-        summary: "Study hashrate competition, block production incentives, and miner behavior.",
-        modules: [
-            { label: "Mining Simulator", href: "/game/mining" },
-            { label: "Miner Forensics", href: "/explorer/miners" },
-        ],
-    },
-    {
-        id: "difficulty",
-        title: "Difficulty",
-        summary: "See how the network retargets mining difficulty to keep block intervals stable.",
-        modules: [
-            { label: "Protocol Vitals", href: "/explorer/vitals" },
-            { label: "Mining Simulator", href: "/game/mining" },
-        ],
-    },
-    {
-        id: "consensus",
-        title: "Consensus",
-        summary: "Understand validation rules, block acceptance, and why nodes converge on one chain.",
-        modules: [
-            { label: "Consensus Debugger", href: "/lab/consensus" },
-            { label: "Node Terminal", href: "/explorer/rpc" },
-        ],
-    },
-    {
-        id: "security-and-attacks",
-        title: "Security & Attacks",
-        summary: "Review attack surfaces, forensic patterns, and practical defenses in the Bitcoin ecosystem.",
-        modules: [
-            { label: "Forensics", href: "/analysis/forensics" },
-            { label: "Decentralization Index", href: "/analysis/d-index" },
-        ],
-    },
-];
+// Use i18n dictionaries for the actual text content now.
 
 export function parseGuidedLearningState(raw: string | null): GuidedLearningState {
     if (!raw) {
@@ -102,11 +35,11 @@ export function parseGuidedLearningState(raw: string | null): GuidedLearningStat
 
         const currentLessonIndex = Math.min(
             Math.max(parsed.currentLessonIndex ?? 0, 0),
-            GUIDED_LESSONS.length - 1
+            7 // 8 max lessons
         );
         const completedLessons = (parsed.completedLessons ?? [])
             .filter((item) => Number.isInteger(item))
-            .map((item) => Math.min(Math.max(item, 0), GUIDED_LESSONS.length - 1))
+            .map((item) => Math.min(Math.max(item, 0), 7))
             .filter((item, idx, arr) => arr.indexOf(item) === idx)
             .sort((a, b) => a - b);
 
@@ -131,8 +64,13 @@ const NODE_TO_LESSON_ID: Record<string, string> = {
     "segwit-and-taproot-upgrades": "security-and-attacks",
 };
 
+// We still need index extraction logic, but without the hardcoded texts.
+// We use the English base array strictly for mapping IDs to indexes globally.
+import en from "@/lib/i18n/en";
+const BASE_LESSONS = en.guidedLearning;
+
 const LESSON_INDEX_BY_ID = new Map(
-    GUIDED_LESSONS.map((lesson, index) => [lesson.id, index]),
+    BASE_LESSONS.map((lesson: Record<string, unknown>, index: number) => [lesson.id as string, index] as const),
 );
 
 export function getLessonIndexForNodeId(nodeId: string): number | null {

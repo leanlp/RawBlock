@@ -5,11 +5,10 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Twitter, Linkedin, ChevronLeft, ChevronRight, House, CheckCircle2 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
-import { GUIDED_LESSONS } from "../../data/guided-learning";
 import { useGuidedLearning } from "../providers/GuidedLearningProvider";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
 import GlobalSearch from "../explorer/GlobalSearch";
-import { useTranslation, type Locale } from "@/lib/i18n";
+import { useTranslation } from "@/lib/i18n";
 
 type NavItem = {
     nameKey: string;
@@ -95,6 +94,8 @@ export default function Sidebar() {
     const [isScrollingDown, setIsScrollingDown] = useState(false);
     const { progressPercent, currentLessonIndex, completedLessons } = useGuidedLearning();
     const { t, locale, setLocale } = useTranslation();
+    const GUIDED_LESSONS = t.guidedLearning;
+
     const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
     const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
     const canonicalConceptCount = getCanonicalPath().orderedNodes.length;
@@ -109,7 +110,7 @@ export default function Sidebar() {
             }
         });
         return paths;
-    }, [completedLessons]);
+    }, [completedLessons, GUIDED_LESSONS]);
 
     const activeIndex = (() => {
         const candidates = ORDERED_MENU_PATHS

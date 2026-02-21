@@ -1,0 +1,116 @@
+[
+    {
+        "id": "cve-2018-17144",
+        "title": "Error de Inflación por Doble Entrada CVE-2018-17144",
+        "year": 2018,
+        "severity": "critical",
+        "category": "consensus-validation",
+        "linkedNodeIds": [
+            "utxo-model",
+            "transactions-lifecycle",
+            "consensus-rules-vs-policy",
+            "security-and-attacks"
+        ],
+        "summary": "Una regresión en los controles de entradas duplicadas introdujo un riesgo potencial de inflación y denegación de servicio en versiones vulnerables de Bitcoin Core.",
+        "cve": "CVE-2018-17144",
+        "affectedVersions": [
+            "Bitcoin Core 0.14.0",
+            "Bitcoin Core 0.15.0",
+            "Bitcoin Core 0.16.0",
+            "Bitcoin Core 0.16.1",
+            "Bitcoin Core 0.16.2"
+        ],
+        "impact": "Si se explotaba en un bloque, los nodos podrían aceptar transiciones de estado inválidas o bloquearse, amenazando la seguridad del consenso.",
+        "mitigation": "Actualizar a lanzamientos parcheados de Bitcoin Core y seguir prácticas conservadoras de validación/lanzamiento para el código de consenso.",
+        "sources": [
+            {
+                "title": "Aviso de Seguridad de Bitcoin Core (2018-09-20)",
+                "url": "https://bitcoincore.org/en/2018/09/20/notice/",
+                "type": "core-docs"
+            },
+            {
+                "title": "Tema de Bitcoin Optech: CVE-2018-17144",
+                "url": "https://bitcoinops.org/en/topics/cve-2018-17144/",
+                "type": "reference"
+            },
+            {
+                "title": "NVD CVE-2018-17144",
+                "url": "https://nvd.nist.gov/vuln/detail/CVE-2018-17144",
+                "type": "reference"
+            }
+        ]
+    },
+    {
+        "id": "pre-segwit-tx-malleability",
+        "title": "Maleabilidad de Transacciones Pre-SegWit",
+        "year": 2014,
+        "severity": "high",
+        "category": "transaction-integrity",
+        "linkedNodeIds": [
+            "transactions-lifecycle",
+            "segwit-and-taproot-upgrades",
+            "mempool",
+            "security-and-attacks"
+        ],
+        "summary": "Antes de SegWit, terceros podían mutar identificadores de transacciones sin cambiar la intención de gasto, rompiendo flujos de trabajo sensibles al txid.",
+        "affectedVersions": [
+            "Formatos de transacción Pre-SegWit"
+        ],
+        "impact": "Los sistemas operativos que dependían de la estabilidad de un txid sin confirmar podían fallar, y el diseño de protocolos de segunda capa se volvía más frágil.",
+        "mitigation": "Usar formatos de transacción SegWit y evitar depender críticamente de txids mutables no confirmados en los flujos de producción.",
+        "sources": [
+            {
+                "title": "BIP 141: Testigo Segregado (SegWit)",
+                "url": "https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki",
+                "type": "BIP"
+            },
+            {
+                "title": "BIP 143: Nuevo algoritmo de resumen (digest) para programas testigo",
+                "url": "https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki",
+                "type": "BIP"
+            },
+            {
+                "title": "Guía de Desarrolladores de Bitcoin: Transacciones",
+                "url": "https://developer.bitcoin.org/devguide/transactions.html",
+                "type": "dev-guide"
+            }
+        ]
+    },
+    {
+        "id": "value-overflow-2010",
+        "title": "Incidente de Desbordamiento de Valor de 2010",
+        "year": 2010,
+        "severity": "critical",
+        "category": "inflation-bug",
+        "linkedNodeIds": [
+            "what-is-bitcoin",
+            "mining-and-subsidy",
+            "consensus-rules-vs-policy",
+            "security-and-attacks"
+        ],
+        "summary": "Un error de desbordamiento de enteros en el software inicial de Bitcoin permitió extraer una transacción de inflación inválida.",
+        "cve": "CVE-2010-5139",
+        "affectedVersions": [
+            "Bitcoin 0.3.9 y anteriores"
+        ],
+        "impact": "El incidente violó temporalmente las reglas de oferta global y requirió coordinación urgente del ecosistema para restaurar el historial válido de la cadena.",
+        "mitigation": "Aplicar controles estrictos de rangos monetarios y mantener una gran cobertura de pruebas de consenso con ingeniería de versiones conservadora.",
+        "sources": [
+            {
+                "title": "Incidente de desbordamiento de valor (registro histórico)",
+                "url": "https://en.bitcoin.it/wiki/Value_overflow_incident",
+                "type": "reference"
+            },
+            {
+                "title": "NVD CVE-2010-5139",
+                "url": "https://nvd.nist.gov/vuln/detail/CVE-2010-5139",
+                "type": "reference"
+            },
+            {
+                "title": "Libro Blanco de Bitcoin",
+                "url": "https://bitcoin.org/bitcoin.pdf",
+                "type": "whitepaper"
+            }
+        ]
+    }
+]

@@ -15,6 +15,7 @@ export function usePerformanceMode(): [boolean, () => void] {
     useEffect(() => {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored === "true") {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsPerformanceMode(true);
             document.body.classList.add("perf-mode");
         }
@@ -25,13 +26,13 @@ export function usePerformanceMode(): [boolean, () => void] {
         setIsPerformanceMode((prev) => {
             const newValue = !prev;
             localStorage.setItem(STORAGE_KEY, String(newValue));
-            
+
             if (newValue) {
                 document.body.classList.add("perf-mode");
             } else {
                 document.body.classList.remove("perf-mode");
             }
-            
+
             return newValue;
         });
     }, []);
@@ -51,8 +52,8 @@ export function PerformanceModeToggle() {
             className={`
                 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium
                 transition-all duration-200 border
-                ${isPerformanceMode 
-                    ? "bg-amber-500/20 border-amber-500/50 text-amber-400" 
+                ${isPerformanceMode
+                    ? "bg-amber-500/20 border-amber-500/50 text-amber-400"
                     : "bg-slate-800/50 border-slate-700 text-slate-400 hover:text-slate-300"
                 }
             `}

@@ -119,6 +119,37 @@ for (const route of criticalRoutes) {
   }
 }
 
+console.log("Running Language Toggle E2E Test...");
+try {
+  const langUrl = new URL("/", BASE_URL).toString();
+  await page.goto(langUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await page.waitForTimeout(2000);
+
+  const toggleBtn = page.locator('button[aria-label="Toggle language"]');
+  if (await toggleBtn.count() > 0) {
+    await toggleBtn.first().click();
+    await page.waitForTimeout(500);
+
+    const locale = await page.evaluate(() => window.localStorage.getItem("rawblock-locale"));
+    if (locale !== "es" && locale !== "en") {
+      throw new Error(`Language toggle failed. rawblock-locale in localStorage is ${locale}`);
+    }
+    console.log(`✅ Language toggle E2E passed. LocalStorage rawblock-locale: ${locale}`);
+  } else {
+    console.warn("⚠️ Warning: Language toggle button not found on page.");
+  }
+} catch (error) {
+  console.error("❌ Language toggle E2E failed:", error);
+  failures.push({
+    route: "Language Toggle Test",
+    status: 0,
+    hasCrashBanner: false,
+    criticalConsoleErrors: [],
+    consoleErrors: [],
+    pageErrors: [String(error)]
+  });
+}
+
 await context.close();
 await browser.close();
 

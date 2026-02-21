@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import {
-    GUIDED_LESSONS,
     getLessonIndexForNodeId,
 } from "@/data/guided-learning";
 import { useGuidedLearning } from "@/components/providers/GuidedLearningProvider";
+import { useTranslation } from "@/lib/i18n";
 
 export default function AcademyProgressSync({ nodeId }: { nodeId: string }) {
     const {
@@ -28,6 +28,8 @@ export default function AcademyProgressSync({ nodeId }: { nodeId: string }) {
 
     const mappedLessonIndex = getLessonIndexForNodeId(nodeId);
     const nodeCompleted = isNodeComplete(nodeId);
+    const { t } = useTranslation();
+    const GUIDED_LESSONS = t.guidedLearning;
 
     return (
         <section className="rounded-2xl border border-cyan-800/50 bg-cyan-950/20 p-5">

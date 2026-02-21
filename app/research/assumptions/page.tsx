@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import Header from "@/components/Header";
 import AcademyNodeReferenceChip from "@/components/academy/AcademyNodeReferenceChip";
 import { getResearchAssumptions } from "@/lib/content/research";
+import { useTranslation } from "@/lib/i18n";
 
 export default function AssumptionsResearchPage() {
-  const assumptions = getResearchAssumptions();
+  const { locale } = useTranslation();
+  const assumptions = getResearchAssumptions(locale);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [severity, setSeverity] = useState<string>("");
   const [category, setCategory] = useState<string>("");
@@ -93,35 +95,35 @@ export default function AssumptionsResearchPage() {
           </div>
 
           <div className="hidden overflow-x-auto md:block">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-800 text-slate-400">
-              <tr>
-                <th className="px-3 py-2">Assumption</th>
-                <th className="px-3 py-2">Type</th>
-                <th className="px-3 py-2">Severity</th>
-                <th className="px-3 py-2">Linked Nodes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((item) => (
-                <tr key={item.id} className="border-b border-slate-900/80 align-top">
-                  <td className="px-3 py-2">
-                    <p className="text-slate-100">{item.title}</p>
-                    <p className="text-xs text-slate-400">{item.summary}</p>
-                  </td>
-                  <td className="px-3 py-2">{item.assumptionType}</td>
-                  <td className="px-3 py-2">{item.severity}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap gap-1">
-                      {item.linkedNodeIds.map((nodeId) => (
-                        <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} />
-                      ))}
-                    </div>
-                  </td>
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-slate-800 text-slate-400">
+                <tr>
+                  <th className="px-3 py-2">Assumption</th>
+                  <th className="px-3 py-2">Type</th>
+                  <th className="px-3 py-2">Severity</th>
+                  <th className="px-3 py-2">Linked Nodes</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((item) => (
+                  <tr key={item.id} className="border-b border-slate-900/80 align-top">
+                    <td className="px-3 py-2">
+                      <p className="text-slate-100">{item.title}</p>
+                      <p className="text-xs text-slate-400">{item.summary}</p>
+                    </td>
+                    <td className="px-3 py-2">{item.assumptionType}</td>
+                    <td className="px-3 py-2">{item.severity}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-wrap gap-1">
+                        {item.linkedNodeIds.map((nodeId) => (
+                          <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} />
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
       </div>

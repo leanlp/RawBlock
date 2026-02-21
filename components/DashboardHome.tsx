@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useState } from "react";
 import HeroMetrics from "./HeroMetrics";
 import Card from "./Card";
-import { GUIDED_LESSONS } from "../data/guided-learning";
 import { useGuidedLearning } from "./providers/GuidedLearningProvider";
 import { CANONICAL_PATH_ID, getCanonicalPath } from "@/lib/graph/pathEngine";
 import { useTranslation } from "@/lib/i18n";
@@ -201,6 +200,7 @@ export default function DashboardHome() {
         goToPrevious,
     } = useGuidedLearning();
     const { t } = useTranslation();
+    const GUIDED_LESSONS = t.guidedLearning;
     const [lockedLessonPromptIndex, setLockedLessonPromptIndex] = useState<number | null>(null);
     const canonicalPathSteps = getCanonicalPath().orderedNodes.length;
     const hasLockedLessons = maxUnlockedLesson < GUIDED_LESSONS.length - 1;

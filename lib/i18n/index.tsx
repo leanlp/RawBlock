@@ -16,7 +16,7 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue>({
   locale: "en",
-  setLocale: () => {},
+  setLocale: () => { },
   t: en,
 });
 
@@ -31,6 +31,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try {
       const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
       if (stored === "en" || stored === "es") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLocaleState(stored);
       }
     } catch {

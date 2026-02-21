@@ -522,6 +522,18 @@ const es: TranslationKeys = {
   academy: {
     title: "Academia Interactiva",
     subtitle: "Aprende conceptos de Bitcoin a través de módulos interactivos y lecciones guiadas.",
+    quiz: {
+      knowledgeCheck: "Prueba de Conocimiento",
+      questionXofY: "Pregunta {0} de {1}",
+      completeTitle: "Prueba del Módulo Completada",
+      scoreOverview: "Puntuación: {0} de {1}",
+      badgeEarned: "Insignia de Maestría Obtenida",
+      retryPrompt: "Revisa los contenidos del módulo e inténtalo de nuevo para obtener la insignia.",
+      retryButton: "Reintentar Prueba",
+      nextQuestion: "Siguiente Pregunta →",
+      finishQuiz: "Terminar Prueba",
+      explanation: "Explicación",
+    },
   },
   graph: {
     title: "Grafo de Conocimiento",
@@ -539,6 +551,76 @@ const es: TranslationKeys = {
     title: "Comparación de Bloques",
     subtitle: "Compara dos bloques lado a lado para analizar diferencias en estructura y contenido.",
   },
+
+  // Aprendizaje Guiado
+  guidedLearning: [
+    {
+      id: "what-is-bitcoin",
+      title: "¿Qué es Bitcoin?",
+      summary: "Entiende Bitcoin como un libro mayor descentralizado, red monetaria y protocolo P2P.",
+      modules: [
+        { label: "Vitales del Protocolo", href: "/explorer/vitals" },
+        { label: "Evolución de la Cadena", href: "/analysis/evolution" },
+      ] as const,
+    },
+    {
+      id: "transactions",
+      title: "Transacciones",
+      summary: "Aprende cómo las transacciones mueven valor, usan scripts y se propagan en la mempool.",
+      modules: [
+        { label: "Decodificador de Transacciones", href: "/explorer/decoder" },
+        { label: "Mempool en Vivo", href: "/explorer/mempool" },
+      ] as const,
+    },
+    {
+      id: "utxo-model",
+      title: "Modelo UTXO",
+      summary: "Comprende las salidas de transacciones no gastadas, la selección de monedas y las condiciones de gasto.",
+      modules: [{ label: "Explorador del Set UTXO", href: "/analysis/utxo" }] as const,
+    },
+    {
+      id: "blocks",
+      title: "Bloques",
+      summary: "Explora la estructura del bloque, el ordenamiento, las transacciones incluidas y las salidas coinbase.",
+      modules: [{ label: "Explorador de Bloques", href: "/explorer/blocks" }] as const,
+    },
+    {
+      id: "mining",
+      title: "Minería",
+      summary: "Estudia la competencia de hashrate, los incentivos de producción de bloques y el comportamiento de los mineros.",
+      modules: [
+        { label: "Simulador de Minería", href: "/game/mining" },
+        { label: "Forense de Mineros", href: "/explorer/miners" },
+      ] as const,
+    },
+    {
+      id: "difficulty",
+      title: "Dificultad",
+      summary: "Mira cómo la red reajusta la dificultad de minería para mantener estables los intervalos de bloque.",
+      modules: [
+        { label: "Vitales del Protocolo", href: "/explorer/vitals" },
+        { label: "Simulador de Minería", href: "/game/mining" },
+      ] as const,
+    },
+    {
+      id: "consensus",
+      title: "Consenso",
+      summary: "Entiende las reglas de validación, la aceptación de bloques y por qué los nodos convergen en una cadena.",
+      modules: [
+        { label: "Depurador de Consenso", href: "/lab/consensus" },
+        { label: "Terminal del Nodo", href: "/explorer/rpc" },
+      ] as const,
+    },
+    {
+      id: "security-and-attacks",
+      title: "Seguridad y Ataques",
+      summary: "Revisa superficies de ataque, patrones forenses y defensas prácticas en el ecosistema Bitcoin.",
+      modules: [
+        { label: "Forense", href: "/analysis/forensics" },
+        { label: "Índice de Descentralización", href: "/analysis/d-index" },
+      ] as const,
+    },
+  ] as const,
 } as const;
 
 export default es;
