@@ -27,7 +27,8 @@
     "vercel:pull": "npx vercel pull --yes --environment=preview",
     "vercel:build": "npx vercel build",
     "vercel:preflight": "npm run vercel:pull && npm run vercel:build",
-    "fetch-forensics": "node scripts/fetch_forensics.mjs"
+    "fetch-forensics": "node scripts/fetch_forensics.mjs",
+    "fetch-lightning": "node scripts/fetch-lightning-graph.mjs"
   },
   "dependencies": {
     "@noble/hashes": "^2.0.1",

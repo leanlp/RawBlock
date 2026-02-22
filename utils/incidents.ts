@@ -62,5 +62,32 @@ export const INCIDENT_STUDIES: Record<string, IncidentStudy> = {
                 description: 'Attacker ("Mr. White Hat") returns nearly all funds. Offered a $500k bug bounty.',
             }
          ]
+    },
+    'lazarus-ofac': {
+        id: 'lazarus-ofac',
+        name: 'OFAC Sanction: Lazarus Group',
+        description: 'Tracking UTXOs tainted by the North Korean state-sponsored hacking collective (SDN List).',
+        rootNodeId: '1bc1q_lazarus_core_wallet',
+        events: [
+            {
+                id: '7',
+                timestamp: '2023-04-14T08:00:00Z',
+                status: 'detected',
+                description: 'WARNING: 3 Wallets added to the OFAC Specially Designated Nationals (SDN) List linked to Lazarus Group.',
+            },
+            {
+                id: '8',
+                timestamp: '2023-04-15T12:00:00Z',
+                status: 'investigating',
+                description: 'Funds observed moving through intermediate hops towards high-liquidity Asian exchanges avoiding KYC borders.',
+                txid: '7b82f9...ofac_hop'
+            },
+            {
+                id: '9',
+                timestamp: '2023-04-18T16:30:00Z',
+                status: 'investigating',
+                description: 'Attempted Coinjoin transaction detected. Tracing entropy breakdown. High risk of peel chain execution.',
+            }
+        ]
     }
 };

@@ -44,6 +44,10 @@ const es: TranslationKeys = {
       attackModels: "Modelos de Ataque",
       assumptions: "Supuestos",
       policyVsCons: "Política vs Cons.",
+      privacy: "Privacidad y Coinjoin",
+      lightningMap: "Cartografía L2",
+      lightningThreats: "Amenazas L2",
+      scenarios: "Labs de Escenarios",
     },
     menu: "Menú",
     prev: "Anterior",
@@ -110,6 +114,10 @@ const es: TranslationKeys = {
       minerForensics: { title: "Forense de Mineros", description: "Identifica pools de minería mediante análisis de firmas coinbase." },
       aboutTrust: { title: "Acerca de y Confianza", description: "Fuentes de datos, transparencia del operador y límites de uso responsable." },
       nodeTerminal: { title: "Terminal del Nodo", description: "Interactúa con tu nodo Bitcoin Core local vía RPC." },
+      privacy: { title: "Privacidad y Coinjoin", description: "Analiza conjuntos de anonimato, clustering y entropía heurística." },
+      lightningMap: { title: "Cartografía Lightning", description: "Grafo interactivo 3D de canales y liquidez de Capa 2." },
+      lightningThreats: { title: "Inteligencia de Amenazas L2", description: "Monitorea ataques activos, jamming y fallas de enrutamiento." },
+      scenarios: { title: "Laboratorios de Escenarios", description: "Prueba de doble gasto de RBF y reemplazos en la mempool." },
     },
     primaryActions: {
       exploreBlocks: {

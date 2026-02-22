@@ -11,7 +11,7 @@ const configuredConnectSrc = (() => {
     return [];
   }
 })();
-const connectSrc = ["'self'", "https:", "wss:", ...configuredConnectSrc]
+const connectSrc = ["'self'", "https:", "wss:", "http://localhost:8082", ...configuredConnectSrc]
   .filter((value, index, values) => values.indexOf(value) === index)
   .join(" ");
 

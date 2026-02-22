@@ -42,6 +42,10 @@ const en = {
       attackModels: "Attack Models",
       assumptions: "Assumptions",
       policyVsCons: "Policy vs Cons.",
+      privacy: "Privacy & Coinjoin",
+      lightningMap: "L2 Cartography",
+      lightningThreats: "L2 Threats",
+      scenarios: "Scenario Labs",
     },
     menu: "Menu",
     prev: "Prev",
@@ -108,6 +112,10 @@ const en = {
       minerForensics: { title: "Miner Forensics", description: "Identify mining pools via coinbase signature analysis." },
       aboutTrust: { title: "About & Trust", description: "Data sources, operator transparency, and responsible-use boundaries." },
       nodeTerminal: { title: "Node Terminal", description: "Interact with your local Bitcoin Core node via RPC." },
+      privacy: { title: "Privacy & Coinjoin", description: "Analyze anonymity sets, clustering, and heuristic entropy." },
+      lightningMap: { title: "Lightning Cartography", description: "Interactive 3D graph of Layer 2 liquidity and channels." },
+      lightningThreats: { title: "L2 Threat Intelligence", description: "Monitor active attacks, jamming, and routing failures." },
+      scenarios: { title: "Scenario Labs", description: "Test double-spends and RBF replacements." },
     },
     primaryActions: {
       exploreBlocks: {

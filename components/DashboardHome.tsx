@@ -44,6 +44,7 @@ const categoriesDef: Record<string, CategoryDef> = {
             { titleKey: "hashingFoundry", href: "/lab/hashing", color: "from-pink-400 to-rose-600", icon: "🔨" },
             { titleKey: "taprootPlayground", href: "/lab/taproot", color: "from-emerald-400 to-teal-500", icon: "🌱" },
             { titleKey: "lightningSim", href: "/lab/lightning", color: "from-yellow-400 to-amber-600", icon: "⚡" },
+            { titleKey: "scenarios", href: "/lab/scenarios", color: "from-blue-500 to-purple-600", icon: "🧪" },
             { titleKey: "consensusDebugger", href: "/lab/consensus", color: "from-cyan-400 to-blue-600", icon: "⚙️" },
         ]
     },
@@ -61,6 +62,9 @@ const categoriesDef: Record<string, CategoryDef> = {
         features: [
             { titleKey: "dIndex", href: "/analysis/d-index", color: "from-teal-400 to-emerald-600", icon: "⚖️" },
             { titleKey: "chainEvolution", href: "/analysis/evolution", color: "from-pink-500 to-purple-700", icon: "📈" },
+            { titleKey: "privacy", href: "/analysis/privacy", color: "from-indigo-400 to-cyan-500", icon: "🕵️" },
+            { titleKey: "lightningMap", href: "/analysis/lightning/map", color: "from-amber-300 to-orange-500", icon: "🗺️" },
+            { titleKey: "lightningThreats", href: "/analysis/lightning/threats", color: "from-red-400 to-rose-600", icon: "🛡️" },
             { titleKey: "graffitiWall", href: "/analysis/graffiti", color: "from-green-500 to-emerald-700", icon: "🎨" },
             { titleKey: "utxoExplorer", href: "/analysis/utxo", color: "from-amber-400 to-orange-500", icon: "🔬" },
             { titleKey: "feeIntelligence", href: "/explorer/fees", color: "from-emerald-400 to-cyan-500", icon: "💸" },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "../../../components/Header";
 import StackVisualizer from "../../../components/script-lab/StackVisualizer";
 import { useTranslation } from "@/lib/i18n";
@@ -8,6 +9,7 @@ import {
   SCRIPT_CONSENSUS_FIXTURES,
   type ScriptConsensusFixture,
 } from "../../../lib/scriptConsensusFixtures";
+import { useLearningPath } from "../../../stores/learningPathStore";
 
 type Preset = {
   script: string;
@@ -337,8 +339,17 @@ function evaluateState(state: TraceExecutionState, preset: Preset | null): Valid
 }
 
 export default function ScriptLabPage() {
+  const router = useRouter();
   const initialModel = useMemo(() => resolveInitialModel(), []);
   const { t } = useTranslation();
+  const { completeModule, isLoaded, isModuleUnlocked } = useLearningPath();
+
+  useEffect(() => {
+    if (isLoaded && !isModuleUnlocked("script_consensus")) {
+      router.push("/academy/paths");
+    }
+  }, [isLoaded, isModuleUnlocked, router]);
+
   const [selectedPreset, setSelectedPreset] = useState<SelectedPreset>(initialModel.preset);
   const [scriptInput, setScriptInput] = useState(initialModel.script);
   const [state, setState] = useState<TraceExecutionState>(() => createExecutionState(initialModel.script));
@@ -381,6 +392,12 @@ export default function ScriptLabPage() {
     }
     return true;
   }, [selectedFixture, realResult]);
+
+  useEffect(() => {
+    if (validation.status === "pass") {
+      completeModule("script_consensus");
+    }
+  }, [validation.status, completeModule]);
 
   useEffect(() => {
     let mounted = true;

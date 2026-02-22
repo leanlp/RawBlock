@@ -1,0 +1,287 @@
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/analysis/evolution/page.tsx
+  112:62   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  131:111  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  131:122  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/analysis/forensics/page.tsx
+    12:5    warning  'MiniMap' is defined but never used                                                                                                    @typescript-eslint/no-unused-vars
+    24:5    warning  'Share2' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+    26:5    warning  'Trash2' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+    27:5    warning  'ZoomIn' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+    31:5    warning  'Filter' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+    40:10   warning  'toPng' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+    51:32   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   121:32   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   174:32   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   210:7    warning  'nodeTypes' is assigned a value but never used                                                                                         @typescript-eslint/no-unused-vars
+   244:62   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   288:54   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   311:11   warning  'handleTouchStart' is assigned a value but never used                                                                                  @typescript-eslint/no-unused-vars
+   322:99   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   324:99   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   330:8    warning  React Hook useCallback has a missing dependency: 'ref'. Either include it or remove the dependency array                               react-hooks/exhaustive-deps
+   332:11   warning  'handleTouchMove' is assigned a value but never used                                                                                   @typescript-eslint/no-unused-vars
+   345:11   warning  'handleTouchEnd' is assigned a value but never used                                                                                    @typescript-eslint/no-unused-vars
+   352:51   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   358:91   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   360:91   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   364:8    warning  React Hook useCallback has a missing dependency: 'ref'. Either include it or remove the dependency array                               react-hooks/exhaustive-deps
+   421:21   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   479:27   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   537:42   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   603:41   error    Expected a `const` instead of a literal type assertion                                                                                 @typescript-eslint/prefer-as-const
+   637:8    warning  React Hook useCallback has a missing dependency: 'layoutMode'. Either include it or remove the dependency array                        react-hooks/exhaustive-deps
+   680:38   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   707:59   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   724:47   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   763:47   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   799:21   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   803:8    warning  React Hook useCallback has missing dependencies: 'getEdgeStyle' and 'heatmapMode'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+   858:87   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   869:61   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   869:69   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   889:37   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+   892:19   warning  'itemsInRing' is assigned a value but never used                                                                                       @typescript-eslint/no-unused-vars
+   898:19   warning  'angleStep' is assigned a value but never used                                                                                         @typescript-eslint/no-unused-vars
+  1015:23   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1064:51   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1067:60   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1087:38   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1204:46   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1215:46   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1312:8    warning  React Hook useCallback has an unnecessary dependency: 'edges'. Either exclude it or remove the dependency array                        react-hooks/exhaustive-deps
+  1315:56   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1319:50   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1331:38   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1374:40   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1606:63   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1626:97   error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1626:123  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  1838:108  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/analysis/incidents/page.tsx
+  5:8  warning  'Link' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/analysis/utxo/page.tsx
+  29:7   warning  'COLORS' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  42:12  warning  'error' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/api/proxy-rpc/route.ts
+    9:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   70:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  117:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/components/BalanceChart.tsx
+  50:19  warning  'lastPoint' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  92:48  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/components/CountryDetailPanel.tsx
+  6:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/explorer/blocks/compare/page.tsx
+  9:7  warning  'API_URL' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/explorer/network/page.tsx
+  261:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/explorer/network/page.tsx:261:9
+  259 |
+  260 |     useEffect(() => {
+> 261 |         fetchPeers();
+      |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  262 |     }, [fetchPeers]);
+  263 |
+  264 |     const focusNearestNode = useCallback(async (nodes: KnownPeer[]) => {  react-hooks/set-state-in-effect
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/game/mempool/page.tsx
+  10:13  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/game/mining/page.tsx
+    5:10  warning  'motion' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+    5:18  warning  'AnimatePresence' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   24:22  warning  'setSimSpeed' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   25:22  warning  'setIsPaused' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   28:12  warning  'v2Enabled' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   28:23  warning  'setV2Enabled' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   30:11  warning  'lastBlockTimeRef' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   30:37  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/game/mining/page.tsx:30:37
+  28 |     const [v2Enabled, setV2Enabled] = useState(false);
+  29 |
+> 30 |     const lastBlockTimeRef = useRef(Date.now());
+     |                                     ^^^^^^^^^^ Cannot call impure function
+  31 |     const heightRef = useRef(800000);
+  32 |
+  33 |     // Simulation Loop  react-hooks/purity
+   45:19  warning  'nextBlockInterval' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  116:11  warning  'currentBlockTime' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/game/tetris/page.tsx
+  35:36  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/lab/consensus/page.tsx
+    9:5   warning  'getBlockSubsidy' is defined but never used      @typescript-eslint/no-unused-vars
+   10:5   warning  'calculateDifficulty' is defined but never used  @typescript-eslint/no-unused-vars
+  120:66  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  126:49  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  133:51  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  150:23  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/lab/hashing/page.tsx
+  60:17  error  Error: Cannot access variable before it is declared
+
+`checkValidity` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/lab/hashing/page.tsx:60:17
+  58 |             calculateHash(version, prevHash, merkleRoot, timestamp, bits, nonce).then(h => {
+  59 |                 setBlockHash(h);
+> 60 |                 checkValidity(h, targetZeros);
+     |                 ^^^^^^^^^^^^^ `checkValidity` accessed before it is declared
+  61 |             });
+  62 |         }
+  63 |     }, [version, prevHash, merkleRoot, timestamp, bits, nonce, isMining, targetZeros]);
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/lab/hashing/page.tsx:65:5
+  63 |     }, [version, prevHash, merkleRoot, timestamp, bits, nonce, isMining, targetZeros]);
+  64 |
+> 65 |     const checkValidity = (hash: string, zeros: number) => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 66 |         const prefix = "0".repeat(zeros);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 67 |         setValid(hash.startsWith(prefix));
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 68 |     };
+     | ^^^^^^^ `checkValidity` is declared here
+  69 |
+  70 |     // Mining Loop
+  71 |     const startMining = () => {  react-hooks/immutability
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/lab/keys/page.tsx
+  58:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/lab/keys/page.tsx:58:9
+  56 |     // Initial generation
+  57 |     useEffect(() => {
+> 58 |         handleGenerate();
+     |         ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  59 |     }, []);
+  60 |
+  61 |     return (  react-hooks/set-state-in-effect
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/ops/page.tsx
+  13:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/paths/[pathId]/page.tsx
+  72:30  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/rules-of-hooks
+  75:6   error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/app/paths/[pathId]/page.tsx:75:6
+  73 |     () =>
+  74 |       currentMissingPrereqs.map((id) => graphStore.getNode(id)?.title ?? id),
+> 75 |     [currentMissingPrereqs],
+     |      ^^^^^^^^^^^^^^^^^^^^^ This dependency may be modified later
+  76 |   );
+  77 |
+  78 |   return (  react-hooks/preserve-manual-memoization
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/BlockVisualizer.tsx
+   8:20  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  25:35  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  26:13  warning  'root' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  26:19  warning  'depth' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  26:47  warning  'index' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  26:63  warning  'colors' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  26:71  warning  'checkMode' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  90:43  warning  'isXRay' is defined but never used              @typescript-eslint/no-unused-vars
+  90:53  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/EmptyState.tsx
+  3:10  warning  'ReactNode' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/InteractiveScript.tsx
+  12:50  warning  'token' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/OnboardingTooltip.tsx
+  70:8   warning  React Hook useCallback has a missing dependency: 'handleComplete'. Either include it or remove the dependency array                                                                               react-hooks/exhaustive-deps
+  89:19  error    React Hook "useTranslation" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/decoder/AddressAnalyticsPanel.tsx
+  104:93  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/forensics/EntityForensicsDashboard.tsx
+   9:12  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:5   warning  'entityType' is defined but never used    @typescript-eslint/no-unused-vars
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/forensics/LiveIncidentFeed.tsx
+  32:26  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  32:35  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/forensics/UTXOClusterChart.tsx
+   10:20  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+   19:7   warning  'COINJOIN_THRESHOLD' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   26:13  warning  'totalValue' is assigned a value but never used          @typescript-eslint/no-unused-vars
+   41:21  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+  128:48  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+  128:59  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/mempool-game/MempoolGame.tsx
+   57:8   warning  React Hook useCallback has a missing dependency: 'txIdCounter'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  200:37  warning  'i' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/miners/MinerForensicsPanel.tsx
+   83:83  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/miners/MinerForensicsPanel.tsx:83:83
+  81 |             }
+  82 |             // luck > 100% means faster than 10 mins on average
+> 83 |             const luckPct = times.length > 1 ? (600 / avgInterval) * 100 : 100 + (Math.random() * 20 - 10);
+     |                                                                                   ^^^^^^^^^^^^^ Cannot call impure function
+  84 |             return {
+  85 |                 name: miner,
+  86 |                 luck: Number(luckPct.toFixed(1)),  react-hooks/purity
+  110:50  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/script-lab/ScriptLab.tsx
+  41:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/0xlean/Desktop/RAW/rawblock/frontend/components/script-lab/ScriptLab.tsx:41:13
+  39 |             }, 800);
+  40 |         } else {
+> 41 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  42 |         }
+  43 |         return () => clearInterval(interval);
+  44 |     }, [isPlaying, state]);  react-hooks/set-state-in-effect
+  44:8   warning  React Hook useEffect has a missing dependency: 'step'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+
+✖ 123 problems (74 errors, 49 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

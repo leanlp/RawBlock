@@ -49,6 +49,7 @@ const NAV_ITEMS: NavSection[] = [
             { nameKey: "taproot", path: "/lab/taproot", icon: "🌱" },
             { nameKey: "keys", path: "/lab/keys", icon: "🗝️" },
             { nameKey: "hashing", path: "/lab/hashing", icon: "🔨" },
+            { nameKey: "scenarios", path: "/lab/scenarios", icon: "🧪" },
             { nameKey: "consensus", path: "/lab/consensus", icon: "⚙️" },
             { nameKey: "mempoolSim", path: "/game/mempool", icon: "🧪" },
         ]
@@ -58,6 +59,9 @@ const NAV_ITEMS: NavSection[] = [
         items: [
             { nameKey: "forensics", path: "/analysis/forensics", icon: "🕵️‍♂️" },
             { nameKey: "evolution", path: "/analysis/evolution", icon: "📈" },
+            { nameKey: "privacy", path: "/analysis/privacy", icon: "🕵️" },
+            { nameKey: "lightningMap", path: "/analysis/lightning/map", icon: "🗺️" },
+            { nameKey: "lightningThreats", path: "/analysis/lightning/threats", icon: "🛡️" },
             { nameKey: "dIndex", path: "/analysis/d-index", icon: "⚖️" },
             { nameKey: "graffiti", path: "/analysis/graffiti", icon: "🎨" },
         ]

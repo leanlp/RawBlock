@@ -1,224 +1,144 @@
 "use client";
 
-import { useState } from "react";
-import Header from "../../../components/Header";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from 'react';
+import { ShieldAlert, Cpu, Award, Layers } from 'lucide-react';
+import Header from '../../../components/Header';
+import PageHeader from '../../../components/PageHeader';
+import LightningNodeConsole from '../../../components/labs/LightningNodeConsole';
 import { useTranslation } from "@/lib/i18n";
+import { useLearningPath } from '../../../stores/learningPathStore';
+import { useRouter } from 'next/navigation';
 
-export default function LightningPage() {
+interface Channel {
+    id: string;
+    alias: string;
+    localBalance: number;
+    remoteBalance: number;
+    baseFee: number;
+    feeRate: number;
+    status: 'active' | 'offline' | 'depleted';
+}
+export default function LightningSimulatorPage() {
     const { t } = useTranslation();
-    // Channel State
-    const capacity = 1000000; // 1M sats
-    const [aliceBal, setAliceBal] = useState(500000); // 500k sats
-    const [bobBal, setBobBal] = useState(500000);     // 500k sats
-    const [history, setHistory] = useState<Array<{ id: string, msg: string }>>([]);
+    const router = useRouter();
+    const { isLoaded, isModuleUnlocked } = useLearningPath();
 
-    // Routing State
-    const [packetPos, setPacketPos] = useState<'A' | 'B' | 'C' | null>(null);
-    const [packetStatus, setPacketStatus] = useState<'idle' | 'htlc' | 'settle'>('idle');
-
-    // Action: Pay Button
-    const payBob = (amount: number) => {
-        if (aliceBal >= amount) {
-            setAliceBal(p => p - amount);
-            setBobBal(p => p + amount);
-            setHistory(prev => [{ id: `${Date.now()}-${Math.random()}`, msg: `Alice sent ${amount} sats to Bob via Channel Update #${prev.length + 1}` }, ...prev]);
+    React.useEffect(() => {
+        if (isLoaded && !isModuleUnlocked('lightning_routing')) {
+            router.push('/academy/paths');
         }
-    };
+    }, [isLoaded, isModuleUnlocked, router]);
 
-    const payAlice = (amount: number) => {
-        if (bobBal >= amount) {
-            setBobBal(p => p - amount);
-            setAliceBal(p => p + amount);
-            setHistory(prev => [{ id: `${Date.now()}-${Math.random()}`, msg: `Bob sent ${amount} sats to Alice via Channel Update #${prev.length + 1}` }, ...prev]);
+    const [channels, setChannels] = useState<Channel[]>([
+        { id: 'chan1', alias: 'ACINQ Hub', localBalance: 0.5, remoteBalance: 2.0, baseFee: 1000, feeRate: 50, status: 'active' },
+        { id: 'chan2', alias: 'Kraken_LN', localBalance: 1.2, remoteBalance: 0.1, baseFee: 500, feeRate: 10, status: 'active' },
+        { id: 'chan3', alias: 'WalletOfSatoshi', localBalance: 0.05, remoteBalance: 1.5, baseFee: 1000, feeRate: 100, status: 'depleted' }
+    ]);
+
+    const [earnedFees, setEarnedFees] = useState(0); // in sats
+    const [routedTxs, setRoutedTxs] = useState(0);
+
+    const handleConsoleAction = (action: string) => {
+        if (action === 'rebalance') {
+            // Simple mockup of a circular rebalance
+            setChannels(prev => prev.map(c => {
+                if (c.id === 'chan3') return { ...c, localBalance: 0.5, remoteBalance: 1.05, status: 'active' };
+                if (c.id === 'chan2') return { ...c, localBalance: 0.75, remoteBalance: 0.55 };
+                return c;
+            }));
+        } else if (action === 'start_routing') {
+            // Simulate a successful route through our node
+            setRoutedTxs(prev => prev + 1);
+            setEarnedFees(prev => prev + 450); // Earned 450 sats
+
+            // Deduct local outbound liquidity
+            setChannels(prev => prev.map(c => {
+                if (c.id === 'chan1') return { ...c, localBalance: Math.max(0, c.localBalance - 0.1), remoteBalance: c.remoteBalance + 0.1 };
+                return c;
+            }));
         }
-    };
-
-    // Action: Route to Charlie
-    const routePayment = async () => {
-        if (packetStatus !== 'idle') return;
-
-        // Step 1: HTLC from Alice to Bob
-        setPacketStatus('htlc');
-        setPacketPos('A');
-        await new Promise(r => setTimeout(r, 800));
-        setPacketPos('B');
-        await new Promise(r => setTimeout(r, 800));
-        setPacketPos('C'); // Reached Charlie
-        await new Promise(r => setTimeout(r, 500));
-
-        // Step 2: Settle (Preimage Reveal) backwards
-        setPacketStatus('settle');
-        await new Promise(r => setTimeout(r, 800));
-        setPacketPos('B');
-        await new Promise(r => setTimeout(r, 800));
-        setPacketPos('A');
-        await new Promise(r => setTimeout(r, 500));
-
-        setPacketStatus('idle');
-        setPacketPos(null);
-        setHistory(prev => [{ id: `${Date.now()}-${Math.random()}`, msg: `Alice routed Payment to Charlie (hops: 2). Preimage revealed.` }, ...prev]);
     };
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
-            <div className="max-w-6xl mx-auto space-y-8">
+        <main className="min-h-screen bg-slate-950 p-4 md:p-8 xl:p-12 font-sans text-slate-300">
+            <div className="max-w-7xl mx-auto space-y-8">
+                {/* Global Header */}
                 <Header />
 
-                <div className="flex flex-col md:flex-row justify-between items-end pb-6 border-b border-slate-800">
-                    <div>
-                        <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500">
-                            {t.lightningLab.title} ⚡
-                        </h1>
-                        <p className="mt-2 text-slate-400 text-sm">
-                            {t.lightningLab.subtitle}
-                        </p>
-                    </div>
-                </div>
+                {/* Page specific Header */}
+                <PageHeader
+                    title={t.lightningLab.title + " Simulator"}
+                    subtitle="Manage liquidity, set routing fees, and balance channels to earn sats without getting your node depleted."
+                    icon={<Cpu className="w-8 h-8 text-cyan-500" />}
+                    gradient="from-cyan-500 to-emerald-500"
+                />
 
-                <div className="bg-slate-900/50 border border-slate-800 p-5 rounded-2xl">
-                    <h2 className="text-slate-300 text-sm font-bold mb-3 uppercase tracking-widest">Lightning Status (2026)</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div className="space-y-2 text-slate-300">
-                            <p>
-                                Lightning is no longer experimental. It is production-ready and broadly used for fast Bitcoin payments.
-                            </p>
-                            <p>
-                                Major exchanges and platforms support Lightning, including <span className="text-white font-semibold">Coinbase</span>,{" "}
-                                <span className="text-white font-semibold">Kraken</span>, <span className="text-white font-semibold">Binance</span>, and{" "}
-                                <span className="text-white font-semibold">Bitfinex</span>.
-                            </p>
-                        </div>
-                        <div className="space-y-2 text-slate-300">
-                            <p>
-                                Best fit: small and medium payments with instant UX and low fees.
-                            </p>
-                            <p>
-                                Trade-off: large/high-assurance settlement is still often finalized on-chain for maximum finality.
-                            </p>
-                            <p className="text-xs text-slate-400">
-                                Security best practices: use watchtowers, keep channels well-managed, monitor liquidity, and rebalance routes.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left: Node State & Channels */}
+                    <div className="lg:col-span-2 space-y-6">
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-                    {/* LEFT: Channel Simulator */}
-                    <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl">⚡</div>
-
-                        <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-6 border-b border-slate-800 pb-2">Single Channel State</h3>
-
-                        {/* Balance Bar */}
-                        <div className="relative h-16 bg-slate-800 rounded-xl overflow-hidden flex mb-8 border border-slate-700">
-                            <motion.div
-                                className="h-full bg-blue-500 flex items-center justify-start px-4 text-blue-950 font-bold"
-                                animate={{ width: `${(aliceBal / capacity) * 100}%` }}
-                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            >
-                                <span className="whitespace-nowrap">Alice: {aliceBal.toLocaleString()}</span>
-                            </motion.div>
-                            <motion.div
-                                className="h-full bg-emerald-500 flex items-center justify-end px-4 text-emerald-950 font-bold flex-1"
-                                animate={{ width: `${(bobBal / capacity) * 100}%` }}
-                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            >
-                                <span className="whitespace-nowrap">Bob: {bobBal.toLocaleString()}</span>
-                            </motion.div>
-
-                            {/* Capacity Marker */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-slate-950/80 px-2 py-0.5 text-[10px] rounded-b text-slate-400">
-                                Cap: 1.0M sats
+                        {/* Metrics Bar */}
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center">
+                                <span className="text-slate-500 text-xs font-bold tracking-wider uppercase mb-1 flex items-center gap-2">
+                                    <Award size={14} className="text-amber-400" /> Fees Earned
+                                </span>
+                                <span className="text-2xl font-mono font-bold text-amber-400">{earnedFees.toLocaleString()} <span className="text-sm">sats</span></span>
+                            </div>
+                            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center">
+                                <span className="text-slate-500 text-xs font-bold tracking-wider uppercase mb-1">Routed Txs</span>
+                                <span className="text-2xl font-mono font-bold text-slate-200">{routedTxs}</span>
+                            </div>
+                            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center">
+                                <span className="text-slate-500 text-xs font-bold tracking-wider uppercase mb-1">Node Score</span>
+                                <span className="text-2xl font-mono font-bold text-emerald-400">92.4%</span>
                             </div>
                         </div>
 
-                        {/* Controls */}
-                        <div className="flex justify-between gap-4">
-                            <div className="space-y-2">
-                                <button onClick={() => payBob(10000)} className="block w-full px-4 py-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded border border-blue-500/50 text-sm">
-                                    Send 10k ➔
-                                </button>
-                                <button onClick={() => payBob(100000)} className="block w-full px-4 py-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded border border-blue-500/50 text-sm">
-                                    Send 100k ➔
-                                </button>
-                            </div>
-                            <div className="space-y-2">
-                                <button onClick={() => payAlice(10000)} className="block w-full px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 rounded border border-emerald-500/50 text-sm">
-                                    ⬅ Send 10k
-                                </button>
-                                <button onClick={() => payAlice(100000)} className="block w-full px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 rounded border border-emerald-500/50 text-sm">
-                                    ⬅ Send 100k
-                                </button>
+                        {/* Channel Manager */}
+                        <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                                <Layers className="text-cyan-500" />
+                                Active Channels
+                            </h3>
+
+                            <div className="space-y-4">
+                                {channels.map(channel => (
+                                    <div key={channel.id} className={`p-4 rounded-lg border transition-all ${channel.status === 'depleted' ? 'bg-red-950/20 border-red-900/50' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}`}>
+                                        <div className="flex justify-between items-center mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full ${channel.status === 'active' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`}></div>
+                                                <span className="font-bold text-slate-200 text-sm">{channel.alias}</span>
+                                            </div>
+                                            <div className="text-xs font-mono text-slate-500">
+                                                Fee: {channel.baseFee} / {channel.feeRate} ppm
+                                            </div>
+                                        </div>
+
+                                        {/* Liquidity Bar */}
+                                        <div className="relative h-4 bg-slate-800 rounded-full overflow-hidden flex items-center outline outline-1 outline-slate-700/50">
+                                            <div className="h-full bg-cyan-500/80 transition-all duration-500" style={{ width: `${(channel.localBalance / (channel.localBalance + channel.remoteBalance)) * 100}%` }}></div>
+                                            <div className="absolute inset-0 flex justify-center items-center text-[9px] font-mono font-bold text-white shadow-sm pointer-events-none mix-blend-difference">
+                                                LOCAL: {channel.localBalance.toFixed(2)} BTC | REMOTE: {channel.remoteBalance.toFixed(2)} BTC
+                                            </div>
+                                        </div>
+
+                                        {channel.status === 'depleted' && (
+                                            <p className="text-xs text-red-400 mt-2 flex items-center gap-1 animate-pulse">
+                                                <ShieldAlert size={12} /> Local outbound liquidity is completely depleted. Node cannot route payments to this peer!
+                                            </p>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
-                        <div className="mt-8 p-4 bg-slate-950 rounded border border-slate-800 text-xs font-mono h-32 overflow-y-auto">
-                            {history.length === 0 ? <span className="text-slate-600">Channel Activity Log...</span> : history.map((h, i) => (
-                                <div key={h.id} className="mb-1 text-slate-400">
-                                    <span className="text-slate-600">[{i}]</span> {h.msg}
-                                </div>
-                            ))}
-                        </div>
                     </div>
 
-
-                    {/* RIGHT: Routing Visualizer */}
-                    <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl relative overflow-hidden flex flex-col">
-                        <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-6 border-b border-slate-800 pb-2">Multi-Hop Routing</h3>
-
-                        <div className="flex-1 flex items-center justify-between px-8 relative">
-                            {/* Nodes */}
-                            <div className="z-10 flex flex-col items-center gap-2">
-                                <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-2xl font-bold border-4 border-slate-950 shadow-xl shadow-blue-500/20">A</div>
-                                <div className="text-xs text-slate-400">Alice</div>
-                            </div>
-
-                            <div className="h-2 flex-1 bg-slate-800 mx-2 rounded relative">
-                                {/* Packet */}
-                                {packetPos !== null && (
-                                    <motion.div
-                                        className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.8)] z-20 ${packetStatus === 'htlc' ? 'bg-amber-400' : 'bg-emerald-400'}`}
-                                        initial={false}
-                                        animate={{
-                                            left: packetPos === 'A' ? '0%' : packetPos === 'B' ? '50%' : '100%',
-                                            marginLeft: packetPos === 'A' ? 0 : packetPos === 'B' ? '-12px' : '-24px' // Adjust center
-                                        }}
-                                        transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                                    />
-                                )}
-                            </div>
-
-                            <div className="z-10 flex flex-col items-center gap-2">
-                                <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center text-2xl font-bold border-4 border-slate-950">B</div>
-                                <div className="text-xs text-slate-400">Bob (Router)</div>
-                            </div>
-
-                            <div className="h-2 flex-1 bg-slate-800 mx-2 rounded relative"></div>
-
-                            <div className="z-10 flex flex-col items-center gap-2">
-                                <div className="w-16 h-16 rounded-full bg-purple-500 flex items-center justify-center text-2xl font-bold border-4 border-slate-950 shadow-xl shadow-purple-500/20">C</div>
-                                <div className="text-xs text-slate-400">Charlie</div>
-                            </div>
-                        </div>
-
-                        <div className="mt-8 text-center">
-                            <button
-                                onClick={routePayment}
-                                disabled={packetStatus !== 'idle'}
-                                className="px-8 py-3 bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {packetStatus === 'idle' ? "Route Payment (A -> C)" : packetStatus === 'htlc' ? "Locking HTLC..." : "Settling..."}
-                            </button>
-                            <p className="mt-4 text-xs text-slate-500 max-w-sm mx-auto">
-                                Alice has no channel with Charlie. She routes the payment through Bob.
-                                <br />
-                                <span className="text-amber-500">Yellow = HTLC (Promised)</span> | <span className="text-emerald-500">Green = Settlement (Final)</span>
-                            </p>
-                        </div>
+                    {/* Right: The Node Console */}
+                    <div className="h-[600px] lg:h-auto">
+                        <LightningNodeConsole onAction={handleConsoleAction} />
                     </div>
-
                 </div>
             </div>
         </main>

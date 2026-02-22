@@ -1,0 +1,1417 @@
+{
+  "nodes": [
+    {
+      "id": "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
+      "type": "lightningNode",
+      "position": {
+        "x": 899.5067671720055,
+        "y": 520.6987381859827
+      },
+      "data": {
+        "label": "ACINQ",
+        "alias": "03864ef025fde8fb...",
+        "type": "exchange",
+        "capacity": 370.54,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "0217890e3aad8d35bc054f43acc00084b25229ecff0ab68debd82883ad65ee8266",
+      "type": "lightningNode",
+      "position": {
+        "x": 888.9401029769136,
+        "y": 570.9927931085425
+      },
+      "data": {
+        "label": "1ML.com node ALPHA",
+        "alias": "0217890e3aad8d35...",
+        "type": "exchange",
+        "capacity": 7.71,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "0242a4ae0c5bef18048fbecf995094b74bfb0f7391418d71ed394784373f41e4f3",
+      "type": "lightningNode",
+      "position": {
+        "x": 863.0572208749018,
+        "y": 638.7165682359143
+      },
+      "data": {
+        "label": "CoinGate",
+        "alias": "0242a4ae0c5bef18...",
+        "type": "exchange",
+        "capacity": 15.02,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226",
+      "type": "lightningNode",
+      "position": {
+        "x": 841.2787683227918,
+        "y": 755.110280397346
+      },
+      "data": {
+        "label": "WalletOfSatoshi.com",
+        "alias": "035e4ff418fc8b55...",
+        "type": "exchange",
+        "capacity": 155.26,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "02f1a8c87607f415c8f22c00593002775941dea48869ce23096af27b0cfdcc0b69",
+      "type": "lightningNode",
+      "position": {
+        "x": 743.1235975284972,
+        "y": 795.1882159315352
+      },
+      "data": {
+        "label": "Kraken 🐙⚡",
+        "alias": "02f1a8c87607f415...",
+        "type": "exchange",
+        "capacity": 270.84,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "0294ac3e099def03c12a37e30fe5364b1223fd60069869142ef96580c8439c2e0a",
+      "type": "lightningNode",
+      "position": {
+        "x": 688.0245757668798,
+        "y": 827.7757593060157
+      },
+      "data": {
+        "label": "okx",
+        "alias": "0294ac3e099def03...",
+        "type": "hub",
+        "capacity": 508.05,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "03ccc570ec6aaff08d5435b3413f4b4af8175728a1ed244e4710121c8f5af6ea07",
+      "type": "lightningNode",
+      "position": {
+        "x": 632.8228905817148,
+        "y": 885.037532463612
+      },
+      "data": {
+        "label": "LNT.Thailand",
+        "alias": "03ccc570ec6aaff0...",
+        "type": "hub",
+        "capacity": 0.41,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "02c953421bc7f07be6052920e46843d11e6d3ffc9986177c91f140d76c6ed3a3d4",
+      "type": "lightningNode",
+      "position": {
+        "x": 543.6707682438084,
+        "y": 873.1372400791071
+      },
+      "data": {
+        "label": "LNT.chengdu",
+        "alias": "02c953421bc7f07b...",
+        "type": "hub",
+        "capacity": 0.6,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "033d8656219478701227199cbd6f670335c8d408a92ae88b962c49d4dc0e83e025",
+      "type": "lightningNode",
+      "position": {
+        "x": 459.7082056798903,
+        "y": 875.7440278418774
+      },
+      "data": {
+        "label": "bfx-lnd0",
+        "alias": "033d865621947870...",
+        "type": "hub",
+        "capacity": 658.12,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "03cde60a6323f7122d5178255766e38114b4722ede08f7c9e0c5df9b912cc201d6",
+      "type": "lightningNode",
+      "position": {
+        "x": 364.57360593453325,
+        "y": 857.5986426297427
+      },
+      "data": {
+        "label": "bfx-lnd1",
+        "alias": "03cde60a6323f712...",
+        "type": "hub",
+        "capacity": 607.84,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2",
+      "type": "lightningNode",
+      "position": {
+        "x": 320.449725559958,
+        "y": 862.0597496338916
+      },
+      "data": {
+        "label": "Boltz",
+        "alias": "026165850492521f...",
+        "type": "hub",
+        "capacity": 168.9,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "037659a0ac8eb3b8d0a720114efc861d3a940382dcfa1403746b4f8f6b2e8810ba",
+      "type": "lightningNode",
+      "position": {
+        "x": 222.47805357064476,
+        "y": 808.9923510265418
+      },
+      "data": {
+        "label": "nicehash-ln1",
+        "alias": "037659a0ac8eb3b8...",
+        "type": "hub",
+        "capacity": 78.42,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "0364913d18a19c671bb36dd04d6ad5be0fe8f2894314c36a9db3f03c2d414907e1",
+      "type": "lightningNode",
+      "position": {
+        "x": 167.54481906125585,
+        "y": 755.0315117936577
+      },
+      "data": {
+        "label": "LQwD-Canada",
+        "alias": "0364913d18a19c67...",
+        "type": "hub",
+        "capacity": 31.76,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190",
+      "type": "lightningNode",
+      "position": {
+        "x": 142.8995981330531,
+        "y": 660.6097417564089
+      },
+      "data": {
+        "label": "block-iad-1",
+        "alias": "027100442c3b79f6...",
+        "type": "hub",
+        "capacity": 208.45,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "03fe47fdfea0f25fad0013498e8d6cec348ae3d673841ec25ee94f87c21af16ed8",
+      "type": "lightningNode",
+      "position": {
+        "x": 120.66789911090916,
+        "y": 567.116995334165
+      },
+      "data": {
+        "label": "fortuna-custody-stroom",
+        "alias": "03fe47fdfea0f25f...",
+        "type": "hub",
+        "capacity": 223.96,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "0324ba2392e25bff76abd0b1f7e4b53b5f82aa53fddc3419b051b6c801db9e2247",
+      "type": "lightningNode",
+      "position": {
+        "x": 97.70912464010688,
+        "y": 521.4276474934422
+      },
+      "data": {
+        "label": "kappa",
+        "alias": "0324ba2392e25bff...",
+        "type": "hub",
+        "capacity": 61.27,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "0260fab633066ed7b1d9b9b8a0fac87e1579d1709e874d28a0d171a1f5c43bb877",
+      "type": "lightningNode",
+      "position": {
+        "x": 94.74953604926566,
+        "y": 406.04813832570574
+      },
+      "data": {
+        "label": "TangoBolt",
+        "alias": "0260fab633066ed7...",
+        "type": "hub",
+        "capacity": 63.08,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "03423790614f023e3c0cdaa654a3578e919947e4c3a14bf5044e7c787ebd11af1a",
+      "type": "lightningNode",
+      "position": {
+        "x": 144.50752666105754,
+        "y": 321.5247617276914
+      },
+      "data": {
+        "label": "Sunny Sarah ☀️",
+        "alias": "03423790614f023e...",
+        "type": "hub",
+        "capacity": 57.95,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "023d70f2f76d283c6c4e58109ee3a2816eb9d8feb40b23d62469060a2b2867b77f",
+      "type": "lightningNode",
+      "position": {
+        "x": 201.27077064784768,
+        "y": 276.8662564123411
+      },
+      "data": {
+        "label": "gameb_1",
+        "alias": "023d70f2f76d283c...",
+        "type": "hub",
+        "capacity": 3.7,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "0298f6074a454a1f5345cb2a7c6f9fce206cd0bf675d177cdbf0ca7508dd28852f",
+      "type": "lightningNode",
+      "position": {
+        "x": 250.4069254324594,
+        "y": 183.98124259781588
+      },
+      "data": {
+        "label": "BCash_Is_Trash",
+        "alias": "0298f6074a454a1f...",
+        "type": "hub",
+        "capacity": 40.35,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "034ea80f8b148c750463546bd999bf7321a0e6dfc60aaf84bd0400a2e8d376c0d5",
+      "type": "lightningNode",
+      "position": {
+        "x": 291.0313044110469,
+        "y": 145.96617245200105
+      },
+      "data": {
+        "label": "LNBiG [Hub-1]",
+        "alias": "034ea80f8b148c75...",
+        "type": "hub",
+        "capacity": 423.34,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "035b1ff29e8db1ba8f2a4f4f95db239b54069cb949b8cde329418e2a83da4f1b30",
+      "type": "lightningNode",
+      "position": {
+        "x": 392.42477654418934,
+        "y": 101.53216274759477
+      },
+      "data": {
+        "label": "DiamondHands💎🙌",
+        "alias": "035b1ff29e8db1ba...",
+        "type": "hub",
+        "capacity": 16.56,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "03c8e5f583585cac1de2b7503a6ccd3c12ba477cfd139cd4905be504c2f48e86bd",
+      "type": "lightningNode",
+      "position": {
+        "x": 449.16294932676266,
+        "y": 96.316370104313
+      },
+      "data": {
+        "label": "Strike",
+        "alias": "03c8e5f583585cac...",
+        "type": "hub",
+        "capacity": 98.17,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+      "type": "lightningNode",
+      "position": {
+        "x": 536.2193808059238,
+        "y": 120.69361947958004
+      },
+      "data": {
+        "label": "Bitrefill Routing",
+        "alias": "030c3f19d742ca29...",
+        "type": "hub",
+        "capacity": 18.28,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "03d6c33746ea3222f5fcd9ecd469c7106df702f74ffdecc2ed88f76714ed87fae0",
+      "type": "lightningNode",
+      "position": {
+        "x": 601.5720078207215,
+        "y": 138.28904418747499
+      },
+      "data": {
+        "label": "03d6c33746ea3222f5fc",
+        "alias": "03d6c33746ea3222...",
+        "type": "hub",
+        "capacity": 47.34,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "03a93b87bf9f052b8e862d51ebbac4ce5e97b5f4137563cd5128548d7f5978dda9",
+      "type": "lightningNode",
+      "position": {
+        "x": 686.4384526957796,
+        "y": 158.03713445920104
+      },
+      "data": {
+        "label": "cyberdyne.sh",
+        "alias": "03a93b87bf9f052b...",
+        "type": "hub",
+        "capacity": 179.62,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "03afa7a8196dbca763ee6f9a34b634a7adc03f154e5d6979fe654db5606b5fb2b1",
+      "type": "lightningNode",
+      "position": {
+        "x": 773.2208970258009,
+        "y": 218.05677855652306
+      },
+      "data": {
+        "label": "CoinPayments",
+        "alias": "03afa7a8196dbca7...",
+        "type": "hub",
+        "capacity": 9.22,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "03d1739dcb86ce7a48d1b372aaaa94ff836566d5e87f6e4bbca9e8cdc9ddfce1ec",
+      "type": "lightningNode",
+      "position": {
+        "x": 842.7516707201529,
+        "y": 253.79987276740584
+      },
+      "data": {
+        "label": "03d1739dcb86ce7a48d1",
+        "alias": "03d1739dcb86ce7a...",
+        "type": "hub",
+        "capacity": 46.2,
+        "color": "#8b5cf6"
+      }
+    },
+    {
+      "id": "03271338633d2d37b285dae4df40b413d8c6c791fbee7797bc5dc70812196d7d5c",
+      "type": "lightningNode",
+      "position": {
+        "x": 875.9499248296087,
+        "y": 325.3501214022776
+      },
+      "data": {
+        "label": "lnmarkets.com",
+        "alias": "03271338633d2d37...",
+        "type": "hub",
+        "capacity": 37.98,
+        "color": "#10b981"
+      }
+    },
+    {
+      "id": "033e9ce4e8f0e68f7db49ffb6b9eecc10605f3f3fcb3c630545887749ab515b9c7",
+      "type": "lightningNode",
+      "position": {
+        "x": 910.9111034071329,
+        "y": 428.11295236088404
+      },
+      "data": {
+        "label": "LNBiG [Hub-2]",
+        "alias": "033e9ce4e8f0e68f...",
+        "type": "hub",
+        "capacity": 334.96,
+        "color": "#8b5cf6"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-03864ef0-0364913d",
+      "source": "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
+      "target": "0364913d18a19c671bb36dd04d6ad5be0fe8f2894314c36a9db3f03c2d414907e1",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 3.1757,
+        "baseFee": 293,
+        "feeRate": 151,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03864ef0-033e9ce4",
+      "source": "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
+      "target": "033e9ce4e8f0e68f7db49ffb6b9eecc10605f3f3fcb3c630545887749ab515b9c7",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 33.4961,
+        "baseFee": 632,
+        "feeRate": 54,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03864ef0-030c3f19",
+      "source": "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
+      "target": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.8282,
+        "baseFee": 419,
+        "feeRate": 110,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0217890e-03cde60a",
+      "source": "0217890e3aad8d35bc054f43acc00084b25229ecff0ab68debd82883ad65ee8266",
+      "target": "03cde60a6323f7122d5178255766e38114b4722ede08f7c9e0c5df9b912cc201d6",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.771,
+        "baseFee": 554,
+        "feeRate": 70,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0217890e-03423790",
+      "source": "0217890e3aad8d35bc054f43acc00084b25229ecff0ab68debd82883ad65ee8266",
+      "target": "03423790614f023e3c0cdaa654a3578e919947e4c3a14bf5044e7c787ebd11af1a",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.771,
+        "baseFee": 915,
+        "feeRate": 162,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0217890e-034ea80f",
+      "source": "0217890e3aad8d35bc054f43acc00084b25229ecff0ab68debd82883ad65ee8266",
+      "target": "034ea80f8b148c750463546bd999bf7321a0e6dfc60aaf84bd0400a2e8d376c0d5",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.771,
+        "baseFee": 185,
+        "feeRate": 178,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0242a4ae-033d8656",
+      "source": "0242a4ae0c5bef18048fbecf995094b74bfb0f7391418d71ed394784373f41e4f3",
+      "target": "033d8656219478701227199cbd6f670335c8d408a92ae88b962c49d4dc0e83e025",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.5017,
+        "baseFee": 861,
+        "feeRate": 180,
+        "isAnomalous": true
+      }
+    },
+    {
+      "id": "e-0242a4ae-034ea80f",
+      "source": "0242a4ae0c5bef18048fbecf995094b74bfb0f7391418d71ed394784373f41e4f3",
+      "target": "034ea80f8b148c750463546bd999bf7321a0e6dfc60aaf84bd0400a2e8d376c0d5",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.5017,
+        "baseFee": 998,
+        "feeRate": 34,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-035e4ff4-02f1a8c8",
+      "source": "035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226",
+      "target": "02f1a8c87607f415c8f22c00593002775941dea48869ce23096af27b0cfdcc0b69",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 15.5259,
+        "baseFee": 100,
+        "feeRate": 195,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-035e4ff4-037659a0",
+      "source": "035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226",
+      "target": "037659a0ac8eb3b8d0a720114efc861d3a940382dcfa1403746b4f8f6b2e8810ba",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 7.8421,
+        "baseFee": 394,
+        "feeRate": 84,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-035e4ff4-034ea80f",
+      "source": "035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226",
+      "target": "034ea80f8b148c750463546bd999bf7321a0e6dfc60aaf84bd0400a2e8d376c0d5",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 15.5259,
+        "baseFee": 111,
+        "feeRate": 139,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02f1a8c8-033d8656",
+      "source": "02f1a8c87607f415c8f22c00593002775941dea48869ce23096af27b0cfdcc0b69",
+      "target": "033d8656219478701227199cbd6f670335c8d408a92ae88b962c49d4dc0e83e025",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 27.0843,
+        "baseFee": 538,
+        "feeRate": 76,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02f1a8c8-03864ef0",
+      "source": "02f1a8c87607f415c8f22c00593002775941dea48869ce23096af27b0cfdcc0b69",
+      "target": "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 27.0843,
+        "baseFee": 90,
+        "feeRate": 180,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02f1a8c8-0260fab6",
+      "source": "02f1a8c87607f415c8f22c00593002775941dea48869ce23096af27b0cfdcc0b69",
+      "target": "0260fab633066ed7b1d9b9b8a0fac87e1579d1709e874d28a0d171a1f5c43bb877",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 6.3083,
+        "baseFee": 819,
+        "feeRate": 0,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02f1a8c8-033e9ce4",
+      "source": "02f1a8c87607f415c8f22c00593002775941dea48869ce23096af27b0cfdcc0b69",
+      "target": "033e9ce4e8f0e68f7db49ffb6b9eecc10605f3f3fcb3c630545887749ab515b9c7",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 27.0843,
+        "baseFee": 857,
+        "feeRate": 167,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0294ac3e-03423790",
+      "source": "0294ac3e099def03c12a37e30fe5364b1223fd60069869142ef96580c8439c2e0a",
+      "target": "03423790614f023e3c0cdaa654a3578e919947e4c3a14bf5044e7c787ebd11af1a",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 5.7949,
+        "baseFee": 58,
+        "feeRate": 147,
+        "isAnomalous": true
+      }
+    },
+    {
+      "id": "e-0294ac3e-03271338",
+      "source": "0294ac3e099def03c12a37e30fe5364b1223fd60069869142ef96580c8439c2e0a",
+      "target": "03271338633d2d37b285dae4df40b413d8c6c791fbee7797bc5dc70812196d7d5c",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 3.7982,
+        "baseFee": 792,
+        "feeRate": 110,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0294ac3e-03cde60a",
+      "source": "0294ac3e099def03c12a37e30fe5364b1223fd60069869142ef96580c8439c2e0a",
+      "target": "03cde60a6323f7122d5178255766e38114b4722ede08f7c9e0c5df9b912cc201d6",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 50.8047,
+        "baseFee": 703,
+        "feeRate": 13,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03ccc570-03423790",
+      "source": "03ccc570ec6aaff08d5435b3413f4b4af8175728a1ed244e4710121c8f5af6ea07",
+      "target": "03423790614f023e3c0cdaa654a3578e919947e4c3a14bf5044e7c787ebd11af1a",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0412,
+        "baseFee": 918,
+        "feeRate": 21,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03ccc570-02c95342",
+      "source": "03ccc570ec6aaff08d5435b3413f4b4af8175728a1ed244e4710121c8f5af6ea07",
+      "target": "02c953421bc7f07be6052920e46843d11e6d3ffc9986177c91f140d76c6ed3a3d4",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0412,
+        "baseFee": 120,
+        "feeRate": 197,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03ccc570-0217890e",
+      "source": "03ccc570ec6aaff08d5435b3413f4b4af8175728a1ed244e4710121c8f5af6ea07",
+      "target": "0217890e3aad8d35bc054f43acc00084b25229ecff0ab68debd82883ad65ee8266",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0412,
+        "baseFee": 44,
+        "feeRate": 92,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02c95342-03864ef0",
+      "source": "02c953421bc7f07be6052920e46843d11e6d3ffc9986177c91f140d76c6ed3a3d4",
+      "target": "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0598,
+        "baseFee": 911,
+        "feeRate": 130,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02c95342-0324ba23",
+      "source": "02c953421bc7f07be6052920e46843d11e6d3ffc9986177c91f140d76c6ed3a3d4",
+      "target": "0324ba2392e25bff76abd0b1f7e4b53b5f82aa53fddc3419b051b6c801db9e2247",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0598,
+        "baseFee": 369,
+        "feeRate": 52,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02c95342-023d70f2",
+      "source": "02c953421bc7f07be6052920e46843d11e6d3ffc9986177c91f140d76c6ed3a3d4",
+      "target": "023d70f2f76d283c6c4e58109ee3a2816eb9d8feb40b23d62469060a2b2867b77f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0598,
+        "baseFee": 235,
+        "feeRate": 90,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-033d8656-03a93b87",
+      "source": "033d8656219478701227199cbd6f670335c8d408a92ae88b962c49d4dc0e83e025",
+      "target": "03a93b87bf9f052b8e862d51ebbac4ce5e97b5f4137563cd5128548d7f5978dda9",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 17.9616,
+        "baseFee": 529,
+        "feeRate": 184,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-033d8656-03afa7a8",
+      "source": "033d8656219478701227199cbd6f670335c8d408a92ae88b962c49d4dc0e83e025",
+      "target": "03afa7a8196dbca763ee6f9a34b634a7adc03f154e5d6979fe654db5606b5fb2b1",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.9216,
+        "baseFee": 818,
+        "feeRate": 77,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03cde60a-02f1a8c8",
+      "source": "03cde60a6323f7122d5178255766e38114b4722ede08f7c9e0c5df9b912cc201d6",
+      "target": "02f1a8c87607f415c8f22c00593002775941dea48869ce23096af27b0cfdcc0b69",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 27.0843,
+        "baseFee": 514,
+        "feeRate": 177,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03cde60a-02c95342",
+      "source": "03cde60a6323f7122d5178255766e38114b4722ede08f7c9e0c5df9b912cc201d6",
+      "target": "02c953421bc7f07be6052920e46843d11e6d3ffc9986177c91f140d76c6ed3a3d4",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0598,
+        "baseFee": 350,
+        "feeRate": 43,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03cde60a-034ea80f",
+      "source": "03cde60a6323f7122d5178255766e38114b4722ede08f7c9e0c5df9b912cc201d6",
+      "target": "034ea80f8b148c750463546bd999bf7321a0e6dfc60aaf84bd0400a2e8d376c0d5",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 42.3343,
+        "baseFee": 536,
+        "feeRate": 152,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02616585-03c8e5f5",
+      "source": "026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2",
+      "target": "03c8e5f583585cac1de2b7503a6ccd3c12ba477cfd139cd4905be504c2f48e86bd",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 9.8171,
+        "baseFee": 625,
+        "feeRate": 0,
+        "isAnomalous": true
+      }
+    },
+    {
+      "id": "e-02616585-0298f607",
+      "source": "026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2",
+      "target": "0298f6074a454a1f5345cb2a7c6f9fce206cd0bf675d177cdbf0ca7508dd28852f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 4.0353,
+        "baseFee": 622,
+        "feeRate": 2,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02616585-0294ac3e",
+      "source": "026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2",
+      "target": "0294ac3e099def03c12a37e30fe5364b1223fd60069869142ef96580c8439c2e0a",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 16.8901,
+        "baseFee": 680,
+        "feeRate": 112,
+        "isAnomalous": true
+      }
+    },
+    {
+      "id": "e-02616585-0260fab6",
+      "source": "026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2",
+      "target": "0260fab633066ed7b1d9b9b8a0fac87e1579d1709e874d28a0d171a1f5c43bb877",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 6.3083,
+        "baseFee": 521,
+        "feeRate": 172,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-037659a0-033d8656",
+      "source": "037659a0ac8eb3b8d0a720114efc861d3a940382dcfa1403746b4f8f6b2e8810ba",
+      "target": "033d8656219478701227199cbd6f670335c8d408a92ae88b962c49d4dc0e83e025",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 7.8421,
+        "baseFee": 321,
+        "feeRate": 142,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-037659a0-03d1739d",
+      "source": "037659a0ac8eb3b8d0a720114efc861d3a940382dcfa1403746b4f8f6b2e8810ba",
+      "target": "03d1739dcb86ce7a48d1b372aaaa94ff836566d5e87f6e4bbca9e8cdc9ddfce1ec",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 4.6198,
+        "baseFee": 471,
+        "feeRate": 115,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-037659a0-03271338",
+      "source": "037659a0ac8eb3b8d0a720114efc861d3a940382dcfa1403746b4f8f6b2e8810ba",
+      "target": "03271338633d2d37b285dae4df40b413d8c6c791fbee7797bc5dc70812196d7d5c",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 3.7982,
+        "baseFee": 811,
+        "feeRate": 90,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0364913d-0298f607",
+      "source": "0364913d18a19c671bb36dd04d6ad5be0fe8f2894314c36a9db3f03c2d414907e1",
+      "target": "0298f6074a454a1f5345cb2a7c6f9fce206cd0bf675d177cdbf0ca7508dd28852f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 3.1757,
+        "baseFee": 182,
+        "feeRate": 185,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0364913d-02710044",
+      "source": "0364913d18a19c671bb36dd04d6ad5be0fe8f2894314c36a9db3f03c2d414907e1",
+      "target": "027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 3.1757,
+        "baseFee": 879,
+        "feeRate": 117,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02710044-035e4ff4",
+      "source": "027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190",
+      "target": "035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 15.5259,
+        "baseFee": 615,
+        "feeRate": 3,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02710044-02c95342",
+      "source": "027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190",
+      "target": "02c953421bc7f07be6052920e46843d11e6d3ffc9986177c91f140d76c6ed3a3d4",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0598,
+        "baseFee": 914,
+        "feeRate": 37,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-02710044-03d1739d",
+      "source": "027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190",
+      "target": "03d1739dcb86ce7a48d1b372aaaa94ff836566d5e87f6e4bbca9e8cdc9ddfce1ec",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 4.6198,
+        "baseFee": 588,
+        "feeRate": 36,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03fe47fd-030c3f19",
+      "source": "03fe47fdfea0f25fad0013498e8d6cec348ae3d673841ec25ee94f87c21af16ed8",
+      "target": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.8282,
+        "baseFee": 100,
+        "feeRate": 66,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03fe47fd-03423790",
+      "source": "03fe47fdfea0f25fad0013498e8d6cec348ae3d673841ec25ee94f87c21af16ed8",
+      "target": "03423790614f023e3c0cdaa654a3578e919947e4c3a14bf5044e7c787ebd11af1a",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 5.7949,
+        "baseFee": 243,
+        "feeRate": 98,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03fe47fd-03c8e5f5",
+      "source": "03fe47fdfea0f25fad0013498e8d6cec348ae3d673841ec25ee94f87c21af16ed8",
+      "target": "03c8e5f583585cac1de2b7503a6ccd3c12ba477cfd139cd4905be504c2f48e86bd",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 9.8171,
+        "baseFee": 101,
+        "feeRate": 96,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03fe47fd-035e4ff4",
+      "source": "03fe47fdfea0f25fad0013498e8d6cec348ae3d673841ec25ee94f87c21af16ed8",
+      "target": "035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 15.5259,
+        "baseFee": 70,
+        "feeRate": 158,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0324ba23-03864ef0",
+      "source": "0324ba2392e25bff76abd0b1f7e4b53b5f82aa53fddc3419b051b6c801db9e2247",
+      "target": "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 6.1273,
+        "baseFee": 678,
+        "feeRate": 62,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0324ba23-034ea80f",
+      "source": "0324ba2392e25bff76abd0b1f7e4b53b5f82aa53fddc3419b051b6c801db9e2247",
+      "target": "034ea80f8b148c750463546bd999bf7321a0e6dfc60aaf84bd0400a2e8d376c0d5",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 6.1273,
+        "baseFee": 671,
+        "feeRate": 52,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0324ba23-02710044",
+      "source": "0324ba2392e25bff76abd0b1f7e4b53b5f82aa53fddc3419b051b6c801db9e2247",
+      "target": "027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 6.1273,
+        "baseFee": 498,
+        "feeRate": 11,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0260fab6-023d70f2",
+      "source": "0260fab633066ed7b1d9b9b8a0fac87e1579d1709e874d28a0d171a1f5c43bb877",
+      "target": "023d70f2f76d283c6c4e58109ee3a2816eb9d8feb40b23d62469060a2b2867b77f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.37,
+        "baseFee": 131,
+        "feeRate": 152,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0260fab6-03a93b87",
+      "source": "0260fab633066ed7b1d9b9b8a0fac87e1579d1709e874d28a0d171a1f5c43bb877",
+      "target": "03a93b87bf9f052b8e862d51ebbac4ce5e97b5f4137563cd5128548d7f5978dda9",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 6.3083,
+        "baseFee": 144,
+        "feeRate": 133,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0260fab6-0294ac3e",
+      "source": "0260fab633066ed7b1d9b9b8a0fac87e1579d1709e874d28a0d171a1f5c43bb877",
+      "target": "0294ac3e099def03c12a37e30fe5364b1223fd60069869142ef96580c8439c2e0a",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 6.3083,
+        "baseFee": 759,
+        "feeRate": 100,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03423790-02616585",
+      "source": "03423790614f023e3c0cdaa654a3578e919947e4c3a14bf5044e7c787ebd11af1a",
+      "target": "026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 5.7949,
+        "baseFee": 129,
+        "feeRate": 91,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03423790-033e9ce4",
+      "source": "03423790614f023e3c0cdaa654a3578e919947e4c3a14bf5044e7c787ebd11af1a",
+      "target": "033e9ce4e8f0e68f7db49ffb6b9eecc10605f3f3fcb3c630545887749ab515b9c7",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 5.7949,
+        "baseFee": 672,
+        "feeRate": 77,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-023d70f2-03d1739d",
+      "source": "023d70f2f76d283c6c4e58109ee3a2816eb9d8feb40b23d62469060a2b2867b77f",
+      "target": "03d1739dcb86ce7a48d1b372aaaa94ff836566d5e87f6e4bbca9e8cdc9ddfce1ec",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.37,
+        "baseFee": 174,
+        "feeRate": 135,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-023d70f2-03d6c337",
+      "source": "023d70f2f76d283c6c4e58109ee3a2816eb9d8feb40b23d62469060a2b2867b77f",
+      "target": "03d6c33746ea3222f5fcd9ecd469c7106df702f74ffdecc2ed88f76714ed87fae0",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.37,
+        "baseFee": 160,
+        "feeRate": 165,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-0298f607-03d6c337",
+      "source": "0298f6074a454a1f5345cb2a7c6f9fce206cd0bf675d177cdbf0ca7508dd28852f",
+      "target": "03d6c33746ea3222f5fcd9ecd469c7106df702f74ffdecc2ed88f76714ed87fae0",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 4.0353,
+        "baseFee": 902,
+        "feeRate": 111,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-034ea80f-0294ac3e",
+      "source": "034ea80f8b148c750463546bd999bf7321a0e6dfc60aaf84bd0400a2e8d376c0d5",
+      "target": "0294ac3e099def03c12a37e30fe5364b1223fd60069869142ef96580c8439c2e0a",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 42.3343,
+        "baseFee": 781,
+        "feeRate": 84,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-034ea80f-0260fab6",
+      "source": "034ea80f8b148c750463546bd999bf7321a0e6dfc60aaf84bd0400a2e8d376c0d5",
+      "target": "0260fab633066ed7b1d9b9b8a0fac87e1579d1709e874d28a0d171a1f5c43bb877",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 6.3083,
+        "baseFee": 303,
+        "feeRate": 43,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-035b1ff2-03864ef0",
+      "source": "035b1ff29e8db1ba8f2a4f4f95db239b54069cb949b8cde329418e2a83da4f1b30",
+      "target": "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.6559,
+        "baseFee": 901,
+        "feeRate": 152,
+        "isAnomalous": true
+      }
+    },
+    {
+      "id": "e-035b1ff2-03d6c337",
+      "source": "035b1ff29e8db1ba8f2a4f4f95db239b54069cb949b8cde329418e2a83da4f1b30",
+      "target": "03d6c33746ea3222f5fcd9ecd469c7106df702f74ffdecc2ed88f76714ed87fae0",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.6559,
+        "baseFee": 866,
+        "feeRate": 154,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03c8e5f5-030c3f19",
+      "source": "03c8e5f583585cac1de2b7503a6ccd3c12ba477cfd139cd4905be504c2f48e86bd",
+      "target": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.8282,
+        "baseFee": 622,
+        "feeRate": 45,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03c8e5f5-03a93b87",
+      "source": "03c8e5f583585cac1de2b7503a6ccd3c12ba477cfd139cd4905be504c2f48e86bd",
+      "target": "03a93b87bf9f052b8e862d51ebbac4ce5e97b5f4137563cd5128548d7f5978dda9",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 9.8171,
+        "baseFee": 208,
+        "feeRate": 146,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03c8e5f5-0294ac3e",
+      "source": "03c8e5f583585cac1de2b7503a6ccd3c12ba477cfd139cd4905be504c2f48e86bd",
+      "target": "0294ac3e099def03c12a37e30fe5364b1223fd60069869142ef96580c8439c2e0a",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 9.8171,
+        "baseFee": 964,
+        "feeRate": 13,
+        "isAnomalous": true
+      }
+    },
+    {
+      "id": "e-030c3f19-03271338",
+      "source": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+      "target": "03271338633d2d37b285dae4df40b413d8c6c791fbee7797bc5dc70812196d7d5c",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.8282,
+        "baseFee": 618,
+        "feeRate": 129,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-030c3f19-023d70f2",
+      "source": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+      "target": "023d70f2f76d283c6c4e58109ee3a2816eb9d8feb40b23d62469060a2b2867b77f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.37,
+        "baseFee": 198,
+        "feeRate": 172,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-030c3f19-02c95342",
+      "source": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+      "target": "02c953421bc7f07be6052920e46843d11e6d3ffc9986177c91f140d76c6ed3a3d4",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0598,
+        "baseFee": 190,
+        "feeRate": 92,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-030c3f19-033e9ce4",
+      "source": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+      "target": "033e9ce4e8f0e68f7db49ffb6b9eecc10605f3f3fcb3c630545887749ab515b9c7",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.8282,
+        "baseFee": 456,
+        "feeRate": 122,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03d6c337-03fe47fd",
+      "source": "03d6c33746ea3222f5fcd9ecd469c7106df702f74ffdecc2ed88f76714ed87fae0",
+      "target": "03fe47fdfea0f25fad0013498e8d6cec348ae3d673841ec25ee94f87c21af16ed8",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 4.7339,
+        "baseFee": 443,
+        "feeRate": 99,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03d6c337-03d1739d",
+      "source": "03d6c33746ea3222f5fcd9ecd469c7106df702f74ffdecc2ed88f76714ed87fae0",
+      "target": "03d1739dcb86ce7a48d1b372aaaa94ff836566d5e87f6e4bbca9e8cdc9ddfce1ec",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 4.6198,
+        "baseFee": 676,
+        "feeRate": 165,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03d6c337-0217890e",
+      "source": "03d6c33746ea3222f5fcd9ecd469c7106df702f74ffdecc2ed88f76714ed87fae0",
+      "target": "0217890e3aad8d35bc054f43acc00084b25229ecff0ab68debd82883ad65ee8266",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.771,
+        "baseFee": 378,
+        "feeRate": 80,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03a93b87-035b1ff2",
+      "source": "03a93b87bf9f052b8e862d51ebbac4ce5e97b5f4137563cd5128548d7f5978dda9",
+      "target": "035b1ff29e8db1ba8f2a4f4f95db239b54069cb949b8cde329418e2a83da4f1b30",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.6559,
+        "baseFee": 319,
+        "feeRate": 120,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03a93b87-0217890e",
+      "source": "03a93b87bf9f052b8e862d51ebbac4ce5e97b5f4137563cd5128548d7f5978dda9",
+      "target": "0217890e3aad8d35bc054f43acc00084b25229ecff0ab68debd82883ad65ee8266",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.771,
+        "baseFee": 760,
+        "feeRate": 173,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03afa7a8-02f1a8c8",
+      "source": "03afa7a8196dbca763ee6f9a34b634a7adc03f154e5d6979fe654db5606b5fb2b1",
+      "target": "02f1a8c87607f415c8f22c00593002775941dea48869ce23096af27b0cfdcc0b69",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.9216,
+        "baseFee": 958,
+        "feeRate": 65,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03afa7a8-035b1ff2",
+      "source": "03afa7a8196dbca763ee6f9a34b634a7adc03f154e5d6979fe654db5606b5fb2b1",
+      "target": "035b1ff29e8db1ba8f2a4f4f95db239b54069cb949b8cde329418e2a83da4f1b30",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.9216,
+        "baseFee": 293,
+        "feeRate": 95,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03d1739d-03423790",
+      "source": "03d1739dcb86ce7a48d1b372aaaa94ff836566d5e87f6e4bbca9e8cdc9ddfce1ec",
+      "target": "03423790614f023e3c0cdaa654a3578e919947e4c3a14bf5044e7c787ebd11af1a",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 4.6198,
+        "baseFee": 159,
+        "feeRate": 196,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03d1739d-03ccc570",
+      "source": "03d1739dcb86ce7a48d1b372aaaa94ff836566d5e87f6e4bbca9e8cdc9ddfce1ec",
+      "target": "03ccc570ec6aaff08d5435b3413f4b4af8175728a1ed244e4710121c8f5af6ea07",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 0.0412,
+        "baseFee": 598,
+        "feeRate": 44,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03d1739d-030c3f19",
+      "source": "03d1739dcb86ce7a48d1b372aaaa94ff836566d5e87f6e4bbca9e8cdc9ddfce1ec",
+      "target": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 1.8282,
+        "baseFee": 565,
+        "feeRate": 113,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03d1739d-03a93b87",
+      "source": "03d1739dcb86ce7a48d1b372aaaa94ff836566d5e87f6e4bbca9e8cdc9ddfce1ec",
+      "target": "03a93b87bf9f052b8e862d51ebbac4ce5e97b5f4137563cd5128548d7f5978dda9",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 4.6198,
+        "baseFee": 489,
+        "feeRate": 61,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03271338-03fe47fd",
+      "source": "03271338633d2d37b285dae4df40b413d8c6c791fbee7797bc5dc70812196d7d5c",
+      "target": "03fe47fdfea0f25fad0013498e8d6cec348ae3d673841ec25ee94f87c21af16ed8",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 3.7982,
+        "baseFee": 389,
+        "feeRate": 11,
+        "isAnomalous": false
+      }
+    },
+    {
+      "id": "e-03271338-03cde60a",
+      "source": "03271338633d2d37b285dae4df40b413d8c6c791fbee7797bc5dc70812196d7d5c",
+      "target": "03cde60a6323f7122d5178255766e38114b4722ede08f7c9e0c5df9b912cc201d6",
+      "type": "lightningEdge",
+      "data": {
+        "capacity": 3.7982,
+        "baseFee": 741,
+        "feeRate": 110,
+        "isAnomalous": false
+      }
+    }
+  ],
+  "fetchedAt": "2026-02-22T00:43:31.688Z"
+}
