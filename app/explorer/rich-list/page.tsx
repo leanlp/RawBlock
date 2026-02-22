@@ -63,11 +63,19 @@ export default function RichListPage() {
                 }
                 const data = (await res.json()) as unknown;
                 const normalized = Array.isArray(data) ? data.map(normalizeWhale) : [];
+                if (normalized.length === 0) {
+                    throw new Error("EMPTY_SNAPSHOT");
+                }
                 setWhales(normalized);
             } catch (err) {
                 if ((err as Error).name === 'AbortError') return;
                 console.error('Failed to load rich list:', err);
-                setError('Unable to load rich list snapshot from backend.');
+                const message = err instanceof Error ? err.message : "";
+                setError(
+                    message === "EMPTY_SNAPSHOT"
+                        ? "Rich list snapshot is temporarily unavailable (empty response). Please retry after the next backend snapshot refresh."
+                        : "Unable to load rich list snapshot from backend."
+                );
             } finally {
                 setLoading(false);
             }
@@ -228,6 +236,15 @@ export default function RichListPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/50">
+                                {!filteredWhales.length && !loading && (
+                                    <tr>
+                                        <td colSpan={6} className="p-6 text-center text-sm text-slate-400">
+                                            {error
+                                                ? "No rich-list rows available while the backend snapshot is unavailable."
+                                                : "No rows match the current filter."}
+                                        </td>
+                                    </tr>
+                                )}
                                 {filteredWhales.map((whale) => (
                                     <tr
                                         key={whale.rank}

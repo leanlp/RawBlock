@@ -31,7 +31,7 @@ export default function Footer() {
                         {t.footer.aboutAndTrust}
                     </Link>
                     <Link
-                        href="https://github.com/rawblock"
+                        href="https://github.com/leanlp/rawblock"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center gap-2 text-sm min-h-11"

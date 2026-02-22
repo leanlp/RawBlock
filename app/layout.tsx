@@ -11,12 +11,7 @@ export const metadata: Metadata = {
 };
 
 const uiFont = localFont({
-  src: [
-    { path: "./fonts/SpaceGrotesk-Regular.ttf", weight: "400", style: "normal" },
-    { path: "./fonts/SpaceGrotesk-Medium.ttf", weight: "500", style: "normal" },
-    { path: "./fonts/SpaceGrotesk-SemiBold.ttf", weight: "600", style: "normal" },
-    { path: "./fonts/SpaceGrotesk-Bold.ttf", weight: "700", style: "normal" },
-  ],
+  src: [{ path: "./fonts/SpaceGrotesk-Variable.ttf", weight: "300 700", style: "normal" }],
   variable: "--font-ui",
   display: "swap",
   preload: true,
@@ -24,15 +19,10 @@ const uiFont = localFont({
 });
 
 const codeFont = localFont({
-  src: [
-    { path: "./fonts/JetBrainsMono-Regular.ttf", weight: "400", style: "normal" },
-    { path: "./fonts/JetBrainsMono-Medium.ttf", weight: "500", style: "normal" },
-    { path: "./fonts/JetBrainsMono-SemiBold.ttf", weight: "600", style: "normal" },
-    { path: "./fonts/JetBrainsMono-Bold.ttf", weight: "700", style: "normal" },
-  ],
+  src: [{ path: "./fonts/JetBrainsMono-Variable.ttf", weight: "300 800", style: "normal" }],
   variable: "--font-code",
   display: "swap",
-  preload: true,
+  preload: false,
   fallback: ["SFMono-Regular", "Consolas", "Liberation Mono", "monospace"],
 });
 
@@ -43,7 +33,7 @@ const displayFont = localFont({
   ],
   variable: "--font-display",
   display: "swap",
-  preload: true,
+  preload: false,
   fallback: ["Eurostile", "Segoe UI", "Helvetica Neue", "Arial", "sans-serif"],
 });
 
