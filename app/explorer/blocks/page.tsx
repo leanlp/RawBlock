@@ -6,6 +6,7 @@ import Header from "../../../components/Header";
 import Card, { CardRow, MetricValue } from "../../../components/Card";
 import EmptyState, { LoadingState, ErrorState } from "../../../components/EmptyState";
 import PageHeader from "../../../components/PageHeader";
+import { useTranslation } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -41,12 +42,12 @@ const TARGET_BLOCK_INTERVAL_SECONDS = 10 * 60;
 
 const formatHashCompact = (hash: string) => `${hash.slice(0, 10)}...${hash.slice(-8)}`;
 
-const formatAge = (seconds: number) => {
-    if (seconds < 10) return "just now";
-    if (seconds < 60) return `${seconds}s ago`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    return `${Math.floor(seconds / 86400)}d ago`;
+const formatAge = (seconds: number, t?: { justNow: string; agoSeconds: string; agoMinutes: string; agoHours: string; agoDays: string }) => {
+    if (seconds < 10) return t?.justNow ?? "just now";
+    if (seconds < 60) return (t?.agoSeconds ?? "{0}s ago").replace("{0}", String(seconds));
+    if (seconds < 3600) return (t?.agoMinutes ?? "{0}m ago").replace("{0}", String(Math.floor(seconds / 60)));
+    if (seconds < 86400) return (t?.agoHours ?? "{0}h ago").replace("{0}", String(Math.floor(seconds / 3600)));
+    return (t?.agoDays ?? "{0}d ago").replace("{0}", String(Math.floor(seconds / 86400)));
 };
 
 const pickMinerTone = (miner: string) => {
@@ -65,6 +66,7 @@ export default function BlocksIndexPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [nowMs, setNowMs] = useState(() => Date.now());
+    const { t } = useTranslation();
 
     const orderedBlocks = useMemo(() => {
         const dedupByHeight = new Map<number, BlockInfo>();
@@ -198,8 +200,8 @@ export default function BlocksIndexPage() {
                 <Header />
 
                 <PageHeader
-                    title="Latest Blocks"
-                    subtitle="Live chain cadence, miner attribution, and direct drill-down into every recent block."
+                    title={t.blocks.title}
+                    subtitle={t.blocks.subtitle}
                     icon="📦"
                     gradient="from-cyan-300 via-blue-400 to-indigo-500"
                     actions={(
@@ -208,13 +210,13 @@ export default function BlocksIndexPage() {
                             className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-200 transition hover:border-cyan-400/50 hover:bg-cyan-500/20"
                         >
                             <span className="text-base">↻</span>
-                            Refresh Feed
+                            {t.blocks.refreshFeed}
                         </button>
                     )}
                 />
 
                 {/* Loading State */}
-                {loading && <LoadingState message="Connecting to block feed..." />}
+                {loading && <LoadingState message={t.blocks.connectingToBlockFeed} />}
 
                 {/* Error State */}
                 {!loading && error && (
@@ -228,9 +230,9 @@ export default function BlocksIndexPage() {
                 {!loading && !error && orderedBlocks.length === 0 && (
                     <EmptyState
                         icon="📭"
-                        title="No Blocks Found"
-                        description="The node hasn't returned any blocks yet. Make sure your Bitcoin node is running and synced."
-                        action={{ label: "Refresh", onClick: fetchBlocks }}
+                        title={t.blocks.noBlocksFound}
+                        description={t.blocks.noBlocksDescription}
+                        action={{ label: t.blocks.refresh, onClick: fetchBlocks }}
                     />
                 )}
 
@@ -244,21 +246,21 @@ export default function BlocksIndexPage() {
                         >
                             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                    <p className="text-xs uppercase tracking-[0.22em] text-cyan-300/80">Feed Status</p>
+                                    <p className="text-xs uppercase tracking-[0.22em] text-cyan-300/80">{t.blocks.feedStatus}</p>
                                     <p className="mt-1 text-sm text-slate-300">
-                                        Real-time stream, auto-refresh every 15 seconds.
+                                        {t.blocks.realTimeStream}
                                     </p>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold text-emerald-300">
-                                        Local Backend
+                                        {t.blocks.localBackend}
                                     </span>
                                     <span className="rounded-full border border-slate-600 bg-slate-800/70 px-3 py-1 text-[11px] font-semibold text-slate-300">
-                                        30-block window
+                                        {t.blocks.blockWindow}
                                     </span>
                                     {insights && (
                                         <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-200">
-                                            Last block {formatAge(insights.latestAgeSec)}
+                                            {t.blocks.lastBlock} {formatAge(insights.latestAgeSec, t.common)}
                                         </span>
                                     )}
                                 </div>
@@ -271,8 +273,8 @@ export default function BlocksIndexPage() {
                                     <MetricValue
                                         icon="🧱"
                                         value={`#${insights.latestHeight.toLocaleString()}`}
-                                        label="Latest Height"
-                                        sublabel="Fresh chain tip from feed"
+                                        label={t.blocks.latestHeight}
+                                        sublabel={t.blocks.freshChainTip}
                                         accent="cyan"
                                     />
                                 </Card>
@@ -280,8 +282,8 @@ export default function BlocksIndexPage() {
                                     <MetricValue
                                         icon="⏱"
                                         value="10m"
-                                        label="Protocol Cadence"
-                                        sublabel="Target interval per block"
+                                        label={t.blocks.protocolCadence}
+                                        sublabel={t.blocks.targetInterval}
                                         accent="violet"
                                     />
                                 </Card>
@@ -289,17 +291,17 @@ export default function BlocksIndexPage() {
                                     <MetricValue
                                         icon="⛏️"
                                         value={insights.uniqueMiners}
-                                        label="Active Miners"
-                                        sublabel={`${insights.sampleSpanMin} min observation span`}
+                                        label={t.blocks.activeMiners}
+                                        sublabel={t.blocks.minObservationSpan.replace("{0}", String(insights.sampleSpanMin))}
                                         accent="emerald"
                                     />
                                 </Card>
                                 <Card variant="metric" accent="blue">
                                     <MetricValue
                                         icon="🛰️"
-                                        value={formatAge(insights.latestAgeSec)}
-                                        label="Tip Freshness"
-                                        sublabel="Updates every 15s"
+                                        value={formatAge(insights.latestAgeSec, t.common)}
+                                        label={t.blocks.tipFreshness}
+                                        sublabel={t.blocks.updatesEvery15s}
                                         accent="blue"
                                     />
                                 </Card>
@@ -323,15 +325,15 @@ export default function BlocksIndexPage() {
                                                 {block.miner}
                                             </span>
                                         </div>
-                                        <span className="text-sm text-cyan-500">{formatAge(displayAgeSecondsByHash[block.hash] ?? Math.max(0, Math.floor(nowMs / 1000 - block.time)))}</span>
+                                        <span className="text-sm text-cyan-500">{formatAge(displayAgeSecondsByHash[block.hash] ?? Math.max(0, Math.floor(nowMs / 1000 - block.time)), t.common)}</span>
                                     </div>
                                     <CardRow
-                                        label="Hash"
+                                        label={t.blocks.hash}
                                         value={formatHashCompact(block.hash)}
                                         mono
                                     />
                                     <CardRow
-                                        label="Timeline"
+                                        label={t.blocks.timeline}
                                         value={new Date((timelineSecondsByHash[block.hash] ?? block.time) * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                                         mono
                                     />
@@ -343,22 +345,22 @@ export default function BlocksIndexPage() {
                         <Card variant="panel" className="hidden overflow-hidden border-slate-700/80 p-0 md:block">
                             <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/70 px-6 py-4">
                                 <div>
-                                    <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">Recent Blocks Ledger</h3>
-                                    <p className="mt-1 text-xs text-slate-500">Click any row to inspect full block DNA and transactions. Timeline uses protocol target cadence (10m) anchored to tip.</p>
+                                    <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">{t.blocks.recentBlocksLedger}</h3>
+                                    <p className="mt-1 text-xs text-slate-500">{t.blocks.recentBlocksDescription}</p>
                                 </div>
                                 <span className="rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1 text-xs font-mono text-slate-300">
-                                    {orderedBlocks.length} entries
+                                    {orderedBlocks.length} {t.blocks.entries}
                                 </span>
                             </div>
 
                             <table className="w-full text-left text-sm text-slate-300">
                                 <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-500">
                                     <tr>
-                                        <th className="px-6 py-3 font-medium">Height</th>
-                                        <th className="px-6 py-3 font-medium">Hash</th>
-                                        <th className="px-6 py-3 font-medium">Miner</th>
-                                        <th className="px-6 py-3 font-medium text-right">Header Age</th>
-                                        <th className="px-6 py-3 font-medium text-right">Timeline</th>
+                                        <th className="px-6 py-3 font-medium">{t.blocks.height}</th>
+                                        <th className="px-6 py-3 font-medium">{t.blocks.hash}</th>
+                                        <th className="px-6 py-3 font-medium">{t.blocks.miner}</th>
+                                        <th className="px-6 py-3 font-medium text-right">{t.blocks.headerAge}</th>
+                                        <th className="px-6 py-3 font-medium text-right">{t.blocks.timeline}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-800/70">
@@ -387,7 +389,7 @@ export default function BlocksIndexPage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right font-mono text-xs text-cyan-400/90">
-                                                {formatAge(displayAgeSecondsByHash[block.hash] ?? Math.max(0, Math.floor(nowMs / 1000 - block.time)))}
+                                                {formatAge(displayAgeSecondsByHash[block.hash] ?? Math.max(0, Math.floor(nowMs / 1000 - block.time)), t.common)}
                                             </td>
                                             <td
                                                 className="px-6 py-4 text-right font-mono text-slate-500 group-hover:text-slate-300"
@@ -400,7 +402,7 @@ export default function BlocksIndexPage() {
                                 </tbody>
                             </table>
                             <div className="border-t border-slate-800 bg-slate-900/40 px-6 py-2 text-right text-[11px] text-slate-500">
-                                Timeline is normalized to 10m/block for coherence. Hover title on time cells to inspect raw node header times.
+                                {t.blocks.timelineFooter}
                             </div>
                         </Card>
                     </>

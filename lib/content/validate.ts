@@ -41,11 +41,11 @@ function verifyResearchNodeReferencesResolvable(
 
 export function validateContentSchemas() {
   // Accessors already parse via zod at module load.
-  getAllAcademyNodeContent();
-  const vulnerabilities = getResearchVulnerabilities();
-  const attacks = getResearchAttacks();
-  const assumptions = getResearchAssumptions();
-  const policyVsConsensus = getResearchPolicyVsConsensus();
+  getAllAcademyNodeContent("en");
+  const vulnerabilities = getResearchVulnerabilities("en");
+  const attacks = getResearchAttacks("en");
+  const assumptions = getResearchAssumptions("en");
+  const policyVsConsensus = getResearchPolicyVsConsensus("en");
 
   const routableAcademyNodeIds = getRoutableAcademyNodeIds();
   verifyEdgeRoutesResolvable(routableAcademyNodeIds);

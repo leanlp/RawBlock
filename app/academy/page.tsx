@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import Header from "@/components/Header";
+import { useTranslation } from "@/lib/i18n";
 import { getAllPaths } from "@/lib/graph/pathEngine";
 import { graphStore } from "@/lib/graph/store";
 
 export default function AcademyLandingPage() {
+  const { t } = useTranslation();
   const paths = getAllPaths();
   const [query, setQuery] = useState("");
 
@@ -29,9 +31,9 @@ export default function AcademyLandingPage() {
         </div>
         <header className="page-header">
           <p className="page-kicker">Academy</p>
-          <h1 className="page-title">Graph-Driven Learning</h1>
+          <h1 className="page-title">{t.academy.title}</h1>
           <p className="page-subtitle">
-            Learn Bitcoin protocol concepts through structured graph nodes and ordered paths.
+            {t.academy.subtitle}
           </p>
         </header>
 

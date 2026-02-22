@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/lib/i18n";
 
 interface EmptyStateProps {
     icon?: string;
@@ -64,11 +65,12 @@ export default function EmptyState({
 /**
  * Loading state with optional message
  */
-export function LoadingState({ message = "Loading..." }: { message?: string }) {
+export function LoadingState({ message }: { message?: string }) {
+    const { t } = useTranslation();
     return (
         <div className="flex flex-col items-center justify-center py-16">
             <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-slate-500 text-sm">{message}</p>
+            <p className="text-slate-500 text-sm">{message ?? t.common.loading}</p>
         </div>
     );
 }
@@ -77,23 +79,24 @@ export function LoadingState({ message = "Loading..." }: { message?: string }) {
  * Error state with retry action
  */
 export function ErrorState({
-    message = "Something went wrong",
+    message,
     onRetry
 }: {
     message?: string;
     onRetry?: () => void;
 }) {
+    const { t } = useTranslation();
     const apiUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
     return (
         <EmptyState
             icon="⚠️"
-            title="Connection Error"
-            description={message}
-            action={onRetry ? { label: "Try Again", onClick: onRetry } : undefined}
+            title={t.common.connectionError}
+            description={message ?? t.common.somethingWentWrong}
+            action={onRetry ? { label: t.common.tryAgain, onClick: onRetry } : undefined}
             secondaryAction={
                 apiUrl
                     ? {
-                        label: "Check Node",
+                        label: t.common.checkNode,
                         onClick: () => window.open(apiUrl, "_blank")
                     }
                     : undefined

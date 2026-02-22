@@ -3,85 +3,85 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Twitter, Linkedin, ChevronLeft, ChevronRight, House, CheckCircle2 } from "lucide-react";
+import { Twitter, Linkedin, ChevronLeft, ChevronRight, House, CheckCircle2, Globe } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
-import { GUIDED_LESSONS } from "../../data/guided-learning";
 import { useGuidedLearning } from "../providers/GuidedLearningProvider";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
 import GlobalSearch from "../explorer/GlobalSearch";
+import { useTranslation } from "@/lib/i18n";
 
 type NavItem = {
-    name: string;
+    nameKey: string;
     path: string;
     icon: string;
 };
 
 type NavSection = {
-    category: string;
+    categoryKey: string;
     items: NavItem[];
 };
 
 const NAV_ITEMS: NavSection[] = [
     {
-        category: "Start",
+        categoryKey: "start",
         items: [
-            { name: "Home", path: "/", icon: "🏠" },
+            { nameKey: "home", path: "/", icon: "🏠" },
         ]
     },
     {
-        category: "Explorer",
+        categoryKey: "explorer",
         items: [
-            { name: "Mempool", path: "/explorer/mempool", icon: "🌊" },
-            { name: "Network", path: "/explorer/network", icon: "🌍" },
-            { name: "Blocks", path: "/explorer/blocks", icon: "📦" },
-            { name: "Decoder", path: "/explorer/decoder", icon: "🔍" },
-            { name: "Rich List", path: "/explorer/rich-list", icon: "🐳" },
-            { name: "Fees", path: "/explorer/fees", icon: "💸" },
-            { name: "Miners", path: "/explorer/miners", icon: "⛏️" },
-            { name: "Vitals", path: "/explorer/vitals", icon: "🩺" },
-            { name: "UTXO Set", path: "/analysis/utxo", icon: "🔬" },
+            { nameKey: "mempool", path: "/explorer/mempool", icon: "🌊" },
+            { nameKey: "network", path: "/explorer/network", icon: "🌍" },
+            { nameKey: "blocks", path: "/explorer/blocks", icon: "📦" },
+            { nameKey: "decoder", path: "/explorer/decoder", icon: "🔍" },
+            { nameKey: "richList", path: "/explorer/rich-list", icon: "🐳" },
+            { nameKey: "fees", path: "/explorer/fees", icon: "💸" },
+            { nameKey: "miners", path: "/explorer/miners", icon: "⛏️" },
+            { nameKey: "vitals", path: "/explorer/vitals", icon: "🩺" },
+            { nameKey: "utxoSet", path: "/analysis/utxo", icon: "🔬" },
         ]
     },
     {
-        category: "Learn",
+        categoryKey: "learn",
         items: [
-            { name: "Script", path: "/lab/script", icon: "⚗️" },
-            { name: "Taproot", path: "/lab/taproot", icon: "🌱" },
-            { name: "Keys", path: "/lab/keys", icon: "🗝️" },
-            { name: "Hashing", path: "/lab/hashing", icon: "🔨" },
-            { name: "Consensus", path: "/lab/consensus", icon: "⚙️" },
-            { name: "Mempool Sim", path: "/game/mempool", icon: "🧪" },
+            { nameKey: "script", path: "/lab/script", icon: "⚗️" },
+            { nameKey: "taproot", path: "/lab/taproot", icon: "🌱" },
+            { nameKey: "keys", path: "/lab/keys", icon: "🗝️" },
+            { nameKey: "hashing", path: "/lab/hashing", icon: "🔨" },
+            { nameKey: "consensus", path: "/lab/consensus", icon: "⚙️" },
+            { nameKey: "mempoolSim", path: "/game/mempool", icon: "🧪" },
         ]
     },
     {
-        category: "Analysis",
+        categoryKey: "analysis",
         items: [
-            { name: "Forensics", path: "/analysis/forensics", icon: "🕵️‍♂️" },
-            { name: "Evolution", path: "/analysis/evolution", icon: "📈" },
-            { name: "D-Index", path: "/analysis/d-index", icon: "⚖️" },
-            { name: "Graffiti", path: "/analysis/graffiti", icon: "🎨" },
+            { nameKey: "forensics", path: "/analysis/forensics", icon: "🕵️‍♂️" },
+            { nameKey: "evolution", path: "/analysis/evolution", icon: "📈" },
+            { nameKey: "dIndex", path: "/analysis/d-index", icon: "⚖️" },
+            { nameKey: "graffiti", path: "/analysis/graffiti", icon: "🎨" },
         ]
     },
     {
-        category: "Simulations",
+        categoryKey: "simulations",
         items: [
-            { name: "Mempool Tetris", path: "/game/tetris", icon: "🧱" },
-            { name: "Mining Simulator", path: "/game/mining", icon: "⛏️" },
-            { name: "Lightning Simulator", path: "/lab/lightning", icon: "⚡" },
+            { nameKey: "mempoolTetris", path: "/game/tetris", icon: "🧱" },
+            { nameKey: "miningSimulator", path: "/game/mining", icon: "⛏️" },
+            { nameKey: "lightningSimulator", path: "/lab/lightning", icon: "⚡" },
         ]
     },
     {
-        category: "Knowledge",
+        categoryKey: "knowledge",
         items: [
-            { name: "Node Terminal", path: "/explorer/rpc", icon: "💻" },
-            { name: "Operations", path: "/ops", icon: "🛡️" },
-            { name: "About", path: "/about", icon: "ℹ️" },
-            { name: "Academy", path: "/academy", icon: "🎓" },
-            { name: "Research", path: "/research", icon: "📚" },
-            { name: "Vulnerabilities", path: "/research/vulnerabilities", icon: "🛡️" },
-            { name: "Attack Models", path: "/research/attacks", icon: "🎯" },
-            { name: "Assumptions", path: "/research/assumptions", icon: "📌" },
-            { name: "Policy vs Cons.", path: "/research/policy-vs-consensus", icon: "⚖️" },
+            { nameKey: "nodeTerminal", path: "/explorer/rpc", icon: "💻" },
+            { nameKey: "operations", path: "/ops", icon: "🛡️" },
+            { nameKey: "about", path: "/about", icon: "ℹ️" },
+            { nameKey: "academy", path: "/academy", icon: "🎓" },
+            { nameKey: "research", path: "/research", icon: "📚" },
+            { nameKey: "vulnerabilities", path: "/research/vulnerabilities", icon: "🛡️" },
+            { nameKey: "attackModels", path: "/research/attacks", icon: "🎯" },
+            { nameKey: "assumptions", path: "/research/assumptions", icon: "📌" },
+            { nameKey: "policyVsCons", path: "/research/policy-vs-consensus", icon: "⚖️" },
         ]
     },
 ];
@@ -93,6 +93,9 @@ export default function Sidebar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isScrollingDown, setIsScrollingDown] = useState(false);
     const { progressPercent, currentLessonIndex, completedLessons } = useGuidedLearning();
+    const { t, locale, setLocale } = useTranslation();
+    const GUIDED_LESSONS = t.guidedLearning;
+
     const lessonNumber = Math.min(currentLessonIndex + 1, GUIDED_LESSONS.length);
     const currentLessonTitle = GUIDED_LESSONS[lessonNumber - 1]?.title ?? GUIDED_LESSONS[0].title;
     const canonicalConceptCount = getCanonicalPath().orderedNodes.length;
@@ -107,7 +110,7 @@ export default function Sidebar() {
             }
         });
         return paths;
-    }, [completedLessons]);
+    }, [completedLessons, GUIDED_LESSONS]);
 
     const activeIndex = (() => {
         const candidates = ORDERED_MENU_PATHS
@@ -182,6 +185,18 @@ export default function Sidebar() {
         return () => window.removeEventListener("keydown", onKeyDown);
     }, [mobileOpen]);
 
+    const getCategoryName = (key: string) => {
+        return (t.nav.categories as Record<string, string>)[key] ?? key;
+    };
+
+    const getItemName = (key: string) => {
+        return (t.nav.items as Record<string, string>)[key] ?? key;
+    };
+
+    const toggleLocale = () => {
+        setLocale(locale === "en" ? "es" : "en");
+    };
+
     const sidebarContent = (
         <>
             <div className="p-3 border-b border-slate-800/50">
@@ -190,12 +205,12 @@ export default function Sidebar() {
             {showLearningJourney && (
                 <div className="border-b border-slate-800/50 px-3 py-3">
                     <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-                        <p className="text-[10px] uppercase tracking-widest text-slate-500">Learning Journey</p>
+                        <p className="text-[10px] uppercase tracking-widest text-slate-500">{t.nav.learningJourney}</p>
                         <p className="text-xs text-slate-300 mt-1">
-                            Guided Lesson {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
+                            {t.nav.guidedLesson} {lessonNumber}/{GUIDED_LESSONS.length}: {currentLessonTitle}
                         </p>
                         <p className="mt-1 text-[11px] text-slate-500">
-                            Path scope: {GUIDED_LESSONS.length} lessons • {canonicalConceptCount} concepts
+                            {t.nav.pathScope}: {GUIDED_LESSONS.length} {t.nav.lessons} • {canonicalConceptCount} {t.nav.concepts}
                         </p>
                         <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden mt-2">
                             <div
@@ -204,13 +219,13 @@ export default function Sidebar() {
                             />
                         </div>
                         <div className="mt-2 flex items-center justify-between">
-                            <span className="text-[11px] text-cyan-300">{progressPercent}% complete</span>
+                            <span className="text-[11px] text-cyan-300">{progressPercent}% {t.nav.complete}</span>
                             <Link
                                 href="/#guided-learning-mode"
                                 onClick={() => setMobileOpen(false)}
                                 className="inline-flex min-h-11 items-center rounded-md border border-slate-700/60 bg-slate-950/40 px-3 text-[11px] text-slate-200 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
                             >
-                                Resume
+                                {t.nav.resume}
                             </Link>
                         </div>
                     </div>
@@ -222,7 +237,7 @@ export default function Sidebar() {
                 {NAV_ITEMS.map((section, idx) => (
                     <div key={idx}>
                         <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-600 px-3 mb-3">
-                            {section.category}
+                            {getCategoryName(section.categoryKey)}
                         </h3>
                         <div className="space-y-1">
                             {section.items.map((item) => {
@@ -244,7 +259,7 @@ export default function Sidebar() {
                                         `}
                                     >
                                         <span className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center text-base leading-none">{item.icon}</span>
-                                        <span className="truncate text-[13px] font-medium leading-5 tracking-[0.01em]">{item.name}</span>
+                                        <span className="truncate text-[13px] font-medium leading-5 tracking-[0.01em]">{getItemName(item.nameKey)}</span>
                                         {completedPaths.has(item.path) && (
                                             <CheckCircle2 className="w-4 h-4 ml-auto text-emerald-500 flex-shrink-0" />
                                         )}
@@ -265,6 +280,19 @@ export default function Sidebar() {
 
             {/* Footer */}
             <div className="p-4 border-t border-slate-800/50 flex flex-col gap-4">
+                {/* Language Toggle */}
+                <div className="flex justify-center">
+                    <button
+                        onClick={toggleLocale}
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs font-medium text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
+                        aria-label="Toggle language"
+                    >
+                        <span>🌐</span>
+                        <span className={`px-1.5 py-0.5 rounded ${locale === "en" ? "bg-cyan-500/20 text-cyan-300" : "text-slate-500"}`}>EN</span>
+                        <span className="text-slate-600">|</span>
+                        <span className={`px-1.5 py-0.5 rounded ${locale === "es" ? "bg-cyan-500/20 text-cyan-300" : "text-slate-500"}`}>ES</span>
+                    </button>
+                </div>
                 <div className="flex justify-center gap-4">
                     <Link
                         href="https://x.com/rawblocknet"
@@ -291,20 +319,32 @@ export default function Sidebar() {
         <>
             {/* Mobile Bottom Navigation Bar */}
             <div className={`md:hidden fixed bottom-0 left-0 right-0 z-[90] bg-slate-950/95 backdrop-blur-xl border-t border-slate-900 flex items-center justify-between px-4 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] transition-transform duration-300 ${isScrollingDown && !mobileOpen ? 'translate-y-full' : 'translate-y-0'}`}>
-                {/* Hamburger Toggle */}
-                <button
-                    onClick={() => setMobileOpen(!mobileOpen)}
-                    className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
-                >
-                    <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {mobileOpen ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                        )}
-                    </svg>
-                    <span className="text-[10px] font-medium tracking-wide">Menu</span>
-                </button>
+                <div className="flex items-center gap-2">
+                    {/* Hamburger Toggle */}
+                    <button
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                    >
+                        <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {mobileOpen ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            )}
+                        </svg>
+                        <span className="text-[10px] font-medium tracking-wide">{t.nav.menu}</span>
+                    </button>
+
+                    {/* Language Toggle */}
+                    <button
+                        onClick={toggleLocale}
+                        className="flex min-h-11 min-w-11 flex-col items-center justify-center px-2 py-1 text-slate-400 hover:text-cyan-400 transition-colors"
+                        aria-label="Toggle Language"
+                    >
+                        <Globe size={24} className="mb-1" />
+                        <span className="text-[10px] font-medium tracking-wide uppercase">{locale === "en" ? "EN" : "ES"}</span>
+                    </button>
+                </div>
 
                 {/* Quick Routes inside bottom bar */}
                 <div className="flex items-center gap-6">
@@ -314,7 +354,7 @@ export default function Sidebar() {
                         aria-label="Previous menu page"
                     >
                         <ChevronLeft size={24} className="mb-1" />
-                        <span className="text-[10px] font-medium tracking-wide">Prev</span>
+                        <span className="text-[10px] font-medium tracking-wide">{t.nav.prev}</span>
                     </Link>
 
                     <Link
@@ -331,7 +371,7 @@ export default function Sidebar() {
                         aria-label="Next menu page"
                     >
                         <ChevronRight size={24} className="mb-1" />
-                        <span className="text-[10px] font-medium tracking-wide">Next</span>
+                        <span className="text-[10px] font-medium tracking-wide">{t.nav.next}</span>
                     </Link>
                 </div>
             </div>

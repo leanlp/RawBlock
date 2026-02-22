@@ -1,3 +1,6 @@
+import { type Locale } from "@/lib/i18n";
+import { GLOSSARY_ES } from "./glossary.es";
+
 export type GlossaryEntry = {
   key: string;
   term: string;
@@ -5,7 +8,7 @@ export type GlossaryEntry = {
   definition: string;
 };
 
-export const GLOSSARY: Record<string, GlossaryEntry> = {
+export const GLOSSARY_EN: Record<string, GlossaryEntry> = {
   utxo: {
     key: "utxo",
     term: "UTXO",
@@ -104,4 +107,10 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   },
 };
 
-export const GLOSSARY_ENTRIES = Object.values(GLOSSARY);
+export function getGlossary(locale: Locale): Record<string, GlossaryEntry> {
+  return locale === "es" ? GLOSSARY_ES : GLOSSARY_EN;
+}
+
+export function getGlossaryEntries(locale: Locale): GlossaryEntry[] {
+  return Object.values(getGlossary(locale));
+}

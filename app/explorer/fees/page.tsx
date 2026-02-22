@@ -7,6 +7,7 @@ import { ErrorState, LoadingState } from "../../../components/EmptyState";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import { formatSatVb } from "@/lib/feeBands";
 import { formatFeeTime, useFeeMarketData } from "@/hooks/useFeeMarketData";
+import { useTranslation } from "@/lib/i18n";
 
 type FeeTooltipProps = {
   active?: boolean;
@@ -43,6 +44,7 @@ function FeeTooltipContent({ active, label, payload }: FeeTooltipProps) {
 
 export default function FeesPage() {
   const { history, cardFees, stats, longHorizon, currentTimestamp, loading, error, hasData, retry } = useFeeMarketData(30_000);
+  const { t } = useTranslation();
 
   const chartMeta = useMemo(() => {
     if (history.length === 0) return null;
@@ -87,15 +89,15 @@ export default function FeesPage() {
         <div className="flex flex-col md:flex-row justify-between items-end pb-6 border-b border-slate-800">
           <div>
             <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">
-              Fee Market Intelligence
+              {t.fees.title}
             </h1>
             <p className="mt-2 text-slate-400 text-sm">
-              Live recommended-fee trend from the same backend feed used for the summary cards.
+              {t.fees.subtitle}
             </p>
           </div>
         </div>
 
-        {loading && !hasData && <LoadingState message="Connecting to fee market feed..." />}
+        {loading && !hasData && <LoadingState message={t.fees.connectingFee} />}
         {!loading && error && !hasData && <ErrorState message={error} onRetry={retry} />}
 
         {hasData ? (
@@ -103,28 +105,28 @@ export default function FeesPage() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest text-center mb-2">
-                Economy (Low Priority)
+                {t.fees.economyLow}
               </h3>
               <div className="text-center break-words text-3xl md:text-4xl font-black text-slate-200 leading-tight">{renderFee(cardFees.slow)}</div>
-              <p className="text-xs text-slate-400 text-center mt-2">~1 Hour Confirmation</p>
+              <p className="text-xs text-slate-400 text-center mt-2">{t.fees.hourConfirm}</p>
             </div>
 
             <div className="bg-slate-900/50 border border-amber-500/20 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest text-center mb-2">
-                Standard (Recommended)
+                {t.fees.standardRec}
               </h3>
               <div className="text-center break-words text-3xl md:text-4xl font-black text-amber-400 leading-tight">{renderFee(cardFees.medium)}</div>
-              <p className="text-xs text-slate-400 text-center mt-2">~30 Min Confirmation</p>
+              <p className="text-xs text-slate-400 text-center mt-2">{t.fees.halfHourConfirm}</p>
             </div>
 
             <div className="bg-slate-900/50 border border-red-500/20 rounded-xl p-6 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest text-center mb-2">
-                Express (Next Block)
+                {t.fees.expressNext}
               </h3>
               <div className="text-center break-words text-3xl md:text-4xl font-black text-red-400 leading-tight">{renderFee(cardFees.fast)}</div>
-              <p className="text-xs text-slate-400 text-center mt-2">~10 Min Confirmation</p>
+              <p className="text-xs text-slate-400 text-center mt-2">{t.fees.tenMinConfirm}</p>
             </div>
 
             <div className="sm:col-span-2 lg:col-span-3 overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-sm min-h-[420px] relative">
@@ -132,10 +134,10 @@ export default function FeesPage() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
                   <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest">
-                    24-Hour Fee Trend
+                    {t.fees.feeTrend}
                   </h3>
                   <p className="mt-1 text-[11px] text-slate-500">
-                    Regime overlays highlight calm, normal and spike pressure zones.
+                    {t.fees.feeTrendSubtitle}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-mono text-slate-300">
@@ -202,7 +204,7 @@ export default function FeesPage() {
               <div className="h-[350px] w-full min-w-0">
                 {history.length === 0 ? (
                   <ErrorState
-                    message="Historical fee data is temporarily unavailable."
+                    message={t.fees.historyUnavailable}
                     onRetry={retry}
                   />
                 ) : (

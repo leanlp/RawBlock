@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import Header from "../../../components/Header";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/lib/i18n";
 
 export default function HashingPage() {
+    const { t } = useTranslation();
     // Block Header Fields
     const [version, setVersion] = useState(536870912); // Standard Version
     const [prevHash, setPrevHash] = useState("0000000000000000000320283a032748cef8227873ffede9153fa18dd87028e0");
@@ -120,9 +122,9 @@ export default function HashingPage() {
                 <div className="flex flex-col md:flex-row justify-between items-end pb-6 border-b border-slate-800">
                     <div>
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-500">
-                            The Foundry 🔨
+                            {t.hashingFoundry.title} 🔨
                         </h1>
-                        <p className="mt-2 text-slate-400 text-sm">Manual Proof-of-Work Simulator. Forge the block.</p>
+                        <p className="mt-2 text-slate-400 text-sm">{t.hashingFoundry.subtitle}</p>
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="text-right">

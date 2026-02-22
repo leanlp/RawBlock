@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function GlobalSearch() {
     const [query, setQuery] = useState("");
@@ -36,6 +37,8 @@ export default function GlobalSearch() {
         setQuery("");
     };
 
+    const { t } = useTranslation();
+
     return (
         <form onSubmit={handleSearch} className="relative w-full">
             <div className="relative flex items-center">
@@ -44,7 +47,7 @@ export default function GlobalSearch() {
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search blocks, txs..."
+                    placeholder={t.common.searchPlaceholder}
                     className="w-full h-10 bg-slate-900/50 border border-slate-800 text-slate-200 text-sm rounded-lg pl-9 pr-3 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all placeholder:text-slate-500"
                 />
             </div>

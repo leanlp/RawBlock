@@ -16,6 +16,7 @@ import PageHeader from '../../../components/PageHeader';
 import NetworkAnalyticsPanel from '../../../components/network/NetworkAnalyticsPanel';
 import ProvenanceBadge from '../../../components/ProvenanceBadge';
 import ScreenshotExport from '../../../components/ScreenshotExport';
+import { useTranslation } from '@/lib/i18n';
 
 interface Peer {
     id: number;
@@ -173,6 +174,7 @@ function NetworkContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const { t } = useTranslation();
 
     const [peers, setPeers] = useState<Peer[]>([]);
     const [knownPeers, setKnownPeers] = useState<KnownPeer[]>([]);
@@ -374,11 +376,11 @@ function NetworkContent() {
 
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <PageHeader
-                        title="Global Network"
+                        title={t.network.title}
                         subtitle={
                             dataMode === "live"
-                                ? "Visualizing the decentralized P2P connections of your local Bitcoin node."
-                                : "Demo mode: showing a static peer snapshot while live node APIs are unavailable."
+                                ? t.network.subtitleLive
+                                : t.network.subtitleDemo
                         }
                         icon="🌐"
                         gradient="from-emerald-400 to-cyan-400"
@@ -402,26 +404,26 @@ function NetworkContent() {
 
                 {dataMode === "demo" && (
                     <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
-                        Live peer discovery is unavailable. Rendering demo peer data so this view remains usable.
+                        {t.network.demoNotice}
                     </div>
                 )}
 
-                {loading && <LoadingState message="Connecting to peer telemetry..." />}
+                {loading && <LoadingState message={t.network.connectingTelemetry} />}
 
                 {!loading && error && <ErrorState message={error} onRetry={fetchPeers} />}
 
                 {!loading && !error && peers.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
                         <div className="text-6xl mb-4">🌍</div>
-                        <h3 className="text-xl font-bold text-white mb-2">No Peers Found</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{t.network.noPeersFound}</h3>
                         <p className="text-slate-400 max-w-md mx-auto mb-8">
-                            Your node does not seem to be connected to any peers. Check your network connection.
+                            {t.network.noPeersDescription}
                         </p>
                         <button
                             onClick={fetchPeers}
                             className="px-6 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-200 transition-colors"
                         >
-                            Retry
+                            {t.network.retry}
                         </button>
                     </div>
                 )}
@@ -462,8 +464,8 @@ function NetworkContent() {
                         {/* Peer Section */}
                         <Card variant="panel" className="p-0 overflow-hidden flex flex-col">
                             <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Active Connections</h3>
-                                <span className="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">{filteredPeers.length} Peers</span>
+                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t.network.activeConnections}</h3>
+                                <span className="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">{filteredPeers.length} {t.network.peers}</span>
                             </div>
 
                             {/* Mobile Card View */}
@@ -482,15 +484,15 @@ function NetworkContent() {
                                             </span>
                                         </div>
                                         <CardRow
-                                            label="Location"
+                                            label={t.network.location}
                                             value={formatLocation(peer.location)}
                                         />
                                         <CardRow
-                                            label="Client"
+                                            label={t.network.client}
                                             value={peer.subver.replace(/\//g, '').substring(0, 20)}
                                         />
                                         <CardRow
-                                            label="Ping"
+                                            label={t.network.ping}
                                             value={formatPingValue(peer.ping)}
                                             mono
                                         />
@@ -508,11 +510,11 @@ function NetworkContent() {
                                 <table className="w-full text-left text-sm text-slate-400">
                                     <thead className="bg-slate-900/80 text-xs uppercase text-slate-500">
                                         <tr>
-                                            <th className="px-6 py-3 font-medium">IP Address</th>
-                                            <th className="px-6 py-3 font-medium">Location</th>
-                                            <th className="px-6 py-3 font-medium">Client</th>
-                                            <th className="px-6 py-3 font-medium text-right">Direction</th>
-                                            <th className="px-6 py-3 font-medium text-right">Ping</th>
+                                            <th className="px-6 py-3 font-medium">{t.network.ipAddress}</th>
+                                            <th className="px-6 py-3 font-medium">{t.network.location}</th>
+                                            <th className="px-6 py-3 font-medium">{t.network.client}</th>
+                                            <th className="px-6 py-3 font-medium text-right">{t.network.direction}</th>
+                                            <th className="px-6 py-3 font-medium text-right">{t.network.ping}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-800/50">
@@ -564,7 +566,7 @@ function NetworkContent() {
 
 export default function NetworkPage() {
     return (
-        <Suspense fallback={<LoadingState message="Loading Network Explorer..." />}>
+        <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">Loading...</div>}>
             <NetworkContent />
         </Suspense>
     );

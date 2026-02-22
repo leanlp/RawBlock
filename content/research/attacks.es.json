@@ -1,0 +1,289 @@
+[
+    {
+        "id": "eclipse-attack",
+        "title": "Ataque de Eclipse",
+        "year": 2015,
+        "severity": "high",
+        "category": "network-isolation",
+        "linkedNodeIds": [
+            "consensus-rules-vs-policy",
+            "spv-vs-full-node",
+            "security-and-attacks",
+            "reorg"
+        ],
+        "summary": "Un atacante aísla las conexiones del nodo objetivo para controlar su visión sobre los bloques y las transacciones.",
+        "targetLayer": "network",
+        "attackerCapabilities": [
+            "Control o influencia sobre múltiples conexiones pares alrededor de la víctima",
+            "Mantener el aislamiento lo suficiente para sesgar la visibilidad de la cadena y mempool"
+        ],
+        "mitigations": [
+            "Diversificar la conectividad de los pares y evitar depender de rutas de red únicas",
+            "Ejecutar versiones actualizadas de Bitcoin Core y monitorear anomalías de pares y punta de cadena"
+        ],
+        "observedInWild": false,
+        "sources": [
+            {
+                "title": "Ataques de Eclipse en la red P2P de Bitcoin (USENIX 2015)",
+                "url": "https://www.usenix.org/conference/usenixsecurity15/technical-sessions/presentation/heilman",
+                "type": "reference"
+            },
+            {
+                "title": "Guía de Desarrolladores de Bitcoin: Red P2P",
+                "url": "https://developer.bitcoin.org/devguide/p2p_network.html",
+                "type": "dev-guide"
+            },
+            {
+                "title": "Árbol fuente de Bitcoin Core",
+                "url": "https://github.com/bitcoin/bitcoin/tree/master/src",
+                "type": "core-docs"
+            }
+        ]
+    },
+    {
+        "id": "selfish-mining",
+        "title": "Minería Egoísta",
+        "year": 2014,
+        "severity": "high",
+        "category": "mining-strategy",
+        "linkedNodeIds": [
+            "mining-and-subsidy",
+            "difficulty-adjustment-2016",
+            "reorg",
+            "security-and-attacks"
+        ],
+        "summary": "Un minero retiene bloques válidos estratégicamente para incrementar sus ingresos esperados sobre la publicación honesta.",
+        "targetLayer": "mining",
+        "attackerCapabilities": [
+            "Suficiente proporción de hashrate para que la estrategia de retención sea viable",
+            "Retransmisión rápida privada y temporización controlada para lanzamientos estratégicos"
+        ],
+        "mitigations": [
+            "Mejorar el desempeño de la propagación para reducir el arbitraje por bloques obsoletos",
+            "Mantener la descentralización del hashrate a través de operadores independientes"
+        ],
+        "observedInWild": false,
+        "sources": [
+            {
+                "title": "La Mayoría no Basta: La Minería en Bitcoin es Vulnerable",
+                "url": "https://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf",
+                "type": "reference"
+            },
+            {
+                "title": "Libro Blanco de Bitcoin",
+                "url": "https://bitcoin.org/bitcoin.pdf",
+                "type": "whitepaper"
+            },
+            {
+                "title": "Proyecto FIBRE",
+                "url": "https://bitcoinfibre.org/",
+                "type": "reference"
+            }
+        ]
+    },
+    {
+        "id": "fee-sniping",
+        "title": "Francotirador de Comisiones (Fee Sniping)",
+        "year": 2016,
+        "severity": "medium",
+        "category": "economic-reorg",
+        "linkedNodeIds": [
+            "mempool",
+            "mining",
+            "reorg",
+            "consensus-rules-vs-policy"
+        ],
+        "summary": "Durante picos extremos de comisiones, los mineros pueden estar incentivados a buscar reorganizaciones cortas para capturar bloques recientes altamente comisionados.",
+        "targetLayer": "economic",
+        "attackerCapabilities": [
+            "Habilidad de minar sobre ramas cortas alternativas",
+            "Tolerancia económica ante riesgos de pérdida de bloques temporalmente huérfanos"
+        ],
+        "mitigations": [
+            "Usar políticas de confirmación mayor para liquidaciones de gran valor",
+            "Monitorear comportamientos inusuales de reorganización en temporadas con comisiones anormales"
+        ],
+        "observedInWild": false,
+        "sources": [
+            {
+                "title": "Guía de Desarrolladores de Bitcoin: Minería",
+                "url": "https://developer.bitcoin.org/devguide/mining.html",
+                "type": "dev-guide"
+            },
+            {
+                "title": "Grupo de Discusión Bitcoin-dev",
+                "url": "https://groups.google.com/g/bitcoindev",
+                "type": "mailing-list"
+            },
+            {
+                "title": "API de Mempool.space",
+                "url": "https://mempool.space/docs/api/rest",
+                "type": "reference"
+            }
+        ]
+    },
+    {
+        "id": "replace-by-fee-abuse",
+        "title": "Abuso de Recargo RBF (Replace-by-Fee)",
+        "year": 2016,
+        "severity": "medium",
+        "category": "mempool-policy-abuse",
+        "linkedNodeIds": [
+            "transactions-lifecycle",
+            "mempool",
+            "consensus-rules-vs-policy",
+            "security-and-attacks"
+        ],
+        "summary": "Los destinatarios de fondos con cero-confirmaciones pueden verse perjudicados si un atacante reemplaza una transacción pendiente con otra en conflicto y comisión mayor.",
+        "targetLayer": "mempool",
+        "attackerCapabilities": [
+            "Transmitir una transacción de baja comisión aceptada por el destinatario inicial",
+            "Publicar una transacción para sí mismo con una tarifa mayor provocando un conflicto, previa confirmación"
+        ],
+        "mitigations": [
+            "Evitar aceptar cero-confirmaciones para liquidaciones sensibles o de alto valor",
+            "Usar políticas estrictas de confirmación y monitoreo de la mempool"
+        ],
+        "observedInWild": true,
+        "sources": [
+            {
+                "title": "BIP 125: Reemplazo por Comisión (Opt-in RBF)",
+                "url": "https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki",
+                "type": "BIP"
+            },
+            {
+                "title": "Política de reemplazos de la Mempool de Bitcoin Core",
+                "url": "https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md",
+                "type": "core-docs"
+            },
+            {
+                "title": "Guía de Desarrolladores de Bitcoin: Transacciones",
+                "url": "https://developer.bitcoin.org/devguide/transactions.html",
+                "type": "dev-guide"
+            }
+        ]
+    },
+    {
+        "id": "lightning-channel-jamming",
+        "title": "Atasco de Canal (Jamming) en Lightning",
+        "year": 2020,
+        "severity": "medium",
+        "category": "ln-routing-abuse",
+        "linkedNodeIds": [
+            "lightning-network-maturity",
+            "mempool",
+            "consensus-rules-vs-policy",
+            "transactions-lifecycle"
+        ],
+        "summary": "Atacantes ocupan intervalos HTLC y capacidad de rutas para degradar pagos de usuarios legítimos, a menudo sin ni siquiera robar fondos, solo mediante obstrucción.",
+        "targetLayer": "network",
+        "attackerCapabilities": [
+            "Capacidad para crear y fondear canales, y transmitir peticiones HTLC abusivas",
+            "Suficiente capital, sincronización y control de transacciones de tiempo para asfixiar los canales ajenos"
+        ],
+        "mitigations": [
+            "Emplear enrutamiento enfocado sobre la liquidez disponible y afinamiento de reglas por canal",
+            "Activar la supervisión del nodo operativo y contar siempre con vías alternativas para liquidar pagos"
+        ],
+        "observedInWild": false,
+        "sources": [
+            {
+                "title": "Especificaciones BOLTs en Lightning",
+                "url": "https://github.com/lightning/bolts",
+                "type": "reference"
+            },
+            {
+                "title": "Bitcoin Optech: Ataques a canales (jamming)",
+                "url": "https://bitcoinops.org/en/topics/channel-jamming-attacks/",
+                "type": "reference"
+            },
+            {
+                "title": "Libro 'Mastering Lightning'",
+                "url": "https://github.com/lnbook/lnbook",
+                "type": "reference"
+            }
+        ]
+    },
+    {
+        "id": "lightning-probing",
+        "title": "Sondeo de Lightning y Fuga de Topología",
+        "year": 2019,
+        "severity": "medium",
+        "category": "ln-privacy-leakage",
+        "linkedNodeIds": [
+            "lightning-network-maturity",
+            "pseudonymity-not-anonymity",
+            "network-topology-assumption"
+        ],
+        "summary": "Sonadores hostiles evalúan pagos y analizan las rutas de error para adivinar las capacidades reales en fondos, mitigando la privacidad de un nodo u operador.",
+        "targetLayer": "network",
+        "attackerCapabilities": [
+            "Posibilidad de emitir múltiples pagos fabricados intencionalmente y fallidos simulando rutas aleatorias",
+            "Capturar fallos sistémicos o códigos temporizados analizando miles de resultados"
+        ],
+        "mitigations": [
+            "Uso de la anonimización para el descifrado y encubrimiento proactivo al comunicar errores",
+            "Endurecimiento en la observabilidad operativa para rechazar exploradores malicicados de inmediato"
+        ],
+        "observedInWild": false,
+        "sources": [
+            {
+                "title": "Especificaciones BOLTs en Lightning",
+                "url": "https://github.com/lightning/bolts",
+                "type": "reference"
+            },
+            {
+                "title": "Bitcoin Optech: Sondeo de Canal",
+                "url": "https://bitcoinops.org/en/topics/probing/",
+                "type": "reference"
+            },
+            {
+                "title": "Libro 'Mastering Lightning'",
+                "url": "https://github.com/lnbook/lnbook",
+                "type": "reference"
+            }
+        ]
+    },
+    {
+        "id": "lightning-pinning-fee-griefing",
+        "title": "Anclaje de Transacciones (Pinning) en Lightning",
+        "year": 2021,
+        "severity": "high",
+        "category": "ln-close-path-friction",
+        "linkedNodeIds": [
+            "lightning-network-maturity",
+            "mempool",
+            "reorg",
+            "consensus-rules-vs-policy",
+            "transactions-lifecycle"
+        ],
+        "summary": "Adversarios explotan dinámicas en mempools y comisiones para anclar y agravar el coste de los canales de salida, logrando elevar drásticamente los riesgos en conflictos.",
+        "targetLayer": "mempool",
+        "attackerCapabilities": [
+            "Habilidad de generar, firmar y promover resoluciones conflictivas en torno a las clausuras de pago",
+            "Facultad monetaria para ahogar permanentemente el bloque con gastos por presión tarifaria prolongada"
+        ],
+        "mitigations": [
+            "Despliegues con canales resistentes, anclajes de CPFP modernizados y cuidadosos fallos de salida cooperativos",
+            "Estricto uso de nodos vigías (Watchtowers) que vigilan el canal constantemente sin requerir interrupción"
+        ],
+        "observedInWild": false,
+        "sources": [
+            {
+                "title": "Bitcoin Optech: Anclaje de Transacciones (Pinning)",
+                "url": "https://bitcoinops.org/en/topics/transaction-pinning/",
+                "type": "reference"
+            },
+            {
+                "title": "Especificaciones BOLTs en Lightning",
+                "url": "https://github.com/lightning/bolts",
+                "type": "reference"
+            },
+            {
+                "title": "Política de reemplazos de Mempool en Core",
+                "url": "https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md",
+                "type": "core-docs"
+            }
+        ]
+    }
+]

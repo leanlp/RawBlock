@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { GLOSSARY, type GlossaryEntry } from "@/data/glossary";
+import { getGlossary, type GlossaryEntry } from "@/data/glossary";
+import { useTranslation } from "@/lib/i18n";
 
 type GlossaryTermProps = {
   entryKey: string;
@@ -9,7 +10,8 @@ type GlossaryTermProps = {
 };
 
 export default function GlossaryTerm({ entryKey, label }: GlossaryTermProps) {
-  const entry: GlossaryEntry | undefined = GLOSSARY[entryKey];
+  const { locale } = useTranslation();
+  const entry: GlossaryEntry | undefined = getGlossary(locale)[entryKey];
   const [open, setOpen] = useState(false);
 
   if (!entry) {
@@ -29,9 +31,8 @@ export default function GlossaryTerm({ entryKey, label }: GlossaryTermProps) {
       </button>
       <span
         role="tooltip"
-        className={`pointer-events-none absolute left-0 top-[calc(100%+6px)] z-30 w-64 rounded-md border border-slate-700 bg-slate-950 px-2.5 py-2 text-left text-xs leading-relaxed text-slate-200 shadow-xl transition-opacity ${
-          open ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
-        }`}
+        className={`pointer-events-none absolute left-0 top-[calc(100%+6px)] z-30 w-64 rounded-md border border-slate-700 bg-slate-950 px-2.5 py-2 text-left text-xs leading-relaxed text-slate-200 shadow-xl transition-opacity ${open ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+          }`}
       >
         <span className="font-semibold text-cyan-300">{entry.term}</span>
         <span className="block mt-1">{entry.definition}</span>

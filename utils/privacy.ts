@@ -34,7 +34,6 @@ export function analyzePrivacy(tx: DecodedTx): PrivacyAnalysisResult {
 
         if (roundOutputIndex !== -1) {
             changeOutputIndex = roundOutputIndex === 0 ? 1 : 0;
-            const changeVal = tx.vout[changeOutputIndex].value;
             // warnings.push(`Output #${roundOutputIndex} is a round number. Output #${changeOutputIndex} is likely the change.`);
             // score -= 10; 
             

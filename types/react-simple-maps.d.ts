@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module 'react-simple-maps' {
   export const ComposableMap: any;
   export const Geographies: any;

@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { GLOSSARY_ENTRIES } from "@/data/glossary";
+import { getGlossaryEntries } from "@/data/glossary";
 import GlossaryTerm from "@/components/glossary/GlossaryTerm";
+import { useTranslation } from "@/lib/i18n";
 
 type GlossaryTextProps = {
   text: string;
@@ -14,10 +15,12 @@ function escapeRegex(input: string): string {
 }
 
 export default function GlossaryText({ text, className }: GlossaryTextProps) {
+  const { locale } = useTranslation();
+
   const { pattern, aliasToEntry } = useMemo(() => {
     const aliasPairs: Array<{ alias: string; entryKey: string }> = [];
 
-    GLOSSARY_ENTRIES.forEach((entry) => {
+    getGlossaryEntries(locale).forEach((entry) => {
       entry.aliases.forEach((alias) => {
         aliasPairs.push({ alias, entryKey: entry.key });
       });
@@ -39,7 +42,7 @@ export default function GlossaryText({ text, className }: GlossaryTextProps) {
       pattern: safePattern,
       aliasToEntry: aliasToEntryMap,
     };
-  }, []);
+  }, [locale]);
 
   const parts = useMemo(() => {
     if (!pattern) return [text];

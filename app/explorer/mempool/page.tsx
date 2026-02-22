@@ -7,6 +7,7 @@ import Header from "../../../components/Header";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
 import ProvenanceBadge from "../../../components/ProvenanceBadge";
 import ScreenshotExport from "../../../components/ScreenshotExport";
+import { useTranslation } from "@/lib/i18n";
 
 // Types
 interface Transaction {
@@ -110,10 +111,11 @@ export default function MempoolPage() {
     const [socketMempoolCount, setSocketMempoolCount] = useState<number>(0);
     const [dataMode, setDataMode] = useState<DataMode>(API_URL ? "live" : "snapshot");
     const [modeNotice, setModeNotice] = useState<string | null>(
-        API_URL ? null : "Demo mode: showing public mempool snapshot data.",
+        API_URL ? null : null,
     );
     const [error, setError] = useState<string | null>(null);
     const { metrics: liveMetrics } = useBitcoinLiveMetrics(30_000);
+    const { t } = useTranslation();
 
     // Use ref for socket to avoid re-creation
     const socketRef = useRef<WebSocket | null>(null);
@@ -178,7 +180,7 @@ export default function MempoolPage() {
             const fallbackJson = await fallbackRes.json();
             setData(normalizeTransactions(Array.isArray(fallbackJson) ? fallbackJson : []));
             setDataMode("snapshot");
-            setModeNotice("Demo mode: showing public mempool snapshot data.");
+            setModeNotice(t.mempool.demoMode);
             setConnected(false);
             setStreamPhase("snapshot");
             setStreamIssue(null);
@@ -191,9 +193,8 @@ export default function MempoolPage() {
                 setError("An unexpected error occurred");
             }
         } finally {
-            setLoading(false);
         }
-    }, []);
+    }, [t.mempool.demoMode]);
 
     const connectSocket = useCallback(() => {
         if (!API_URL) return;
@@ -349,14 +350,14 @@ export default function MempoolPage() {
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 pb-6 border-b border-slate-800">
                 <div>
                     <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                        Live Mempool Feed
+                        {t.mempool.title}
                     </h1>
-                    <p className="mt-2 text-slate-400 text-sm">Real-time unconfirmed transaction stream.</p>
+                    <p className="mt-2 text-slate-400 text-sm">{t.mempool.subtitle}</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="text-xs text-right space-y-1">
                         <div className="flex items-center justify-end gap-2">
-                            <span className="font-semibold text-slate-500 uppercase tracking-wider">Stream</span>
+                            <span className="font-semibold text-slate-500 uppercase tracking-wider">{t.mempool.stream}</span>
                             {dataMode === "snapshot" ? (
                                 <ProvenanceBadge source="Cached Snapshot" />
                             ) : streamPhase === "live" && connected ? (
@@ -364,21 +365,21 @@ export default function MempoolPage() {
                             ) : streamPhase === "connecting" ? (
                                 <span className="flex items-center gap-1.5 text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase">
                                     <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-cyan-400"></span>
-                                    Connecting
+                                    {t.mempool.connecting}
                                 </span>
                             ) : (
-                                <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase">Disconnected</span>
+                                <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase">{t.mempool.disconnected}</span>
                             )}
                         </div>
                         {statusTimestamp ? (
                             <div className="text-slate-500">
-                                Last update:{" "}
+                                {t.mempool.lastUpdate}{" "}
                                 <span className="font-mono text-slate-300">{statusTimestamp.toLocaleTimeString()}</span>
                             </div>
                         ) : null}
                         {canonicalMempoolCount > 0 && (
                             <div className="text-slate-500">
-                                <span className="font-mono text-slate-300">{canonicalMempoolCount.toLocaleString()}</span> txs in mempool
+                                <span className="font-mono text-slate-300">{canonicalMempoolCount.toLocaleString()}</span> {t.mempool.txsInMempool}
                             </div>
                         )}
                     </div>
@@ -387,14 +388,14 @@ export default function MempoolPage() {
 
             {dataMode !== "snapshot" && streamPhase === "disconnected" ? (
                 <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-200">
-                    <span>{streamIssue ?? "Live stream unavailable."}</span>
-                    {data.length > 0 ? <span className="text-amber-200">Showing last-known data.</span> : null}
+                    <span>{streamIssue ?? t.mempool.liveStreamUnavailable}</span>
+                    {data.length > 0 ? <span className="text-amber-200">{t.mempool.showingLastKnown}</span> : null}
                     <button
                         type="button"
                         onClick={handleRetryConnection}
                         className="rounded border border-red-400/40 bg-red-400/10 px-2 py-1 text-red-100 hover:bg-red-400/20"
                     >
-                        Retry
+                        {t.mempool.retry}
                     </button>
                 </div>
             ) : null}
@@ -422,12 +423,12 @@ export default function MempoolPage() {
                         </div>
                         <div>
                             <h4 className="text-amber-500 font-bold uppercase tracking-wider text-sm flex items-center gap-2">
-                                RBF Conflict Detected
+                                {t.mempool.rbfConflict}
                             </h4>
                             <div className="text-xs text-slate-400 mt-1 font-mono">
-                                <p>Target: <span className="text-slate-200">{rbfAlert.txid.substring(0, 8)}...</span></p>
-                                <p>Replaced: <span className="text-red-400 line-through">{rbfAlert.replacedTxid}</span></p>
-                                <p className="text-emerald-400 mt-1">+ {rbfAlert.feeDiff} BTC Fee Bump</p>
+                                <p>{t.mempool.target} <span className="text-slate-200">{rbfAlert.txid.substring(0, 8)}...</span></p>
+                                <p>{t.mempool.replaced} <span className="text-red-400 line-through">{rbfAlert.replacedTxid}</span></p>
+                                <p className="text-emerald-400 mt-1">+ {rbfAlert.feeDiff} BTC {t.mempool.feeBump}</p>
                             </div>
                         </div>
                     </div>
@@ -446,16 +447,16 @@ export default function MempoolPage() {
             <div className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-2xl">
                 {/* Table Header */}
                 <div className="hidden md:grid grid-cols-12 gap-4 p-4 border-b border-slate-800 bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    <div className="col-span-6 md:col-span-7">Transaction ID</div>
-                    <div className="col-span-3 md:col-span-2 text-right">Fee (BTC)</div>
-                    <div className="col-span-3 md:col-span-3 text-right">Size (vB)</div>
+                    <div className="col-span-6 md:col-span-7">{t.mempool.transactionId}</div>
+                    <div className="col-span-3 md:col-span-2 text-right">{t.mempool.feeBtc}</div>
+                    <div className="col-span-3 md:col-span-3 text-right">{t.mempool.sizeVb}</div>
                 </div>
 
                 {/* Table Body */}
                 <div className="divide-y divide-slate-800/50">
                     {data.length === 0 && !loading && !error ? (
                         <div className="p-12 text-center text-slate-500">
-                            Waiting for transactions...
+                            {t.mempool.waitingForTxs}
                         </div>
                     ) : (
                         data.map((tx) => (
@@ -465,11 +466,11 @@ export default function MempoolPage() {
                                         {tx.txid}
                                     </div>
                                     <div className="flex items-center justify-between text-xs font-mono">
-                                        <span className="text-slate-500">Fee (BTC)</span>
+                                        <span className="text-slate-500">{t.mempool.feeBtc}</span>
                                         <span className="text-slate-300">{tx.fee.toFixed(8)}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-xs font-mono mt-1">
-                                        <span className="text-slate-500">Size (vB)</span>
+                                        <span className="text-slate-500">{t.mempool.sizeVb}</span>
                                         <span className="text-slate-400">{tx.size.toLocaleString()}</span>
                                     </div>
                                 </div>
@@ -511,8 +512,8 @@ export default function MempoolPage() {
             <div className="flex justify-between text-xs text-slate-600 px-1 pb-20">
                 <p>
                     {dataMode === "live"
-                        ? "Data provided by local Bitcoin Core node via WebSocket."
-                        : "Data provided by public mempool snapshot feed (demo mode)."}
+                        ? t.mempool.dataFromNode
+                        : t.mempool.dataFromSnapshot}
                 </p>
             </div>
 

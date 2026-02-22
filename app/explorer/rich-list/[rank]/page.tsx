@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Header from '../../../../components/Header';
 import CopyButton from '../../../../components/CopyButton';
+import { useTranslation } from '@/lib/i18n';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
@@ -59,6 +60,7 @@ const normalizeWhale = (value: unknown): WhaleData => {
 };
 
 export default function WhaleDetailPage() {
+    const { t } = useTranslation();
     const params = useParams();
     const rank = parseInt((params.rank as string) || "", 10);
     const [showAllUtxos, setShowAllUtxos] = useState(false);
@@ -68,7 +70,7 @@ export default function WhaleDetailPage() {
 
     useEffect(() => {
         if (!Number.isFinite(rank) || rank <= 0) {
-            setError("Invalid whale rank.");
+            setError(t.richListDetail.invalidRank);
             setLoading(false);
             return;
         }
@@ -87,7 +89,7 @@ export default function WhaleDetailPage() {
             } catch (err) {
                 if ((err as Error).name === "AbortError") return;
                 console.error("Failed to load whale detail:", err);
-                setError("Unable to load whale detail from backend.");
+                setError(t.richListDetail.loadError);
             } finally {
                 setLoading(false);
             }
@@ -95,7 +97,7 @@ export default function WhaleDetailPage() {
 
         fetchWhale();
         return () => controller.abort();
-    }, [rank]);
+    }, [rank, t.richListDetail.invalidRank, t.richListDetail.loadError]);
 
     // UTXO Distribution by Value
     const utxoDistribution = useMemo(() => {
@@ -189,7 +191,7 @@ export default function WhaleDetailPage() {
                         <Header />
                     </div>
                     <div className="bg-slate-900/40 border border-slate-700 rounded-lg p-8 text-center text-slate-400">
-                        Loading whale detail...
+                        {t.richListDetail.loading}
                     </div>
                 </div>
             </main>
@@ -206,7 +208,7 @@ export default function WhaleDetailPage() {
                     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-8 text-center">
                         <div className="text-red-400 text-lg mb-4">{error}</div>
                         <Link href="/explorer/rich-list" className="text-cyan-400 hover:underline inline-flex items-center min-h-11">
-                            ← Back to Whale Watch
+                            {t.richListDetail.backToWhaleWatch}
                         </Link>
                     </div>
                 </div>
@@ -222,9 +224,9 @@ export default function WhaleDetailPage() {
                         <Header />
                     </div>
                     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-8 text-center">
-                        <div className="text-red-400 text-lg mb-4">❌ Whale #{rank} not found</div>
+                        <div className="text-red-400 text-lg mb-4">{t.richListDetail.notFound.replace("{0}", String(rank))}</div>
                         <Link href="/explorer/rich-list" className="text-cyan-400 hover:underline inline-flex items-center min-h-11">
-                            ← Back to Whale Watch
+                            {t.richListDetail.backToWhaleWatch}
                         </Link>
                     </div>
                 </div>
@@ -242,23 +244,23 @@ export default function WhaleDetailPage() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="page-header">
                         <h1 className="page-title bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">
-                            Whale #{whale.rank}
+                            {t.richListDetail.title.replace("{0}", String(whale.rank))}
                         </h1>
                         <p className="text-slate-500 text-xs md:text-sm font-mono break-all">
                             {whale.address}
                         </p>
                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <CopyButton text={whale.address} label="Copy address" className="bg-slate-900/60" />
+                            <CopyButton text={whale.address} label={t.richListDetail.copyAddress} className="bg-slate-900/60" />
                             <Link
                                 href={`/explorer/decoder?query=${encodeURIComponent(whale.address)}`}
                                 className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs font-bold text-cyan-300 hover:border-cyan-500/50 hover:text-cyan-200"
                             >
-                                Open in Decoder
+                                {t.richList.openInDecoder}
                             </Link>
                         </div>
                     </div>
                     <Link href="/explorer/rich-list" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors whitespace-nowrap inline-flex items-center min-h-11">
-                        ← Back to Whale Watch
+                        {t.richListDetail.backToWhaleWatch}
                     </Link>
                 </div>
 
@@ -268,25 +270,25 @@ export default function WhaleDetailPage() {
                         <div className="text-2xl md:text-3xl font-bold text-amber-400 truncate">
                             {whale.balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                         </div>
-                        <div className="text-[10px] md:text-xs text-slate-500 uppercase mt-1">Balance (BTC)</div>
+                        <div className="text-[10px] md:text-xs text-slate-500 uppercase mt-1">{t.richListDetail.balanceBtc}</div>
                     </div>
                     <div className="bg-slate-900 border border-cyan-500/40 rounded-xl p-4 md:p-5">
                         <div className="text-2xl md:text-3xl font-bold text-cyan-400">
                             {whale.utxoCount.toLocaleString()}
                         </div>
-                        <div className="text-[10px] md:text-xs text-slate-500 uppercase mt-1">UTXOs</div>
+                        <div className="text-[10px] md:text-xs text-slate-500 uppercase mt-1">{t.richList.utxos}</div>
                     </div>
                     <div className="bg-slate-900 border border-purple-500/40 rounded-xl p-4 md:p-5">
                         <div className="text-2xl md:text-3xl font-bold text-purple-400">
                             {whale.scanHeight?.toLocaleString() || '—'}
                         </div>
-                        <div className="text-[10px] md:text-xs text-slate-500 uppercase mt-1">Scan Height</div>
+                        <div className="text-[10px] md:text-xs text-slate-500 uppercase mt-1">{t.richListDetail.scanHeight}</div>
                     </div>
                     <div className="bg-slate-900 border border-green-500/40 rounded-xl p-4 md:p-5">
                         <div className="text-2xl md:text-3xl font-bold text-green-400">
                             {whale.scanDurationSeconds?.toFixed(1) || '—'}s
                         </div>
-                        <div className="text-[10px] md:text-xs text-slate-500 uppercase mt-1">Scan Time</div>
+                        <div className="text-[10px] md:text-xs text-slate-500 uppercase mt-1">{t.richListDetail.scanTime}</div>
                     </div>
                 </div>
 
@@ -294,9 +296,9 @@ export default function WhaleDetailPage() {
                 {timelineData.length > 0 && (
                     <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 md:p-6">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold text-slate-300">📈 UTXO Timeline (by Block Height)</h2>
+                            <h2 className="text-lg font-bold text-slate-300">📈 {t.richListDetail.timelineTitle}</h2>
                             <div className="text-xs text-slate-500">
-                                Range: {timelineData[0].minBlock} - {timelineData[timelineData.length - 1].maxBlock}
+                                {t.richListDetail.range}: {timelineData[0].minBlock} - {timelineData[timelineData.length - 1].maxBlock}
                             </div>
                         </div>
 
@@ -324,10 +326,10 @@ export default function WhaleDetailPage() {
                                         {/* Tooltip */}
                                         {!isEmpty && (
                                             <div className="absolute bottom-full mb-2 hidden group-hover:block bg-slate-800 border border-slate-600 rounded px-3 py-2 text-xs whitespace-nowrap z-20 shadow-xl pointer-events-none">
-                                                <div className="font-bold text-cyan-400 text-sm mb-1">{data.count} UTXOs</div>
+                                                <div className="font-bold text-cyan-400 text-sm mb-1">{data.count} {t.richList.utxos}</div>
                                                 <div className="text-slate-300 mb-1">{data.totalBtc.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTC</div>
                                                 <div className="text-slate-500 border-t border-slate-700 pt-1 mt-1">
-                                                    Block Range: <br />{data.minBlock.toLocaleString()} - {data.maxBlock.toLocaleString()}
+                                                    {t.richListDetail.blockRange}: <br />{data.minBlock.toLocaleString()} - {data.maxBlock.toLocaleString()}
                                                 </div>
                                             </div>
                                         )}
@@ -337,9 +339,9 @@ export default function WhaleDetailPage() {
                         </div>
                         {/* X-axis labels */}
                         <div className="flex justify-between mt-3 text-[10px] text-slate-500 border-t border-slate-800 pt-2">
-                            <span>Block {timelineData[0]?.minBlock.toLocaleString()}</span>
-                            <span className="hidden sm:inline text-slate-600">Distribution over {timelineData.length} segments</span>
-                            <span>Block {timelineData[timelineData.length - 1]?.maxBlock.toLocaleString()}</span>
+                            <span>{t.richListDetail.blockLabel} {timelineData[0]?.minBlock.toLocaleString()}</span>
+                            <span className="hidden sm:inline text-slate-600">{t.richListDetail.distributionOver.replace("{0}", String(timelineData.length))}</span>
+                            <span>{t.richListDetail.blockLabel} {timelineData[timelineData.length - 1]?.maxBlock.toLocaleString()}</span>
                         </div>
                     </div>
                 )}
@@ -347,7 +349,7 @@ export default function WhaleDetailPage() {
                 {/* UTXO Distribution by Value */}
                 {utxoDistribution.length > 0 && (
                     <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 md:p-6">
-                        <h2 className="text-lg font-bold text-slate-300 mb-4">📊 UTXO Distribution by Value</h2>
+                        <h2 className="text-lg font-bold text-slate-300 mb-4">📊 {t.richListDetail.distributionTitle}</h2>
                         <div className="space-y-2">
                             {utxoDistribution.map((range, idx) => {
                                 const maxCount = Math.max(...utxoDistribution.map(r => r.count));
@@ -378,14 +380,14 @@ export default function WhaleDetailPage() {
                 <div className="bg-slate-900 border border-slate-700 rounded-xl">
                     <div className="p-4 border-b border-slate-700 flex items-center justify-between">
                         <h2 className="text-lg font-bold text-slate-300">
-                            Unspent Outputs ({whale.utxoCount.toLocaleString()})
+                            {t.richListDetail.unspentOutputs} ({whale.utxoCount.toLocaleString()})
                         </h2>
                         {whale.utxoCount > 20 && (
                             <button
                                 onClick={() => setShowAllUtxos(!showAllUtxos)}
-                                className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 px-3 py-1.5 rounded border border-slate-600"
+                                className="min-h-11 text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 px-3 py-1.5 rounded border border-slate-600"
                             >
-                                {showAllUtxos ? 'Show Less' : `Show All ${whale.utxoCount.toLocaleString()}`}
+                                {showAllUtxos ? t.richListDetail.showLess : t.richListDetail.showAll.replace("{0}", whale.utxoCount.toLocaleString())}
                             </button>
                         )}
                     </div>
@@ -419,7 +421,7 @@ export default function WhaleDetailPage() {
 
                         {!showAllUtxos && whale.utxoCount > 20 && (
                             <div className="mt-4 text-center text-slate-500 text-sm">
-                                Showing 20 of {whale.utxoCount.toLocaleString()} UTXOs
+                                {t.richListDetail.showingNofTotal.replace("{0}", "20").replace("{1}", whale.utxoCount.toLocaleString()).replace("{2}", t.richList.utxos)}
                             </div>
                         )}
                     </div>

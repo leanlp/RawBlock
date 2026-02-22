@@ -10,9 +10,7 @@ import {
     verifySchnorr,
     aggregatePublicKeys,
     bytesToHex,
-    hexToBytes,
     hash256,
-    CURVE,
     type SchnorrSignature
 } from "../../utils/bitcoin-crypto";
 
@@ -63,12 +61,14 @@ export default function KeyAggregator() {
     useEffect(() => {
         const alice = createSigner(1, "Alice");
         const bob = createSigner(2, "Bob");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSigners([alice, bob]);
     }, []);
 
     // Update message hash when message changes
     useEffect(() => {
         const msgBytes = new TextEncoder().encode(message);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMessageHash(hash256(msgBytes));
     }, [message]);
 
@@ -78,6 +78,7 @@ export default function KeyAggregator() {
             try {
                 const pubKeys = signers.map(s => s.publicKey);
                 const aggKey = aggregatePublicKeys(pubKeys);
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setAggregatedPubKey(aggKey);
             } catch (err) {
                 console.error("Aggregation error:", err);

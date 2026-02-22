@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts';
 import { BITCOIN_BLOCK_TIME_MINUTES, BITCOIN_BLOCK_TIME_SECONDS } from "../../../lib/constants/bitcoinProtocol";
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
+import { useTranslation } from "@/lib/i18n";
 
 interface Block {
     height: number;
@@ -15,6 +16,7 @@ interface Block {
 }
 
 export default function MiningSimPage() {
+    const { t } = useTranslation();
     const [hashrate, setHashrate] = useState(100); // Percentage (100 = baseline)
     const [difficulty, setDifficulty] = useState(100); // Percentage
     const [blocks, setBlocks] = useState<Block[]>([]);
@@ -124,9 +126,9 @@ export default function MiningSimPage() {
                 <div className="flex flex-col md:flex-row justify-between items-end pb-6 border-b border-slate-800">
                     <div>
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500">
-                            Mining Simulator ⛏️
+                            {t.miningSim.title} ⛏️
                         </h1>
-                        <p className="mt-2 text-slate-400 text-sm">Target: {BITCOIN_BLOCK_TIME_MINUTES} mins ({BITCOIN_BLOCK_TIME_SECONDS}s). Epoch: 20 blocks (Demo Mode).</p>
+                        <p className="mt-2 text-slate-400 text-sm">{t.miningSim.subtitle}</p>
                     </div>
                     <div className="flex gap-4">
                         <button onClick={() => setHashrate(50)} className="px-3 py-2.5 min-h-11 bg-red-500/20 text-red-400 border border-red-500/50 rounded hover:bg-red-500/30 text-xs">China Ban (-50%)</button>

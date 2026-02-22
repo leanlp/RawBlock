@@ -3,8 +3,10 @@
 
 import Header from "../../../components/Header";
 import MempoolGame from "../../../components/mempool-game/MempoolGame";
+import { useTranslation } from "@/lib/i18n";
 
 export default function MempoolGamePage() {
+    const { t } = useTranslation();
     return (
         <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
             <div className="max-w-7xl mx-auto space-y-6">
@@ -13,10 +15,10 @@ export default function MempoolGamePage() {
                 <div className="pb-6 border-b border-slate-800 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
                     <div>
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500">
-                            Mempool Tetris 🧱
+                            {t.mempoolTetris.title} 🧱
                         </h1>
                         <p className="mt-2 text-slate-400 text-sm">
-                            You are the Miner. Assemble the most profitable block before time runs out!
+                            {t.mempoolTetris.subtitle}
                         </p>
                     </div>
                 </div>

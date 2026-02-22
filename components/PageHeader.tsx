@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ReactNode, useEffect, useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 
 interface PageHeaderProps {
     title: string;
@@ -25,6 +26,7 @@ export default function PageHeader({
     gradient = "from-cyan-400 to-blue-500"
 }: PageHeaderProps) {
     const [copied, setCopied] = useState(false);
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (!copied) return;
@@ -68,7 +70,7 @@ export default function PageHeader({
                             {copyText && (
                                 <button
                                     onClick={handleCopy}
-                                    title={copied ? "Copied" : "Copy to Clipboard"}
+                                    title={copied ? t.common.copied : t.common.copyToClipboard}
                                     className={`min-h-11 min-w-11 p-1.5 rounded-lg transition-all group inline-flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 ${copied ? 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/40' : 'hover:bg-slate-800 text-slate-500 hover:text-cyan-400'}`}
                                 >
                                     {copied ? (
@@ -80,7 +82,7 @@ export default function PageHeader({
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                         </svg>
                                     )}
-                                    <span className="sr-only">Copy</span>
+                                    <span className="sr-only">{t.common.copy}</span>
                                 </button>
                             )}
                         </div>

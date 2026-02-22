@@ -1,0 +1,161 @@
+[
+    {
+        "id": "honest-majority-hashpower",
+        "title": "Asunción de Mayoría Honesta de Hashpower",
+        "year": 2009,
+        "severity": "critical",
+        "category": "economic-security",
+        "linkedNodeIds": [
+            "what-is-bitcoin",
+            "mining-and-subsidy",
+            "difficulty-adjustment-2016",
+            "security-and-attacks"
+        ],
+        "summary": "Bitcoin asume que una mayoría del poder de cómputo efectivo (hashpower) sigue la extensión de cadena válida bajo las reglas de consenso a lo largo del tiempo.",
+        "assumptionType": "economic",
+        "dependsOn": [
+            "las recompensas de minería y las comisiones siguen siendo económicamente significativas",
+            "el poder de cómputo no está persistentemente dominado por coordinación adversarial"
+        ],
+        "weakenedBy": [
+            "concentración de hashrate",
+            "desajuste prolongado de incentivos entre el subsidio y las comisiones"
+        ],
+        "sources": [
+            {
+                "title": "Libro Blanco de Bitcoin",
+                "url": "https://bitcoin.org/bitcoin.pdf",
+                "type": "whitepaper"
+            },
+            {
+                "title": "Guía de Desarrolladores de Bitcoin: Cadena de Bloques",
+                "url": "https://developer.bitcoin.org/devguide/block_chain.html",
+                "type": "dev-guide"
+            },
+            {
+                "title": "Documentación de la API de minería de Mempool.space",
+                "url": "https://mempool.space/docs/api/rest",
+                "type": "reference"
+            }
+        ]
+    },
+    {
+        "id": "network-propagation-assumption",
+        "title": "Asunción de Propagación en la Red",
+        "year": 2009,
+        "severity": "high",
+        "category": "p2p-network",
+        "linkedNodeIds": [
+            "transactions-lifecycle",
+            "mempool",
+            "reorg",
+            "spv-vs-full-node"
+        ],
+        "summary": "La seguridad y usabilidad asumen que los bloques y las transacciones se propagan entre los nodos homólogos con la rapidez suficiente para limitar las ventanas de bifurcaciones (forks) y bloques huérfanos.",
+        "assumptionType": "network",
+        "dependsOn": [
+            "topología de nodos homólogos suficientemente conectada",
+            "latencia y ancho de banda razonables para la retransmisión"
+        ],
+        "weakenedBy": [
+            "aislamiento estilo ataque de eclipse",
+            "interrupciones regionales y particiones severas de la red"
+        ],
+        "sources": [
+            {
+                "title": "Guía de Desarrolladores de Bitcoin: Red P2P",
+                "url": "https://developer.bitcoin.org/devguide/p2p_network.html",
+                "type": "dev-guide"
+            },
+            {
+                "title": "BIP 152: Retransmisión de Bloques Compactos",
+                "url": "https://github.com/bitcoin/bips/blob/master/bip-0152.mediawiki",
+                "type": "BIP"
+            },
+            {
+                "title": "Proyecto FIBRE",
+                "url": "https://bitcoinfibre.org/",
+                "type": "reference"
+            }
+        ]
+    },
+    {
+        "id": "economic-incentives-assumption",
+        "title": "Asunción de Incentivos Económicos",
+        "year": 2009,
+        "severity": "high",
+        "category": "game-theory",
+        "linkedNodeIds": [
+            "mining-and-subsidy",
+            "mempool",
+            "lightning-network-maturity",
+            "security-and-attacks"
+        ],
+        "summary": "Bitcoin asume que la mayoría de los participantes prefiere estrategias que preserven el valor a largo plazo de la red por encima del comportamiento destructivo a corto plazo.",
+        "assumptionType": "game-theory",
+        "dependsOn": [
+            "la operación honesta sigue siendo económicamente competitiva",
+            "los usuarios y mineros responden a las señales de confirmación y comisiones"
+        ],
+        "weakenedBy": [
+            "picos extremos de comisiones",
+            "incentivos en otros mercados no alineados con la salud de la cadena"
+        ],
+        "sources": [
+            {
+                "title": "Libro Blanco de Bitcoin",
+                "url": "https://bitcoin.org/bitcoin.pdf",
+                "type": "whitepaper"
+            },
+            {
+                "title": "Guía de Desarrolladores de Bitcoin: Minería",
+                "url": "https://developer.bitcoin.org/devguide/mining.html",
+                "type": "dev-guide"
+            },
+            {
+                "title": "Grupo de discusión Bitcoin-dev",
+                "url": "https://groups.google.com/g/bitcoindev",
+                "type": "mailing-list"
+            }
+        ]
+    },
+    {
+        "id": "cryptographic-assumption",
+        "title": "Asunción Criptográfica",
+        "year": 2009,
+        "severity": "critical",
+        "category": "cryptography",
+        "linkedNodeIds": [
+            "signatures-schnorr-ecdsa",
+            "segwit-and-taproot-upgrades",
+            "security-and-attacks"
+        ],
+        "summary": "La seguridad de Bitcoin asume la resistencia práctica del algoritmo SHA-256 y esquemas de firma contra ataques de colisión y falsificación.",
+        "assumptionType": "cryptographic",
+        "dependsOn": [
+            "la resistencia a colisiones e imágenes inversas de hash sigue siendo computacionalmente difícil",
+            "la falsificación de firmas sigue siendo inviable bajo los modelos de amenazas actuales"
+        ],
+        "weakenedBy": [
+            "un avance criptoanalítico importante",
+            "fallas de implementación a gran escala en bibliotecas criptográficas"
+        ],
+        "sources": [
+            {
+                "title": "Libro Blanco de Bitcoin",
+                "url": "https://bitcoin.org/bitcoin.pdf",
+                "type": "whitepaper"
+            },
+            {
+                "title": "BIP 340: Firmas Schnorr",
+                "url": "https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki",
+                "type": "BIP"
+            },
+            {
+                "title": "NIST FIPS 180-4",
+                "url": "https://csrc.nist.gov/publications/detail/fips/180/4/final",
+                "type": "reference"
+            }
+        ]
+    }
+]

@@ -1,8 +1,10 @@
 import {
   DEFAULT_GUIDED_LEARNING_STATE,
-  GUIDED_LESSONS,
   type GuidedLearningState,
 } from "@/data/guided-learning";
+import en from "@/lib/i18n/en";
+
+const GUIDED_LESSONS = en.guidedLearning;
 
 export const LEARNING_PROGRESS_KEY = "rawblock-learning-progress-v2";
 

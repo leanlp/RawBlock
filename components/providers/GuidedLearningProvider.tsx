@@ -11,11 +11,11 @@ import {
   type ReactNode,
 } from "react";
 import {
-  GUIDED_LESSONS,
   getLessonIndexForNodeId,
   GUIDED_LEARNING_UPDATED_EVENT,
   type GuidedLesson,
 } from "@/data/guided-learning";
+import { useTranslation } from "@/lib/i18n";
 import {
   LEARNING_PROGRESS_KEY,
   computeLessonUnlockIndex,
@@ -51,6 +51,9 @@ type GuidedLearningContextValue = LearningProgressState & {
 const GuidedLearningContext = createContext<GuidedLearningContextValue | null>(null);
 
 export function GuidedLearningProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
+  const localizedLessons = t.guidedLearning as unknown as GuidedLesson[];
+
   // Keep first render deterministic to avoid SSR/client text mismatches.
   const [state, dispatch] = useReducer(learningProgressReducer, parseLearningProgressState(null));
   const [isRestored, setIsRestored] = useState(false);
@@ -65,6 +68,7 @@ export function GuidedLearningProvider({ children }: { children: ReactNode }) {
       type: "REPLACE_STATE",
       state: parseLearningProgressState(localStorage.getItem(LEARNING_PROGRESS_KEY)),
     });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsRestored(true);
   }, []);
 
@@ -171,14 +175,14 @@ export function GuidedLearningProvider({ children }: { children: ReactNode }) {
   );
 
   const progressPercent = useMemo(
-    () => Math.round((completedLessons.length / GUIDED_LESSONS.length) * 100),
-    [completedLessons.length],
+    () => Math.round((completedLessons.length / localizedLessons.length) * 100),
+    [completedLessons.length, localizedLessons.length],
   );
 
   const value = useMemo<GuidedLearningContextValue>(
     () => ({
       ...state,
-      currentLesson: GUIDED_LESSONS[currentLessonIndex],
+      currentLesson: localizedLessons[currentLessonIndex],
       maxUnlockedLesson,
       progressPercent,
       resumedFromSession,
@@ -205,6 +209,7 @@ export function GuidedLearningProvider({ children }: { children: ReactNode }) {
       progressPercent,
       resumedFromSession,
       isRestored,
+      localizedLessons,
       setCurrentLessonIndex,
       goToLesson,
       markLessonComplete,

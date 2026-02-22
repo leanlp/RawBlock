@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { CheckCircle2, XCircle, Trophy, RefreshCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { NODE_QUIZZES, QuizQuestion } from "@/data/quizzes";
+import { getQuizzes } from "@/data/quizzes";
+import { useTranslation } from "@/lib/i18n";
 
 export default function QuizModule({ nodeId }: { nodeId: string }) {
-    const questions = NODE_QUIZZES[nodeId];
+    const { t, locale } = useTranslation();
+    const questions = getQuizzes(locale)[nodeId];
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -53,23 +55,23 @@ export default function QuizModule({ nodeId }: { nodeId: string }) {
                     <Trophy className={`h-8 w-8 ${passed ? "text-amber-400" : "text-slate-500"}`} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-200">
-                    Module Quiz Complete
+                    {t.academy.quiz.completeTitle}
                 </h3>
                 <p className="text-sm text-slate-400">
-                    You scored <strong className={passed ? "text-emerald-400" : "text-slate-200"}>{score}</strong> out of {questions.length}
+                    {t.academy.quiz.scoreOverview.replace("{0}", score.toString()).replace("{1}", questions.length.toString())}
                 </p>
                 {passed ? (
                     <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-3 mx-auto max-w-sm inline-flex items-center gap-2 text-emerald-300 text-sm font-semibold">
-                        <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> Mastery Badge Earned
+                        <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> {t.academy.quiz.badgeEarned}
                     </div>
                 ) : (
                     <div className="text-sm text-slate-400">
-                        Review the module contents and try again to earn the mastery badge.
+                        {t.academy.quiz.retryPrompt}
                     </div>
                 )}
                 <div className="pt-4">
                     <button onClick={resetQuiz} className="inline-flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
-                        <RefreshCcw className="w-4 h-4" /> Retry Quiz
+                        <RefreshCcw className="w-4 h-4" /> {t.academy.quiz.retryButton}
                     </button>
                 </div>
             </section>
@@ -81,9 +83,9 @@ export default function QuizModule({ nodeId }: { nodeId: string }) {
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-                        Knowledge Check
+                        {t.academy.quiz.knowledgeCheck}
                     </h2>
-                    <p className="text-xs text-slate-400 mt-1">Question {currentIndex + 1} of {questions.length}</p>
+                    <p className="text-xs text-slate-400 mt-1">{t.academy.quiz.questionXofY.replace("{0}", (currentIndex + 1).toString()).replace("{1}", questions.length.toString())}</p>
                 </div>
             </div>
 
@@ -134,14 +136,14 @@ export default function QuizModule({ nodeId }: { nodeId: string }) {
                         className="rounded-lg border border-slate-700 bg-slate-800/40 p-4"
                     >
                         <p className="text-sm text-slate-300">
-                            <strong>Explanation:</strong> {question.explanation}
+                            <strong>{t.academy.quiz.explanation}:</strong> {question.explanation}
                         </p>
                         <div className="mt-4 text-right">
                             <button
                                 onClick={handleNext}
                                 className="rounded bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-500 transition-colors"
                             >
-                                {currentIndex < questions.length - 1 ? "Next Question →" : "Finish Quiz"}
+                                {currentIndex < questions.length - 1 ? t.academy.quiz.nextQuestion : t.academy.quiz.finishQuiz}
                             </button>
                         </div>
                     </motion.div>

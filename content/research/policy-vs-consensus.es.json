@@ -1,0 +1,75 @@
+[
+    {
+        "id": "consensus-block-weight-limit",
+        "title": "Límite de Peso de Bloque",
+        "layer": "consensus",
+        "linkedNodeIds": [
+            "blocks-and-headers",
+            "consensus-rules-vs-policy"
+        ],
+        "description": "El peso del bloque debe permanecer por debajo del máximo de consenso.",
+        "rationale": "Protege los límites de recursos de validación y las reglas deterministas de la cadena.",
+        "sources": [
+            {
+                "title": "consensus.h",
+                "url": "https://github.com/bitcoin/bitcoin/blob/master/src/consensus/consensus.h",
+                "type": "core-docs"
+            }
+        ]
+    },
+    {
+        "id": "consensus-no-double-spend",
+        "title": "Sin Doble Gasto",
+        "layer": "consensus",
+        "linkedNodeIds": [
+            "transactions-lifecycle",
+            "utxo-model",
+            "consensus-rules-vs-policy"
+        ],
+        "description": "Los bloques y las transacciones no pueden gastar el mismo UTXO dos veces.",
+        "rationale": "Previene la inflación y preserva las transiciones de propiedad deterministas.",
+        "sources": [
+            {
+                "title": "validation.cpp",
+                "url": "https://github.com/bitcoin/bitcoin/blob/master/src/validation.cpp",
+                "type": "core-docs"
+            }
+        ]
+    },
+    {
+        "id": "policy-standard-script-forms",
+        "title": "Transmisión de Scripts Estándar",
+        "layer": "policy",
+        "linkedNodeIds": [
+            "consensus-rules-vs-policy",
+            "transactions-lifecycle"
+        ],
+        "description": "La política de transmisión por defecto prefiere plantillas de scripts estándar.",
+        "rationale": "Reduce la superficie de abuso y mantiene las operaciones de la mempool predecibles.",
+        "sources": [
+            {
+                "title": "policy.h",
+                "url": "https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.h",
+                "type": "core-docs"
+            }
+        ]
+    },
+    {
+        "id": "policy-rbf-signaling",
+        "title": "Política de Reemplazo RBF",
+        "layer": "policy",
+        "linkedNodeIds": [
+            "transactions-lifecycle",
+            "consensus-rules-vs-policy"
+        ],
+        "description": "La aceptación de reemplazo de transacciones sigue la política de señalización y mejora de comisión.",
+        "rationale": "Equilibra la eficiencia del mercado de comisiones con la estabilidad de la mempool.",
+        "sources": [
+            {
+                "title": "doc. de reemplazos en mempool",
+                "url": "https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md",
+                "type": "core-docs"
+            }
+        ]
+    }
+]

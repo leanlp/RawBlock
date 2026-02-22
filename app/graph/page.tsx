@@ -22,6 +22,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import Header from "@/components/Header";
+import { useTranslation } from "@/lib/i18n";
 import { graphStore } from "@/lib/graph/store";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
 import { NODE_TYPE_PRESENTATION } from "@/lib/graph/nodeTypePresentation";
@@ -377,10 +378,10 @@ function GraphFitController({
 
     const computedZoom = clampZoom(
       0.9 /
-        Math.max(
-          boundsWidth / viewportWidth,
-          boundsHeight / viewportHeight,
-        ),
+      Math.max(
+        boundsWidth / viewportWidth,
+        boundsHeight / viewportHeight,
+      ),
     );
 
     const centerX = (minX + maxX) / 2;
@@ -428,6 +429,7 @@ function GraphFitController({
 }
 
 export default function BitcoinMapPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const [showFullGraph, setShowFullGraph] = useState(false);
@@ -557,8 +559,8 @@ export default function BitcoinMapPage() {
     const baseEdges = showFullGraph
       ? graphStore.edges
       : graphStore.edges.filter((edge) =>
-          canonicalPathEdgeSet.has(`${edge.from}->${edge.to}`),
-        );
+        canonicalPathEdgeSet.has(`${edge.from}->${edge.to}`),
+      );
     const attackEdges = baseEdges.filter((edge) => attackEdgeTypes.has(edge.type));
 
     const modeEnabled = threatMode;
@@ -610,11 +612,11 @@ export default function BitcoinMapPage() {
       : visibleNodes;
     const activeEdges = focusActive
       ? visibleEdges.filter(
-          (edge) =>
-            focusedNodeIds.has(edge.from) &&
-            focusedNodeIds.has(edge.to) &&
-            (edge.from === effectiveFocusedNodeId || edge.to === effectiveFocusedNodeId),
-        )
+        (edge) =>
+          focusedNodeIds.has(edge.from) &&
+          focusedNodeIds.has(edge.to) &&
+          (edge.from === effectiveFocusedNodeId || edge.to === effectiveFocusedNodeId),
+      )
       : visibleEdges;
 
     const shouldStagger = activeNodes.length <= 120;
@@ -808,13 +810,13 @@ export default function BitcoinMapPage() {
         </div>
         <header className="page-header">
           <p className="page-kicker">Knowledge Graph</p>
-          <h1 className="page-title">Protocol Knowledge Graph</h1>
+          <h1 className="page-title">{t.graph.title}</h1>
           <p className="page-subtitle" style={{ color: theme.textMuted }}>
             {isMobileViewport && mobileViewMode === "story"
               ? "Mobile Story mode is active. Step through the canonical path before exploring the full graph."
               : effectiveFocusMode
-              ? "Focus Mode is active. Click a node to isolate it with direct prerequisites and dependents."
-              : "Click any node to inspect concept context, relations, and confidence before navigating to Academy."}
+                ? "Focus Mode is active. Click a node to isolate it with direct prerequisites and dependents."
+                : t.graph.subtitle}
           </p>
           {!threatMode ? (
             <p className="text-xs text-cyan-300">
@@ -874,29 +876,27 @@ export default function BitcoinMapPage() {
             <button
               type="button"
               onClick={() => setMobileViewMode("story")}
-              className={`rounded-lg border px-3 py-2 text-xs font-medium ${
-                mobileViewMode === "story"
-                  ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
-                  : "border-slate-700 bg-slate-950/70 text-slate-300"
-              }`}
+              className={`rounded-lg border px-3 py-2 text-xs font-medium ${mobileViewMode === "story"
+                ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
+                : "border-slate-700 bg-slate-950/70 text-slate-300"
+                }`}
             >
               Story
             </button>
             <button
               type="button"
               onClick={() => setMobileViewMode("graph")}
-              className={`rounded-lg border px-3 py-2 text-xs font-medium ${
-                mobileViewMode === "graph"
-                  ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200"
-                  : "border-slate-700 bg-slate-950/70 text-slate-300"
-              }`}
+              className={`rounded-lg border px-3 py-2 text-xs font-medium ${mobileViewMode === "graph"
+                ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200"
+                : "border-slate-700 bg-slate-950/70 text-slate-300"
+                }`}
             >
               Graph
             </button>
           </div>
         ) : null}
 
-	        <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside
             className="space-y-4 rounded-xl p-4 text-sm xl:sticky xl:top-24 xl:self-start"
             style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
@@ -930,11 +930,10 @@ export default function BitcoinMapPage() {
                     setFocusMode(true);
                     setFocusedNodeId(null);
                   }}
-                  className={`rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${
-                    !showFullGraph
-                      ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
-                      : "border-slate-700 bg-slate-950/70 text-slate-300"
-                  }`}
+                  className={`rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${!showFullGraph
+                    ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
+                    : "border-slate-700 bg-slate-950/70 text-slate-300"
+                    }`}
                 >
                   Focused
                 </button>
@@ -945,11 +944,10 @@ export default function BitcoinMapPage() {
                     setFocusMode(false);
                     setFocusedNodeId(null);
                   }}
-                  className={`rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${
-                    showFullGraph
-                      ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200"
-                      : "border-slate-700 bg-slate-950/70 text-slate-300"
-                  }`}
+                  className={`rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${showFullGraph
+                    ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200"
+                    : "border-slate-700 bg-slate-950/70 text-slate-300"
+                    }`}
                 >
                   Full
                 </button>
@@ -1037,280 +1035,280 @@ export default function BitcoinMapPage() {
             </section>
           </aside>
 
-	          <div className="space-y-4">
-	            {isMobileViewport && mobileViewMode === "story" ? (
-	              <section
-	                className="rounded-xl p-4"
-	                style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
-	              >
-	                {mobileStoryNode ? (
-	                  <div className="space-y-3">
-	                    <div className="flex items-center justify-between gap-2 text-xs" style={{ color: theme.textMuted }}>
-	                      <span>Step {activeMobileStoryIndex + 1} / {canonicalPath.orderedNodes.length}</span>
-	                      <span>{NODE_TYPE_PRESENTATION[mobileStoryNode.type].icon} {NODE_TYPE_PRESENTATION[mobileStoryNode.type].label}</span>
-	                    </div>
-	                    <h3 className="text-xl font-semibold" style={{ color: theme.textPrimary }}>
-	                      {mobileStoryNode.title}
-	                    </h3>
-	                    <p className="text-sm leading-relaxed" style={{ color: theme.textMuted }}>
-	                      {mobileStoryNode.summary}
-	                    </p>
-	                    <div className="flex gap-2">
-	                      <button
-	                        type="button"
-	                        onClick={() => setMobileStoryIndex((prev) => Math.max(0, prev - 1))}
-	                        disabled={activeMobileStoryIndex === 0}
-	                        className="rounded-lg border px-3 py-2 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40"
-	                        style={{ borderColor: theme.sectionBorder, color: theme.textPrimary }}
-	                      >
-	                        Previous
-	                      </button>
-	                      <button
-	                        type="button"
-	                        onClick={() =>
-	                          setMobileStoryIndex((prev) => Math.min(canonicalPath.orderedNodes.length - 1, prev + 1))
-	                        }
-	                        disabled={activeMobileStoryIndex >= canonicalPath.orderedNodes.length - 1}
-	                        className="rounded-lg border px-3 py-2 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40"
-	                        style={{ borderColor: theme.sectionBorder, color: theme.textPrimary }}
-	                      >
-	                        Next
-	                      </button>
-	                      <button
-	                        type="button"
-	                        onClick={() => {
-	                          setSelectedNodeId(mobileStoryNode.id);
-	                          setFocusedNodeId(mobileStoryNode.id);
-	                          setMobileViewMode("graph");
-	                        }}
-	                        className="ml-auto rounded-lg border border-cyan-500/50 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-200"
-	                      >
-	                        Open on Graph
-	                      </button>
-	                    </div>
-	                  </div>
-	                ) : (
-	                  <p className="text-sm" style={{ color: theme.textMuted }}>
-	                    No story steps available for the current mode.
-	                  </p>
-	                )}
-	              </section>
-	            ) : (
-	              <div
-	                ref={graphContainerRef}
-	                className="relative h-[70vh] md:h-[78vh] overflow-hidden rounded-xl"
-	                style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
-	                onWheel={handleCanvasWheel}
-	              >
-	                <ReactFlow
-	                  nodes={nodes}
-	                  edges={edges}
-	                  minZoom={MIN_GRAPH_ZOOM}
-	                  maxZoom={MAX_GRAPH_ZOOM}
-	                  zoomOnPinch
-	                  zoomOnScroll
-	                  panOnScroll={false}
-	                  zoomOnDoubleClick={false}
-	                  preventScrolling
-	                  onMove={handleViewportChange}
-	                  onNodeClick={(_, node) => {
-	                    setSelectedNodeId(node.id);
-	                    if (effectiveFocusMode) {
-	                      setFocusedNodeId(node.id);
-	                      return;
-	                    }
-	                  }}
-	                  onPaneClick={() => {
-	                    if (effectiveFocusMode) {
-	                      setFocusedNodeId(null);
-	                    }
-	                    setHoveredNodeId(null);
-	                  }}
-	                  onNodeMouseEnter={(event, node) => {
-	                    setHoveredNodeId(node.id);
-	                    setTooltipPosition({ x: event.clientX, y: event.clientY });
-	                  }}
-	                  onNodeMouseMove={(event, node) => {
-	                    if (hoveredNodeId !== node.id) {
-	                      setHoveredNodeId(node.id);
-	                    }
-	                    setTooltipPosition({ x: event.clientX, y: event.clientY });
-	                  }}
-	                  onNodeMouseLeave={() => {
-	                    setHoveredNodeId(null);
-	                  }}
-	                  onNodeDragStart={() => {
-	                    setIsNodeDragging(true);
-	                    setHoveredNodeId(null);
-	                  }}
-	                  onNodeDragStop={() => {
-	                    window.setTimeout(() => {
-	                      setIsNodeDragging(false);
-	                    }, 110);
-	                  }}
-	                  nodesDraggable
-	                  attributionPosition="bottom-left"
-	                >
-	                  <GraphFitController
-	                    containerRef={graphContainerRef}
-	                    fitVersion={graphFitVersion}
-	                    suspendAutoFit={isNodeDragging}
-	                    allowAutoFit
-	                  />
-	                  <GraphZoomPanel
-	                    zoomLevel={zoomLevel}
-	                    onZoomLabelChange={handleZoomLabelChange}
-	                    theme={theme}
-	                  />
-	                  <MiniMap
-	                    nodeStrokeWidth={2}
-	                    nodeColor={(node) => {
-	                      const raw = graphStore.getNode(node.id);
-	                      if (!raw) return "#64748b";
-	                      if (!threatMode && canonicalNodeSet.has(raw.id)) return "#22d3ee";
-	                      return TYPE_COLORS[raw.type] ?? "#64748b";
-	                    }}
-	                    maskColor={theme.minimapMask}
-	                  />
-	                  <Background gap={20} size={1} color="#1e293b" />
-	                </ReactFlow>
-	                {hasSearchMiss ? (
-	                  <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-slate-950/55 p-4">
-	                    <div className="pointer-events-auto max-w-md rounded-xl border border-slate-700 bg-slate-950/90 p-4 text-center">
-	                      <p className="text-sm font-semibold text-slate-100">No graph matches for {searchQuery.trim()}</p>
-	                      <p className="mt-1 text-xs text-slate-300">
-	                        Try a broader term like segwit, utxo, policy, or clear the search.
-	                      </p>
-	                      <button
-	                        type="button"
-	                        onClick={() => setSearchQuery("")}
-	                        className="mt-3 rounded-md border border-cyan-500/50 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200"
-	                      >
-	                        Clear Search
-	                      </button>
-	                    </div>
-	                  </div>
-	                ) : null}
-	                {hoveredNode ? (
-	                  <div
-	                    className="pointer-events-none fixed z-50 max-w-xs rounded-lg border p-3 shadow-2xl"
-	                    style={{
-	                      left: tooltipPosition.x + 14,
-	                      top: tooltipPosition.y + 14,
-	                      borderColor: theme.tooltipBorder,
-	                      background: theme.tooltipBg,
-	                    }}
-	                  >
-	                    <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>
-	                      {hoveredNode.title}
-	                    </p>
-	                    <p className="mt-1 text-[11px]" style={{ color: theme.textSubtle }}>
-	                      {NODE_TYPE_PRESENTATION[hoveredNode.type].label} · difficulty {hoveredNode.difficulty}/4
-	                    </p>
-	                    <p className="mt-1 text-xs leading-relaxed" style={{ color: theme.textMuted }}>
-	                      {hoveredNode.summary}
-	                    </p>
-	                  </div>
-	                ) : null}
-	              </div>
-	            )}
+          <div className="space-y-4">
+            {isMobileViewport && mobileViewMode === "story" ? (
+              <section
+                className="rounded-xl p-4"
+                style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
+              >
+                {mobileStoryNode ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2 text-xs" style={{ color: theme.textMuted }}>
+                      <span>Step {activeMobileStoryIndex + 1} / {canonicalPath.orderedNodes.length}</span>
+                      <span>{NODE_TYPE_PRESENTATION[mobileStoryNode.type].icon} {NODE_TYPE_PRESENTATION[mobileStoryNode.type].label}</span>
+                    </div>
+                    <h3 className="text-xl font-semibold" style={{ color: theme.textPrimary }}>
+                      {mobileStoryNode.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed" style={{ color: theme.textMuted }}>
+                      {mobileStoryNode.summary}
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setMobileStoryIndex((prev) => Math.max(0, prev - 1))}
+                        disabled={activeMobileStoryIndex === 0}
+                        className="rounded-lg border px-3 py-2 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40"
+                        style={{ borderColor: theme.sectionBorder, color: theme.textPrimary }}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMobileStoryIndex((prev) => Math.min(canonicalPath.orderedNodes.length - 1, prev + 1))
+                        }
+                        disabled={activeMobileStoryIndex >= canonicalPath.orderedNodes.length - 1}
+                        className="rounded-lg border px-3 py-2 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40"
+                        style={{ borderColor: theme.sectionBorder, color: theme.textPrimary }}
+                      >
+                        Next
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedNodeId(mobileStoryNode.id);
+                          setFocusedNodeId(mobileStoryNode.id);
+                          setMobileViewMode("graph");
+                        }}
+                        className="ml-auto rounded-lg border border-cyan-500/50 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-200"
+                      >
+                        Open on Graph
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm" style={{ color: theme.textMuted }}>
+                    No story steps available for the current mode.
+                  </p>
+                )}
+              </section>
+            ) : (
+              <div
+                ref={graphContainerRef}
+                className="relative h-[70vh] md:h-[78vh] overflow-hidden rounded-xl"
+                style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
+                onWheel={handleCanvasWheel}
+              >
+                <ReactFlow
+                  nodes={nodes}
+                  edges={edges}
+                  minZoom={MIN_GRAPH_ZOOM}
+                  maxZoom={MAX_GRAPH_ZOOM}
+                  zoomOnPinch
+                  zoomOnScroll
+                  panOnScroll={false}
+                  zoomOnDoubleClick={false}
+                  preventScrolling
+                  onMove={handleViewportChange}
+                  onNodeClick={(_, node) => {
+                    setSelectedNodeId(node.id);
+                    if (effectiveFocusMode) {
+                      setFocusedNodeId(node.id);
+                      return;
+                    }
+                  }}
+                  onPaneClick={() => {
+                    if (effectiveFocusMode) {
+                      setFocusedNodeId(null);
+                    }
+                    setHoveredNodeId(null);
+                  }}
+                  onNodeMouseEnter={(event, node) => {
+                    setHoveredNodeId(node.id);
+                    setTooltipPosition({ x: event.clientX, y: event.clientY });
+                  }}
+                  onNodeMouseMove={(event, node) => {
+                    if (hoveredNodeId !== node.id) {
+                      setHoveredNodeId(node.id);
+                    }
+                    setTooltipPosition({ x: event.clientX, y: event.clientY });
+                  }}
+                  onNodeMouseLeave={() => {
+                    setHoveredNodeId(null);
+                  }}
+                  onNodeDragStart={() => {
+                    setIsNodeDragging(true);
+                    setHoveredNodeId(null);
+                  }}
+                  onNodeDragStop={() => {
+                    window.setTimeout(() => {
+                      setIsNodeDragging(false);
+                    }, 110);
+                  }}
+                  nodesDraggable
+                  attributionPosition="bottom-left"
+                >
+                  <GraphFitController
+                    containerRef={graphContainerRef}
+                    fitVersion={graphFitVersion}
+                    suspendAutoFit={isNodeDragging}
+                    allowAutoFit
+                  />
+                  <GraphZoomPanel
+                    zoomLevel={zoomLevel}
+                    onZoomLabelChange={handleZoomLabelChange}
+                    theme={theme}
+                  />
+                  <MiniMap
+                    nodeStrokeWidth={2}
+                    nodeColor={(node) => {
+                      const raw = graphStore.getNode(node.id);
+                      if (!raw) return "#64748b";
+                      if (!threatMode && canonicalNodeSet.has(raw.id)) return "#22d3ee";
+                      return TYPE_COLORS[raw.type] ?? "#64748b";
+                    }}
+                    maskColor={theme.minimapMask}
+                  />
+                  <Background gap={20} size={1} color="#1e293b" />
+                </ReactFlow>
+                {hasSearchMiss ? (
+                  <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-slate-950/55 p-4">
+                    <div className="pointer-events-auto max-w-md rounded-xl border border-slate-700 bg-slate-950/90 p-4 text-center">
+                      <p className="text-sm font-semibold text-slate-100">No graph matches for {searchQuery.trim()}</p>
+                      <p className="mt-1 text-xs text-slate-300">
+                        Try a broader term like segwit, utxo, policy, or clear the search.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="mt-3 rounded-md border border-cyan-500/50 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200"
+                      >
+                        Clear Search
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+                {hoveredNode ? (
+                  <div
+                    className="pointer-events-none fixed z-50 max-w-xs rounded-lg border p-3 shadow-2xl"
+                    style={{
+                      left: tooltipPosition.x + 14,
+                      top: tooltipPosition.y + 14,
+                      borderColor: theme.tooltipBorder,
+                      background: theme.tooltipBg,
+                    }}
+                  >
+                    <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>
+                      {hoveredNode.title}
+                    </p>
+                    <p className="mt-1 text-[11px]" style={{ color: theme.textSubtle }}>
+                      {NODE_TYPE_PRESENTATION[hoveredNode.type].label} · difficulty {hoveredNode.difficulty}/4
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed" style={{ color: theme.textMuted }}>
+                      {hoveredNode.summary}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            )}
 
-	            {selectedNode ? (
-	              <section
-	                className="space-y-3 rounded-xl p-4"
-	                style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
-	              >
-	                <div className="flex flex-wrap items-center gap-2">
-	                  <h3 className="text-lg font-semibold" style={{ color: theme.textPrimary }}>
-	                    {NODE_TYPE_PRESENTATION[selectedNode.type].icon} {selectedNode.title}
-	                  </h3>
-	                  {selectedNodeConfidence && selectedNodeConfidenceStyle ? (
-	                    <span
-	                      className="inline-flex rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide"
-	                      style={{
-	                        borderColor: selectedNodeConfidenceStyle.border,
-	                        background: selectedNodeConfidenceStyle.bg,
-	                        color: selectedNodeConfidenceStyle.text,
-	                      }}
-	                    >
-	                      {selectedNodeConfidence}
-	                    </span>
-	                  ) : null}
-	                  <span className="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide" style={{ borderColor: theme.sectionBorder, color: theme.textMuted }}>
-	                    {NODE_TYPE_PRESENTATION[selectedNode.type].label}
-	                  </span>
-	                </div>
-	                <p className="text-sm leading-relaxed" style={{ color: theme.textMuted }}>
-	                  {selectedNode.summary}
-	                </p>
-	                <div className="grid gap-3 md:grid-cols-2">
-	                  <div className="space-y-1">
-	                    <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: theme.textMuted }}>
-	                      Outgoing Relations
-	                    </p>
-	                    {selectedOutgoing.length === 0 ? (
-	                      <p className="text-xs" style={{ color: theme.textSubtle }}>No outgoing relations.</p>
-	                    ) : (
-	                      <ul className="space-y-1 text-xs">
-	                        {selectedOutgoing.map((edge, idx) => {
-	                          const target = graphStore.getNode(edge.to);
-	                          const edgeConfidence = getEdgeConfidence(edge.type);
-	                          const edgeStyle = CONFIDENCE_STYLES[edgeConfidence];
-	                          return (
-	                            <li key={`${edge.type}-${edge.to}-${idx}`} className="rounded-md border px-2 py-1" style={{ borderColor: theme.sectionBorder }}>
-	                              <p style={{ color: theme.textPrimary }}>
-	                                {edge.type} → {target?.title ?? edge.to}
-	                              </p>
-	                              <span className="mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide" style={{ borderColor: edgeStyle.border, background: edgeStyle.bg, color: edgeStyle.text }}>
-	                                {edgeConfidence}
-	                              </span>
-	                            </li>
-	                          );
-	                        })}
-	                      </ul>
-	                    )}
-	                  </div>
-	                  <div className="space-y-1">
-	                    <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: theme.textMuted }}>
-	                      Incoming Relations
-	                    </p>
-	                    {selectedIncoming.length === 0 ? (
-	                      <p className="text-xs" style={{ color: theme.textSubtle }}>No incoming relations.</p>
-	                    ) : (
-	                      <ul className="space-y-1 text-xs">
-	                        {selectedIncoming.map((edge, idx) => {
-	                          const source = graphStore.getNode(edge.from);
-	                          const edgeConfidence = getEdgeConfidence(edge.type);
-	                          const edgeStyle = CONFIDENCE_STYLES[edgeConfidence];
-	                          return (
-	                            <li key={`${edge.type}-${edge.from}-${idx}`} className="rounded-md border px-2 py-1" style={{ borderColor: theme.sectionBorder }}>
-	                              <p style={{ color: theme.textPrimary }}>
-	                                {source?.title ?? edge.from} → {edge.type}
-	                              </p>
-	                              <span className="mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide" style={{ borderColor: edgeStyle.border, background: edgeStyle.bg, color: edgeStyle.text }}>
-	                                {edgeConfidence}
-	                              </span>
-	                            </li>
-	                          );
-	                        })}
-	                      </ul>
-	                    )}
-	                  </div>
-	                </div>
-	                <div className="flex justify-end">
-	                  <button
-	                    type="button"
-	                    onClick={() => router.push(`/academy/${selectedNode.id}`)}
-	                    className="rounded-lg border border-cyan-500/50 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-200"
-	                  >
-	                    Open Academy Page
-	                  </button>
-	                </div>
-	              </section>
-	            ) : null}
-	          </div>
-	        </div>
-	      </div>
+            {selectedNode ? (
+              <section
+                className="space-y-3 rounded-xl p-4"
+                style={{ border: `1px solid ${theme.sectionBorder}`, background: theme.sectionBg }}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-lg font-semibold" style={{ color: theme.textPrimary }}>
+                    {NODE_TYPE_PRESENTATION[selectedNode.type].icon} {selectedNode.title}
+                  </h3>
+                  {selectedNodeConfidence && selectedNodeConfidenceStyle ? (
+                    <span
+                      className="inline-flex rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide"
+                      style={{
+                        borderColor: selectedNodeConfidenceStyle.border,
+                        background: selectedNodeConfidenceStyle.bg,
+                        color: selectedNodeConfidenceStyle.text,
+                      }}
+                    >
+                      {selectedNodeConfidence}
+                    </span>
+                  ) : null}
+                  <span className="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide" style={{ borderColor: theme.sectionBorder, color: theme.textMuted }}>
+                    {NODE_TYPE_PRESENTATION[selectedNode.type].label}
+                  </span>
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: theme.textMuted }}>
+                  {selectedNode.summary}
+                </p>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: theme.textMuted }}>
+                      Outgoing Relations
+                    </p>
+                    {selectedOutgoing.length === 0 ? (
+                      <p className="text-xs" style={{ color: theme.textSubtle }}>No outgoing relations.</p>
+                    ) : (
+                      <ul className="space-y-1 text-xs">
+                        {selectedOutgoing.map((edge, idx) => {
+                          const target = graphStore.getNode(edge.to);
+                          const edgeConfidence = getEdgeConfidence(edge.type);
+                          const edgeStyle = CONFIDENCE_STYLES[edgeConfidence];
+                          return (
+                            <li key={`${edge.type}-${edge.to}-${idx}`} className="rounded-md border px-2 py-1" style={{ borderColor: theme.sectionBorder }}>
+                              <p style={{ color: theme.textPrimary }}>
+                                {edge.type} → {target?.title ?? edge.to}
+                              </p>
+                              <span className="mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide" style={{ borderColor: edgeStyle.border, background: edgeStyle.bg, color: edgeStyle.text }}>
+                                {edgeConfidence}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: theme.textMuted }}>
+                      Incoming Relations
+                    </p>
+                    {selectedIncoming.length === 0 ? (
+                      <p className="text-xs" style={{ color: theme.textSubtle }}>No incoming relations.</p>
+                    ) : (
+                      <ul className="space-y-1 text-xs">
+                        {selectedIncoming.map((edge, idx) => {
+                          const source = graphStore.getNode(edge.from);
+                          const edgeConfidence = getEdgeConfidence(edge.type);
+                          const edgeStyle = CONFIDENCE_STYLES[edgeConfidence];
+                          return (
+                            <li key={`${edge.type}-${edge.from}-${idx}`} className="rounded-md border px-2 py-1" style={{ borderColor: theme.sectionBorder }}>
+                              <p style={{ color: theme.textPrimary }}>
+                                {source?.title ?? edge.from} → {edge.type}
+                              </p>
+                              <span className="mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide" style={{ borderColor: edgeStyle.border, background: edgeStyle.bg, color: edgeStyle.text }}>
+                                {edgeConfidence}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/academy/${selectedNode.id}`)}
+                    className="rounded-lg border border-cyan-500/50 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-200"
+                  >
+                    Open Academy Page
+                  </button>
+                </div>
+              </section>
+            ) : null}
+          </div>
+        </div>
+      </div>
       <style jsx global>{`
         @keyframes rawblockNodeFadeIn {
           0% {
