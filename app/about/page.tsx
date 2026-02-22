@@ -58,7 +58,7 @@ export default function AboutPage() {
         </p>
         <div className="mt-3">
           <Link
-            href="https://github.com/rawblock"
+            href="https://github.com/leanlp/rawblock"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-cyan-400 text-sm hover:underline"

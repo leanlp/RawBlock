@@ -7,9 +7,10 @@ import {
 
 type AcademyNodeReferenceChipProps = {
   nodeId: string;
+  showPlannedBadge?: boolean;
 };
 
-export default function AcademyNodeReferenceChip({ nodeId }: AcademyNodeReferenceChipProps) {
+export default function AcademyNodeReferenceChip({ nodeId, showPlannedBadge = true }: AcademyNodeReferenceChipProps) {
   const href = getAcademyNodeHref(nodeId);
   const label = getAcademyNodeLabel(nodeId);
 
@@ -31,9 +32,11 @@ export default function AcademyNodeReferenceChip({ nodeId }: AcademyNodeReferenc
       title={isAcademyNodePlanned(nodeId) ? "Planned node (Coming Soon)" : "Unavailable node reference"}
     >
       <span>{label}</span>
-      <span className="rounded bg-slate-800 px-1 py-0.5 text-[10px] uppercase tracking-wide text-slate-300">
-        Coming Soon
-      </span>
+      {showPlannedBadge && (
+        <span className="rounded bg-slate-800 px-1 py-0.5 text-[10px] uppercase tracking-wide text-slate-300">
+          Coming Soon
+        </span>
+      )}
     </span>
   );
 }

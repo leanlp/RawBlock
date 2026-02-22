@@ -10,29 +10,61 @@ export default function CoinbaseDecoder({ coinbaseTxid }: { coinbaseTxid: string
     const [decoded, setDecoded] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [rawCoinbaseHex, setRawCoinbaseHex] = useState("");
+
+    const resolveTxPayload = (payload: unknown) => {
+        if (!payload || typeof payload !== "object") return null;
+        const candidate = payload as Record<string, unknown>;
+        if (Array.isArray(candidate.vin)) return candidate;
+        if (candidate.result && typeof candidate.result === "object") return candidate.result as Record<string, unknown>;
+        if (candidate.data && typeof candidate.data === "object") return candidate.data as Record<string, unknown>;
+        if (candidate.tx && typeof candidate.tx === "object") return candidate.tx as Record<string, unknown>;
+        return candidate;
+    };
+
+    const extractCoinbaseHex = (payload: unknown) => {
+        if (!payload || typeof payload !== "object") return "";
+        const candidate = payload as {
+            vin?: Array<{
+                coinbase?: string;
+                scriptsig?: string;
+                scriptSig?: { hex?: string };
+            }>;
+        };
+        const input = candidate.vin?.[0];
+        return input?.coinbase || input?.scriptSig?.hex || input?.scriptsig || "";
+    };
 
     const fetchCoinbase = async () => {
         setLoading(true);
         setError(null);
+        setRawCoinbaseHex("");
         try {
             const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
-            const res = await fetch(`${baseUrl}/api/decode-tx`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query: coinbaseTxid })
-            });
+            const canUseBackend = baseUrl.length > 0;
+            const res = canUseBackend
+                ? await fetch(`${baseUrl}/api/decode-tx`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query: coinbaseTxid })
+                })
+                : null;
 
-            if (!res.ok) {
+            if (!res || !res.ok) {
                 // fallback to mempool.space for demo purposes
                 const mempoolRes = await fetch(`https://mempool.space/api/tx/${coinbaseTxid}`);
                 if (!mempoolRes.ok) throw new Error("Failed to fetch coinbase transaction");
                 const tx = await mempoolRes.json();
-                setDecoded(tx);
+                const resolved = resolveTxPayload(tx);
+                setDecoded(resolved);
+                setRawCoinbaseHex(extractCoinbaseHex(resolved));
                 return;
             }
 
             const data = await res.json();
-            setDecoded(data);
+            const resolved = resolveTxPayload(data);
+            setDecoded(resolved);
+            setRawCoinbaseHex(extractCoinbaseHex(resolved));
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             setError(err.message || "Failed to decode");
@@ -86,13 +118,13 @@ export default function CoinbaseDecoder({ coinbaseTxid }: { coinbaseTxid: string
                         <div className="rounded border border-slate-800 bg-slate-950/70 p-3">
                             <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">Raw Base Hex (scriptSig)</div>
                             <div className="font-mono text-xs break-all text-slate-300">
-                                {decoded.vin?.[0]?.scriptSig?.hex || decoded.vin?.[0]?.scriptsig}
+                                {rawCoinbaseHex || "Unavailable"}
                             </div>
                         </div>
                         <div className="rounded border border-slate-800 bg-slate-950/70 p-3">
-                            <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">Decoded ASCI Text (Miner Tag)</div>
+                            <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">Decoded ASCII Text (Miner Tag)</div>
                             <div className="font-mono text-xs break-all text-amber-300 bg-slate-900 p-2 rounded">
-                                {extractText(decoded.vin?.[0]?.scriptSig?.hex || decoded.vin?.[0]?.scriptsig || "")}
+                                {rawCoinbaseHex ? extractText(rawCoinbaseHex) : "Unavailable"}
                             </div>
                         </div>
                     </div>

@@ -87,7 +87,7 @@ export default function AssumptionsResearchPage() {
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1">
                   {item.linkedNodeIds.map((nodeId) => (
-                    <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} />
+                    <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} showPlannedBadge={false} />
                   ))}
                 </div>
               </article>
@@ -116,7 +116,7 @@ export default function AssumptionsResearchPage() {
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-1">
                         {item.linkedNodeIds.map((nodeId) => (
-                          <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} />
+                          <AcademyNodeReferenceChip key={`${item.id}-${nodeId}`} nodeId={nodeId} showPlannedBadge={false} />
                         ))}
                       </div>
                     </td>
