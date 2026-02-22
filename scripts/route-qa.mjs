@@ -22,6 +22,8 @@ const routes = [
   "/analysis/utxo",
   "/analysis/forensics",
   "/analysis/evolution",
+  "/analysis/incidents",
+  "/analysis/bridges",
   "/analysis/d-index",
   "/analysis/graffiti",
   "/lab/script",
@@ -47,9 +49,9 @@ function slugForRoute(route) {
   return route === "/"
     ? "home"
     : route
-        .replace(/^\//, "")
-        .replace(/\//g, "__")
-        .replace(/[^a-zA-Z0-9_-]/g, "_");
+      .replace(/^\//, "")
+      .replace(/\//g, "__")
+      .replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
 function nowSlug() {
@@ -139,11 +141,11 @@ for (const vp of viewports) {
         const multiColGridOnMobile =
           window.innerWidth < 768
             ? grids.some((el) => {
-                const gtc = getComputedStyle(el).gridTemplateColumns;
-                if (!gtc || gtc === "none") return false;
-                const cols = gtc.split(" ").filter(Boolean).length;
-                return cols > 1;
-              })
+              const gtc = getComputedStyle(el).gridTemplateColumns;
+              if (!gtc || gtc === "none") return false;
+              const cols = gtc.split(" ").filter(Boolean).length;
+              return cols > 1;
+            })
             : false;
 
         const paragraphs = [...d.querySelectorAll("p")].slice(0, 160);

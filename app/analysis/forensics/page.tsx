@@ -34,9 +34,12 @@ import {
     Plus,
     Clock,
     X,
-    Loader2
+    Loader2,
+    Fingerprint
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
+import EntityForensicsDashboard from '../../../components/forensics/EntityForensicsDashboard';
+import { analyzePrivacy } from '../../../utils/privacy';
 
 export const dynamic = "force-dynamic";
 
@@ -241,6 +244,7 @@ export default function ForensicsPage() {
     const [selectedNodeData, setSelectedNodeData] = useState<any>(null);
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
     const [notification, setNotification] = useState<{ type: 'error' | 'success', message: string } | null>(null);
+    const [showDashboard, setShowDashboard] = useState(false);
 
     // Auto-dismiss notification
     useEffect(() => {
@@ -1764,6 +1768,13 @@ export default function ForensicsPage() {
                                             <Network size={12} /> Start Balance Accounting
                                         </button>
                                     )}
+
+                                    <button
+                                        onClick={() => setShowDashboard(true)}
+                                        className="col-span-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs py-2 rounded flex items-center justify-center gap-2 transition-all mt-2"
+                                    >
+                                        <Fingerprint size={12} /> View Advanced Forensics Dashboard
+                                    </button>
                                 </div>
 
                                 {/* Taint / Risk */}
@@ -1815,6 +1826,21 @@ export default function ForensicsPage() {
                     )}
                 </div>
             </div>
+
+            {/* Entity Dashboard Modal */}
+            {showDashboard && selectedNode && selectedNodeData && (
+                <div className="absolute inset-0 z-[100] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-8">
+                    <div className="bg-slate-950 border border-slate-700 w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6">
+                        <EntityForensicsDashboard
+                            entityId={selectedNode.id}
+                            entityType={selectedNode.type as 'address' | 'transaction'}
+                            utxos={selectedNode.type === 'address' ? (selectedNodeData.utxos || []) : (selectedNodeData.vout || [])}
+                            privacyReport={selectedNode.type === 'tx' ? analyzePrivacy(selectedNodeData as any) : undefined}
+                            onClose={() => setShowDashboard(false)}
+                        />
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

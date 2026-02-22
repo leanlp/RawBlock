@@ -16,6 +16,8 @@ const criticalRoutes = [
   "/explorer/rpc",
   "/analysis/evolution",
   "/analysis/forensics",
+  "/analysis/incidents",
+  "/analysis/bridges",
 ];
 
 function isBenignConsoleError(text) {
