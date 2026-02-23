@@ -3,7 +3,7 @@ import type { AcademyNodeContentList } from "@/lib/content/schema";
 export const academyNodeContentSeed: AcademyNodeContentList = [
   {
     id: "what-is-bitcoin",
-    title: "What is Bitcoin",
+    title: "Qué es Bitcoin",
     type: "property",
     difficulty: 1,
     canonicalLesson: "what-is-bitcoin",
@@ -75,12 +75,12 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
       },
     ],
     explorerDeepLinks: [
-      { label: "Latest Blocks", url: "https://mempool.space/blocks" },
-      { label: "Difficulty Dashboard", url: "https://mempool.space/mining" },
+      { label: "Bloques Recientes", url: "https://mempool.space/blocks" },
+      { label: "Panel de Dificultad", url: "https://mempool.space/mining" },
     ],
     claimSources: [
       {
-        claim: "Bitcoin supply is bounded by protocol rules and halvings.",
+        claim: "La oferta de Bitcoin esta limitada por las reglas del protocolo y los halvings.",
         sources: [
           { title: "Bitcoin Whitepaper", url: "https://bitcoin.org/bitcoin.pdf", type: "whitepaper" },
           {
@@ -91,7 +91,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
         ],
       },
       {
-        claim: "Nodes independently validate each block and transaction.",
+        claim: "Los nodos validan de forma independiente cada bloque y transaccion.",
         sources: [
           {
             title: "Bitcoin Developer Guide: P2P Network",
@@ -117,84 +117,84 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "transactions-lifecycle",
-    title: "Transactions Lifecycle",
+    title: "Ciclo de Vida de las Transacciones",
     type: "mechanism",
     difficulty: 1,
     canonicalLesson: "transactions",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "Transactions move value by consuming old outputs, creating new outputs, and propagating through node mempools before block inclusion.",
+      "Las transacciones mueven valor consumiendo salidas anteriores, creando nuevas salidas y propagandose por las mempools de los nodos antes de su inclusion en bloques.",
     story:
-      "A merchant sees a payment notification and asks: is this final? The lifecycle begins when a wallet assembles inputs, signs spend conditions, and broadcasts to peers. Each node checks structure, scripts, and policy before accepting into its mempool. Miners then choose transactions by fee density and template strategy, producing a candidate block. Once mined, the transaction receives its first confirmation, then additional confirmations as more blocks build on top. The key operational point is that lifecycle stages have different risk levels. Mempool presence is not finality. First confirmation is meaningful, and deeper confirmations materially reduce reversal probability. Raw Block makes this visible by linking decoder, mempool, and block views so users can see how transaction state changes over time rather than assuming one static status.",
+      "Un comerciante ve una notificacion de pago y pregunta: ?esto ya es final? El ciclo comienza cuando una wallet arma inputs, firma condiciones de gasto y transmite a peers. Cada nodo revisa estructura, scripts y politica antes de aceptar en su mempool. Luego los mineros eligen transacciones segun densidad de fee y estrategia de plantilla, produciendo un bloque candidato. Una vez minada, la transaccion recibe su primera confirmacion y luego confirmaciones adicionales. El punto operativo clave es que las etapas del ciclo tienen niveles de riesgo distintos. Estar en mempool no es finalidad. La primera confirmacion es significativa y confirmaciones mas profundas reducen la probabilidad de reversión. Raw Block lo vuelve visible conectando decoder, mempool y bloques para seguir el cambio de estado de la transaccion.",
     deepDive: [
       {
-        heading: "Creation and relay",
+        heading: "Creacion y relay",
         bullets: [
-          "Wallets perform coin selection and fee-rate estimation before signing.",
-          "Relay is gossip-based, so mempool contents differ slightly by node and timing.",
-          "Policy checks gate relay, but consensus checks gate final chain inclusion.",
+          "Las wallets hacen coin selection y estimacion de fee-rate antes de firmar.",
+          "El relay funciona por gossip, por eso el contenido de mempool difiere ligeramente segun nodo y momento.",
+          "Los checks de politica filtran relay; los checks de consenso filtran inclusion final en cadena.",
         ],
       },
       {
-        heading: "Confirmation and settlement",
+        heading: "Confirmacion y liquidacion",
         bullets: [
-          "Inclusion in a valid block provides first-chain confirmation.",
-          "Confirmation depth increases confidence against reorg-driven reversal.",
-          "High-value flows often wait for more confirmations before settlement acceptance.",
+          "La inclusion en un bloque valido da la primera confirmacion en cadena.",
+          "La profundidad de confirmacion aumenta la confianza contra reversiones por reorg.",
+          "Flujos de alto valor suelen esperar mas confirmaciones antes de aceptar liquidacion.",
         ],
       },
     ],
     keyTakeaways: [
-      "Mempool acceptance is not final settlement.",
-      "Fee rate heavily influences inclusion speed.",
-      "Confirmation depth is a risk management dial.",
+      "La aceptacion en mempool no es liquidacion final.",
+      "La tasa de fee influye fuertemente en la velocidad de inclusion.",
+      "La profundidad de confirmacion es una perilla de gestion de riesgo.",
     ],
     realData: [
       {
         key: "feeFast",
-        label: "Fast Fee",
-        description: "Recommended sat/vB for near-term inclusion in congested conditions.",
+        label: "Fee Rapido",
+        description: "sat/vB recomendado para inclusion de corto plazo en condiciones congestionadas.",
         display: "sat/vB badge",
       },
       {
         key: "feeHalfHour",
-        label: "30-Min Fee",
-        description: "Recommendation for moderate urgency transactions.",
+        label: "Fee 30 Min",
+        description: "Recomendacion para transacciones de urgencia moderada.",
         display: "sat/vB badge",
       },
     ],
     securityNotes: [
-      "Zero-confirmation acceptance is vulnerable to double-spend attempts.",
-      "Wallet fee-bumping tools (RBF/CPFP) reduce stuck-transaction risk.",
+      "Aceptar con cero confirmaciones es vulnerable a intentos de double-spend.",
+      "Las herramientas de fee bumping (RBF/CPFP) reducen el riesgo de transacciones atascadas.",
     ],
     linkedVulnerabilities: ["malleability-pre-segwit"],
     linkedAttacks: ["double-spend"],
     linkedAssumptions: ["network-topology-assumption"],
     policyRules: [
-      "Replace-by-fee handling depends on local mempool policy.",
-      "Nodes may reject low-fee transactions even if consensus-valid.",
+      "El manejo de replace-by-fee depende de la politica local de mempool.",
+      "Los nodos pueden rechazar transacciones de bajo fee aunque sean validas por consenso.",
     ],
     consensusRules: [
-      "Inputs must reference valid, unspent outputs.",
-      "Scripts and signatures must evaluate successfully for each spend.",
+      "Los inputs deben referenciar outputs validos y no gastados.",
+      "Scripts y firmas deben evaluar correctamente para cada gasto.",
     ],
     policyVsConsensusExplanation:
-      "Policy influences relay and mempool acceptance; consensus determines whether mined transactions are valid chain history.",
+      "La politica influye en el relay y la aceptacion en mempool; el consenso determina si las transacciones minadas son historial valido de cadena.",
     caseStudies: [
       {
         title: "Pre-SegWit Malleability Operational Failures",
         year: 2014,
         summary:
-          "Mutable txid behavior broke unconfirmed transaction tracking and motivated SegWit design priorities.",
+          "La maleabilidad del txid rompio el seguimiento de transacciones no confirmadas y motivo prioridades de diseño en SegWit.",
       },
     ],
     explorerDeepLinks: [
-      { label: "Mempool Queue", url: "https://mempool.space/mempool" },
-      { label: "Recent Transactions", url: "https://mempool.space/" },
+      { label: "Cola de Mempool", url: "https://mempool.space/mempool" },
+      { label: "Transacciones Recientes", url: "https://mempool.space/" },
     ],
     claimSources: [
       {
-        claim: "Transactions propagate via peer relay and enter local mempools before mining.",
+        claim: "Las transacciones se propagan por relay entre peers y entran a mempools locales antes de ser minadas.",
         sources: [
           {
             title: "Developer Guide: Transactions",
@@ -209,7 +209,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
         ],
       },
       {
-        claim: "Fee rate determines transaction priority under constrained block space.",
+        claim: "La tasa de fee determina la prioridad de una transaccion cuando el espacio en bloque es limitado.",
         sources: [
           {
             title: "Mempool replacements policy",
@@ -238,84 +238,84 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "utxo-model",
-    title: "UTXO Model",
+    title: "Modelo UTXO",
     type: "mechanism",
     difficulty: 1,
     canonicalLesson: "utxo-model",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "Bitcoin tracks spendable state as unspent outputs, not account balances, enabling deterministic validation of every spend path.",
+      "Bitcoin rastrea el estado gastable como salidas no gastadas (UTXOs), no como balances de cuenta, permitiendo validar de forma determinista cada ruta de gasto.",
     story:
-      "A user asks why their wallet shows many tiny pieces instead of one account balance. The answer is the UTXO model: every payment creates outputs with explicit spend conditions, and later transactions consume those outputs as inputs. This model makes validation local and precise. A node does not trust a running balance field. It checks whether each referenced output exists, is unspent, and satisfies script rules. That design simplifies consensus safety but creates practical tradeoffs. Large sets of tiny outputs increase future fees and harm privacy when consolidated carelessly. Wallets therefore optimize coin selection, batching, and change management. In Raw Block, understanding UTXO behavior helps users reason about fees, privacy, and attack surface much better than account-based mental models.",
+      "Un usuario pregunta por que su wallet muestra muchas piezas pequenas en vez de un solo balance de cuenta. La respuesta es el modelo UTXO: cada pago crea salidas con condiciones de gasto explicitas y transacciones posteriores consumen esas salidas como inputs. Este modelo hace que la validacion sea local y precisa. Un nodo no confia en un campo de balance acumulado; comprueba si cada salida referenciada existe, no fue gastada y satisface las reglas de script. Ese diseño simplifica la seguridad del consenso pero crea trade-offs practicos. Grandes conjuntos de UTXOs pequenos aumentan fees futuros y dañan la privacidad si se consolidan sin cuidado. Por eso las wallets optimizan coin selection, batching y manejo de change. En Raw Block, entender el comportamiento UTXO ayuda a razonar mucho mejor sobre fees, privacidad y superficie de ataque que los modelos mentales basados en cuentas.",
     deepDive: [
       {
-        heading: "Validation mechanics",
+        heading: "Mecanica de validacion",
         bullets: [
-          "Each input points to one previous output and must satisfy its locking script.",
-          "A UTXO can be spent exactly once in valid chain history.",
-          "The global UTXO set is the authoritative spendability state.",
+          "Cada input apunta a un output previo y debe satisfacer su locking script.",
+          "Un UTXO puede gastarse exactamente una vez en historial valido de cadena.",
+          "El conjunto global de UTXOs es el estado autoritativo de gastabilidad.",
         ],
       },
       {
-        heading: "Operational implications",
+        heading: "Implicancias operativas",
         bullets: [
-          "Many small UTXOs increase future transaction weight and fees.",
-          "Consolidation improves future efficiency but may reduce privacy if done poorly.",
-          "Coin selection strategy affects both cost and address-clustering exposure.",
+          "Muchos UTXOs pequeños aumentan peso y fees futuros de transacciones.",
+          "La consolidacion mejora eficiencia futura pero puede reducir privacidad si se hace mal.",
+          "La estrategia de coin selection afecta tanto costo como exposicion al clustering de direcciones.",
         ],
       },
     ],
     keyTakeaways: [
-      "UTXO state is explicit and one-time spendable.",
-      "Wallets optimize coin selection to control cost and privacy.",
-      "Double-spend prevention is enforced through unique UTXO consumption.",
+      "El estado UTXO es explicito y de gasto unico.",
+      "Las wallets optimizan coin selection para controlar costo y privacidad.",
+      "La prevencion de double-spend se aplica mediante consumo unico de UTXOs.",
     ],
     realData: [
       {
         key: "blockHeight",
-        label: "Anchor Height",
-        description: "Current chain height to contextualize UTXO snapshots and confirmations.",
+        label: "Altura de Referencia",
+        description: "Altura actual de la cadena para contextualizar snapshots UTXO y confirmaciones.",
         display: "Integer",
       },
       {
         key: "feeHour",
-        label: "Low Urgency Fee",
-        description: "Useful for consolidation planning during lower fee windows.",
+        label: "Fee de Baja Urgencia",
+        description: "Util para planificar consolidacion durante ventanas de fees mas bajos.",
         display: "sat/vB badge",
       },
     ],
     securityNotes: [
-      "UTXO uniqueness prevents valid duplicate spends in consensus.",
-      "Wallet reuse patterns can leak ownership clustering over time.",
+      "La unicidad UTXO evita gastos duplicados validos en consenso.",
+      "Patrones de reutilizacion de wallet pueden filtrar clustering de propiedad con el tiempo.",
     ],
     linkedVulnerabilities: ["cve-2018-17144"],
     linkedAttacks: ["double-spend"],
     linkedAssumptions: ["independent-validation-assumption"],
     policyRules: [
-      "Dust and standardness policies discourage uneconomical outputs.",
-      "Relay preferences can shape UTXO hygiene behavior in wallets.",
+      "Las politicas de dust y standardness desalientan outputs antieconomicos.",
+      "Las preferencias de relay pueden moldear la higiene UTXO en wallets.",
     ],
     consensusRules: [
-      "Inputs must spend unspent outputs exactly once.",
-      "Total output value must not exceed total input value plus allowed subsidy on coinbase.",
+      "Los inputs deben gastar outputs no gastados exactamente una vez.",
+      "El valor total de outputs no debe exceder el valor total de inputs mas el subsidio permitido en coinbase.",
     ],
     policyVsConsensusExplanation:
-      "Consensus protects spend validity; policy nudges economically sensible transaction construction and relay behavior.",
+      "El consenso protege la validez del gasto; la politica empuja una construccion de transacciones y un comportamiento de relay economicamente sensatos.",
     caseStudies: [
       {
         title: "CVE-2018-17144 Duplicate Input Risk",
         year: 2018,
         summary:
-          "A duplicate-input validation regression highlighted how critical UTXO checks are for inflation resistance.",
+          "Una regresion de validacion con inputs duplicados remarco cuan criticos son los checks UTXO para resistir inflacion.",
       },
     ],
     explorerDeepLinks: [
-      { label: "UTXO Explorer", url: "https://www.rawblock.net/analysis/utxo" },
-      { label: "Address UTXOs", url: "https://mempool.space/address/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
+      { label: "Explorador UTXO", url: "https://www.rawblock.net/analysis/utxo" },
+      { label: "UTXOs de Direccion", url: "https://mempool.space/address/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
     ],
     claimSources: [
       {
-        claim: "Bitcoin uses an unspent output state model rather than account balances.",
+        claim: "Bitcoin usa un modelo de estado de salidas no gastadas en lugar de balances por cuenta.",
         sources: [
           {
             title: "Developer Guide Transactions",
@@ -330,7 +330,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
         ],
       },
       {
-        claim: "Duplicate-input handling is consensus critical for inflation safety.",
+        claim: "El manejo de inputs duplicados es critico para el consenso y la seguridad frente a inflacion.",
         sources: [
           {
             title: "CVE-2018-17144 disclosure",
@@ -359,84 +359,84 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "blocks-and-headers",
-    title: "Blocks and Headers",
+    title: "Bloques y Encabezados",
     type: "primitive",
     difficulty: 1,
     canonicalLesson: "blocks",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "Block headers commit to previous history and transaction set metadata, making tampering detectable and costly to rewrite.",
+      "Los encabezados de bloque comprometen el historial previo y metadatos del conjunto de transacciones, haciendo detectable y costosa cualquier manipulacion.",
     story:
-      "A node receives a new block and must decide quickly: accept or reject. It starts with the header. The header contains the previous block hash, timestamp, difficulty target, nonce, and merkle root commitment. This tiny structure links every block to prior history and anchors proof-of-work. If any transaction in the block changes, the merkle root changes; if any parent changes, the previous-hash link breaks. This chaining is why users can verify integrity without trusting a central archive. Headers also enable lightweight clients to track chainwork and detect reorganizations. In practice, blocks and headers are the protocol’s compact security boundary: enough data to enforce ordering and commitment, then full transactions for detailed validation.",
+      "Un nodo recibe un bloque nuevo y debe decidir rapido: aceptar o rechazar. Empieza por el header. El header contiene el hash del bloque previo, timestamp, objetivo de dificultad, nonce y el compromiso del merkle root. Esta estructura pequena enlaza cada bloque con el historial previo y ancla la prueba de trabajo. Si cambia cualquier transaccion del bloque, cambia el merkle root; si cambia cualquier padre, se rompe el enlace de previous-hash. Este encadenamiento explica por que los usuarios pueden verificar integridad sin confiar en un archivo central. Los headers tambien permiten a clientes livianos seguir el chainwork y detectar reorganizaciones. En la practica, bloques y headers son la frontera compacta de seguridad del protocolo: datos suficientes para imponer orden y compromiso, y luego transacciones completas para validacion detallada.",
     deepDive: [
       {
-        heading: "Header fields",
+        heading: "Campos del header",
         bullets: [
-          "prevhash links parent history and defines chain continuity.",
-          "Merkle root commits to included transaction set.",
-          "nBits encodes difficulty target for proof-of-work validity.",
+          "prevhash enlaza historial del bloque padre y define continuidad de cadena.",
+          "Merkle root compromete el conjunto de transacciones incluidas.",
+          "nBits codifica el objetivo de dificultad para validez de proof-of-work.",
         ],
       },
       {
-        heading: "Security properties",
+        heading: "Propiedades de seguridad",
         bullets: [
-          "Changing historical content requires recomputing proof-of-work for affected blocks.",
-          "Header-only validation can quickly reject obviously invalid branches.",
-          "Propagation latency can still cause short-lived stale block races.",
+          "Cambiar contenido historico requiere recomputar proof-of-work para bloques afectados.",
+          "La validacion solo de headers puede rechazar rapidamente ramas obviamente invalidas.",
+          "La latencia de propagacion aun puede causar carreras cortas con bloques stale.",
         ],
       },
     ],
     keyTakeaways: [
-      "Headers are compact commitments to block state and ancestry.",
-      "Merkle commitments make transaction tampering evident.",
-      "Chain integrity is hash-linked and work-backed.",
+      "Los headers son compromisos compactos al estado del bloque y su ancestro.",
+      "Los compromisos Merkle hacen evidente la manipulacion de transacciones.",
+      "La integridad de cadena esta enlazada por hashes y respaldada por trabajo.",
     ],
     realData: [
       {
         key: "blockHeight",
-        label: "Tip Height",
-        description: "Reference height for exploring recent headers and block intervals.",
+        label: "Altura de Punta",
+        description: "Altura de referencia para explorar headers recientes e intervalos de bloques.",
         display: "Integer",
       },
       {
         key: "hashrateEh",
         label: "Hashrate",
-        description: "Approximate global hashpower securing the header chain.",
+        description: "Hashpower global aproximado que asegura la cadena de headers.",
         display: "EH/s with 2 decimals",
       },
     ],
     securityNotes: [
-      "Header chain selection follows cumulative work, not longest by count.",
-      "Short stale races are normal; deep unexpected reorgs are security events.",
+      "La seleccion de cadena por headers sigue trabajo acumulado, no longitud por cantidad.",
+      "Carreras cortas con bloques stale son normales; reorgs profundos inesperados son eventos de seguridad.",
     ],
     linkedVulnerabilities: ["cve-2013-2292"],
     linkedAttacks: ["selfish-mining"],
     linkedAssumptions: ["network-topology-assumption"],
     policyRules: [
-      "Header relay and orphan handling can vary by implementation policy.",
-      "Node policy may prioritize certain peer sources under bandwidth pressure.",
+      "El relay de headers y el manejo de huerfanos puede variar segun politica de implementacion.",
+      "La politica del nodo puede priorizar ciertas fuentes de peers bajo presion de ancho de banda.",
     ],
     consensusRules: [
-      "Header hash must satisfy target encoded by nBits.",
-      "Header must correctly reference previous accepted block hash.",
+      "El hash del header debe satisfacer el objetivo codificado por nBits.",
+      "El header debe referenciar correctamente el hash del bloque previo aceptado.",
     ],
     policyVsConsensusExplanation:
-      "Consensus defines header validity and chain selection by work; policy affects relay strategy and temporary buffering behavior.",
+      "El consenso define validez de headers y seleccion de cadena por trabajo; la politica afecta la estrategia de relay y el buffering temporal.",
     caseStudies: [
       {
         title: "2013 BerkeleyDB Fork Event",
         year: 2013,
         summary:
-          "Client-version incompatibility caused temporary chain divergence despite valid-looking headers on each side.",
+          "Incompatibilidades entre versiones de cliente causaron divergencia temporal de cadena pese a headers aparentemente validos en cada lado.",
       },
     ],
     explorerDeepLinks: [
-      { label: "Latest Block Headers", url: "https://mempool.space/blocks" },
-      { label: "Block Details", url: "https://mempool.space/block/000000000000000000021f95d73bb43fcbfca90f4ed7f1e8d8d7a5f8f278e5d3" },
+      { label: "Headers de Bloques Recientes", url: "https://mempool.space/blocks" },
+      { label: "Detalle de Bloque", url: "https://mempool.space/block/000000000000000000021f95d73bb43fcbfca90f4ed7f1e8d8d7a5f8f278e5d3" },
     ],
     claimSources: [
       {
-        claim: "Each block header commits to prior history and transaction merkle root.",
+        claim: "Cada block header compromete historial previo y merkle root de transacciones.",
         sources: [
           {
             title: "Developer Reference: Block Headers",
@@ -447,7 +447,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
         ],
       },
       {
-        claim: "Chain selection uses cumulative work.",
+        claim: "La seleccion de cadena usa trabajo acumulado.",
         sources: [
           {
             title: "Developer Guide: Block Chain",
@@ -473,84 +473,84 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "mining-and-subsidy",
-    title: "Mining and Subsidy",
+    title: "Minería y Subsidio",
     type: "mechanism",
     difficulty: 2,
     canonicalLesson: "mining",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "Miners convert electricity and hardware cost into chain security, earning coinbase payout composed of block subsidy plus transaction fees.",
+      "Los mineros convierten electricidad y costo de hardware en seguridad de cadena, recibiendo una coinbase compuesta por subsidio de bloque y comisiones.",
     story:
-      "A miner assembles a candidate block from mempool transactions and starts hashing trillions of times per second. There is no shortcut puzzle to solve; only repeated hash attempts until one header falls below the target threshold. The winning miner broadcasts the block, receives coinbase payout, and everyone else verifies it. This process creates two crucial outcomes at once: transaction ordering and economic deterrence against rewriting history. Over time, subsidy halves while fee revenue becomes increasingly important. That transition is why fee-market literacy matters for both users and operators. Mining is not just issuance; it is the cost anchor that makes censorship and deep reorg attempts expensive.",
+      "Un minero arma un bloque candidato con transacciones de la mempool y comienza a hashear billones de veces por segundo. No hay un rompecabezas con atajo; solo intentos repetidos de hash hasta que un header cae por debajo del umbral objetivo. El minero ganador transmite el bloque, recibe el pago coinbase y todos los demas lo verifican. Este proceso produce dos resultados cruciales al mismo tiempo: ordenamiento de transacciones y disuasion economica frente a reescribir historial. Con el tiempo, el subsidio se reduce y el ingreso por fees gana importancia. Esa transicion explica por que la alfabetizacion del mercado de fees importa para usuarios y operadores. La mineria no es solo emision; es el ancla de costos que vuelve cara la censura y los intentos de reorg profundos.",
     deepDive: [
       {
-        heading: "Revenue model",
+        heading: "Modelo de ingresos",
         bullets: [
-          "Coinbase payout = protocol subsidy + aggregated transaction fees.",
-          "Subsidy halves every 210,000 blocks and trends toward zero.",
-          "Fee pressure can dominate miner revenue during congestion spikes.",
+          "Pago coinbase = subsidio del protocolo + fees agregados de transacciones.",
+          "El subsidio se reduce cada 210.000 bloques y tiende a cero.",
+          "La presion de fees puede dominar el ingreso minero durante picos de congestion.",
         ],
       },
       {
-        heading: "Security function",
+        heading: "Funcion de seguridad",
         bullets: [
-          "Proof-of-work makes chain rewrite attempts computationally and economically costly.",
-          "Miner competition aligns toward valid blocks because invalid blocks are rejected by nodes.",
-          "Hashpower concentration increases governance and censorship risk.",
+          "Proof-of-work vuelve costosos, en computo y economia, los intentos de reescribir la cadena.",
+          "La competencia entre mineros se alinea hacia bloques validos porque los invalidos son rechazados por nodos.",
+          "La concentracion de hashpower aumenta riesgo de gobernanza y censura.",
         ],
       },
     ],
     keyTakeaways: [
-      "Mining secures ordering and settlement, not just issuance.",
-      "Subsidy declines while fees matter more over long horizons.",
-      "Nodes enforce validity even when miners produce blocks.",
+      "La mineria asegura ordenamiento y liquidacion, no solo emision.",
+      "El subsidio cae mientras los fees importan mas en horizontes largos.",
+      "Los nodos imponen validez aun cuando los mineros producen bloques.",
     ],
     realData: [
       {
         key: "hashrateEh",
-        label: "Network Hashrate",
-        description: "3-day average hashrate proxy from public mining telemetry.",
+        label: "Hashrate de Red",
+        description: "Proxy de hashrate promedio de 3 dias a partir de telemetria publica de mineria.",
         display: "EH/s",
       },
       {
         key: "blocksUntilHalving",
-        label: "Blocks to Halving",
-        description: "Remaining blocks before subsidy epoch transition.",
+        label: "Bloques para el Halving",
+        description: "Bloques restantes antes de la transicion de epoca del subsidio.",
         display: "Integer countdown",
       },
     ],
     securityNotes: [
-      "Higher hashrate raises the cost of deep reorg attacks.",
-      "Pool centralization can weaken censorship resistance assumptions.",
+      "Un hashrate mayor eleva el costo de ataques de reorg profundos.",
+      "La centralizacion de pools puede debilitar supuestos de resistencia a censura.",
     ],
     linkedVulnerabilities: ["value-overflow-2010"],
     linkedAttacks: ["attack-51-percent", "selfish-mining"],
     linkedAssumptions: ["hashpower-majority-assumption", "decentralized-hash-distribution-assumption"],
     policyRules: [
-      "Transaction template selection is a miner policy decision.",
-      "Policy can influence fee market outcomes without changing consensus validity.",
+      "La seleccion de plantilla de transacciones es una decision de politica minera.",
+      "La politica puede influir resultados del mercado de fees sin cambiar la validez de consenso.",
     ],
     consensusRules: [
-      "Coinbase payout must not exceed subsidy plus collected fees.",
-      "Proof-of-work target must be met for block acceptance.",
+      "El pago coinbase no debe exceder subsidio mas fees cobrados.",
+      "El objetivo de proof-of-work debe cumplirse para aceptar el bloque.",
     ],
     policyVsConsensusExplanation:
-      "Consensus bounds payout and block validity; miner policy governs which valid transactions are included first.",
+      "El consenso acota payout y validez del bloque; la politica minera gobierna que transacciones validas se incluyen primero.",
     caseStudies: [
       {
         title: "Selfish Mining Strategy Publication",
         year: 2014,
         summary:
-          "Showed that strategic withholding can increase expected revenue above honest mining at certain hash-share thresholds.",
+          "Mostro que el withholding estrategico puede aumentar ingreso esperado por encima de la mineria honesta en ciertos umbrales de participacion de hash.",
       },
     ],
     explorerDeepLinks: [
-      { label: "Mining Dashboard", url: "https://mempool.space/mining" },
-      { label: "Recent Coinbase Transactions", url: "https://mempool.space/tx/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b" },
+      { label: "Panel de Mineria", url: "https://mempool.space/mining" },
+      { label: "Transacciones Coinbase Recientes", url: "https://mempool.space/tx/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b" },
     ],
     claimSources: [
       {
-        claim: "Coinbase payout is subsidy plus fees and subsidy halves every 210,000 blocks.",
+        claim: "El pago coinbase es subsidio mas fees y el subsidio se reduce cada 210.000 bloques.",
         sources: [
           {
             title: "Developer block subsidy reference",
@@ -561,7 +561,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
         ],
       },
       {
-        claim: "Proof-of-work underpins costly chain rewrite resistance.",
+        claim: "La prueba de trabajo sostiene una resistencia costosa a la reescritura de cadena.",
         sources: [
           { title: "Bitcoin Whitepaper", url: "https://bitcoin.org/bitcoin.pdf", type: "whitepaper" },
           {
@@ -586,84 +586,84 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "difficulty-adjustment-2016",
-    title: "Difficulty Adjustment (2016)",
+    title: "Ajuste de Dificultad (2016)",
     type: "rule",
     difficulty: 2,
     canonicalLesson: "difficulty",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "Bitcoin retargets mining difficulty every 2016 blocks to keep average block production near ten minutes despite hashrate changes.",
+      "Bitcoin reajusta la dificultad de minado cada 2016 bloques para mantener la produccion promedio cerca de diez minutos pese a cambios en el hashrate.",
     story:
-      "Hashrate rarely stays constant. New hardware appears, energy prices shift, and miners relocate. Without adjustment, block timing would drift and monetary issuance would become chaotic. Bitcoin solves this by retargeting every 2016 blocks: if recent blocks arrived too quickly, target tightens; if too slowly, target loosens. This cadence smooths large shocks while keeping consensus deterministic. Operators watch this closely because abrupt hashrate drops can produce temporarily slow blocks until the next retarget. In education terms, difficulty is Bitcoin’s tempo governor. It does not make mining easier in human terms; it updates target thresholds so the global process remains stable over long horizons.",
+      "El hashrate rara vez permanece constante. Aparece nuevo hardware, cambian los precios de energia y los mineros se relocalizan. Sin ajuste, el tiempo entre bloques se desviaria y la emision monetaria se volveria caotica. Bitcoin resuelve esto con retarget cada 2016 bloques: si los bloques recientes llegaron demasiado rapido, el objetivo se endurece; si llegaron demasiado lento, se relaja. Esta cadencia amortigua grandes shocks manteniendo el consenso determinista. Los operadores siguen esto de cerca porque caidas bruscas de hashrate pueden producir bloques temporalmente lentos hasta el proximo ajuste. En terminos educativos, la dificultad es el regulador de tempo de Bitcoin. No hace la mineria mas facil en terminos humanos; actualiza los umbrales objetivo para que el proceso global se mantenga estable en horizontes largos.",
     deepDive: [
       {
-        heading: "Retarget mechanics",
+        heading: "Mecanica del ajuste",
         bullets: [
-          "Every 2016 blocks, nodes compare expected elapsed time with observed elapsed time.",
-          "New target is adjusted proportionally and then encoded into nBits.",
-          "All validating nodes independently compute and enforce the same retarget rule.",
+          "Cada 2016 bloques, los nodos comparan tiempo esperado transcurrido con tiempo observado.",
+          "El nuevo objetivo se ajusta proporcionalmente y luego se codifica en nBits.",
+          "Todos los nodos validadores computan e imponen de forma independiente la misma regla de retarget.",
         ],
       },
       {
-        heading: "Operational edge cases",
+        heading: "Casos limite operativos",
         bullets: [
-          "Large hashrate exits can slow confirmation flow until epoch boundary.",
-          "Timestamp behavior influences retarget calculations and has been studied for manipulation vectors.",
-          "Difficulty trends provide rough security-cost context but are not direct attack-proof guarantees.",
+          "Salidas grandes de hashrate pueden ralentizar confirmaciones hasta el limite de epoca.",
+          "El comportamiento de timestamps influye en el retarget y fue estudiado por vectores de manipulacion.",
+          "Las tendencias de dificultad dan contexto aproximado de costo de seguridad, pero no son garantias directas antiataque.",
         ],
       },
     ],
     keyTakeaways: [
-      "Retarget interval is 2016 blocks by consensus.",
-      "Difficulty stabilizes issuance tempo over multi-year periods.",
-      "Short-term volatility still exists between retarget windows.",
+      "El intervalo de retarget es de 2016 bloques por consenso.",
+      "La dificultad estabiliza el ritmo de emision en periodos de varios años.",
+      "La volatilidad de corto plazo sigue existiendo entre ventanas de retarget.",
     ],
     realData: [
       {
         key: "hashrateEh",
-        label: "Current Hashrate",
-        description: "Used to contextualize expected pressure on upcoming retarget windows.",
+        label: "Hashrate Actual",
+        description: "Se usa para contextualizar la presion esperada en las proximas ventanas de ajuste.",
         display: "EH/s",
       },
       {
         key: "blockHeight",
-        label: "Retarget Context Height",
-        description: "Current height indicates distance from next 2016-block boundary.",
+        label: "Altura de Contexto del Ajuste",
+        description: "La altura actual indica la distancia al proximo limite de 2016 bloques.",
         display: "Integer",
       },
     ],
     securityNotes: [
-      "Difficulty does not prevent attacks by itself; it scales work requirements.",
-      "Timestamp anomalies are monitored because they influence retarget inputs.",
+      "La dificultad por si sola no previene ataques; escala los requisitos de trabajo.",
+      "Se monitorean anomalias de timestamp porque influyen en inputs del retarget.",
     ],
     linkedVulnerabilities: ["timewarp-theoretical"],
     linkedAttacks: ["attack-51-percent"],
     linkedAssumptions: ["sha256-preimage-resistance-assumption"],
     policyRules: [
-      "Node policy may surface warnings around unusual block-time behavior.",
-      "Miner timestamp conventions are partly social/policy and partly consensus-bounded.",
+      "La politica del nodo puede mostrar alertas ante comportamiento inusual de tiempo de bloque.",
+      "Las convenciones de timestamp de mineros son en parte sociales/politica y en parte acotadas por consenso.",
     ],
     consensusRules: [
-      "Difficulty target must match consensus retarget formula at boundaries.",
-      "Header PoW validation uses current target for each block.",
+      "El objetivo de dificultad debe coincidir con la formula de retarget de consenso en los limites.",
+      "La validacion PoW del header usa el objetivo actual para cada bloque.",
     ],
     policyVsConsensusExplanation:
-      "Consensus enforces exact target computation and validity; policy and operations determine monitoring and response to abnormal timing conditions.",
+      "El consenso impone computo exacto del objetivo y su validez; politica y operaciones determinan monitoreo y respuesta a condiciones anormales de timing.",
     caseStudies: [
       {
         title: "Timewarp Discussions",
         year: 2012,
         summary:
-          "Research and mailing-list threads explored timestamp games that could distort historical retarget behavior under coordination.",
+          "Investigaciones y discusiones en listas exploraron juegos de timestamp que podrian distorsionar el retarget historico bajo coordinacion.",
       },
     ],
     explorerDeepLinks: [
-      { label: "Difficulty chart", url: "https://mempool.space/graphs/mining/difficulty-adjustment" },
-      { label: "Hashrate chart", url: "https://mempool.space/graphs/mining/hashrate-difficulty" },
+      { label: "Grafico de Dificultad", url: "https://mempool.space/graphs/mining/difficulty-adjustment" },
+      { label: "Grafico de Hashrate", url: "https://mempool.space/graphs/mining/hashrate-difficulty" },
     ],
     claimSources: [
       {
-        claim: "Bitcoin adjusts difficulty every 2016 blocks.",
+        claim: "Bitcoin ajusta la dificultad cada 2016 bloques.",
         sources: [
           {
             title: "Developer block chain reference",
@@ -674,7 +674,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
         ],
       },
       {
-        claim: "Retargeting is consensus-critical and validated by full nodes.",
+        claim: "El retarget es critico para el consenso y es validado por nodos completos.",
         sources: [
           {
             title: "Bitcoin Core pow.cpp",
@@ -700,92 +700,92 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "consensus-rules-vs-policy",
-    title: "Consensus Rules vs Policy",
+    title: "Reglas de Consenso vs Política",
     type: "rule",
     difficulty: 2,
     canonicalLesson: "consensus",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "Consensus decides what is valid chain history; policy decides what a node relays or mines before confirmation.",
+      "El consenso decide que historial de cadena es valido; la politica decide que retransmite o mina un nodo antes de la confirmacion.",
     story:
-      "Two nodes can disagree on relay behavior and still remain on one chain. That is the policy-versus-consensus boundary. Consensus rules are hard requirements: if you violate them, blocks are invalid everywhere. Policy rules are local preferences used for mempool hygiene, spam resistance, and fee optimization. This distinction is foundational for newcomers because many debates confuse relay preferences with protocol validity. Raw Block surfaces this explicitly so users can reason about RBF, standardness, and fee filters without mistaking them for consensus changes. Understanding the boundary also clarifies why Bitcoin upgrades are conservative: consensus changes require broad coordination, while policy refinements can iterate faster and independently.",
+      "Dos nodos pueden diferir en comportamiento de relay y aun asi permanecer en una misma cadena. Ese es el limite entre politica y consenso. Las reglas de consenso son requisitos duros: si las violas, los bloques son invalidos en todas partes. Las reglas de politica son preferencias locales usadas para higiene de mempool, resistencia al spam y optimizacion de fees. Esta distincion es fundamental para quien empieza porque muchos debates confunden preferencias de relay con validez del protocolo. Raw Block lo explicita para que el usuario razone sobre RBF, standardness y filtros de fee sin confundirlos con cambios de consenso. Entender este limite tambien aclara por que los upgrades de Bitcoin son conservadores: los cambios de consenso requieren coordinacion amplia, mientras los refinamientos de politica pueden iterar mas rapido e independientemente.",
     deepDive: [
       {
-        heading: "Consensus scope",
+        heading: "Alcance del consenso",
         bullets: [
-          "Defines valid block format, script execution, subsidy bounds, and UTXO spend rules.",
-          "Violations trigger block rejection and potential chain splits.",
-          "Consensus changes require coordinated protocol rollout and broad adoption.",
+          "Define formato valido de bloque, ejecucion de scripts, limites de subsidio y reglas de gasto UTXO.",
+          "Las violaciones disparan rechazo de bloques y posibles divisiones de cadena.",
+          "Los cambios de consenso requieren despliegue coordinado del protocolo y adopcion amplia.",
         ],
       },
       {
-        heading: "Policy scope",
+        heading: "Alcance de la politica",
         bullets: [
-          "Controls relay admission, replacement handling, and standardness templates.",
-          "Policy diversity across nodes is expected and non-forking.",
-          "Miners may override default policy in block template decisions.",
+          "Controla admision de relay, manejo de reemplazos y plantillas de standardness.",
+          "La diversidad de politica entre nodos es esperable y no produce forks.",
+          "Los mineros pueden sobreescribir la politica por defecto en decisiones de plantilla de bloque.",
         ],
       },
     ],
     keyTakeaways: [
-      "Consensus invalidity is global; policy rejection is local.",
-      "Policy helps protect resources without redefining money rules.",
-      "Do not infer consensus from mempool behavior alone.",
+      "La invalidez de consenso es global; el rechazo por politica es local.",
+      "La politica ayuda a proteger recursos sin redefinir reglas monetarias.",
+      "No infieras consenso solo a partir del comportamiento de la mempool.",
     ],
     realData: [
       {
         key: "feeFast",
-        label: "Relay Pressure Signal",
-        description: "High recommended fees typically indicate stricter practical relay conditions.",
+        label: "Senal de Presion de Relay",
+        description: "Fees recomendados altos suelen indicar condiciones practicas de relay mas estrictas.",
         display: "sat/vB",
       },
       {
         key: "lastUpdated",
-        label: "Policy Snapshot Time",
-        description: "Timestamp for the latest fetched fee/policy context.",
+        label: "Hora del Snapshot de Politica",
+        description: "Timestamp del ultimo contexto de fee/politica obtenido.",
         display: "ISO local timestamp",
       },
     ],
     securityNotes: [
-      "Conflating policy and consensus can cause serious operator misconfigurations.",
-      "Consensus bugs are systemic; policy bugs are usually local and recoverable.",
+      "Confundir politica y consenso puede causar configuraciones erradas serias en operadores.",
+      "Los bugs de consenso son sistemicos; los bugs de politica suelen ser locales y recuperables.",
     ],
     linkedVulnerabilities: ["cve-2018-17144", "cve-2013-2292"],
     linkedAttacks: ["double-spend"],
     linkedAssumptions: ["independent-validation-assumption"],
     policyRules: [
-      "Standardness filtering of uncommon scripts in default relay settings.",
-      "Minimum relay feerate and RBF replacement policy affect mempool admission and replacement.",
-      "Mempool eviction and package relay behavior are implementation policy choices.",
+      "Filtrado de standardness para scripts poco comunes en configuraciones de relay por defecto.",
+      "Minimum relay feerate y politica de reemplazo RBF afectan admision y reemplazo en mempool.",
+      "Eviccion de mempool y comportamiento de package relay son decisiones de politica de implementacion.",
     ],
     consensusRules: [
-      "MAX_BLOCK_WEIGHT (4,000,000 weight units from SegWit/BIP141) is a consensus block validity rule.",
-      "Coinbase maturity, script validity, and UTXO spend constraints are consensus-enforced.",
-      "Block structure commitments and proof-of-work target validity are mandatory consensus checks.",
+      "MAX_BLOCK_WEIGHT (4,000,000 weight units de SegWit/BIP141) es una regla de validez de bloque de consenso.",
+      "Madurez de coinbase, validez de scripts y restricciones de gasto UTXO son impuestas por consenso.",
+      "Compromisos de estructura de bloque y validez del objetivo de proof-of-work son checks obligatorios de consenso.",
     ],
     policyVsConsensusExplanation:
-      "Policy is a pre-consensus admission layer; consensus is the final and universal validity layer.",
+      "La politica es una capa de admision previa al consenso; el consenso es la capa final y universal de validez.",
     caseStudies: [
       {
         title: "CVE-2018-17144",
         year: 2018,
         summary:
-          "Consensus validation regression demonstrated systemic risk when core validity checks fail.",
+          "Una regresion en validacion de consenso demostro riesgo sistemico cuando fallan checks nucleares de validez.",
       },
     ],
     explorerDeepLinks: [
       {
-        label: "Mempool policy docs",
+        label: "Docs de politica de mempool",
         url: "https://github.com/bitcoin/bitcoin/tree/master/doc/policy",
       },
       {
-        label: "RBF policy doc",
+        label: "Doc de politica RBF",
         url: "https://github.com/bitcoin/bitcoin/blob/master/doc/policy/mempool-replacements.md",
       },
     ],
     claimSources: [
       {
-        claim: "Consensus and policy are separate enforcement layers in Bitcoin Core.",
+        claim: "Consenso y politica son capas de enforcement separadas en Bitcoin Core.",
         sources: [
           {
             title: "consensus.h",
@@ -800,7 +800,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
         ],
       },
       {
-        claim: "RBF and relay replacement behavior are policy-level mechanisms.",
+        claim: "RBF y el comportamiento de reemplazo en relay son mecanismos de nivel de politica.",
         sources: [
           {
             title: "Mempool replacements",
@@ -826,91 +826,91 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "pseudonymity-not-anonymity",
-    title: "Pseudonymity, Not Anonymity",
+    title: "Seudonimato, no Anonimato",
     type: "property",
     difficulty: 1,
     canonicalLesson: "security-and-attacks",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "Bitcoin transactions are public and analyzable; addresses are pseudonyms, not identity-proof anonymity.",
+      "Las transacciones de Bitcoin son publicas y analizables; las direcciones son seudonimos, no anonimato garantizado por identidad.",
     story:
-      "A first-time user hears that Bitcoin is anonymous, then gets surprised when blockchain explorers show every transfer path. The right mental model is pseudonymity. Addresses do not contain legal names, but transaction graphs are public forever, and clustering techniques can link activity patterns to entities. This matters for security, compliance, and personal privacy hygiene. Reused addresses, deterministic withdrawal patterns, and careless consolidation all increase traceability. Raw Block teaches this early so users make better operational choices: rotate receive addresses, understand change outputs, and avoid false assumptions about invisibility. Privacy on Bitcoin is an engineering discipline, not a default guarantee.",
+      "Un usuario primerizo escucha que Bitcoin es anonimo y luego se sorprende cuando los exploradores muestran cada ruta de transferencia. El modelo mental correcto es el seudonimato. Las direcciones no contienen nombres legales, pero los grafos de transacciones son publicos para siempre y las tecnicas de clustering pueden vincular patrones de actividad con entidades. Esto importa para seguridad, cumplimiento e higiene de privacidad personal. Direcciones reutilizadas, patrones de retiro deterministas y consolidacion descuidada aumentan la trazabilidad. Raw Block enseña esto temprano para que los usuarios tomen mejores decisiones operativas: rotar direcciones de recepcion, entender outputs de cambio y evitar falsas suposiciones de invisibilidad. La privacidad en Bitcoin es una disciplina de ingenieria, no una garantia por defecto.",
     deepDive: [
       {
-        heading: "Visibility model",
+        heading: "Modelo de visibilidad",
         bullets: [
-          "All confirmed transactions are publicly inspectable by anyone.",
-          "Address graphs can be clustered using heuristics and external metadata.",
-          "Off-chain identity leaks can deanonymize on-chain patterns.",
+          "Todas las transacciones confirmadas son inspeccionables publicamente por cualquiera.",
+          "Los grafos de direcciones pueden agruparse con heuristicas y metadatos externos.",
+          "Filtraciones de identidad off-chain pueden desanonimizar patrones on-chain.",
         ],
       },
       {
-        heading: "Practical hygiene",
+        heading: "Higiene practica",
         bullets: [
-          "Use new receive addresses for each payment flow.",
-          "Treat consolidation transactions as privacy-sensitive events.",
-          "Understand exchange KYC linkage before assuming plausible deniability.",
+          "Usa nuevas direcciones de recepcion para cada flujo de pago.",
+          "Trata las transacciones de consolidacion como eventos sensibles para la privacidad.",
+          "Entiende el vinculo KYC de exchanges antes de asumir negacion plausible.",
         ],
       },
     ],
     keyTakeaways: [
-      "Bitcoin is pseudonymous, not anonymous.",
-      "Address reuse weakens privacy significantly.",
-      "Privacy outcome depends on behavior, tooling, and counterparties.",
+      "Bitcoin es seudonimo, no anonimo.",
+      "La reutilizacion de direcciones debilita la privacidad de forma significativa.",
+      "El resultado de privacidad depende del comportamiento, herramientas y contrapartes.",
     ],
     realData: [
       {
         key: "blockHeight",
-        label: "Current Ledger Context",
-        description: "Public chain continuity means historical traceability persists across heights.",
+        label: "Contexto Actual del Ledger",
+        description: "La continuidad de la cadena publica implica que la trazabilidad historica persiste entre alturas.",
         display: "Height",
       },
       {
         key: "lastUpdated",
-        label: "Analytics Snapshot",
-        description: "Timestamp for latest public-network context visible in Raw Block.",
+        label: "Snapshot de Analitica",
+        description: "Timestamp del ultimo contexto de red publica visible en Raw Block.",
         display: "Date/time",
       },
     ],
     securityNotes: [
-      "Address reuse and deterministic withdrawals are common forensic linking vectors.",
-      "Public mempool observation can leak timing and origin patterns.",
+      "La reutilizacion de direcciones y retiros deterministas son vectores comunes de vinculacion forense.",
+      "La observacion publica de la mempool puede filtrar patrones de tiempo y origen.",
     ],
     linkedVulnerabilities: [],
     linkedAttacks: ["eclipse-attack"],
     linkedAssumptions: ["network-topology-assumption"],
     policyRules: [
-      "Default wallet and exchange policies influence privacy outcomes in practice.",
-      "Policy-level metadata retention can amplify on-chain attribution risk.",
+      "Las politicas por defecto de wallets y exchanges influyen en resultados de privacidad en la practica.",
+      "La retencion de metadatos a nivel de politica puede amplificar el riesgo de atribucion on-chain.",
     ],
     consensusRules: [
-      "Consensus records transaction graph publicly and immutably once confirmed.",
-      "Consensus does not encode user identity data fields.",
+      "El consenso registra el grafo de transacciones de forma publica e inmutable una vez confirmado.",
+      "El consenso no codifica campos de identidad del usuario.",
     ],
     policyVsConsensusExplanation:
-      "Consensus makes transaction data public; privacy outcomes are shaped by policy and behavior on top of that public base.",
+      "El consenso hace publicos los datos de transacciones; los resultados de privacidad se moldean por politica y comportamiento sobre esa base publica.",
     caseStudies: [
       {
         title: "Address Clustering Research",
         year: 2013,
         summary:
-          "Academic work demonstrated large-scale linkage of addresses and entities using graph heuristics.",
+          "Trabajo academico demostro vinculacion a gran escala de direcciones y entidades usando heuristicas de grafos.",
       },
     ],
     explorerDeepLinks: [
-      { label: "Address explorer", url: "https://mempool.space/address/bc1qq6hag67dl53wl99vzg42z8eyzfz2xlkv44mqgc" },
-      { label: "Transaction graph example", url: "https://mempool.space/tx/4d8f0f9f8adf4f8c6a9d663ccf71fa5f3f8ce5265d8f95dc9ec03bd3f5d5e287" },
+      { label: "Explorador de Direcciones", url: "https://mempool.space/address/bc1qq6hag67dl53wl99vzg42z8eyzfz2xlkv44mqgc" },
+      { label: "Ejemplo de Grafo de Transaccion", url: "https://mempool.space/tx/4d8f0f9f8adf4f8c6a9d663ccf71fa5f3f8ce5265d8f95dc9ec03bd3f5d5e287" },
     ],
     claimSources: [
       {
-        claim: "Bitcoin transaction data is public and traceable.",
+        claim: "Los datos de transacciones de Bitcoin son publicos y trazables.",
         sources: [
           { title: "Bitcoin Whitepaper", url: "https://bitcoin.org/bitcoin.pdf", type: "whitepaper" },
           { title: "Bitcoin Wiki Privacy", url: "https://en.bitcoin.it/wiki/Privacy", type: "reference" },
         ],
       },
       {
-        claim: "Address clustering can infer ownership relationships.",
+        claim: "El clustering de direcciones puede inferir relaciones de propiedad.",
         sources: [
           {
             title: "Meiklejohn et al.",
@@ -936,84 +936,84 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "wallets-hold-keys-not-coins",
-    title: "Wallets Hold Keys, Not Coins",
+    title: "Las Billeteras Guardan Llaves, no Monedas",
     type: "mechanism",
     difficulty: 1,
     canonicalLesson: "security-and-attacks",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "Wallet software manages private keys and signing policy; the bitcoin itself remains on-chain as spendable outputs.",
+      "El software de billetera gestiona llaves privadas y politica de firmado; el bitcoin en si permanece on-chain como salidas gastables.",
     story:
-      "A user loses a phone and panics that their bitcoin is gone with it. The crucial correction is that coins are never inside the device. The wallet stores secrets and metadata that prove spending authority over on-chain outputs. If keys are backed up safely, funds remain recoverable from any compatible software. If keys are leaked, an attacker can spend regardless of the original app. This framing changes behavior: users prioritize seed backup integrity, hardware isolation, and transaction verification. Raw Block reinforces the operational model so learners separate UI convenience from true custody security.",
+      "Un usuario pierde un telefono y entra en panico pensando que su bitcoin se fue con el dispositivo. La correccion crucial es que las monedas nunca estan dentro del equipo. La wallet guarda secretos y metadatos que prueban la autoridad de gasto sobre outputs on-chain. Si las llaves estan respaldadas de forma segura, los fondos siguen siendo recuperables desde cualquier software compatible. Si las llaves se filtran, un atacante puede gastar sin importar la app original. Este marco cambia el comportamiento: los usuarios priorizan la integridad del backup de la seed, el aislamiento de hardware y la verificacion de transacciones. Raw Block refuerza el modelo operativo para que los alumnos separen conveniencia de UI de seguridad real de custodia.",
     deepDive: [
       {
-        heading: "Custody model",
+        heading: "Modelo de custodia",
         bullets: [
-          "Private keys and descriptors define spend authority, not coin location.",
-          "Seed phrase backup quality determines recovery safety.",
-          "Multisig policies distribute compromise risk across devices/parties.",
+          "Llaves privadas y descriptores definen autoridad de gasto, no ubicacion de monedas.",
+          "La calidad del backup de la seed phrase determina la seguridad de recuperacion.",
+          "Las politicas multisig distribuyen riesgo de compromiso entre dispositivos/partes.",
         ],
       },
       {
-        heading: "Failure modes",
+        heading: "Modos de falla",
         bullets: [
-          "Phishing and clipboard malware can redirect signed payouts.",
-          "Unverified recovery flows can expose seed phrases to attackers.",
-          "Address mismatch during send flow is a common human-layer risk.",
+          "Phishing y malware de portapapeles pueden redirigir pagos firmados.",
+          "Flujos de recuperacion no verificados pueden exponer seed phrases a atacantes.",
+          "Un mismatch de direccion durante el envio es un riesgo comun de capa humana.",
         ],
       },
     ],
     keyTakeaways: [
-      "Wallets are key managers, not coin containers.",
-      "Backups and key isolation are primary security controls.",
-      "Spending authority follows keys, not devices.",
+      "Las wallets son gestoras de llaves, no contenedores de monedas.",
+      "Backups y aislamiento de llaves son controles de seguridad primarios.",
+      "La autoridad de gasto sigue a las llaves, no a los dispositivos.",
     ],
     realData: [
       {
         key: "lastUpdated",
-        label: "Wallet Safety Snapshot",
-        description: "Timestamp indicating freshness of network context for key-management decisions.",
+        label: "Snapshot de Seguridad de Wallet",
+        description: "Timestamp que indica frescura del contexto de red para decisiones de gestion de llaves.",
         display: "Date/time",
       },
       {
         key: "feeHour",
-        label: "Consolidation Fee Context",
-        description: "Useful for planning secure wallet maintenance transactions.",
+        label: "Contexto de Fee de Consolidacion",
+        description: "Util para planificar transacciones seguras de mantenimiento de wallet.",
         display: "sat/vB",
       },
     ],
     securityNotes: [
-      "Seed phrase exposure is equivalent to full custody loss.",
-      "Hardware signing and verification screens reduce malware risk.",
+      "La exposicion de una seed phrase equivale a perdida total de custodia.",
+      "Las pantallas de firmado y verificacion en hardware reducen riesgo de malware.",
     ],
     linkedVulnerabilities: [],
     linkedAttacks: ["address-reuse"],
     linkedAssumptions: ["independent-validation-assumption"],
     policyRules: [
-      "Wallet defaults (change handling, RBF flags, consolidation timing) are policy-level choices.",
-      "Custodial withdrawal policy can expose behavioral fingerprints.",
+      "Los defaults de wallet (manejo de change, flags RBF, timing de consolidacion) son decisiones de politica.",
+      "La politica de retiros custodiados puede exponer huellas de comportamiento.",
     ],
     consensusRules: [
-      "Only valid signatures/scripts unlock spending conditions.",
-      "Consensus tracks outputs and spend status independent of wallet app state.",
+      "Solo firmas/scripts validos desbloquean condiciones de gasto.",
+      "El consenso rastrea outputs y estado de gasto independientemente del estado de la app wallet.",
     ],
     policyVsConsensusExplanation:
-      "Consensus decides whether a signed spend is valid; wallet policy decides how and when signatures are produced.",
+      "El consenso decide si un gasto firmado es valido; la politica de wallet decide como y cuando se producen firmas.",
     caseStudies: [
       {
         title: "Exchange Withdrawal Clustering",
         year: 2021,
         summary:
-          "Operational wallet policies at exchanges often create identifiable transaction patterns.",
+          "Las politicas operativas de wallet en exchanges suelen crear patrones de transaccion identificables.",
       },
     ],
     explorerDeepLinks: [
-      { label: "Wallet guide", url: "https://developer.bitcoin.org/devguide/wallets.html" },
+      { label: "Guia de Wallets", url: "https://developer.bitcoin.org/devguide/wallets.html" },
       { label: "Raw Block Key Lab", url: "https://www.rawblock.net/lab/keys" },
     ],
     claimSources: [
       {
-        claim: "Wallets manage private keys that control UTXOs.",
+        claim: "Las wallets gestionan llaves privadas que controlan UTXOs.",
         sources: [
           {
             title: "Developer Guide Wallets",
@@ -1028,7 +1028,7 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
         ],
       },
       {
-        claim: "Loss of keys, not app binaries, determines custody loss.",
+        claim: "La perdida de llaves, y no los binarios de la app, determina la perdida de custodia.",
         sources: [
           {
             title: "BIP 39",
@@ -1051,91 +1051,91 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "address-vs-public-key",
-    title: "Address vs Public Key",
+    title: "Dirección vs Clave Pública",
     type: "primitive",
     difficulty: 2,
     canonicalLesson: "security-and-attacks",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "Addresses are encoded script destinations, while public keys are cryptographic primitives used for signature verification.",
+      "Las direcciones son destinos de script codificados, mientras que las claves publicas son primitivas criptograficas usadas para verificar firmas.",
     story:
-      "A beginner copies an address and assumes it is the same thing as a public key. In legacy and modern script types, that shortcut fails. Addresses are human-friendly encodings of script templates or key hashes. Public keys are cryptographic points used in signature checks. With SegWit and Taproot, this distinction became even more important because address formats signal spending semantics and checksum protections. Getting this right helps users avoid compatibility mistakes, understand why some outputs reveal keys only at spend time, and appreciate why address parsing is not just cosmetic formatting.",
+      "Un principiante copia una direccion y asume que es lo mismo que una clave publica. En tipos de script legacy y modernos, ese atajo falla. Las direcciones son codificaciones legibles de plantillas de script o hashes de llave. Las claves publicas son puntos criptograficos usados en verificaciones de firma. Con SegWit y Taproot, esta distincion se volvio aun mas importante porque los formatos de direccion señalan semantica de gasto y protecciones de checksum. Entender esto ayuda a evitar errores de compatibilidad, comprender por que algunos outputs revelan llaves solo al gastar y apreciar por que el parseo de direcciones no es solo formato cosmetico.",
     deepDive: [
       {
-        heading: "Encoding layers",
+        heading: "Capas de codificacion",
         bullets: [
-          "Base58 and Bech32/Bech32m encode destination data with checksums.",
-          "Addresses often represent hashes or scripts, not raw public keys.",
-          "Output type determines witness structure and spending path behavior.",
+          "Base58 y Bech32/Bech32m codifican datos de destino con checksums.",
+          "Las direcciones suelen representar hashes o scripts, no claves publicas crudas.",
+          "El tipo de output determina la estructura witness y el comportamiento de rutas de gasto.",
         ],
       },
       {
-        heading: "Security implications",
+        heading: "Implicancias de seguridad",
         bullets: [
-          "Address checksum failures catch many copy/paste errors.",
-          "Misinterpreting address type can cause wallet interoperability issues.",
-          "Taproot key-path and script-path semantics require correct bech32m handling.",
+          "Los errores de checksum de direccion capturan muchos errores de copiar/pegar.",
+          "Interpretar mal el tipo de direccion puede causar problemas de interoperabilidad entre wallets.",
+          "La semantica key-path y script-path de Taproot requiere manejo correcto de bech32m.",
         ],
       },
     ],
     keyTakeaways: [
-      "Address != public key in modern Bitcoin usage.",
-      "Address format conveys script semantics and checksum model.",
-      "SegWit/Taproot upgrades changed destination encoding expectations.",
+      "Direccion != clave publica en el uso moderno de Bitcoin.",
+      "El formato de direccion transmite semantica de script y modelo de checksum.",
+      "Los upgrades SegWit/Taproot cambiaron expectativas de codificacion de destino.",
     ],
     realData: [
       {
         key: "blockHeight",
-        label: "Current Format Epoch",
-        description: "Height context for modern address adoption patterns.",
+        label: "Epoca Actual de Formato",
+        description: "Contexto de altura para patrones modernos de adopcion de direcciones.",
         display: "Height",
       },
       {
         key: "lastUpdated",
-        label: "Address Parsing Snapshot",
-        description: "Timestamp for latest protocol-state context shown in Raw Block.",
+        label: "Snapshot de Parseo de Direcciones",
+        description: "Timestamp del ultimo contexto de estado del protocolo mostrado en Raw Block.",
         display: "Date/time",
       },
     ],
     securityNotes: [
-      "Checksum validation reduces accidental address corruption.",
-      "Type confusion can lead to failed sends or incompatible spend scripts.",
+      "La validacion de checksum reduce corrupcion accidental de direcciones.",
+      "La confusion de tipos puede causar envios fallidos o scripts de gasto incompatibles.",
     ],
     linkedVulnerabilities: ["malleability-pre-segwit"],
     linkedAttacks: [],
     linkedAssumptions: ["sha256-preimage-resistance-assumption"],
     policyRules: [
-      "Wallet policy may restrict unsupported address/script templates.",
-      "Exchange policy can limit withdrawals to selected destination types.",
+      "La politica de wallet puede restringir plantillas de direccion/script no soportadas.",
+      "La politica de exchanges puede limitar retiros a tipos de destino seleccionados.",
     ],
     consensusRules: [
-      "Consensus validates script execution regardless of user-facing address label.",
-      "Witness and script rules enforce spend-path correctness per output type.",
+      "El consenso valida ejecucion de scripts independientemente de la etiqueta de direccion visible al usuario.",
+      "Las reglas witness y de script imponen correccion de ruta de gasto por tipo de output.",
     ],
     policyVsConsensusExplanation:
-      "Consensus validates scripts and signatures; policy/UI layers map user-readable addresses to those consensus objects.",
+      "El consenso valida scripts y firmas; las capas de politica/UI mapean direcciones legibles por humanos a esos objetos de consenso.",
     caseStudies: [
       {
         title: "Bech32m Deployment for Taproot",
         year: 2021,
         summary:
-          "Address parsing updates were required to safely support Taproot outputs and avoid accidental send failures.",
+          "Se requirieron actualizaciones de parseo de direcciones para soportar de forma segura outputs Taproot y evitar fallos accidentales de envio.",
       },
     ],
     explorerDeepLinks: [
-      { label: "Address format reference", url: "https://en.bitcoin.it/wiki/Bech32" },
+      { label: "Referencia de Formato de Direccion", url: "https://en.bitcoin.it/wiki/Bech32" },
       { label: "Raw Block Decoder", url: "https://www.rawblock.net/explorer/decoder" },
     ],
     claimSources: [
       {
-        claim: "Bech32 and bech32m define modern address encodings for SegWit and Taproot.",
+        claim: "Bech32 y bech32m definen codificaciones modernas de direcciones para SegWit y Taproot.",
         sources: [
           { title: "BIP 173", url: "https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki", type: "BIP" },
           { title: "BIP 350", url: "https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki", type: "BIP" },
         ],
       },
       {
-        claim: "Addresses encode script destinations and are not always raw public keys.",
+        claim: "Las direcciones codifican destinos de script y no siempre son claves publicas crudas.",
         sources: [
           {
             title: "Developer Guide Addresses",
@@ -1158,93 +1158,93 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "lightning-network-maturity",
-    title: "Lightning Network Maturity",
+    title: "Madurez de la Lightning Network",
     type: "mechanism",
     difficulty: 2,
     canonicalLesson: "security-and-attacks",
     pathMappings: ["bitcoin-foundations", "lightning-primer"],
     summary:
-      "Lightning is widely used in production for fast low-fee payments, with important operational trade-offs versus direct base-layer settlement.",
+      "Lightning se usa ampliamente en produccion para pagos rapidos y de bajo costo, con trade-offs operativos importantes frente a la liquidacion directa en capa base.",
     story:
-      "Early Lightning discussions called the network experimental. Today, usage is materially broader: major exchanges and payment providers route meaningful traffic over Lightning for speed and cost efficiency in suitable payment flows. Users now expect near-instant UX for many small and medium transfers, while still relying on base-layer Bitcoin for final settlement guarantees and very large value movement. The maturity shift is not about removing trade-offs; it is about managing them. Channel liquidity, routing reliability, watchtower support, and close-path fee conditions all matter for safe use. Raw Block presents Lightning as widely used production infrastructure that still requires disciplined operations.",
+      "Las primeras discusiones sobre Lightning llamaban a la red experimental. Hoy el uso es materialmente mas amplio: grandes exchanges y proveedores de pago enrutan trafico relevante por Lightning por velocidad y eficiencia de costos en flujos de pago adecuados. Los usuarios ahora esperan una UX casi instantanea para muchas transferencias pequenas y medianas, mientras siguen confiando en Bitcoin de capa base para garantias de liquidacion final y movimientos de valor muy grandes. El cambio de madurez no trata de eliminar trade-offs; trata de gestionarlos. La liquidez de canales, la confiabilidad de ruteo, el soporte de watchtowers y las condiciones de fee de cierre importan para un uso seguro. Raw Block presenta Lightning como infraestructura de produccion ampliamente usada que aun requiere operaciones disciplinadas.",
     deepDive: [
       {
-        heading: "Why Lightning now",
+        heading: "Por que Lightning ahora",
         bullets: [
-          "Off-chain channels reduce on-chain footprint for repeated payment flows.",
-          "Routing network maturity enables practical merchant and exchange usage.",
-          "Operational tooling improved channel monitoring and mobile reliability.",
+          "Canales off-chain reducen la huella on-chain para flujos de pago repetidos.",
+          "La madurez de la red de ruteo habilita uso practico en comercios y exchanges.",
+          "Las herramientas operativas mejoraron monitoreo de canales y confiabilidad movil.",
         ],
       },
       {
-        heading: "Security trade-offs",
+        heading: "Compensaciones de seguridad",
         bullets: [
-          "Users trade immediate base-layer finality for speed and cost.",
-          "Liquidity management, route availability, and online/watchtower posture directly affect reliability.",
-          "Forced closes and unilateral exits can become expensive during high on-chain fee periods.",
-          "Large strategic settlements may still prefer direct on-chain confirmation depth.",
+          "Los usuarios intercambian finalidad inmediata de capa base por velocidad y costo.",
+          "Gestion de liquidez, disponibilidad de rutas y postura online/watchtower afectan directamente la confiabilidad.",
+          "Cierres forzados y salidas unilaterales pueden volverse caros durante periodos de fees on-chain altos.",
+          "Liquidaciones estrategicas grandes pueden seguir prefiriendo profundidad de confirmacion on-chain directa.",
         ],
       },
     ],
     keyTakeaways: [
-      "Lightning is widely used in production, with important operational trade-offs.",
-      "Best fit: high-frequency small/medium payments.",
-      "Use watchtowers, liquidity management, and close-fee planning for safer operations.",
+      "Lightning se usa ampliamente en produccion, con trade-offs operativos importantes.",
+      "Mejor encaje: pagos pequenos/medianos de alta frecuencia.",
+      "Usa watchtowers, gestion de liquidez y planificacion de fees de cierre para operar con mas seguridad.",
     ],
     realData: [
       {
         key: "feeFast",
-        label: "On-chain Fast Fee",
-        description: "Base-layer fee context helps users compare direct settlement vs channel usage.",
+        label: "Fee Rapido On-chain",
+        description: "El contexto de fee de capa base ayuda a comparar liquidacion directa vs uso de canales.",
         display: "sat/vB",
       },
       {
         key: "feeHour",
-        label: "On-chain Economy Fee",
-        description: "Shows cost differential that often motivates Lightning usage.",
+        label: "Fee Economico On-chain",
+        description: "Muestra el diferencial de costo que suele motivar el uso de Lightning.",
         display: "sat/vB",
       },
     ],
     securityNotes: [
-      "Channel counterparties and routing paths introduce liquidity, routing, and online-availability constraints.",
-      "Watchtower services mitigate monitoring requirements for offline users, but do not remove all operational risk.",
-      "During fee spikes, forced-close and sweep transactions can materially raise operational costs and failure risk.",
+      "Contrapartes de canal y rutas introducen restricciones de liquidez, ruteo y disponibilidad online.",
+      "Los servicios de watchtower mitigan requisitos de monitoreo para usuarios offline, pero no eliminan todo el riesgo operativo.",
+      "Durante picos de fees, transacciones de forced-close y sweep pueden elevar materialmente costos operativos y riesgo de falla.",
     ],
     linkedVulnerabilities: [],
     linkedAttacks: ["lightning-channel-jamming", "lightning-probing", "lightning-pinning-fee-griefing"],
     linkedAssumptions: ["network-topology-assumption"],
     policyRules: [
-      "Routing, fee policy, and channel open/close strategy are implementation-level policy choices.",
-      "Service providers may enforce inbound liquidity and channel minimums.",
+      "Ruteo, politica de fees y estrategia de apertura/cierre de canales son decisiones de politica a nivel de implementacion.",
+      "Proveedores de servicio pueden imponer liquidez entrante y minimos de canal.",
     ],
     consensusRules: [
-      "Lightning ultimately settles via valid Bitcoin transactions under layer-1 consensus.",
-      "Penalty and timeout transactions depend on base-layer script validity.",
+      "Lightning finalmente liquida mediante transacciones Bitcoin validas bajo consenso de capa 1.",
+      "Transacciones de penalty y timeout dependen de la validez de scripts en capa base.",
     ],
     policyVsConsensusExplanation:
-      "Lightning operations are policy-rich at layer 2 but inherit final validity and dispute resolution from Bitcoin consensus.",
+      "Las operaciones de Lightning son ricas en politica en capa 2, pero heredan validez final y resolucion de disputas del consenso de Bitcoin.",
     caseStudies: [
       {
         title: "Exchange Lightning Integrations 2023-2025",
         year: 2025,
         summary:
-          "Major exchanges added Lightning support, shifting usage from niche experimentation to mainstream payment rail.",
+          "Grandes exchanges agregaron soporte Lightning, moviendo su uso desde la experimentacion de nicho hacia un rail de pagos masivo.",
       },
     ],
     explorerDeepLinks: [
-      { label: "Lightning channels map", url: "https://mempool.space/lightning" },
-      { label: "BOLTs spec", url: "https://github.com/lightning/bolts" },
+      { label: "Mapa de Canales Lightning", url: "https://mempool.space/lightning" },
+      { label: "Especificacion BOLTs", url: "https://github.com/lightning/bolts" },
     ],
     claimSources: [
       {
-        claim: "Lightning is widely used in production by major exchanges/providers for suitable payment flows, with clear operational trade-offs.",
+        claim: "Lightning se usa ampliamente en produccion por grandes exchanges/proveedores para flujos de pago adecuados, con trade-offs operativos claros.",
         sources: [
           { title: "Coinbase Lightning launch", url: "https://www.coinbase.com/blog/lightning-payments-now-available-on-coinbase", type: "reference" },
           { title: "Kraken Lightning support", url: "https://support.kraken.com/hc/en-us/articles/5068216131988-Lightning-Network-on-Kraken", type: "reference" },
         ],
       },
       {
-        claim: "Lightning security depends on channel monitoring and timelocked dispute mechanisms.",
+        claim: "La seguridad de Lightning depende del monitoreo de canales y de mecanismos de disputa con timelocks.",
         sources: [
           { title: "Lightning BOLTs", url: "https://github.com/lightning/bolts", type: "reference" },
           { title: "BIP 65 CHECKLOCKTIMEVERIFY", url: "https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki", type: "BIP" },
@@ -1259,97 +1259,97 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "segwit-and-taproot-upgrades",
-    title: "SegWit and Taproot Upgrades",
+    title: "Actualizaciones SegWit y Taproot",
     type: "upgrade",
     difficulty: 2,
     canonicalLesson: "security-and-attacks",
     pathMappings: ["bitcoin-foundations"],
     summary:
-      "SegWit and Taproot are major soft-fork upgrades that improved malleability resistance, efficiency, and script/signature flexibility.",
+      "SegWit y Taproot son actualizaciones soft-fork importantes que mejoraron resistencia a maleabilidad, eficiencia y flexibilidad de scripts/firmas.",
     story:
-      "Protocol evolution in Bitcoin is slow by design. SegWit in 2017 and Taproot in 2021 are examples of cautious upgrades that changed capability without breaking core monetary guarantees. SegWit separated witness data and fixed key malleability issues that blocked robust second-layer designs. Taproot added Schnorr signatures and more efficient spend paths, improving privacy and multisig ergonomics in common cases. For learners, the key insight is that Bitcoin does evolve, but through conservative review, soft-fork deployment, and broad ecosystem coordination. Raw Block frames upgrades as continuity work: strengthen foundations while preserving backward compatibility and rule integrity.",
+      "La evolucion del protocolo en Bitcoin es lenta por diseño. SegWit en 2017 y Taproot en 2021 son ejemplos de upgrades cautelosos que ampliaron capacidades sin romper garantias monetarias centrales. SegWit separo datos witness y corrigio problemas de maleabilidad que bloqueaban diseños robustos de segunda capa. Taproot agrego firmas Schnorr y rutas de gasto mas eficientes, mejorando privacidad y ergonomia multisig en casos comunes. Para quien aprende, la idea clave es que Bitcoin si evoluciona, pero mediante revision conservadora, despliegue de soft forks y coordinacion amplia del ecosistema. Raw Block presenta los upgrades como trabajo de continuidad: fortalecer fundamentos preservando compatibilidad hacia atras e integridad de reglas.",
     deepDive: [
       {
-        heading: "SegWit impact",
+        heading: "Impacto de SegWit",
         bullets: [
-          "Reduced malleability surface for txid-dependent protocols.",
-          "Weight accounting improved effective block capacity management.",
-          "Enabled more robust Lightning transaction design.",
+          "Redujo la superficie de maleabilidad para protocolos dependientes de txid.",
+          "El accounting por weight mejoro la gestion efectiva de capacidad de bloque.",
+          "Habilito diseño de transacciones Lightning mas robusto.",
         ],
       },
       {
-        heading: "Taproot impact",
+        heading: "Impacto de Taproot",
         bullets: [
-          "Schnorr signatures improved multisig key aggregation options.",
-          "Key-path spends make common scripts look simpler on chain.",
-          "Tapscript expanded future script-upgrade flexibility.",
+          "Las firmas Schnorr mejoraron opciones de agregacion de llaves multisig.",
+          "Los gastos por key-path hacen que scripts comunes se vean mas simples on-chain.",
+          "Tapscript expandio la flexibilidad de futuros upgrades de script.",
         ],
       },
     ],
     keyTakeaways: [
-      "Bitcoin upgrades are conservative and compatibility-focused.",
-      "SegWit and Taproot each addressed real technical constraints.",
-      "Upgrade adoption is observable in live chain data.",
+      "Los upgrades de Bitcoin son conservadores y enfocados en compatibilidad.",
+      "SegWit y Taproot abordaron restricciones tecnicas reales.",
+      "La adopcion de upgrades es observable en datos vivos de cadena.",
     ],
     realData: [
       {
         key: "blockHeight",
-        label: "Upgrade Era Height",
-        description: "Provides context for post-SegWit and post-Taproot adoption windows.",
+        label: "Altura de Era de Upgrade",
+        description: "Da contexto para ventanas de adopcion post-SegWit y post-Taproot.",
         display: "Height",
       },
       {
         key: "lastUpdated",
-        label: "Adoption Snapshot Time",
-        description: "Timestamp for currently displayed network context.",
+        label: "Hora del Snapshot de Adopcion",
+        description: "Timestamp del contexto de red mostrado actualmente.",
         display: "Date/time",
       },
     ],
     securityNotes: [
-      "Soft-fork activation requires careful deployment and ecosystem readiness.",
-      "Misinterpreting witness/tapscript semantics can create wallet implementation bugs.",
+      "La activacion de soft forks requiere despliegue cuidadoso y preparacion del ecosistema.",
+      "Interpretar mal la semantica witness/tapscript puede crear bugs de implementacion en wallets.",
     ],
     linkedVulnerabilities: ["malleability-pre-segwit"],
     linkedAttacks: [],
     linkedAssumptions: ["sha256-preimage-resistance-assumption"],
     policyRules: [
-      "Node policy can influence relay of newer script forms during early adoption phases.",
-      "Wallet policy governs whether new output types are used by default.",
+      "La politica del nodo puede influir el relay de formas de script nuevas durante fases tempranas de adopcion.",
+      "La politica de wallet gobierna si tipos de output nuevos se usan por defecto.",
     ],
     consensusRules: [
-      "SegWit witness rules and Taproot script rules are consensus-validated once activated.",
-      "Activation preserved backward compatibility through soft-fork constraints.",
+      "Las reglas witness de SegWit y de script de Taproot son validadas por consenso una vez activadas.",
+      "La activacion preservo compatibilidad hacia atras mediante restricciones de soft fork.",
     ],
     policyVsConsensusExplanation:
-      "Activation and script validity are consensus matters; rollout defaults and wallet behavior are policy and product decisions.",
+      "La activacion y la validez de scripts son temas de consenso; defaults de rollout y comportamiento de wallets son decisiones de politica y producto.",
     caseStudies: [
       {
         title: "SegWit Activation",
         year: 2017,
         summary:
-          "SegWit resolved transaction malleability blockers and introduced weight-based capacity accounting.",
+          "SegWit resolvio bloqueos por maleabilidad de transacciones e introdujo accounting de capacidad basado en weight.",
       },
       {
         title: "Taproot Activation",
         year: 2021,
         summary:
-          "Taproot introduced Schnorr signatures and script upgrades while preserving compatibility.",
+          "Taproot introdujo firmas Schnorr y upgrades de script preservando compatibilidad.",
       },
     ],
     explorerDeepLinks: [
-      { label: "SegWit adoption chart", url: "https://mempool.space/graphs/bitcoin/segwit" },
-      { label: "Taproot chart", url: "https://mempool.space/graphs/bitcoin/taproot" },
+      { label: "Grafico de Adopcion de SegWit", url: "https://mempool.space/graphs/bitcoin/segwit" },
+      { label: "Grafico de Taproot", url: "https://mempool.space/graphs/bitcoin/taproot" },
     ],
     claimSources: [
       {
-        claim: "SegWit introduced witness separation and addressed malleability vectors.",
+        claim: "SegWit introdujo separacion de witness y abordo vectores de maleabilidad.",
         sources: [
           { title: "BIP 141", url: "https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki", type: "BIP" },
           { title: "BIP 143", url: "https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki", type: "BIP" },
         ],
       },
       {
-        claim: "Taproot introduced Schnorr signatures and tapscript semantics.",
+        claim: "Taproot introdujo firmas Schnorr y semantica de tapscript.",
         sources: [
           { title: "BIP 340", url: "https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki", type: "BIP" },
           { title: "BIP 341", url: "https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki", type: "BIP" },
@@ -1364,42 +1364,42 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "blocks",
-    title: "Blocks (Lesson Anchor)",
+    title: "Bloques (Ancla de Lección)",
     type: "primitive",
     difficulty: 1,
     canonicalLesson: "blocks",
     pathMappings: ["canonical-lessons"],
-    summary: "Lesson anchor for block structure in the guided 8-step journey.",
+    summary: "Ancla de lección para estructura de bloques en el recorrido guiado de 8 pasos.",
     story:
-      "This lesson anchor maps the guided home journey to the detailed concept node for blocks and headers. It keeps progression continuity while preserving deep protocol links.",
+      "Esta ancla de lección conecta el recorrido guiado de inicio con el nodo de concepto detallado de bloques y encabezados. Mantiene la continuidad del progreso sin perder enlaces profundos al protocolo.",
     deepDive: [
-      { heading: "Anchor", bullets: ["Use blocks-and-headers for full detail.", "Maintains lesson identity for progress sync."] },
-      { heading: "Navigation", bullets: ["Guided mode uses this lesson id.", "Academy routes to canonical concept content."] },
+      { heading: "Ancla", bullets: ["Usa blocks-and-headers para el detalle completo.", "Mantiene la identidad de la lección para sincronizar progreso."] },
+      { heading: "Navegacion", bullets: ["El modo guiado usa este id de lección.", "La Academia redirige al contenido canonico del concepto."] },
     ],
-    keyTakeaways: ["Anchor node for progress mapping", "Use detailed node for full content", "No protocol divergence"],
+    keyTakeaways: ["Nodo ancla para mapear progreso", "Usa el nodo detallado para el contenido completo", "Sin divergencia de protocolo"],
     realData: [
-      { key: "blockHeight", label: "Height", description: "Current height", display: "int" },
-      { key: "lastUpdated", label: "Updated", description: "snapshot time", display: "time" },
+      { key: "blockHeight", label: "Altura", description: "Altura actual", display: "int" },
+      { key: "lastUpdated", label: "Actualizado", description: "hora del snapshot", display: "time" },
     ],
-    securityNotes: ["Anchor only", "See blocks-and-headers for substantive security details"],
+    securityNotes: ["Solo ancla", "Ver blocks-and-headers para detalles de seguridad sustantivos"],
     linkedVulnerabilities: [],
     linkedAttacks: [],
     linkedAssumptions: [],
-    policyRules: ["Anchor uses guided-mode policy mapping for stable progression."],
-    consensusRules: ["Anchor references consensus content in blocks-and-headers node."],
-    policyVsConsensusExplanation: "This anchor delegates full policy-versus-consensus detail to its mapped concept node.",
-    caseStudies: [{ title: "Anchor", year: 2026, summary: "Anchor mapping for lesson continuity." }],
+    policyRules: ["El ancla usa mapeo de política del modo guiado para una progresión estable."],
+    consensusRules: ["El ancla referencia el contenido de consenso en el nodo blocks-and-headers."],
+    policyVsConsensusExplanation: "Esta ancla delega el detalle completo de política vs consenso a su nodo de concepto mapeado.",
+    caseStudies: [{ title: "Ancla", year: 2026, summary: "Mapeo de ancla para continuidad de la lección." }],
     explorerDeepLinks: [{ label: "Blocks", url: "https://mempool.space/blocks" }],
     claimSources: [
       {
-        claim: "Lesson anchors keep progress aligned with concept graph.",
+        claim: "Las anclas de lección mantienen el progreso alineado con el grafo de conceptos.",
         sources: [
           { title: "Raw Block path engine", url: "https://www.rawblock.net/academy", type: "reference" },
           { title: "Raw Block guided mode", url: "https://www.rawblock.net/", type: "reference" },
         ],
       },
       {
-        claim: "Detailed block mechanics live in blocks-and-headers node.",
+        claim: "La mecánica detallada de bloques vive en el nodo blocks-and-headers.",
         sources: [
           { title: "Developer block reference", url: "https://developer.bitcoin.org/reference/block_chain.html", type: "dev-guide" },
           { title: "Bitcoin whitepaper", url: "https://bitcoin.org/bitcoin.pdf", type: "whitepaper" },
@@ -1414,42 +1414,42 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "mining",
-    title: "Mining (Lesson Anchor)",
+    title: "Minería (Ancla de Lección)",
     type: "mechanism",
     difficulty: 1,
     canonicalLesson: "mining",
     pathMappings: ["canonical-lessons"],
-    summary: "Lesson anchor for mining in guided mode, mapped to mining-and-subsidy concept content.",
+    summary: "Ancla de lección para minería en modo guiado, mapeada al contenido de mineria-y-subsidio.",
     story:
-      "This lesson anchor exists for clean lesson indexing in the home journey while detailed theory and case studies remain in mining-and-subsidy.",
+      "Esta ancla de lección existe para indexar lecciones de forma limpia en el recorrido inicial, mientras la teoria detallada y los casos quedan en mining-and-subsidy.",
     deepDive: [
-      { heading: "Anchor", bullets: ["Use mining-and-subsidy for protocol depth.", "Keeps home progress stable."] },
-      { heading: "Navigation", bullets: ["Anchor maps lesson id to concept id.", "Prevents breaking older progress keys."] },
+      { heading: "Ancla", bullets: ["Usa mining-and-subsidy para profundidad de protocolo.", "Mantiene estable el progreso del inicio."] },
+      { heading: "Navegacion", bullets: ["El ancla mapea id de lección a id de concepto.", "Evita romper claves de progreso antiguas."] },
     ],
-    keyTakeaways: ["Anchor node", "Full content in concept node", "Progress-safe mapping"],
+    keyTakeaways: ["Nodo ancla", "Contenido completo en el nodo de concepto", "Mapeo seguro para el progreso"],
     realData: [
-      { key: "hashrateEh", label: "Hashrate", description: "Current hashrate", display: "EH/s" },
-      { key: "blocksUntilHalving", label: "Blocks to halving", description: "Epoch countdown", display: "count" },
+      { key: "hashrateEh", label: "Hashrate", description: "Hashrate actual", display: "EH/s" },
+      { key: "blocksUntilHalving", label: "Bloques para el halving", description: "Cuenta regresiva de la epoca", display: "count" },
     ],
-    securityNotes: ["Anchor only", "See mining-and-subsidy for details"],
+    securityNotes: ["Solo ancla", "Ver mining-and-subsidy para detalles"],
     linkedVulnerabilities: [],
     linkedAttacks: [],
     linkedAssumptions: [],
-    policyRules: ["Anchor preserves mining lesson policy mapping in guided mode."],
-    consensusRules: ["Anchor references consensus constraints in mining-and-subsidy content."],
-    policyVsConsensusExplanation: "This anchor delegates protocol distinctions to the mapped mining concept node.",
-    caseStudies: [{ title: "Anchor", year: 2026, summary: "Lesson mapping support." }],
+    policyRules: ["El ancla preserva el mapeo de política de la lección de minería en modo guiado."],
+    consensusRules: ["El ancla referencia restricciones de consenso en el contenido mining-and-subsidy."],
+    policyVsConsensusExplanation: "Esta ancla delega las distinciones de protocolo al nodo de concepto de minería mapeado.",
+    caseStudies: [{ title: "Ancla", year: 2026, summary: "Soporte de mapeo de lección." }],
     explorerDeepLinks: [{ label: "Mining", url: "https://mempool.space/mining" }],
     claimSources: [
       {
-        claim: "Lesson anchors maintain progression continuity.",
+        claim: "Las anclas de lección mantienen la continuidad de la progresión.",
         sources: [
           { title: "Raw Block home", url: "https://www.rawblock.net/", type: "reference" },
           { title: "Raw Block paths", url: "https://www.rawblock.net/paths/bitcoin-foundations", type: "reference" },
         ],
       },
       {
-        claim: "Mining details are available in mapped concept node.",
+        claim: "Los detalles de minería están disponibles en el nodo de concepto mapeado.",
         sources: [
           { title: "Developer PoW guide", url: "https://developer.bitcoin.org/devguide/block_chain.html", type: "dev-guide" },
           { title: "Bitcoin whitepaper", url: "https://bitcoin.org/bitcoin.pdf", type: "whitepaper" },
@@ -1464,42 +1464,42 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "difficulty",
-    title: "Difficulty (Lesson Anchor)",
+    title: "Dificultad (Ancla de Lección)",
     type: "rule",
     difficulty: 1,
     canonicalLesson: "difficulty",
     pathMappings: ["canonical-lessons"],
-    summary: "Lesson anchor for difficulty, mapped to difficulty-adjustment-2016 content.",
+    summary: "Ancla de lección para dificultad, mapeada al contenido de ajuste-de-dificultad-2016.",
     story:
-      "The lesson anchor keeps the guided journey simple while the concept node delivers rigorous retarget details and incident context.",
+      "El ancla de lección mantiene simple el recorrido guiado mientras el nodo de concepto entrega detalles rigurosos del ajuste y contexto de incidentes.",
     deepDive: [
-      { heading: "Anchor", bullets: ["Detailed content in difficulty-adjustment-2016.", "Guided mode compatibility preserved."] },
-      { heading: "Continuity", bullets: ["Stable lesson key for local progress.", "Avoids migration friction for users."] },
+      { heading: "Ancla", bullets: ["Contenido detallado en difficulty-adjustment-2016.", "Compatibilidad del modo guiado preservada."] },
+      { heading: "Continuidad", bullets: ["Clave de lección estable para progreso local.", "Evita friccion de migracion para usuarios."] },
     ],
-    keyTakeaways: ["Anchor node", "Maps to full concept", "Progress-friendly id"],
+    keyTakeaways: ["Nodo ancla", "Mapea al concepto completo", "Id amigable para progreso"],
     realData: [
-      { key: "hashrateEh", label: "Hashrate", description: "retarget context", display: "EH/s" },
-      { key: "blockHeight", label: "Height", description: "epoch context", display: "count" },
+      { key: "hashrateEh", label: "Hashrate", description: "contexto del ajuste", display: "EH/s" },
+      { key: "blockHeight", label: "Altura", description: "contexto de epoca", display: "count" },
     ],
-    securityNotes: ["Anchor only", "See mapped concept for details"],
+    securityNotes: ["Solo ancla", "Ver concepto mapeado para detalles"],
     linkedVulnerabilities: [],
     linkedAttacks: [],
     linkedAssumptions: [],
-    policyRules: ["Anchor preserves difficulty lesson policy mapping for progression."],
-    consensusRules: ["Anchor references consensus retarget logic in mapped concept."],
-    policyVsConsensusExplanation: "This anchor delegates full policy-versus-consensus treatment to difficulty-adjustment content.",
-    caseStudies: [{ title: "Anchor", year: 2026, summary: "Lesson mapping support." }],
+    policyRules: ["El ancla preserva el mapeo de política de la lección de dificultad para la progresión."],
+    consensusRules: ["El ancla referencia la logica de ajuste de consenso en el concepto mapeado."],
+    policyVsConsensusExplanation: "Esta ancla delega el tratamiento completo de política vs consenso al contenido de dificultad.",
+    caseStudies: [{ title: "Ancla", year: 2026, summary: "Soporte de mapeo de lección." }],
     explorerDeepLinks: [{ label: "Difficulty graph", url: "https://mempool.space/graphs/mining/difficulty-adjustment" }],
     claimSources: [
       {
-        claim: "Lesson anchors provide stable progression keys.",
+        claim: "Las anclas de lección proveen claves de progresión estables.",
         sources: [
           { title: "Raw Block home", url: "https://www.rawblock.net/", type: "reference" },
           { title: "Raw Block academy", url: "https://www.rawblock.net/academy", type: "reference" },
         ],
       },
       {
-        claim: "Difficulty concept details remain in dedicated concept node.",
+        claim: "Los detalles de dificultad permanecen en el nodo de concepto dedicado.",
         sources: [
           { title: "Bitcoin Wiki Difficulty", url: "https://en.bitcoin.it/wiki/Difficulty", type: "reference" },
           { title: "pow.cpp", url: "https://github.com/bitcoin/bitcoin/blob/master/src/pow.cpp", type: "core-docs" },
@@ -1514,42 +1514,42 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "consensus",
-    title: "Consensus (Lesson Anchor)",
+    title: "Consenso (Ancla de Lección)",
     type: "rule",
     difficulty: 1,
     canonicalLesson: "consensus",
     pathMappings: ["canonical-lessons"],
-    summary: "Lesson anchor for consensus, mapped to consensus-rules-vs-policy detailed content.",
+    summary: "Ancla de lección para consenso, mapeada al contenido detallado de reglas-de-consenso-vs-politica.",
     story:
-      "This anchor keeps guided lesson semantics simple and stable, while deep consensus-policy distinctions live in the dedicated concept node.",
+      "Esta ancla mantiene la semantica de la lección guiada simple y estable, mientras las distinciones profundas entre consenso y política viven en el nodo de concepto dedicado.",
     deepDive: [
-      { heading: "Anchor", bullets: ["Map to consensus-rules-vs-policy.", "Retains stable lesson id."] },
-      { heading: "Experience", bullets: ["Home journey stays linear.", "Academy retains technical depth."] },
+      { heading: "Ancla", bullets: ["Mapea a consensus-rules-vs-policy.", "Conserva un id de lección estable."] },
+      { heading: "Experiencia", bullets: ["El recorrido inicial se mantiene lineal.", "La Academia conserva profundidad tecnica."] },
     ],
-    keyTakeaways: ["Anchor node", "Detailed content elsewhere", "Progress-stable"],
+    keyTakeaways: ["Nodo ancla", "Contenido detallado en otro lugar", "Progreso estable"],
     realData: [
-      { key: "feeFast", label: "Policy pressure", description: "relay context", display: "sat/vB" },
-      { key: "lastUpdated", label: "snapshot", description: "ISO timestamp value", display: "time" },
+      { key: "feeFast", label: "Presion de politica", description: "contexto de relay", display: "sat/vB" },
+      { key: "lastUpdated", label: "Snapshot", description: "valor de timestamp en formato ISO", display: "time" },
     ],
-    securityNotes: ["Anchor only", "See mapped concept for details"],
+    securityNotes: ["Solo ancla", "Ver concepto mapeado para detalles"],
     linkedVulnerabilities: [],
     linkedAttacks: [],
     linkedAssumptions: [],
-    policyRules: ["Anchor keeps consensus lesson policy linkage stable."],
-    consensusRules: ["Anchor references consensus-rule detail in mapped concept content."],
-    policyVsConsensusExplanation: "This anchor delegates operational distinction detail to consensus-rules-vs-policy node.",
-    caseStudies: [{ title: "Anchor", year: 2026, summary: "Lesson mapping support." }],
-    explorerDeepLinks: [{ label: "Policy docs", url: "https://github.com/bitcoin/bitcoin/tree/master/doc/policy" }],
+    policyRules: ["El ancla mantiene estable el enlace de política de la lección de consenso."],
+    consensusRules: ["El ancla referencia el detalle de reglas de consenso en el contenido del concepto mapeado."],
+    policyVsConsensusExplanation: "Esta ancla delega el detalle de la distincion operativa al nodo consensus-rules-vs-policy.",
+    caseStudies: [{ title: "Ancla", year: 2026, summary: "Soporte de mapeo de lección." }],
+    explorerDeepLinks: [{ label: "Docs de Politica", url: "https://github.com/bitcoin/bitcoin/tree/master/doc/policy" }],
     claimSources: [
       {
-        claim: "Anchors keep lesson ids stable in guided progression.",
+        claim: "Las anclas mantienen estables los ids de lección en la progresión guiada.",
         sources: [
           { title: "Raw Block home", url: "https://www.rawblock.net/", type: "reference" },
           { title: "Raw Block paths", url: "https://www.rawblock.net/paths/bitcoin-foundations", type: "reference" },
         ],
       },
       {
-        claim: "Consensus-policy separation is handled in concept node.",
+        claim: "La separacion entre consenso y política se maneja en el nodo de concepto.",
         sources: [
           { title: "consensus.h", url: "https://github.com/bitcoin/bitcoin/blob/master/src/consensus/consensus.h", type: "core-docs" },
           { title: "policy.h", url: "https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.h", type: "core-docs" },
@@ -1564,78 +1564,78 @@ export const academyNodeContentSeed: AcademyNodeContentList = [
   },
   {
     id: "security-and-attacks",
-    title: "Security and Attacks (Lesson Anchor)",
+    title: "Seguridad y Ataques (Ancla de Lección)",
     type: "attack",
     difficulty: 2,
     canonicalLesson: "security-and-attacks",
     pathMappings: ["canonical-lessons"],
-    summary: "Lesson anchor collecting the security module and linking to vulnerabilities, attacks, and assumptions research.",
+    summary: "Ancla de lección que agrupa el módulo de seguridad y enlaza a investigaciones de vulnerabilidades, ataques y supuestos.",
     story:
-      "The guided journey ends with security and attacks because this is where all prior topics converge. This anchor ties the lesson card to the deeper research stack so users can move from fundamentals to adversarial thinking without losing progress continuity.",
+      "El recorrido guiado termina con seguridad y ataques porque aqui convergen todos los temas previos. Esta ancla conecta la tarjeta de la lección con la capa de investigacion profunda para que el usuario pase de fundamentos a pensamiento adversarial sin perder continuidad de progreso.",
     deepDive: [
       {
-        heading: "Coverage",
+        heading: "Cobertura",
         bullets: [
-          "Links to vulnerabilities registry, attack models, and assumption layers.",
-          "Connects policy-vs-consensus framing to real incidents.",
+          "Enlaza al registro de vulnerabilidades, modelos de ataque y capas de supuestos.",
+          "Conecta el marco de política vs consenso con incidentes reales.",
         ],
       },
       {
-        heading: "Goal",
+        heading: "Objetivo",
         bullets: [
-          "Help learners evaluate risk with protocol-native terminology.",
-          "Bridge Academy concepts to research pages and historical case studies.",
+          "Ayudar a evaluar riesgo con terminologia nativa del protocolo.",
+          "Conectar conceptos de la Academia con paginas de investigacion y casos historicos.",
         ],
       },
     ],
     keyTakeaways: [
-      "Security learning is cumulative across all lessons.",
-      "Research pages provide incident-level detail.",
-      "Assumptions define what must remain true for security guarantees.",
+      "El aprendizaje de seguridad es acumulativo a lo largo de todas las lecciones.",
+      "Las paginas de investigacion aportan detalle a nivel de incidente.",
+      "Los supuestos definen que debe mantenerse cierto para las garantias de seguridad.",
     ],
     realData: [
-      { key: "hashrateEh", label: "Hashrate", description: "attack-cost context", display: "EH/s" },
-      { key: "feeFast", label: "Fee pressure", description: "mempool stress context", display: "sat/vB" },
+      { key: "hashrateEh", label: "Hashrate", description: "contexto de costo de ataque", display: "EH/s" },
+      { key: "feeFast", label: "Presion de fee", description: "contexto de estres de mempool", display: "sat/vB" },
     ],
     securityNotes: [
-      "Threat analysis should separate capability, cost, and detectability.",
-      "Defense posture depends on confirmation depth and operational controls.",
+      "El analisis de amenazas debe separar capacidad, costo y detectabilidad.",
+      "La postura defensiva depende de la profundidad de confirmacion y de controles operativos.",
     ],
     linkedVulnerabilities: ["value-overflow-2010", "cve-2018-17144"],
     linkedAttacks: ["double-spend", "attack-51-percent", "selfish-mining"],
     linkedAssumptions: ["hashpower-majority-assumption", "independent-validation-assumption"],
     policyRules: [
-      "Policy hardens mempool and relay behavior against abuse patterns.",
-      "Policy misconfiguration can create local exposure without global fork risk.",
+      "La politica endurece el comportamiento de mempool y relay frente a patrones de abuso.",
+      "Una mala configuracion de politica puede crear exposicion local sin riesgo de fork global.",
     ],
     consensusRules: [
-      "Consensus bugs can threaten inflation safety or chain agreement.",
-      "Consensus validation is the final security boundary for every full node.",
+      "Los bugs de consenso pueden amenazar la seguridad contra inflacion o el acuerdo de cadena.",
+      "La validacion de consenso es la frontera final de seguridad para cada nodo completo.",
     ],
     policyVsConsensusExplanation:
-      "Security incidents often start in policy or implementation layers but become systemic only when consensus integrity is affected.",
+      "Los incidentes de seguridad suelen comenzar en capas de politica o implementacion, pero se vuelven sistemicos solo cuando se afecta la integridad del consenso.",
     caseStudies: [
       {
         title: "CVE-2018-17144",
         year: 2018,
         summary:
-          "Critical inflation/consensus risk that reinforced the importance of rigorous release and review discipline.",
+          "Riesgo critico de inflacion/consenso que reforzo la importancia de una disciplina rigurosa de releases y revision.",
       },
     ],
     explorerDeepLinks: [
-      { label: "Research vulnerabilities", url: "https://www.rawblock.net/research/vulnerabilities" },
-      { label: "Research attacks", url: "https://www.rawblock.net/research/attacks" },
+      { label: "Investigacion de Vulnerabilidades", url: "https://www.rawblock.net/research/vulnerabilities" },
+      { label: "Investigacion de Ataques", url: "https://www.rawblock.net/research/attacks" },
     ],
     claimSources: [
       {
-        claim: "Bitcoin security relies on consensus integrity and economic attack cost.",
+        claim: "La seguridad de Bitcoin depende de la integridad del consenso y del costo economico de ataque.",
         sources: [
           { title: "Bitcoin Whitepaper", url: "https://bitcoin.org/bitcoin.pdf", type: "whitepaper" },
           { title: "Developer block chain guide", url: "https://developer.bitcoin.org/devguide/block_chain.html", type: "dev-guide" },
         ],
       },
       {
-        claim: "Historical bugs and attacks inform modern hardening strategy.",
+        claim: "Los bugs y ataques historicos informan la estrategia moderna de endurecimiento.",
         sources: [
           { title: "CVE-2018-17144 notice", url: "https://bitcoincore.org/en/2018/09/20/notice/", type: "core-docs" },
           { title: "Bitcoin Optech topics", url: "https://bitcoinops.org/en/topics/", type: "reference" },
