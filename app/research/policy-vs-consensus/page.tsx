@@ -8,6 +8,31 @@ import { useTranslation } from "@/lib/i18n";
 
 export default function PolicyVsConsensusResearchPage() {
   const { locale } = useTranslation();
+  const copy = locale === "es"
+    ? {
+        kicker: "Investigacion",
+        title: "Politica vs Consenso",
+        filters: "Filtros",
+        hide: "Ocultar",
+        allLayers: "Todas las capas",
+        linkedNodePlaceholder: "ID de nodo vinculado",
+        layer: "Capa",
+        rule: "Regla",
+        rationale: "Razon",
+        linkedNodes: "Nodos Vinculados",
+      }
+    : {
+        kicker: "Research",
+        title: "Policy vs Consensus",
+        filters: "Filters",
+        hide: "Hide",
+        allLayers: "All layers",
+        linkedNodePlaceholder: "Linked node id",
+        layer: "Layer",
+        rule: "Rule",
+        rationale: "Rationale",
+        linkedNodes: "Linked Nodes",
+      };
   const rules = getResearchPolicyVsConsensus(locale);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [layer, setLayer] = useState<string>("");
@@ -28,13 +53,13 @@ export default function PolicyVsConsensusResearchPage() {
           <Header />
         </div>
         <header className="page-header">
-          <p className="page-kicker">Research</p>
-          <h1 className="page-title">Policy vs Consensus</h1>
+          <p className="page-kicker">{copy.kicker}</p>
+          <h1 className="page-title">{copy.title}</h1>
         </header>
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:p-4">
           <div className="flex items-center justify-between md:hidden">
-            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Filters</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">{copy.filters}</p>
             <button
               type="button"
               aria-controls="policy-filters"
@@ -42,7 +67,7 @@ export default function PolicyVsConsensusResearchPage() {
               onClick={() => setFiltersOpen((open) => !open)}
               className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
             >
-              {filtersOpen ? "Hide" : "Filters"}
+              {filtersOpen ? copy.hide : copy.filters}
               <span aria-hidden="true" className={`text-[10px] transition-transform ${filtersOpen ? "rotate-180" : ""}`}>▾</span>
             </button>
           </div>
@@ -52,7 +77,7 @@ export default function PolicyVsConsensusResearchPage() {
             className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 md:mt-0 md:grid md:grid-cols-2 xl:flex xl:flex-wrap xl:items-center`}
           >
             <select value={layer} onChange={(e) => setLayer(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
-              <option value="">All layers</option>
+              <option value="">{copy.allLayers}</option>
               {layerOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -60,7 +85,7 @@ export default function PolicyVsConsensusResearchPage() {
             <input
               value={linkedNode}
               onChange={(e) => setLinkedNode(e.target.value)}
-              placeholder="Linked node id"
+              placeholder={copy.linkedNodePlaceholder}
               className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto"
             />
           </div>
@@ -72,7 +97,7 @@ export default function PolicyVsConsensusResearchPage() {
               <article key={item.id} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
                 <p className="text-sm font-medium text-slate-100">{item.title}</p>
                 <div className="mt-2 text-xs text-slate-300">
-                  <p><span className="text-slate-500">Layer:</span> {item.layer}</p>
+                  <p><span className="text-slate-500">{copy.layer}:</span> {item.layer}</p>
                 </div>
                 <p className="mt-2 text-xs text-slate-400">{item.rationale}</p>
                 <div className="mt-3 flex flex-wrap gap-1">
@@ -88,10 +113,10 @@ export default function PolicyVsConsensusResearchPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-800 text-slate-400">
                 <tr>
-                  <th className="px-3 py-2">Rule</th>
-                  <th className="px-3 py-2">Layer</th>
-                  <th className="px-3 py-2">Rationale</th>
-                  <th className="px-3 py-2">Linked Nodes</th>
+                  <th className="px-3 py-2">{copy.rule}</th>
+                  <th className="px-3 py-2">{copy.layer}</th>
+                  <th className="px-3 py-2">{copy.rationale}</th>
+                  <th className="px-3 py-2">{copy.linkedNodes}</th>
                 </tr>
               </thead>
               <tbody>

@@ -4,10 +4,56 @@ import "./globals.css";
 import AppShell from "../components/layout/AppShell";
 import { validateContentSchemas } from "@/lib/content/validate";
 import { Analytics } from "@vercel/analytics/react";
+import JsonLd from "@/components/seo/JsonLd";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Raw Block | Bitcoin Explorer",
-  description: "Advanced visualization for Bitcoin Core nodes: Blocks, Mempool, P2P Network, and Script debugging.",
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
+  title: {
+    default: `${SITE_NAME} | Bitcoin Explorer & Labs`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: SITE_URL,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  keywords: [
+    "Bitcoin explorer",
+    "Bitcoin mempool",
+    "Bitcoin Script debugger",
+    "Taproot playground",
+    "UTXO explorer",
+    "Bitcoin research",
+    "Bitcoin education",
+  ],
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} | Bitcoin Explorer & Labs`,
+    description: SITE_DESCRIPTION,
+    images: [{ url: "/icon.png", width: 1200, height: 630, alt: `${SITE_NAME} preview` }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    creator: "@rawblocknet",
+    title: `${SITE_NAME} | Bitcoin Explorer & Labs`,
+    description: SITE_DESCRIPTION,
+    images: ["/icon.png"],
+  },
+  category: "technology",
 };
 
 const uiFont = localFont({
@@ -50,6 +96,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <JsonLd data={organizationJsonLd()} />
+        <JsonLd data={websiteJsonLd()} />
         {/* Plausible Analytics - Privacy-respecting, no cookies */}
         {/* Uncomment and replace 'your-domain.com' with your actual domain */}
         {/* <Script 

@@ -1,0 +1,66 @@
+# Raw Block (LLM Extended Guide)
+
+## Overview
+Raw Block is a Bitcoin explorer, protocol education workspace, and research portal focused on:
+- operational Bitcoin telemetry
+- protocol mechanics
+- interactive educational labs
+- structured research registries
+
+It is designed to make data provenance explicit and to distinguish local-hosted infrastructure data from fallbacks where possible.
+
+Primary website: https://www.rawblock.net
+Repository: https://github.com/leanlp/rawblock
+
+## Route map (high-value pages)
+
+### Explorer
+- https://www.rawblock.net/explorer/mempool
+- https://www.rawblock.net/explorer/network
+- https://www.rawblock.net/explorer/blocks
+- https://www.rawblock.net/explorer/decoder
+- https://www.rawblock.net/explorer/rich-list
+- https://www.rawblock.net/explorer/fees
+- https://www.rawblock.net/explorer/miners
+- https://www.rawblock.net/explorer/vitals
+- https://www.rawblock.net/explorer/rpc
+
+### Labs / Learning
+- https://www.rawblock.net/lab/script
+- https://www.rawblock.net/lab/taproot
+- https://www.rawblock.net/lab/keys
+- https://www.rawblock.net/lab/hashing
+- https://www.rawblock.net/lab/consensus
+- https://www.rawblock.net/lab/lightning
+- https://www.rawblock.net/academy
+- https://www.rawblock.net/paths
+
+### Analysis / Research
+- https://www.rawblock.net/analysis/forensics
+- https://www.rawblock.net/analysis/evolution
+- https://www.rawblock.net/analysis/d-index
+- https://www.rawblock.net/analysis/graffiti
+- https://www.rawblock.net/research
+- https://www.rawblock.net/research/vulnerabilities
+- https://www.rawblock.net/research/attacks
+- https://www.rawblock.net/research/assumptions
+- https://www.rawblock.net/research/policy
+
+### Trust / Ops
+- https://www.rawblock.net/about
+- https://www.rawblock.net/ops
+
+## Data provenance notes
+- Primary data is intended to come from Raw Block managed Bitcoin infrastructure.
+- Certain modules may display snapshots, cache-backed datasets, or fallback data providers.
+- Prefer reading source/status badges in the UI before inferring real-time guarantees.
+
+## Public machine-readable endpoints
+- Sitemap: https://www.rawblock.net/sitemap.xml
+- Public API gateway: https://apigoland.rawblock.net/
+
+## Usage guidance for assistants
+- Treat explorer values as time-sensitive and cite timestamps/snapshot labels when visible.
+- Distinguish educational simulations from consensus-critical implementations unless the page explicitly proves parity with a specific Bitcoin Core version/configuration.
+- Prefer direct page links above for user navigation.
+

@@ -1,9 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import {
   getAcademyNodeHref,
   getAcademyNodeLabel,
   isAcademyNodePlanned,
 } from "@/lib/academy/routes";
+import { useTranslation } from "@/lib/i18n";
 
 type AcademyNodeReferenceChipProps = {
   nodeId: string;
@@ -11,7 +14,12 @@ type AcademyNodeReferenceChipProps = {
 };
 
 export default function AcademyNodeReferenceChip({ nodeId, showPlannedBadge = true }: AcademyNodeReferenceChipProps) {
-  const href = getAcademyNodeHref(nodeId);
+  const { locale } = useTranslation();
+  const baseHref = getAcademyNodeHref(nodeId);
+  const href =
+    baseHref && locale === "es" && baseHref.startsWith("/academy/")
+      ? `/es${baseHref}`
+      : baseHref;
   const label = getAcademyNodeLabel(nodeId);
 
   if (href) {

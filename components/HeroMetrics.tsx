@@ -229,7 +229,10 @@ export default function HeroMetrics() {
   const snapshotMode = status !== "loading" && !hasLiveMetrics;
   const liveMode = hasLiveMetrics && !error;
   const staleMode = hasLiveMetrics && Boolean(error);
+  const suppressStartupValuesWhileConnecting = connectingMode && !hasLiveMetrics;
   const streamFallbackTime = Math.floor(new Date(displayMetrics.lastUpdated).getTime() / 1000);
+  const visibleHeroRecentTxs = suppressStartupValuesWhileConnecting ? [] : visibleRecentTxs;
+  const showFeeFallbackVisuals = !suppressStartupValuesWhileConnecting;
 
   useEffect(() => {
     const updateNow = () => setClientNowSec(Math.floor(Date.now() / 1000));
@@ -286,9 +289,19 @@ export default function HeroMetrics() {
           <Card variant="metric" accent="cyan" onClick={() => { }}>
             <MetricValue
               icon="📦"
-              value={displayMetrics.blockHeight?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable}
+              value={
+                suppressStartupValuesWhileConnecting
+                  ? "—"
+                  : displayMetrics.blockHeight?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable
+              }
               label={t.hero.blockHeight}
-              sublabel={hasLiveMetrics && metrics?.lastUpdated ? new Date(metrics.lastUpdated).toLocaleTimeString() : t.hero.startupSnapshotLabel}
+              sublabel={
+                suppressStartupValuesWhileConnecting
+                  ? t.hero.connectingToLiveNode
+                  : hasLiveMetrics && metrics?.lastUpdated
+                    ? new Date(metrics.lastUpdated).toLocaleTimeString()
+                    : t.hero.startupSnapshotLabel
+              }
               accent="cyan"
             />
           </Card>
@@ -298,9 +311,13 @@ export default function HeroMetrics() {
           <Card variant="metric" accent="orange" onClick={() => { }}>
             <MetricValue
               icon="⛏️"
-              value={formatHashrateEh(displayMetrics.hashrateEh, t.hero.dataTemporarilyUnavailable)}
+              value={
+                suppressStartupValuesWhileConnecting
+                  ? "—"
+                  : formatHashrateEh(displayMetrics.hashrateEh, t.hero.dataTemporarilyUnavailable)
+              }
               label={t.hero.hashrate}
-              sublabel={t.hero.threeDayAverage}
+              sublabel={suppressStartupValuesWhileConnecting ? t.hero.connectingToLiveNode : t.hero.threeDayAverage}
               accent="orange"
             />
           </Card>
@@ -310,10 +327,16 @@ export default function HeroMetrics() {
           <Card variant="metric" accent="blue" onClick={() => { }}>
             <MetricValue
               icon="🌊"
-              value={displayMetrics.mempoolTxCount?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable}
+              value={
+                suppressStartupValuesWhileConnecting
+                  ? "—"
+                  : displayMetrics.mempoolTxCount?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable
+              }
               label={t.hero.pendingTxs}
               sublabel={
-                displayMetrics.mempoolVsizeMb !== null && displayMetrics.mempoolVsizeMb !== undefined
+                !suppressStartupValuesWhileConnecting &&
+                displayMetrics.mempoolVsizeMb !== null &&
+                displayMetrics.mempoolVsizeMb !== undefined
                   ? `${displayMetrics.mempoolVsizeMb} MB`
                   : ""
               }
@@ -326,10 +349,16 @@ export default function HeroMetrics() {
           <Card variant="metric" accent="violet" onClick={() => { }}>
             <MetricValue
               icon="⏳"
-              value={displayMetrics.daysUntilHalving?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable}
+              value={
+                suppressStartupValuesWhileConnecting
+                  ? "—"
+                  : displayMetrics.daysUntilHalving?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable
+              }
               label={t.hero.daysToHalving}
               sublabel={
-                displayMetrics.blocksUntilHalving !== null && displayMetrics.blocksUntilHalving !== undefined
+                !suppressStartupValuesWhileConnecting &&
+                displayMetrics.blocksUntilHalving !== null &&
+                displayMetrics.blocksUntilHalving !== undefined
                   ? `${displayMetrics.blocksUntilHalving.toLocaleString()} ${t.hero.blocks}`
                   : ""
               }
@@ -347,26 +376,26 @@ export default function HeroMetrics() {
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-400">{t.hero.fast}</span>
                 <span className="font-mono text-red-400 font-bold">
-                  {formatSatVb(displayFeeFast)}
+                  {showFeeFallbackVisuals ? formatSatVb(displayFeeFast) : "—"}
                   {" sat/vB"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-400">30 min</span>
                 <span className="font-mono text-amber-400 font-bold">
-                  {formatSatVb(displayFeeHalfHour)}
+                  {showFeeFallbackVisuals ? formatSatVb(displayFeeHalfHour) : "—"}
                   {" sat/vB"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-400">60 min</span>
                 <span className="font-mono text-emerald-400 font-bold">
-                  {formatSatVb(displayFeeHour)}
+                  {showFeeFallbackVisuals ? formatSatVb(displayFeeHour) : "—"}
                   {" sat/vB"}
                 </span>
               </div>
             </div>
-            {heroFeeMeta ? (
+            {showFeeFallbackVisuals && heroFeeMeta ? (
               <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-mono">
                 <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
                   {t.hero.floor} {formatSatVb(heroFeeMeta.minSlow)}
@@ -382,7 +411,7 @@ export default function HeroMetrics() {
                 </span>
               </div>
             ) : null}
-            {displayFeeHistory.length > 0 ? (
+            {showFeeFallbackVisuals && displayFeeHistory.length > 0 ? (
               <div className="mt-3 h-24 rounded-lg border border-slate-800/80 bg-slate-950/50 px-2 py-1.5">
                 <SafeResponsiveContainer width="100%" height="100%" minHeight={64}>
                   <AreaChart data={displayFeeHistory} margin={{ top: 4, right: 4, left: 2, bottom: 0 }}>
@@ -464,9 +493,9 @@ export default function HeroMetrics() {
         <Link href="/explorer/mempool" className="block w-full h-full">
           <Card variant="panel" className="h-full" onClick={() => { }}>
             <PanelHeader>{t.hero.liveMempoolStream}</PanelHeader>
-            {visibleRecentTxs.length > 0 ? (
+            {visibleHeroRecentTxs.length > 0 ? (
               <div className="space-y-1.5">
-                {visibleRecentTxs.map((tx) => (
+                {visibleHeroRecentTxs.map((tx) => (
                   <div
                     key={tx.txid}
                     className="rounded-lg border border-cyan-500/20 bg-slate-950/50 px-3 py-1.5 transition-colors group-hover:border-cyan-400/40"
@@ -493,7 +522,9 @@ export default function HeroMetrics() {
                 </div>
               </div>
             ) : (
-              <div className="text-xs text-slate-400">{error ?? t.hero.dataTemporarilyUnavailable}</div>
+              <div className="text-xs text-slate-400">
+                {suppressStartupValuesWhileConnecting ? t.hero.connectingToLiveNode : error ?? t.hero.dataTemporarilyUnavailable}
+              </div>
             )}
           </Card>
         </Link>

@@ -28,14 +28,54 @@ export default function AcademyProgressSync({ nodeId }: { nodeId: string }) {
 
     const mappedLessonIndex = getLessonIndexForNodeId(nodeId);
     const nodeCompleted = isNodeComplete(nodeId);
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const GUIDED_LESSONS = t.guidedLearning;
+    const copy = locale === "es"
+        ? {
+            title: "Progreso del Recorrido",
+            subtitle: "Sincronizacion compartida entre Inicio, Sidebar y Academia.",
+            lesson: "Leccion",
+            completePct: "completado",
+            nodeMaps: "Este nodo corresponde a la leccion",
+            nodeNotInSequence: "Este nodo no forma parte de la secuencia guiada.",
+            nodeStatus: "Estado del nodo",
+            completed: "Completado",
+            notCompleted: "No completado",
+            currentGuidedLesson: "Leccion Guiada Actual",
+            lessonsCompleted: "lecciones completadas.",
+            previous: "Anterior",
+            markComplete: "Marcar Completo",
+            markNodeComplete: "Marcar Nodo Completo",
+            next: "Siguiente",
+            openHomeJourney: "Abrir Recorrido de Inicio",
+            of: "de",
+          }
+        : {
+            title: "Journey Progress",
+            subtitle: "Shared progress sync across Home, Sidebar, and Academy.",
+            lesson: "Lesson",
+            completePct: "complete",
+            nodeMaps: "This node maps to lesson",
+            nodeNotInSequence: "This node is not part of the guided sequence.",
+            nodeStatus: "Node status",
+            completed: "Completed",
+            notCompleted: "Not completed",
+            currentGuidedLesson: "Current Guided Lesson",
+            lessonsCompleted: "lessons completed.",
+            previous: "Previous",
+            markComplete: "Mark Complete",
+            markNodeComplete: "Mark Node Complete",
+            next: "Next",
+            openHomeJourney: "Open Home Journey",
+            of: "of",
+          };
+    const homeHref = locale === "es" ? "/es/academy" : "/";
 
     return (
         <section className="rounded-2xl border border-cyan-800/50 bg-cyan-950/20 p-5">
-            <h2 className="mb-1 text-lg font-semibold text-cyan-200">Journey Progress</h2>
+            <h2 className="mb-1 text-lg font-semibold text-cyan-200">{copy.title}</h2>
             <p className="text-xs text-slate-300">
-                Shared progress sync across Home, Sidebar, and Academy.
+                {copy.subtitle}
             </p>
 
             <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
@@ -47,27 +87,27 @@ export default function AcademyProgressSync({ nodeId }: { nodeId: string }) {
 
             <div className="mt-3 flex items-center justify-between text-xs text-slate-300">
                 <span>
-                    Lesson {currentLessonIndex + 1}/{GUIDED_LESSONS.length}
+                    {copy.lesson} {currentLessonIndex + 1}/{GUIDED_LESSONS.length}
                 </span>
-                <span className="text-cyan-300">{progressPercent}% complete</span>
+                <span className="text-cyan-300">{progressPercent}% {copy.completePct}</span>
             </div>
 
             {mappedLessonIndex !== null ? (
                 <p className="mt-2 text-xs text-slate-400">
-                    This node maps to lesson {mappedLessonIndex + 1}: {GUIDED_LESSONS[mappedLessonIndex].title}
+                    {copy.nodeMaps} {mappedLessonIndex + 1}: {GUIDED_LESSONS[mappedLessonIndex].title}
                 </p>
             ) : (
-                <p className="mt-2 text-xs text-slate-500">This node is not part of the guided sequence.</p>
+                <p className="mt-2 text-xs text-slate-500">{copy.nodeNotInSequence}</p>
             )}
             <p className={`mt-1 text-xs ${nodeCompleted ? "text-emerald-300" : "text-slate-500"}`}>
-                Node status: {nodeCompleted ? "Completed" : "Not completed"}
+                {copy.nodeStatus}: {nodeCompleted ? copy.completed : copy.notCompleted}
             </p>
 
             <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/70 p-3">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Current Guided Lesson</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">{copy.currentGuidedLesson}</p>
                 <p className="mt-1 text-sm font-medium text-slate-100">{currentLesson.title}</p>
                 <p className="mt-1 text-xs text-slate-400">
-                    {completedLessons.length} of {GUIDED_LESSONS.length} lessons completed.
+                    {completedLessons.length} {copy.of} {GUIDED_LESSONS.length} {copy.lessonsCompleted}
                 </p>
             </div>
 
@@ -78,34 +118,34 @@ export default function AcademyProgressSync({ nodeId }: { nodeId: string }) {
                     disabled={currentLessonIndex === 0}
                     className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                    Previous
+                    {copy.previous}
                 </button>
                 <button
                     type="button"
                     onClick={() => markLessonComplete(currentLessonIndex)}
                     className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300"
                 >
-                    Mark Complete
+                    {copy.markComplete}
                 </button>
                 <button
                     type="button"
                     onClick={() => markNodeComplete(nodeId)}
                     className="rounded-lg border border-violet-500/40 bg-violet-500/10 px-3 py-2 text-xs text-violet-300"
                 >
-                    Mark Node Complete
+                    {copy.markNodeComplete}
                 </button>
                 <button
                     type="button"
                     onClick={goToNext}
                     className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-300"
                 >
-                    Next
+                    {copy.next}
                 </button>
                 <Link
-                    href="/"
+                    href={homeHref}
                     className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-200 hover:border-cyan-500"
                 >
-                    Open Home Journey
+                    {copy.openHomeJourney}
                 </Link>
             </div>
         </section>

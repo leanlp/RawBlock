@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getBlockSubsidy } from "../../lib/constants/bitcoinProtocol";
 
@@ -17,7 +17,6 @@ const TARGET_TIME = 60; // 60 seconds to mine a block
 const SIMULATED_BLOCK_HEIGHT = 840_000; // Post-2024 halving era
 
 export default function MempoolGame() {
-    console.log("MempoolGame Component v2 - Loaded");
     const [mempool, setMempool] = useState<Tx[]>([]);
     const [block, setBlock] = useState<Tx[]>([]);
     const [timeLeft, setTimeLeft] = useState(TARGET_TIME);
@@ -29,13 +28,13 @@ export default function MempoolGame() {
     const fullness = (currentSize / MAX_BLOCK_SIZE) * 100;
     const blockSubsidy = getBlockSubsidy(SIMULATED_BLOCK_HEIGHT);
 
-    // Transaction ID counter to ensure uniqueness
-    let txIdCounter = 0;
+    // Transaction ID counter to ensure uniqueness across re-renders
+    const txIdCounterRef = useRef(0);
 
     // Generators
     const generateTx = useCallback(() => {
         // Ensure truly unique ID by combining timestamp, counter, and randomness
-        const id = `${Date.now().toString(36)}${(txIdCounter++).toString(36)}${Math.random().toString(36).substring(2, 6)}`.toUpperCase();
+        const id = `${Date.now().toString(36)}${(txIdCounterRef.current++).toString(36)}${Math.random().toString(36).substring(2, 6)}`.toUpperCase();
 
         // Weighted random for fee rate
         // Most are low (10-20), some are med (50-100), few are high (200+)
@@ -197,7 +196,7 @@ export default function MempoolGame() {
                     />
 
                     {/* Map block txs */}
-                    {block.map((tx, i) => (
+                    {block.map((tx) => (
                         <motion.div
                             key={tx.id}
                             layoutId={tx.id}

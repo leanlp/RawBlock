@@ -4,11 +4,17 @@ import Sidebar from "./Sidebar";
 
 import Footer from "./Footer";
 import { GuidedLearningProvider } from "@/components/providers/GuidedLearningProvider";
-import { LanguageProvider } from "@/lib/i18n";
+import { LanguageProvider, type Locale } from "@/lib/i18n";
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
+export default function AppShell({
+    children,
+    initialLocale = "en",
+}: {
+    children: React.ReactNode;
+    initialLocale?: Locale;
+}) {
     return (
-        <LanguageProvider>
+        <LanguageProvider initialLocale={initialLocale}>
             <GuidedLearningProvider>
                 <div className="min-h-screen w-full overflow-x-clip bg-slate-950 text-slate-200 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
                     {/* The Permanent Sidebar */}

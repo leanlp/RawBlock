@@ -2,18 +2,79 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
 import Header from "@/components/Header";
 import { useGuidedLearning } from "@/components/providers/GuidedLearningProvider";
+import { getAcademyNodeContent } from "@/lib/content/academy";
 import { graphStore } from "@/lib/graph/store";
 import {
   getMissingPrerequisites,
   getPathById,
   validatePathPrerequisites,
 } from "@/lib/graph/pathEngine";
+import { useTranslation } from "@/lib/i18n";
 
 export default function PathPage() {
+  const { locale } = useTranslation();
+  const routePrefix = locale === "es" ? "/es" : "";
+  const copy = locale === "es"
+    ? {
+        pathNotFound: "Ruta no encontrada",
+        pathNotFoundSubtitle: "La ruta de aprendizaje solicitada no existe.",
+        kicker: "Ruta de Aprendizaje",
+        pathId: "ID de Ruta",
+        progress: "Progreso",
+        completed: "completado",
+        currentConcept: "Concepto actual",
+        completionHint: "El progreso solo se actualiza cuando haces clic en",
+        markComplete: "Marcar Completo",
+        currentConceptTitle: "Concepto Actual",
+        openNode: "Abrir nodo en Academia",
+        prerequisiteValidation: "Validacion de Prerrequisitos",
+        prereqsSatisfied: "Los prerrequisitos del concepto actual estan satisfechos.",
+        blockedBy: "El concepto actual esta bloqueado por prerrequisitos faltantes:",
+        pathConcepts: "Conceptos de la Ruta",
+        statusCompleted: "Completado",
+        statusCurrent: "Actual",
+        statusUpcoming: "Proximo",
+        nextConceptTitle: "Siguiente Concepto",
+        pathComplete: "Ruta completada. No hay siguiente concepto.",
+        nextLabel: "Siguiente",
+        cannotAdvance: "Aun no puedes avanzar. Faltan prerrequisitos para el siguiente concepto:",
+        previous: "Anterior",
+        nextConceptButton: "Siguiente Concepto",
+      }
+    : {
+        pathNotFound: "Path not found",
+        pathNotFoundSubtitle: "The requested learning path does not exist.",
+        kicker: "Learning Path",
+        pathId: "Path ID",
+        progress: "Progress",
+        completed: "completed",
+        currentConcept: "Current concept",
+        completionHint: "Completion only updates when you click",
+        markComplete: "Mark Complete",
+        currentConceptTitle: "Current Concept",
+        openNode: "Open node in Academy",
+        prerequisiteValidation: "Prerequisite Validation",
+        prereqsSatisfied: "Current concept prerequisites satisfied.",
+        blockedBy: "Current concept is blocked by missing prerequisites:",
+        pathConcepts: "Path Concepts",
+        statusCompleted: "Completed",
+        statusCurrent: "Current",
+        statusUpcoming: "Upcoming",
+        nextConceptTitle: "Next Concept",
+        pathComplete: "Path complete. No next concept.",
+        nextLabel: "Next",
+        cannotAdvance: "Cannot advance yet. Missing prerequisites for next concept:",
+        previous: "Previous",
+        nextConceptButton: "Next Concept",
+      };
   const params = useParams<{ pathId: string }>();
+  const localizedPathTitles: Record<string, string> = {
+    "bitcoin-foundations": "Fundamentos de Bitcoin",
+    "lightning-primer": "Introduccion a Lightning",
+    "transaction-lifecycle": "La Vida de una Transaccion",
+  };
   const path = getPathById(params.pathId);
   const {
     getPathStepIndex,
@@ -30,8 +91,8 @@ export default function PathPage() {
           <div className="mb-6 md:hidden">
             <Header />
           </div>
-          <h1 className="text-2xl font-semibold">Path not found</h1>
-          <p className="mt-2 text-sm text-slate-400">The requested learning path does not exist.</p>
+          <h1 className="text-2xl font-semibold">{copy.pathNotFound}</h1>
+          <p className="mt-2 text-sm text-slate-400">{copy.pathNotFoundSubtitle}</p>
         </div>
       </main>
     );
@@ -45,6 +106,7 @@ export default function PathPage() {
   }
 
   const total = path.orderedNodes.length;
+  const localizedPathTitle = locale === "es" ? (localizedPathTitles[path.id] ?? path.title) : path.title;
   const stepIndex = Math.max(0, Math.min(getPathStepIndex(path.id), total - 1));
   const completedStepIndexes = getCompletedPathStepIndexes(path.id);
   const completedNodeIds = getCompletedPathNodeIds(path.id);
@@ -69,10 +131,8 @@ export default function PathPage() {
   const nextMissingPrereqs = nextNode ? getMissingPrerequisites(nextNode.id, completedNodeIds) : [];
   const canAdvance = Boolean(nextNode) && currentIsComplete && nextMissingPrereqs.length === 0;
 
-  const linkedPrereqTitles = useMemo(
-    () =>
-      currentMissingPrereqs.map((id) => graphStore.getNode(id)?.title ?? id),
-    [currentMissingPrereqs],
+  const linkedPrereqTitles = currentMissingPrereqs.map(
+    (id) => getAcademyNodeContent(id, locale)?.title ?? graphStore.getNode(id)?.title ?? id,
   );
 
   return (
@@ -82,49 +142,49 @@ export default function PathPage() {
           <Header />
         </div>
         <header className="page-header">
-          <p className="page-kicker">Learning Path</p>
-          <h1 className="page-title">{path.title}</h1>
+          <p className="page-kicker">{copy.kicker}</p>
+          <h1 className="page-title">{localizedPathTitle}</h1>
           <p className="page-subtitle">
-            Path ID: <span className="font-mono">{path.id}</span>
+            {copy.pathId}: <span className="font-mono">{path.id}</span>
           </p>
         </header>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Progress</h2>
+            <h2 className="text-lg font-semibold">{copy.progress}</h2>
             <p className="text-sm text-slate-300">
-              {completed}/{total} completed ({percent}%)
+              {completed}/{total} {copy.completed} ({percent}%)
             </p>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
             <div className="h-full bg-cyan-500" style={{ width: `${percent}%` }} />
           </div>
           <p className="mt-3 text-sm text-slate-400">
-            Current concept: <span className="text-slate-200">{currentNode.title}</span>
+            {copy.currentConcept}: <span className="text-slate-200">{getAcademyNodeContent(currentNode.id, locale)?.title ?? currentNode.title}</span>
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            Completion only updates when you click <span className="text-emerald-300">Mark Complete</span>.
+            {copy.completionHint} <span className="text-emerald-300">{copy.markComplete}</span>.
           </p>
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <h2 className="mb-3 text-lg font-semibold">Current Concept</h2>
-          <p className="mb-3 text-sm text-slate-300">{currentNode.summary}</p>
+          <h2 className="mb-3 text-lg font-semibold">{copy.currentConceptTitle}</h2>
+          <p className="mb-3 text-sm text-slate-300">{getAcademyNodeContent(currentNode.id, locale)?.summary ?? currentNode.summary}</p>
           <Link
-            href={`/academy/${currentNode.id}`}
+            href={`${routePrefix}/academy/${currentNode.id}`}
             className="inline-flex rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm text-cyan-300 hover:border-cyan-500"
           >
-            Open node in Academy
+            {copy.openNode}
           </Link>
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <h2 className="mb-3 text-lg font-semibold">Prerequisite Validation</h2>
+          <h2 className="mb-3 text-lg font-semibold">{copy.prerequisiteValidation}</h2>
           {linkedPrereqTitles.length === 0 ? (
-            <p className="text-sm text-emerald-300">Current concept prerequisites satisfied.</p>
+            <p className="text-sm text-emerald-300">{copy.prereqsSatisfied}</p>
           ) : (
             <div className="space-y-2 text-sm text-amber-300">
-              <p>Current concept is blocked by missing prerequisites:</p>
+              <p>{copy.blockedBy}</p>
               <ul className="list-disc pl-5">
                 {linkedPrereqTitles.map((title) => (
                   <li key={title}>{title}</li>
@@ -135,15 +195,16 @@ export default function PathPage() {
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <h2 className="mb-3 text-lg font-semibold">Path Concepts</h2>
+          <h2 className="mb-3 text-lg font-semibold">{copy.pathConcepts}</h2>
           <ol className="space-y-2">
             {path.orderedNodes.map((nodeId, index) => {
               const node = graphStore.getNode(nodeId);
               const status = completedStepIndexes.includes(index)
-                ? "Completed"
+                ? copy.statusCompleted
                 : index === stepIndex
-                  ? "Current"
-                  : "Upcoming";
+                  ? copy.statusCurrent
+                  : copy.statusUpcoming;
+              const localizedTitle = getAcademyNodeContent(nodeId, locale)?.title ?? node?.title ?? nodeId;
               return (
                 <li
                   key={nodeId}
@@ -151,7 +212,7 @@ export default function PathPage() {
                 >
                   <span className="min-w-0 flex-1 break-words text-slate-200">
                     <span className="text-slate-500">{index + 1}.</span>{" "}
-                    <span className="text-slate-100">{node?.title ?? nodeId}</span>
+                    <span className="text-slate-100">{localizedTitle}</span>
                   </span>
                   <span className="shrink-0 text-xs text-slate-400">{status}</span>
                 </li>
@@ -161,20 +222,20 @@ export default function PathPage() {
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <h2 className="mb-3 text-lg font-semibold">Next Concept</h2>
+          <h2 className="mb-3 text-lg font-semibold">{copy.nextConceptTitle}</h2>
           {!nextNode ? (
-            <p className="text-sm text-emerald-300">Path complete. No next concept.</p>
+            <p className="text-sm text-emerald-300">{copy.pathComplete}</p>
           ) : (
             <div className="space-y-3">
               <p className="text-sm text-slate-300">
-                Next: <span className="text-slate-100">{nextNode.title}</span>
+                {copy.nextLabel}: <span className="text-slate-100">{getAcademyNodeContent(nextNode.id, locale)?.title ?? nextNode.title}</span>
               </p>
               {nextMissingPrereqs.length > 0 && (
                 <div className="text-sm text-amber-300">
-                  <p>Cannot advance yet. Missing prerequisites for next concept:</p>
+                  <p>{copy.cannotAdvance}</p>
                   <ul className="list-disc pl-5">
                     {nextMissingPrereqs.map((id) => (
-                      <li key={id}>{graphStore.getNode(id)?.title ?? id}</li>
+                      <li key={id}>{getAcademyNodeContent(id, locale)?.title ?? graphStore.getNode(id)?.title ?? id}</li>
                     ))}
                   </ul>
                 </div>
@@ -190,14 +251,14 @@ export default function PathPage() {
             disabled={stepIndex === 0}
             className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Previous
+            {copy.previous}
           </button>
           <button
             type="button"
             onClick={() => markPathStepComplete(path.id, stepIndex, currentNode.id)}
             className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300"
           >
-            Mark Complete
+            {copy.markComplete}
           </button>
           <button
             type="button"
@@ -208,7 +269,7 @@ export default function PathPage() {
             disabled={!canAdvance}
             className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Next Concept
+            {copy.nextConceptButton}
           </button>
         </section>
       </div>

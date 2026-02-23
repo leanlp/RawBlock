@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import type { AcademyNodeContent } from "@/lib/content/schema";
+import { useTranslation } from "@/lib/i18n";
 
 function isExternalUrl(url: string): boolean {
   return /^https?:\/\//i.test(url);
@@ -45,11 +48,25 @@ function mapExternalExplorerLink(url: string): string | null {
 }
 
 export default function ExplorerDeepLinks({ content }: { content: AcademyNodeContent }) {
+  const { locale } = useTranslation();
+  const copy = locale === "es"
+    ? {
+        title: "Enlaces Profundos del Explorer",
+        subtitle: "Algunas fuentes son externas. Cuando exista una vista interna de Raw Block, la mostraremos aqui.",
+        openExternal: "Abrir fuente externa",
+        external: "Externo",
+      }
+    : {
+        title: "Explorer Deep Links",
+        subtitle: "Some sources are external. When an internal Raw Block view is available, we'll surface it here.",
+        openExternal: "Open external source",
+        external: "External",
+      };
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-      <h2 className="mb-3 text-lg font-semibold">Explorer Deep Links</h2>
+      <h2 className="mb-3 text-lg font-semibold">{copy.title}</h2>
       <p className="mb-4 text-sm text-slate-400">
-        Some sources are external. When an internal Raw Block view is available, we&apos;ll surface it here.
+        {copy.subtitle}
       </p>
       <ul className="space-y-2">
         {content.explorerDeepLinks.map((item) => {
@@ -82,9 +99,9 @@ export default function ExplorerDeepLinks({ content }: { content: AcademyNodeCon
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex rounded-lg border border-slate-800 bg-slate-950/50 px-2 py-1 text-xs text-slate-400 hover:border-slate-700 hover:text-slate-200"
-                  title="Open external source"
+                  title={copy.openExternal}
                 >
-                  External
+                  {copy.external}
                 </Link>
               ) : null}
             </li>
