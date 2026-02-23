@@ -22,17 +22,32 @@ const LanguageContext = createContext<LanguageContextValue>({
 
 const STORAGE_KEY = "rawblock-locale";
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
+type LanguageProviderProps = {
+  children: ReactNode;
+  initialLocale?: Locale;
+};
+
+export function LanguageProvider({ children, initialLocale = "en" }: LanguageProviderProps) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
   const [mounted, setMounted] = useState(false);
 
   // Read stored locale on mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
-      if (stored === "en" || stored === "es") {
+      const routeLocale = window.location.pathname.startsWith("/es/") || window.location.pathname === "/es"
+        ? "es"
+        : window.location.pathname.startsWith("/en/") || window.location.pathname === "/en"
+          ? "en"
+          : null;
+      if (routeLocale) {
+        // Locale-prefixed routes win over stored preference.
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLocaleState(stored);
+        setLocaleState(routeLocale);
+      } else {
+        const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
+        if (stored === "en" || stored === "es") {
+          setLocaleState(stored);
+        }
       }
     } catch {
       // localStorage unavailable — keep default

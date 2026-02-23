@@ -1,10 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import type { AcademyNodeContent } from "@/lib/content/schema";
+import { useTranslation } from "@/lib/i18n";
 
 export default function NodeSources({ content }: { content: AcademyNodeContent }) {
+  const { locale } = useTranslation();
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-      <h2 className="mb-3 text-lg font-semibold">Claim Sources</h2>
+      <h2 className="mb-3 text-lg font-semibold">{locale === "es" ? "Fuentes de Claims" : "Claim Sources"}</h2>
       <div className="space-y-3">
         {content.claimSources.map((entry) => (
           <div key={entry.claim} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">

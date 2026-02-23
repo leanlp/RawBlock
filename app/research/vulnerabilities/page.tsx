@@ -8,6 +8,39 @@ import { useTranslation } from "@/lib/i18n";
 
 export default function VulnerabilitiesResearchPage() {
   const { locale } = useTranslation();
+  const copy = locale === "es"
+    ? {
+        kicker: "Investigacion",
+        title: "Registro de Vulnerabilidades",
+        filters: "Filtros",
+        hide: "Ocultar",
+        allSeverities: "Todas las severidades",
+        allYears: "Todos los anos",
+        allCategories: "Todas las categorias",
+        linkedNodePlaceholder: "ID de nodo vinculado",
+        noCve: "Sin CVE",
+        severity: "Severidad",
+        year: "Ano",
+        category: "Categoria",
+        colTitle: "Titulo",
+        colLinkedNodes: "Nodos Vinculados",
+      }
+    : {
+        kicker: "Research",
+        title: "Vulnerabilities Registry",
+        filters: "Filters",
+        hide: "Hide",
+        allSeverities: "All severities",
+        allYears: "All years",
+        allCategories: "All categories",
+        linkedNodePlaceholder: "Linked node id",
+        noCve: "No CVE",
+        severity: "Severity",
+        year: "Year",
+        category: "Category",
+        colTitle: "Title",
+        colLinkedNodes: "Linked Nodes",
+      };
   const vulnerabilities = getResearchVulnerabilities(locale);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [severity, setSeverity] = useState<string>("");
@@ -36,13 +69,13 @@ export default function VulnerabilitiesResearchPage() {
           <Header />
         </div>
         <header className="page-header">
-          <p className="page-kicker">Research</p>
-          <h1 className="page-title">Vulnerabilities Registry</h1>
+          <p className="page-kicker">{copy.kicker}</p>
+          <h1 className="page-title">{copy.title}</h1>
         </header>
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:p-4">
           <div className="flex items-center justify-between md:hidden">
-            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Filters</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">{copy.filters}</p>
             <button
               type="button"
               aria-controls="vulnerability-filters"
@@ -50,7 +83,7 @@ export default function VulnerabilitiesResearchPage() {
               onClick={() => setFiltersOpen((open) => !open)}
               className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
             >
-              {filtersOpen ? "Hide" : "Filters"}
+              {filtersOpen ? copy.hide : copy.filters}
               <span aria-hidden="true" className={`text-[10px] transition-transform ${filtersOpen ? "rotate-180" : ""}`}>▾</span>
             </button>
           </div>
@@ -60,20 +93,20 @@ export default function VulnerabilitiesResearchPage() {
             className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 md:mt-0 md:grid md:grid-cols-2 xl:flex xl:flex-wrap xl:items-center`}
           >
             <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
-              <option value="">All severities</option>
+              <option value="">{copy.allSeverities}</option>
               <option value="critical">critical</option>
               <option value="high">high</option>
               <option value="medium">medium</option>
               <option value="low">low</option>
             </select>
             <select value={year} onChange={(e) => setYear(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
-              <option value="">All years</option>
+              <option value="">{copy.allYears}</option>
               {yearOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
-              <option value="">All categories</option>
+              <option value="">{copy.allCategories}</option>
               {categoryOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -81,7 +114,7 @@ export default function VulnerabilitiesResearchPage() {
             <input
               value={linkedNode}
               onChange={(e) => setLinkedNode(e.target.value)}
-              placeholder="Linked node id"
+              placeholder={copy.linkedNodePlaceholder}
               className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto"
             />
           </div>
@@ -92,11 +125,11 @@ export default function VulnerabilitiesResearchPage() {
             {filtered.map((item) => (
               <article key={item.id} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
                 <p className="text-sm font-medium text-slate-100">{item.title}</p>
-                <p className="mt-1 text-xs text-slate-400">{item.cve ?? "No CVE"}</p>
+                <p className="mt-1 text-xs text-slate-400">{item.cve ?? copy.noCve}</p>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-300">
-                  <p><span className="text-slate-500">Severity:</span> {item.severity}</p>
-                  <p><span className="text-slate-500">Year:</span> {item.year}</p>
-                  <p className="col-span-2"><span className="text-slate-500">Category:</span> {item.category}</p>
+                  <p><span className="text-slate-500">{copy.severity}:</span> {item.severity}</p>
+                  <p><span className="text-slate-500">{copy.year}:</span> {item.year}</p>
+                  <p className="col-span-2"><span className="text-slate-500">{copy.category}:</span> {item.category}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1">
                   {item.linkedNodeIds.map((nodeId) => (
@@ -111,11 +144,11 @@ export default function VulnerabilitiesResearchPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-800 text-slate-400">
                 <tr>
-                  <th className="px-3 py-2">Title</th>
-                  <th className="px-3 py-2">Severity</th>
-                  <th className="px-3 py-2">Year</th>
-                  <th className="px-3 py-2">Category</th>
-                  <th className="px-3 py-2">Linked Nodes</th>
+                  <th className="px-3 py-2">{copy.colTitle}</th>
+                  <th className="px-3 py-2">{copy.severity}</th>
+                  <th className="px-3 py-2">{copy.year}</th>
+                  <th className="px-3 py-2">{copy.category}</th>
+                  <th className="px-3 py-2">{copy.colLinkedNodes}</th>
                 </tr>
               </thead>
               <tbody>
@@ -123,7 +156,7 @@ export default function VulnerabilitiesResearchPage() {
                   <tr key={item.id} className="border-b border-slate-900/80 align-top">
                     <td className="px-3 py-2">
                       <p className="text-slate-100">{item.title}</p>
-                      <p className="text-xs text-slate-400">{item.cve ?? "No CVE"}</p>
+                      <p className="text-xs text-slate-400">{item.cve ?? copy.noCve}</p>
                     </td>
                     <td className="px-3 py-2">{item.severity}</td>
                     <td className="px-3 py-2">{item.year}</td>

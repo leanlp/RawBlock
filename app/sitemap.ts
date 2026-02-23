@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { graphStore } from "@/lib/graph/store";
 import { getAllPaths } from "@/lib/graph/pathEngine";
+import { getAllAcademyNodeContent } from "@/lib/content/academy";
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.rawblock.net").replace(/\/+$/, "");
 
@@ -61,6 +62,22 @@ function getSeoMetadata(route: string): Pick<MetadataRoute.Sitemap[number], "cha
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
+  const academyById = new Map(
+    getAllAcademyNodeContent("en").map((node) => [node.id, new Date(`${node.verifiedAt}T00:00:00Z`)]),
+  );
+
+  const stableContentModified = new Date("2026-02-22T00:00:00Z");
+
+  function getLastModified(route: string): Date {
+    if (route === "/" || route.startsWith("/explorer/") || route.startsWith("/analysis/")) {
+      return now;
+    }
+    if (route.startsWith("/academy/")) {
+      const nodeId = route.split("/")[2];
+      return academyById.get(nodeId) ?? stableContentModified;
+    }
+    return stableContentModified;
+  }
 
   const staticRoutes = [
     "/",
@@ -71,7 +88,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/research/attacks",
     "/research/assumptions",
     "/research/policy",
-    "/research/policy-vs-consensus",
     "/explorer/mempool",
     "/explorer/network",
     "/explorer/blocks",
@@ -94,6 +110,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/lab/lightning",
     "/game/tetris",
     "/game/mining",
+    "/game/mempool",
   ];
 
   const pathRoutes = getAllPaths().map((path) => `/paths/${path.id}`);
@@ -105,7 +122,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const seo = getSeoMetadata(route);
     return {
       url: toUrl(route),
-      lastModified: now,
+      lastModified: getLastModified(route),
       changeFrequency: seo.changeFrequency,
       priority: seo.priority,
     };

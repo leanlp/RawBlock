@@ -15,3 +15,22 @@ export const NODE_TYPE_PRESENTATION: Record<NodeType, NodeTypePresentation> = {
   assumption: { icon: "🧭", label: "Assumption" },
   property: { icon: "🔷", label: "Property" },
 };
+
+export function getLocalizedNodeTypeLabel(type: NodeType, locale: string): string {
+  if (locale !== "es") {
+    return NODE_TYPE_PRESENTATION[type].label;
+  }
+
+  const esLabels: Record<NodeType, string> = {
+    primitive: "Primitiva",
+    rule: "Regla",
+    mechanism: "Mecanismo",
+    upgrade: "Actualizacion",
+    attack: "Ataque",
+    vulnerability: "Vulnerabilidad",
+    assumption: "Supuesto",
+    property: "Propiedad",
+  };
+
+  return esLabels[type];
+}

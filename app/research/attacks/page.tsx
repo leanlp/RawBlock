@@ -8,6 +8,41 @@ import { useTranslation } from "@/lib/i18n";
 
 export default function AttacksResearchPage() {
   const { locale } = useTranslation();
+  const copy = locale === "es"
+    ? {
+        kicker: "Investigacion",
+        title: "Modelos de Ataque",
+        filters: "Filtros",
+        hide: "Ocultar",
+        allSeverities: "Todas las severidades",
+        allYears: "Todos los anos",
+        allCategories: "Todas las categorias",
+        linkedNodePlaceholder: "ID de nodo vinculado",
+        layer: "Capa",
+        severity: "Severidad",
+        observed: "Observado",
+        yes: "Si",
+        no: "No",
+        colTitle: "Titulo",
+        colLinkedNodes: "Nodos Vinculados",
+      }
+    : {
+        kicker: "Research",
+        title: "Attack Models",
+        filters: "Filters",
+        hide: "Hide",
+        allSeverities: "All severities",
+        allYears: "All years",
+        allCategories: "All categories",
+        linkedNodePlaceholder: "Linked node id",
+        layer: "Layer",
+        severity: "Severity",
+        observed: "Observed",
+        yes: "Yes",
+        no: "No",
+        colTitle: "Title",
+        colLinkedNodes: "Linked Nodes",
+      };
   const attacks = getResearchAttacks(locale);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [severity, setSeverity] = useState<string>("");
@@ -33,13 +68,13 @@ export default function AttacksResearchPage() {
           <Header />
         </div>
         <header className="page-header">
-          <p className="page-kicker">Research</p>
-          <h1 className="page-title">Attack Models</h1>
+          <p className="page-kicker">{copy.kicker}</p>
+          <h1 className="page-title">{copy.title}</h1>
         </header>
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:p-4">
           <div className="flex items-center justify-between md:hidden">
-            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Filters</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">{copy.filters}</p>
             <button
               type="button"
               aria-controls="attack-filters"
@@ -47,7 +82,7 @@ export default function AttacksResearchPage() {
               onClick={() => setFiltersOpen((open) => !open)}
               className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
             >
-              {filtersOpen ? "Hide" : "Filters"}
+              {filtersOpen ? copy.hide : copy.filters}
               <span aria-hidden="true" className={`text-[10px] transition-transform ${filtersOpen ? "rotate-180" : ""}`}>▾</span>
             </button>
           </div>
@@ -57,20 +92,20 @@ export default function AttacksResearchPage() {
             className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-3 md:mt-0 md:grid md:grid-cols-2 xl:flex xl:flex-wrap xl:items-center`}
           >
             <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
-              <option value="">All severities</option>
+              <option value="">{copy.allSeverities}</option>
               <option value="critical">critical</option>
               <option value="high">high</option>
               <option value="medium">medium</option>
               <option value="low">low</option>
             </select>
             <select value={year} onChange={(e) => setYear(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
-              <option value="">All years</option>
+              <option value="">{copy.allYears}</option>
               {yearOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto">
-              <option value="">All categories</option>
+              <option value="">{copy.allCategories}</option>
               {categoryOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -78,7 +113,7 @@ export default function AttacksResearchPage() {
             <input
               value={linkedNode}
               onChange={(e) => setLinkedNode(e.target.value)}
-              placeholder="Linked node id"
+              placeholder={copy.linkedNodePlaceholder}
               className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm sm:min-w-[10rem] sm:w-auto"
             />
           </div>
@@ -91,9 +126,9 @@ export default function AttacksResearchPage() {
                 <p className="text-sm font-medium text-slate-100">{item.title}</p>
                 <p className="mt-1 text-xs text-slate-400">{item.summary}</p>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-300">
-                  <p><span className="text-slate-500">Layer:</span> {item.targetLayer}</p>
-                  <p><span className="text-slate-500">Severity:</span> {item.severity}</p>
-                  <p className="col-span-2"><span className="text-slate-500">Observed:</span> {item.observedInWild ? "Yes" : "No"}</p>
+                  <p><span className="text-slate-500">{copy.layer}:</span> {item.targetLayer}</p>
+                  <p><span className="text-slate-500">{copy.severity}:</span> {item.severity}</p>
+                  <p className="col-span-2"><span className="text-slate-500">{copy.observed}:</span> {item.observedInWild ? copy.yes : copy.no}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1">
                   {item.linkedNodeIds.map((nodeId) => (
@@ -108,11 +143,11 @@ export default function AttacksResearchPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-800 text-slate-400">
                 <tr>
-                  <th className="px-3 py-2">Title</th>
-                  <th className="px-3 py-2">Layer</th>
-                  <th className="px-3 py-2">Severity</th>
-                  <th className="px-3 py-2">Observed</th>
-                  <th className="px-3 py-2">Linked Nodes</th>
+                  <th className="px-3 py-2">{copy.colTitle}</th>
+                  <th className="px-3 py-2">{copy.layer}</th>
+                  <th className="px-3 py-2">{copy.severity}</th>
+                  <th className="px-3 py-2">{copy.observed}</th>
+                  <th className="px-3 py-2">{copy.colLinkedNodes}</th>
                 </tr>
               </thead>
               <tbody>
@@ -124,7 +159,7 @@ export default function AttacksResearchPage() {
                     </td>
                     <td className="px-3 py-2">{item.targetLayer}</td>
                     <td className="px-3 py-2">{item.severity}</td>
-                    <td className="px-3 py-2">{item.observedInWild ? "Yes" : "No"}</td>
+                    <td className="px-3 py-2">{item.observedInWild ? copy.yes : copy.no}</td>
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-1">
                         {item.linkedNodeIds.map((nodeId) => (
