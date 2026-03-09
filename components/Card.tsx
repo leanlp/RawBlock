@@ -86,6 +86,28 @@ export default function Card({
         y.set(yPct);
     };
 
+    const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        if (!hoverable || e.touches.length === 0) return;
+        const rect = ref.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const width = rect.width;
+        const height = rect.height;
+
+        const touch = e.touches[0];
+        const clientXRel = touch.clientX - rect.left;
+        const clientYRel = touch.clientY - rect.top;
+
+        mouseX.set(clientXRel);
+        mouseY.set(clientYRel);
+
+        const xPct = clientXRel / width - 0.5;
+        const yPct = clientYRel / height - 0.5;
+
+        x.set(xPct);
+        y.set(yPct);
+    };
+
     const handleMouseLeave = () => {
         if (!hoverable) return;
         x.set(0);
@@ -115,8 +137,13 @@ export default function Card({
                 }}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
+                onTouchMove={handleTouchMove}
+                onTouchStart={handleTouchMove}
+                onTouchEnd={handleMouseLeave}
+                onTouchCancel={handleMouseLeave}
                 whileHover={hoverable ? { scale: 1.02 } : {}}
-                className={`${baseClasses} ${variantClasses[variant]} ${className} relative h-full shadow-xl ${hoverable ? 'hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]' : ''}`}
+                whileTap={hoverable ? { scale: 0.98 } : {}}
+                className={`${baseClasses} ${variantClasses[variant]} ${className} relative h-full shadow-xl ${hoverable ? 'hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] active:shadow-md' : ''}`}
                 onClick={onClick}
             >
                 {/* Background Glow Layer */}

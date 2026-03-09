@@ -111,13 +111,23 @@ function FeatureCard({ feature }: { feature: FeatureItem }) {
         mouseY.set(clientY - top);
     }
 
+    function handleTouchMove(e: React.TouchEvent) {
+        if (e.touches.length === 0) return;
+        const touch = e.touches[0];
+        const { left, top } = e.currentTarget.getBoundingClientRect();
+        mouseX.set(touch.clientX - left);
+        mouseY.set(touch.clientY - top);
+    }
+
     return (
         <motion.div variants={itemVariants} className="h-full">
             <Link
                 href={feature.href}
                 passHref
                 onMouseMove={handleMouseMove}
-                className="group relative flex flex-col gap-3 rounded-xl p-6 glass-panel border border-surface-border hover:border-primary/50 transition-colors w-full h-full overflow-hidden"
+                onTouchMove={handleTouchMove}
+                onTouchStart={handleTouchMove}
+                className="group relative flex flex-col gap-3 rounded-xl p-6 glass-panel border border-surface-border hover:border-primary/50 transition-colors w-full h-full overflow-hidden active:scale-[0.98] active:shadow-md"
             >
                 {/* Reactive Cursor Sheen */}
                 <motion.div
@@ -235,6 +245,20 @@ function PrimaryActionCard({
         y.set(mouseYRel / rect.height - 0.5);
     }
 
+    function handleTouchMove(e: React.TouchEvent<HTMLAnchorElement>) {
+        if (e.touches.length === 0) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const touch = e.touches[0];
+
+        mouseX.set(touch.clientX - rect.left);
+        mouseY.set(touch.clientY - rect.top);
+
+        const mouseXRel = touch.clientX - rect.left;
+        const mouseYRel = touch.clientY - rect.top;
+        x.set(mouseXRel / rect.width - 0.5);
+        y.set(mouseYRel / rect.height - 0.5);
+    }
+
     function handleMouseLeave() {
         x.set(0);
         y.set(0);
@@ -247,14 +271,19 @@ function PrimaryActionCard({
                 href={href}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
+                onTouchMove={handleTouchMove}
+                onTouchStart={handleTouchMove}
+                onTouchEnd={handleMouseLeave}
+                onTouchCancel={handleMouseLeave}
                 style={{
                     rotateX,
                     rotateY,
                     transformStyle: "preserve-3d",
                 }}
                 whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="group relative overflow-hidden rounded-2xl glass-panel border border-surface-border p-8 flex flex-col gap-4 h-full block shadow-xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-shadow duration-300"
+                className="group relative overflow-hidden rounded-2xl glass-panel border border-surface-border p-8 flex flex-col gap-4 h-full block shadow-xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] active:shadow-lg transition-shadow duration-300"
             >
                 {/* Background Glow Layer */}
                 <div
