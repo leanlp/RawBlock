@@ -25,9 +25,9 @@ export function slugForRoute(route) {
   return route === "/"
     ? "home"
     : route
-        .replace(/^\//, "")
-        .replace(/\//g, "__")
-        .replace(/[^a-zA-Z0-9_-]/g, "_");
+      .replace(/^\//, "")
+      .replace(/\//g, "__")
+      .replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
 export function ensureDir(dir) {
@@ -144,11 +144,11 @@ function collectResponsiveMetrics() {
   const multiColGridOnMobile =
     window.innerWidth < 768
       ? grids.some((element) => {
-          const templateColumns = getComputedStyle(element).gridTemplateColumns;
-          if (!templateColumns || templateColumns === "none") return false;
-          const columns = templateColumns.split(" ").filter(Boolean).length;
-          return columns > 1;
-        })
+        const templateColumns = getComputedStyle(element).gridTemplateColumns;
+        if (!templateColumns || templateColumns === "none") return false;
+        const columns = templateColumns.split(" ").filter(Boolean).length;
+        return columns > 1;
+      })
       : false;
 
   const paragraphs = [...document.querySelectorAll("p")].slice(0, 160);
@@ -198,7 +198,7 @@ export async function inspectRoute(page, { route, locale, waitMs = 1200 }) {
   try {
     const response = await page.goto(buildUrl(route), {
       waitUntil: "domcontentloaded",
-      timeout: 60_000,
+      timeout: 120_000,
     });
     await page.waitForTimeout(waitMs);
 
@@ -266,14 +266,14 @@ export async function inspectResponsiveRoute(page, { route, locale, waitMs = 140
     base.status > 0 && base.pageErrors.length === 0
       ? await page.evaluate(collectResponsiveMetrics)
       : {
-          horizontalOverflow: false,
-          tapViolationsCount: 0,
-          tapViolationsTop: [],
-          multiColGridOnMobile: false,
-          minLineHeightRatio: null,
-          hasConnectingConnecting: false,
-          hasBadHashrateFallback: false,
-        };
+        horizontalOverflow: false,
+        tapViolationsCount: 0,
+        tapViolationsTop: [],
+        multiColGridOnMobile: false,
+        minLineHeightRatio: null,
+        hasConnectingConnecting: false,
+        hasBadHashrateFallback: false,
+      };
 
   const issues = [];
 

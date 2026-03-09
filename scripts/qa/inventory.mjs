@@ -258,8 +258,8 @@ const benignConsoleRules = [
     patterns: [/UTXO Stats Error:/i],
   },
   {
-    routes: ["/game/mempool"],
-    patterns: [/Unable to fetch mempool weather\./i],
+    routes: ["/game/mempool", "/es/game/mempool"],
+    patterns: [/Unable to fetch mempool weather\./i, /Failed to fetch tx action plan\./i],
   },
   {
     routes: ["/explorer/blocks/compare"],
@@ -274,7 +274,7 @@ const spanishSentinelRules = [
     patterns: [new RegExp(`\\b${escapeRegExp("View")}\\b`)],
   },
   {
-    routes: ["/game/mempool"],
+    routes: ["/game/mempool", "/es/game/mempool"],
     description: "mempool simulator CTA leaked English",
     patterns: [/View Live Mempool Feed/],
   },

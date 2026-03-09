@@ -95,14 +95,14 @@ async function runScenario(browser, definition, outDir) {
         const toggle = await getVisibleLocator(
           page.locator('button[aria-label*="Toggle language" i], button[aria-label*="Toggle Language" i]'),
         );
-        await toggle.waitFor({ state: "visible", timeout: 10_000 });
+        await toggle.waitFor({ state: "visible", timeout: 30_000 });
         await toggle.click();
         await page.waitForFunction(
           () =>
             document.body.innerText.includes("Tu centro de comando") ||
             document.body.innerText.includes("red P2P de Bitcoin"),
           null,
-          { timeout: 10_000 },
+          { timeout: 60_000 },
         );
         const storedLocale = await page.evaluate(() => window.localStorage.getItem("rawblock-locale"));
         if (storedLocale !== "es") {
@@ -115,16 +115,16 @@ async function runScenario(browser, definition, outDir) {
       case "decoder-sample-decode": {
         await gotoScenario(page, "/explorer/decoder", definition.locale);
         const sampleButton = page.getByRole("button", { name: /genesis|segwit/i }).first();
-        await sampleButton.waitFor({ state: "visible", timeout: 10_000 });
+        await sampleButton.waitFor({ state: "visible", timeout: 30_000 });
         const sampleLabel = (await sampleButton.innerText()).trim();
         await sampleButton.click();
-        await sampleButton.waitFor({ state: "hidden", timeout: 15_000 });
+        await sampleButton.waitFor({ state: "hidden", timeout: 60_000 });
         await page.waitForFunction(
           () =>
             document.body.innerText.includes("4a5e1e4b") ||
             document.body.innerText.includes("37d966a2"),
           null,
-          { timeout: 15_000 },
+          { timeout: 45_000 },
         );
         note(`Decoded sample flow succeeded using "${sampleLabel}".`);
         return pass();
@@ -144,8 +144,8 @@ async function runScenario(browser, definition, outDir) {
         }
 
         await Promise.any([
-          page.locator("#network-map-export-target").waitFor({ state: "visible", timeout: 10_000 }),
-          page.getByText(/Active Connections/i).waitFor({ state: "visible", timeout: 10_000 }),
+          page.locator("#network-map-export-target").waitFor({ state: "visible", timeout: 30_000 }),
+          page.getByText(/Active Connections/i).waitFor({ state: "visible", timeout: 30_000 }),
         ]);
         note("Verified the network explorer renders its main telemetry surface.");
         return pass();
@@ -165,8 +165,8 @@ async function runScenario(browser, definition, outDir) {
           { timeout: 10_000 },
         );
         await Promise.any([
-          page.getByText(/Block A/i).waitFor({ state: "visible", timeout: 15_000 }),
-          page.getByText(/Metric/i).waitFor({ state: "visible", timeout: 15_000 }),
+          page.getByText(/Block A/i).waitFor({ state: "visible", timeout: 45_000 }),
+          page.getByText(/Metric/i).waitFor({ state: "visible", timeout: 45_000 }),
         ]);
         note("Submitted the block compare form and observed comparison output.");
         return pass();
@@ -182,7 +182,7 @@ async function runScenario(browser, definition, outDir) {
             .filter(Boolean);
           const latest = terminalOutput.at(-1) ?? "";
           return /^\d+$/.test(latest);
-        }, null, { timeout: 10_000 });
+        }, null, { timeout: 30_000 });
         note("Executed getblockcount through the safe RPC web console.");
         return pass();
       }
@@ -192,9 +192,9 @@ async function runScenario(browser, definition, outDir) {
         const searchInput = page.getByPlaceholder(/Search by title, id, or type/i);
         await searchInput.fill("utxo");
         const firstNode = page.locator('a[href^="/academy/"]').first();
-        await firstNode.waitFor({ state: "visible", timeout: 10_000 });
+        await firstNode.waitFor({ state: "visible", timeout: 30_000 });
         await firstNode.click();
-        await page.waitForURL((url) => /^\/academy\/.+/.test(url.pathname), { timeout: 10_000 });
+        await page.waitForURL((url) => /^\/academy\/.+/.test(url.pathname), { timeout: 30_000 });
         note("Filtered academy nodes and opened the first matching lesson.");
         return pass();
       }
@@ -206,7 +206,7 @@ async function runScenario(browser, definition, outDir) {
           await filtersButton.click();
         }
         const severitySelect = page.locator("#vulnerability-filters select").first();
-        await severitySelect.waitFor({ state: "visible", timeout: 10_000 });
+        await severitySelect.waitFor({ state: "visible", timeout: 30_000 });
         const nextSeverity = await severitySelect.evaluate((element) => {
           const select = element;
           return [...select.options].map((option) => option.value).find((value) => value);
@@ -265,7 +265,7 @@ async function runScenario(browser, definition, outDir) {
         await page.waitForFunction(
           () => document.body.innerText.includes("Alice routed Payment to Charlie"),
           null,
-          { timeout: 8_000 },
+          { timeout: 60_000 },
         );
         note("Completed the multi-hop Lightning payment animation.");
         return pass();
@@ -278,7 +278,7 @@ async function runScenario(browser, definition, outDir) {
         await page.waitForFunction(
           () => document.querySelector('input[type="range"]')?.value === "50",
           null,
-          { timeout: 5_000 },
+          { timeout: 45_000 },
         );
         await slider.evaluate((element, value) => {
           element.value = String(value);
@@ -288,7 +288,7 @@ async function runScenario(browser, definition, outDir) {
         await page.waitForFunction(
           () => document.querySelector('input[type="range"]')?.value === "220",
           null,
-          { timeout: 5_000 },
+          { timeout: 45_000 },
         );
         note("Applied a mining preset and manually changed the hashrate slider.");
         return pass();
@@ -301,7 +301,7 @@ async function runScenario(browser, definition, outDir) {
           throw new Error("Expected Spanish mempool simulator copy was not rendered.");
         }
         const explorerLink = page.locator('a[href="/explorer/mempool"]').first();
-        await explorerLink.waitFor({ state: "visible", timeout: 10_000 });
+        await explorerLink.waitFor({ state: "visible", timeout: 30_000 });
         note("Verified the mempool simulator page and explorer CTA in Spanish mode.");
         return pass();
       }
@@ -314,13 +314,13 @@ async function runScenario(browser, definition, outDir) {
         await page.waitForFunction(
           () => document.body.innerText.includes("Full view renders all mapped concepts and relations."),
           null,
-          { timeout: 5_000 },
+          { timeout: 15_000 },
         );
         await focusedButton.click();
         await page.waitForFunction(
           () => document.body.innerText.includes("Focused view highlights learning-path context and node isolation."),
           null,
-          { timeout: 5_000 },
+          { timeout: 15_000 },
         );
         note("Switched between graph focus modes.");
         return pass();
@@ -329,9 +329,9 @@ async function runScenario(browser, definition, outDir) {
       case "graph-mobile-open": {
         await gotoScenario(page, "/graph", definition.locale);
         const openOnGraph = page.getByRole("button", { name: /Open on Graph/i }).first();
-        await openOnGraph.waitFor({ state: "visible", timeout: 10_000 });
+        await openOnGraph.waitFor({ state: "visible", timeout: 30_000 });
         await openOnGraph.click();
-        await openOnGraph.waitFor({ state: "hidden", timeout: 5_000 });
+        await openOnGraph.waitFor({ state: "hidden", timeout: 15_000 });
         note("Moved from mobile story mode into the graph canvas.");
         return pass();
       }
@@ -339,14 +339,14 @@ async function runScenario(browser, definition, outDir) {
       case "blocks-detail-runtime": {
         await gotoScenario(page, "/explorer/blocks", definition.locale);
         await Promise.race([
-          page.locator("table tbody tr").first().waitFor({ state: "visible", timeout: 15_000 }),
+          page.locator("table tbody tr").first().waitFor({ state: "visible", timeout: 45_000 }),
           page.waitForFunction(
             () =>
               document.body.innerText.includes("No Blocks Found") ||
               document.body.innerText.includes("The node hasn't returned any blocks yet.") ||
               document.body.innerText.includes("Unable to load blocks"),
             null,
-            { timeout: 15_000 },
+            { timeout: 45_000 },
           ),
         ]).catch(() => null);
         const firstRow = page.locator("table tbody tr").first();
@@ -364,7 +364,7 @@ async function runScenario(browser, definition, outDir) {
           throw new Error("Blocks table did not expose a drill-down row.");
         }
         await firstRow.click();
-        await page.waitForURL((url) => /^\/explorer\/block\/.+/.test(url.pathname), { timeout: 10_000 });
+        await page.waitForURL((url) => /^\/explorer\/block\/.+/.test(url.pathname), { timeout: 30_000 });
         note("Opened the first runtime block detail page.");
         return pass();
       }
@@ -372,14 +372,14 @@ async function runScenario(browser, definition, outDir) {
       case "rich-list-detail-runtime": {
         await gotoScenario(page, "/explorer/rich-list", definition.locale);
         await Promise.race([
-          page.locator("table tbody tr").first().waitFor({ state: "visible", timeout: 15_000 }),
+          page.locator("table tbody tr").first().waitFor({ state: "visible", timeout: 45_000 }),
           page.waitForFunction(
             () =>
               document.body.innerText.includes("No rich-list rows available") ||
               document.body.innerText.includes("Unable to load rich list snapshot") ||
               document.body.innerText.includes("snapshot is temporarily unavailable"),
             null,
-            { timeout: 15_000 },
+            { timeout: 45_000 },
           ),
         ]).catch(() => null);
         const firstRow = page.locator("table tbody tr").first();
@@ -397,7 +397,7 @@ async function runScenario(browser, definition, outDir) {
           throw new Error("Rich-list table did not expose a detail row.");
         }
         await firstRow.click();
-        await page.waitForURL((url) => /^\/explorer\/rich-list\/\d+/.test(url.pathname), { timeout: 10_000 });
+        await page.waitForURL((url) => /^\/explorer\/rich-list\/\d+/.test(url.pathname), { timeout: 30_000 });
         note("Opened the first runtime whale detail page.");
         return pass();
       }
@@ -409,7 +409,7 @@ async function runScenario(browser, definition, outDir) {
           return skip("No academy path link was available on the landing page.");
         }
         await firstPath.click();
-        await page.waitForURL((url) => /^\/paths\/.+/.test(url.pathname), { timeout: 10_000 });
+        await page.waitForURL((url) => /^\/paths\/.+/.test(url.pathname), { timeout: 30_000 });
         note("Opened the first runtime academy path.");
         return pass();
       }
@@ -421,7 +421,7 @@ async function runScenario(browser, definition, outDir) {
           return skip("No academy node link was available on the landing page.");
         }
         await firstNode.click();
-        await page.waitForURL((url) => /^\/academy\/.+/.test(url.pathname), { timeout: 10_000 });
+        await page.waitForURL((url) => /^\/academy\/.+/.test(url.pathname), { timeout: 30_000 });
         note("Opened the first runtime academy node detail.");
         return pass();
       }

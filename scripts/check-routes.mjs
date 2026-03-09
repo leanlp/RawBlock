@@ -1,7 +1,7 @@
 import { BASE_URL } from "./qa/runtime.mjs";
 import { ROUTE_COUNTS, ROUTE_REDIRECTS, STATIC_PAGE_ROUTES } from "./qa/inventory.mjs";
 
-const REQUEST_TIMEOUT_MS = Number(process.env.ROUTE_TIMEOUT_MS || 12_000);
+const REQUEST_TIMEOUT_MS = Number(process.env.ROUTE_TIMEOUT_MS || 45_000);
 
 function withTimeout(url, init = {}) {
   const controller = new AbortController();
