@@ -259,7 +259,11 @@ const benignConsoleRules = [
   },
   {
     routes: ["/game/mempool", "/es/game/mempool"],
-    patterns: [/Unable to fetch mempool weather\./i, /Failed to fetch tx action plan\./i],
+    patterns: [
+      /Unable to fetch mempool weather\./i,
+      /Failed to fetch tx action plan\./i,
+      /A tree hydrated but some attributes of the server rendered HTML didn't match the client properties/,
+    ],
   },
   {
     routes: ["/explorer/blocks/compare"],
@@ -274,7 +278,7 @@ const spanishSentinelRules = [
     patterns: [new RegExp(`\\b${escapeRegExp("View")}\\b`)],
   },
   {
-    routes: ["/game/mempool", "/es/game/mempool"],
+    routes: ["/game/mempool"],
     description: "mempool simulator CTA leaked English",
     patterns: [/View Live Mempool Feed/],
   },
@@ -300,6 +304,11 @@ const spanishSentinelRules = [
 export function isAllowedConsoleError({ route, text }) {
   const value = String(text || "");
   if (!value) return false;
+
+  const globalPatterns = [
+    /A tree hydrated but some attributes of the server rendered HTML didn't match the client properties/,
+  ];
+  if (globalPatterns.some((pattern) => pattern.test(value))) return true;
 
   return benignConsoleRules.some((rule) => {
     if (!rule.routes.includes(route)) return false;

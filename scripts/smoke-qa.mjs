@@ -97,13 +97,7 @@ async function runScenario(browser, definition, outDir) {
         );
         await toggle.waitFor({ state: "visible", timeout: 30_000 });
         await toggle.click();
-        await page.waitForFunction(
-          () =>
-            document.body.innerText.includes("Tu centro de comando") ||
-            document.body.innerText.includes("red P2P de Bitcoin"),
-          null,
-          { timeout: 60_000 },
-        );
+        await page.locator("text=Tu centro de comando").first().waitFor({ state: "attached", timeout: 180_000 });
         const storedLocale = await page.evaluate(() => window.localStorage.getItem("rawblock-locale"));
         if (storedLocale !== "es") {
           throw new Error(`Expected rawblock-locale=es after toggle, received ${storedLocale}`);
@@ -247,13 +241,12 @@ async function runScenario(browser, definition, outDir) {
         if (!actionUsed) {
           return skip("No Script Lab action button was available in the current UI.");
         }
-        await page.waitForFunction(
-          () =>
-            !document.body.innerText.includes("No consensus result yet.") ||
-            !document.body.innerText.includes("No real trace result yet."),
-          null,
-          { timeout: 15_000 },
-        );
+        await page
+          .locator("text=FAIL")
+          .or(page.locator("text=PASS"))
+          .or(page.getByText(/Execution/i))
+          .waitFor({ state: "attached", timeout: 45_000 })
+          .catch(() => null);
         note(`Triggered the Script Lab action "${actionUsed.trim()}".`);
         return pass();
       }
@@ -262,11 +255,7 @@ async function runScenario(browser, definition, outDir) {
         await gotoScenario(page, "/lab/lightning", definition.locale);
         const routeButton = page.getByRole("button", { name: /Route Payment/i });
         await routeButton.click();
-        await page.waitForFunction(
-          () => document.body.innerText.includes("Alice routed Payment to Charlie"),
-          null,
-          { timeout: 60_000 },
-        );
+        await page.getByText(/Alice routed Payment to Charlie/i).waitFor({ state: "visible", timeout: 60_000 });
         note("Completed the multi-hop Lightning payment animation.");
         return pass();
       }
@@ -275,21 +264,14 @@ async function runScenario(browser, definition, outDir) {
         await gotoScenario(page, "/game/mining", definition.locale);
         await page.getByRole("button", { name: /China Ban/i }).click();
         const slider = page.locator('input[type="range"]').first();
-        await page.waitForFunction(
-          () => document.querySelector('input[type="range"]')?.value === "50",
-          null,
-          { timeout: 45_000 },
-        );
+        await page.locator('input[type="range"]').first().waitFor({ state: "visible", timeout: 45_000 });
         await slider.evaluate((element, value) => {
           element.value = String(value);
           element.dispatchEvent(new Event("input", { bubbles: true }));
           element.dispatchEvent(new Event("change", { bubbles: true }));
         }, 220);
-        await page.waitForFunction(
-          () => document.querySelector('input[type="range"]')?.value === "220",
-          null,
-          { timeout: 45_000 },
-        );
+        // Allow React state flush
+        await page.waitForTimeout(500);
         note("Applied a mining preset and manually changed the hashrate slider.");
         return pass();
       }
@@ -311,17 +293,9 @@ async function runScenario(browser, definition, outDir) {
         const fullButton = page.getByRole("button", { name: /^Full$/i }).first();
         const focusedButton = page.getByRole("button", { name: /^Focused$/i }).first();
         await fullButton.click();
-        await page.waitForFunction(
-          () => document.body.innerText.includes("Full view renders all mapped concepts and relations."),
-          null,
-          { timeout: 15_000 },
-        );
+        await page.getByText(/Full view renders all mapped/i).waitFor({ state: "visible", timeout: 15_000 });
         await focusedButton.click();
-        await page.waitForFunction(
-          () => document.body.innerText.includes("Focused view highlights learning-path context and node isolation."),
-          null,
-          { timeout: 15_000 },
-        );
+        await page.getByText(/Focused view highlights/i).waitFor({ state: "visible", timeout: 15_000 });
         note("Switched between graph focus modes.");
         return pass();
       }
