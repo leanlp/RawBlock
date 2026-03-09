@@ -1,13 +1,29 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from "framer-motion";
+import type { Variants } from "framer-motion";
 import Link from 'next/link';
-import { useState } from "react";
+import { useRef, useState } from "react";
 import HeroMetrics from "./HeroMetrics";
-import Card from "./Card";
+import AnimatedBlockLogo from "./AnimatedBlockLogo";
 import { useGuidedLearning } from "./providers/GuidedLearningProvider";
 import { CANONICAL_PATH_ID, getCanonicalPath } from "@/lib/graph/pathEngine";
 import { useTranslation } from "@/lib/i18n";
+
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
+
+const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
 
 type FeatureItem = {
     titleKey: string;
@@ -82,31 +98,59 @@ function FeatureCard({ feature }: { feature: FeatureItem }) {
     const featureData = (t.dashboard.features as Record<string, { title: string; description: string }>)[feature.titleKey];
     const title = featureData?.title ?? feature.titleKey;
     const description = featureData?.description ?? "";
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+
+    function handleMouseMove({
+        currentTarget,
+        clientX,
+        clientY,
+    }: React.MouseEvent) {
+        const { left, top } = currentTarget.getBoundingClientRect();
+        mouseX.set(clientX - left);
+        mouseY.set(clientY - top);
+    }
 
     return (
-        <Link href={feature.href} passHref>
-            <Card
-                className="h-full p-4 lg:p-5 group"
-                onClick={() => { }}
-                hoverable
+        <motion.div variants={itemVariants} className="h-full">
+            <Link
+                href={feature.href}
+                passHref
+                onMouseMove={handleMouseMove}
+                className="group relative flex flex-col gap-3 rounded-xl p-6 glass-panel border border-surface-border hover:border-primary/50 transition-colors w-full h-full overflow-hidden"
             >
-                {/* Hover Gradient Glow */}
-                <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br ${feature.color} transition-opacity duration-500 rounded-xl`} />
+                {/* Reactive Cursor Sheen */}
+                <motion.div
+                    className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
+                    style={{
+                        background: useMotionTemplate`
+                            radial-gradient(
+                                350px circle at ${mouseX}px ${mouseY}px,
+                                rgba(13, 204, 242, 0.1),
+                                transparent 80%
+                            )
+                        `,
+                    }}
+                />
 
-                <div className="flex items-start justify-between mb-3 relative z-10">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${feature.color} bg-opacity-10 text-white shadow-lg text-xl`}>
+                <div className="flex justify-between items-start">
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${feature.color} bg-opacity-10 text-white shadow-lg text-xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}>
                         {feature.icon}
                     </div>
                 </div>
 
-                <div className="relative z-10">
+                <div className="relative z-10 mt-2 flex-1">
                     <h3 className="text-lg font-bold text-slate-200 mb-1 group-hover:text-white transition-colors">{title}</h3>
-                    <p className="text-slate-400 group-hover:text-slate-200 transition-colors leading-relaxed text-xs sm:text-sm">
+                    <p className="text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed text-xs sm:text-sm">
                         {description}
                     </p>
                 </div>
-            </Card>
-        </Link>
+                <div className="flex items-center gap-1 text-primary text-sm font-medium mt-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span>View</span>
+                    <span className="text-sm transition-transform group-hover:translate-x-1">→</span>
+                </div>
+            </Link>
+        </motion.div>
     );
 }
 
@@ -118,14 +162,16 @@ function CategorySection({ categoryDef, categoryKey }: { categoryDef: CategoryDe
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-50px" }}
             className="mb-12"
         >
-            <div className="mb-6 border-b border-slate-800/50 pb-4">
-                <h2 className="text-2xl font-bold text-white">{title}</h2>
+            <motion.div variants={itemVariants} className="mb-6 border-b border-slate-800/50 pb-4">
+                <h2 className="text-2xl font-bold text-white tracking-tight">{title}</h2>
                 <p className="text-sm text-slate-400 mt-1">{subtitle}</p>
-            </div>
+            </motion.div>
             <div className={`grid gap-4 ${categoryKey === 'play' || categoryKey === 'tools'
                 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
                 : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
@@ -154,34 +200,98 @@ function PrimaryActionCard({
     actionText: string;
     color: string;
 }) {
-    const colorMap: Record<string, string> = {
-        cyan: 'group-hover:text-cyan-400 text-cyan-500',
-        purple: 'group-hover:text-purple-400 text-purple-500',
-        blue: 'group-hover:text-blue-400 text-blue-500',
+    const colorMap: Record<string, { text: string; bg: string; glow: string }> = {
+        cyan: { text: 'text-primary', bg: 'bg-primary/20 border-primary/30', glow: 'rgba(13, 204, 242, 0.15)' },
+        purple: { text: 'text-secondary', bg: 'bg-secondary/20 border-secondary/30', glow: 'rgba(127, 13, 242, 0.15)' },
+        blue: { text: 'text-white', bg: 'bg-surface-dark border-surface-border', glow: 'rgba(255, 255, 255, 0.1)' },
     };
 
+    const scheme = colorMap[color] || colorMap.cyan;
+    const ref = useRef<HTMLAnchorElement>(null);
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+
+    // 3D Tilt State
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+
+    const mouseXSpring = useSpring(x, { stiffness: 300, damping: 20 });
+    const mouseYSpring = useSpring(y, { stiffness: 300, damping: 20 });
+
+    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["15deg", "-15deg"]);
+    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-15deg", "15deg"]);
+
+    function handleMouseMove(e: React.MouseEvent<HTMLAnchorElement>) {
+        const rect = e.currentTarget.getBoundingClientRect();
+
+        // Exact pixel coords for glow
+        mouseX.set(e.clientX - rect.left);
+        mouseY.set(e.clientY - rect.top);
+
+        // Percentage-based coords for 3D tilt
+        const mouseXRel = e.clientX - rect.left;
+        const mouseYRel = e.clientY - rect.top;
+        x.set(mouseXRel / rect.width - 0.5);
+        y.set(mouseYRel / rect.height - 0.5);
+    }
+
+    function handleMouseLeave() {
+        x.set(0);
+        y.set(0);
+    }
+
     return (
-        <Link href={href}>
-            <Card
-                className="p-5 lg:p-6 group h-full"
-                onClick={() => { }}
-                hoverable
+        <motion.div variants={itemVariants} className="h-full" style={{ perspective: 1000 }}>
+            <motion.a
+                ref={ref}
+                href={href}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{
+                    rotateX,
+                    rotateY,
+                    transformStyle: "preserve-3d",
+                }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="group relative overflow-hidden rounded-2xl glass-panel border border-surface-border p-8 flex flex-col gap-4 h-full block shadow-xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-shadow duration-300"
             >
-                <div className="relative z-10">
-                    <div className="text-4xl mb-4">{icon}</div>
-                    <h3 className={`text-xl font-bold text-white mb-2 ${colorMap[color]?.split(' ')[0]} transition-colors`}>
-                        {title}
-                    </h3>
-                    <p className="text-sm text-slate-300 group-hover:text-white transition-colors">
-                        {description}
-                    </p>
-                    <div className={`mt-4 flex items-center ${colorMap[color]?.split(' ')[1]} text-sm font-medium`}>
-                        <span>{actionText}</span>
-                        <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                {/* Background Glow Layer */}
+                <div
+                    className="absolute inset-0 pointer-events-none transition duration-500 opacity-0 group-hover:opacity-100"
+                    style={{ transform: "translateZ(0px)" }}
+                >
+                    <motion.div
+                        className="absolute inset-0"
+                        style={{
+                            background: useMotionTemplate`
+                                radial-gradient(
+                                    400px circle at ${mouseX}px ${mouseY}px,
+                                    ${scheme.glow},
+                                    transparent 80%
+                                )
+                            `,
+                        }}
+                    />
+                </div>
+
+                {/* Extruded Content Layer (4D effect) */}
+                <div className="relative z-10 flex flex-col h-full pointer-events-none" style={{ transform: "translateZ(50px)" }}>
+                    <div className={`size-12 rounded-xl flex items-center justify-center border ${scheme.bg} ${scheme.text} transform group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                        <span className="text-2xl">{icon}</span>
+                    </div>
+                    <div className="flex-1 mt-4">
+                        <h3 className="text-white text-xl font-bold mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-slate-300 transition-colors drop-shadow-lg">{title}</h3>
+                        <p className="text-slate-400 text-sm leading-relaxed drop-shadow-md">
+                            {description}
+                        </p>
+                    </div>
+                    <div className={`mt-auto pt-6 flex items-center ${scheme.text} text-sm font-bold group-hover:gap-2 transition-all drop-shadow-lg`}>
+                        {actionText} <span className="text-sm ml-1 transition-transform group-hover:translate-x-1">→</span>
                     </div>
                 </div>
-            </Card>
-        </Link>
+            </motion.a>
+        </motion.div>
     );
 }
 
@@ -237,24 +347,50 @@ export default function DashboardHome() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="text-center mb-8"
+                className="text-center mb-12 relative py-8"
             >
-                <h1
-                    className="home-brand-title mb-5 !text-[clamp(2.4rem,8vw,5.25rem)] !leading-[0.9] font-extrabold uppercase tracking-[0.06em] select-none"
-                >
-                    <span className="bg-gradient-to-b from-slate-100 via-slate-200 to-slate-400 bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(148,163,184,0.2)]">RAW </span>
-                    <span className="bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_2px_20px_rgba(6,182,212,0.35)]">BLOCK</span>
-                </h1>
-                <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
-                    {t.dashboard.subtitle} <span className="text-cyan-400 font-medium">{t.dashboard.subtitleHighlight}</span>.
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl -z-10 blur-3xl"></div>
+
+                <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-5">
+                    <AnimatedBlockLogo />
+                    <h1
+                        className="home-brand-title !text-[clamp(2.4rem,8vw,5.25rem)] !leading-[0.9] font-black uppercase tracking-[0.06em] select-none text-center md:text-left"
+                    >
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary block md:inline">RAW </span>
+                        <span className="text-white drop-shadow-[0_2px_20px_rgba(13,204,242,0.35)] block md:inline">BLOCK</span>
+                    </h1>
+                </div>
+
+                <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto font-light leading-relaxed">
+                    {t.dashboard.subtitle} <span className="text-primary font-medium">{t.dashboard.subtitleHighlight}</span>.
                 </p>
+                <div className="w-full max-w-2xl mt-10 mx-auto">
+                    <div className="relative group glow-border rounded-xl">
+                        <div className="flex w-full items-stretch rounded-xl h-16 glass-panel relative z-10 overflow-hidden">
+                            <div className="flex items-center justify-center pl-6 text-slate-400 group-focus-within:text-primary transition-colors">
+                                <span className="text-2xl">🔍</span>
+                            </div>
+                            <input type="text" className="form-input flex w-full min-w-0 flex-1 bg-transparent border-none text-white focus:ring-0 h-full placeholder:text-slate-500 px-4 text-lg" placeholder="Search TX, Address, or Block..." />
+                            <div className="flex items-center justify-center pr-2 py-2">
+                                <button className="flex items-center justify-center rounded-lg h-full px-6 bg-primary text-background-dark text-base font-bold hover:bg-primary/90 transition-colors">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </motion.div>
 
             {/* Live Metrics Hero */}
             <HeroMetrics />
 
             {/* ===== PRIMARY ACTIONS ROW ===== */}
-            <div className="w-full mb-12">
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="w-full mb-12"
+            >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <PrimaryActionCard
                         href="/explorer/blocks"
@@ -281,46 +417,48 @@ export default function DashboardHome() {
                         color="blue"
                     />
                 </div>
-            </div>
+            </motion.div>
 
             {/* Guided Learning Mode */}
             <section
                 id="guided-learning-mode"
-                className="w-full mb-12 rounded-2xl border border-cyan-500/20 bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6"
+                className="w-full mb-12 rounded-2xl glass-panel p-4 sm:p-6"
             >
                 <div className="flex flex-col gap-4 mb-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <h2 className="text-2xl font-bold text-white">{gl.title}</h2>
-                            <p className="text-sm text-slate-300 mt-1">
+                            <p className="text-sm text-slate-400 mt-1">
                                 {gl.subtitle}
                             </p>
                         </div>
                         <div className="text-right flex flex-col items-end gap-2">
                             <div>
-                                <p className="text-xs uppercase tracking-wide text-slate-400">{gl.progress}</p>
-                                <p className="text-lg font-semibold text-cyan-400">{progressPercent}%</p>
+                                <p className="text-xs uppercase tracking-wide text-slate-500">{gl.progress}</p>
+                                <p className="text-lg font-semibold text-primary">{progressPercent}%</p>
                             </div>
                             <Link
                                 href={`/paths/${CANONICAL_PATH_ID}`}
-                                className="inline-flex min-h-11 items-center rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20 transition-colors"
+                                className="inline-flex min-h-11 items-center rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm text-primary hover:bg-primary/20 transition-colors hover:shadow-[0_0_15px_rgba(13,204,242,0.3)]"
                             >
                                 {gl.openCanonicalPath} ({GUIDED_LESSONS.length} {t.nav.lessons} • {canonicalPathSteps} {t.nav.concepts})
                             </Link>
                         </div>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                    <div className="h-2 w-full rounded-full bg-surface-dark overflow-hidden border border-surface-border">
                         <div
-                            className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                            className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300 relative"
                             style={{ width: `${progressPercent}%` }}
-                        />
+                        >
+                            <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        </div>
                     </div>
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
                         <span>
                             {gl.guidedLesson} {currentLessonIndex + 1} {gl.of} {GUIDED_LESSONS.length} • {gl.canonicalScope}: {canonicalPathSteps} {t.nav.concepts}
                         </span>
                         {resumedFromSession && (
-                            <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-cyan-300">
+                            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-primary">
                                 {gl.resumedFromSession}
                             </span>
                         )}
@@ -509,38 +647,52 @@ export default function DashboardHome() {
             )}
 
             {/* Simulation Launchpad */}
-            <section className="w-full mb-12 rounded-2xl border border-amber-500/20 bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6">
-                <div className="mb-5">
-                    <h2 className="text-2xl font-bold text-white">{t.dashboard.simulations.title}</h2>
-                    <p className="text-sm text-slate-300 mt-1">
+            <motion.section
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-50px" }}
+                className="w-full mb-12 rounded-2xl glass-panel p-4 sm:p-6 border-l-4 border-l-secondary"
+            >
+                <motion.div variants={itemVariants} className="mb-5">
+                    <h2 className="text-2xl font-bold text-white tracking-tight">{t.dashboard.simulations.title}</h2>
+                    <p className="text-sm text-slate-400 mt-1">
                         {t.dashboard.simulations.subtitle}
                     </p>
+                </motion.div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <motion.div variants={itemVariants} className="h-full">
+                        <Link
+                            href="/game/tetris"
+                            className="group rounded-xl border border-surface-border hover:border-secondary/50 bg-surface-dark p-5 transition-colors relative overflow-hidden block h-full"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <p className="text-lg font-bold text-white transition-colors relative z-10">{t.dashboard.simulations.mempoolTetris.title}</p>
+                            <p className="text-sm text-slate-400 mt-2 relative z-10">{t.dashboard.simulations.mempoolTetris.description}</p>
+                        </Link>
+                    </motion.div>
+                    <motion.div variants={itemVariants} className="h-full">
+                        <Link
+                            href="/game/mining"
+                            className="group rounded-xl border border-surface-border hover:border-secondary/50 bg-surface-dark p-5 transition-colors relative overflow-hidden block h-full"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <p className="text-lg font-bold text-white transition-colors relative z-10">{t.dashboard.simulations.miningSimulator.title}</p>
+                            <p className="text-sm text-slate-400 mt-2 relative z-10">{t.dashboard.simulations.miningSimulator.description}</p>
+                        </Link>
+                    </motion.div>
+                    <motion.div variants={itemVariants} className="h-full">
+                        <Link
+                            href="/lab/lightning"
+                            className="group rounded-xl border border-surface-border hover:border-secondary/50 bg-surface-dark p-5 transition-colors relative overflow-hidden block h-full"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <p className="text-lg font-bold text-white transition-colors relative z-10">{t.dashboard.simulations.lightningSimulator.title}</p>
+                            <p className="text-sm text-slate-400 mt-2 relative z-10">{t.dashboard.simulations.lightningSimulator.description}</p>
+                        </Link>
+                    </motion.div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <Link
-                        href="/game/tetris"
-                        className="rounded-lg border border-slate-700 bg-slate-950/70 p-4 hover:border-amber-400/60 transition-colors"
-                    >
-                        <p className="text-base font-semibold text-slate-100">{t.dashboard.simulations.mempoolTetris.title}</p>
-                        <p className="text-xs text-slate-400 mt-1">{t.dashboard.simulations.mempoolTetris.description}</p>
-                    </Link>
-                    <Link
-                        href="/game/mining"
-                        className="rounded-lg border border-slate-700 bg-slate-950/70 p-4 hover:border-amber-400/60 transition-colors"
-                    >
-                        <p className="text-base font-semibold text-slate-100">{t.dashboard.simulations.miningSimulator.title}</p>
-                        <p className="text-xs text-slate-400 mt-1">{t.dashboard.simulations.miningSimulator.description}</p>
-                    </Link>
-                    <Link
-                        href="/lab/lightning"
-                        className="rounded-lg border border-slate-700 bg-slate-950/70 p-4 hover:border-amber-400/60 transition-colors"
-                    >
-                        <p className="text-base font-semibold text-slate-100">{t.dashboard.simulations.lightningSimulator.title}</p>
-                        <p className="text-xs text-slate-400 mt-1">{t.dashboard.simulations.lightningSimulator.description}</p>
-                    </Link>
-                </div>
-            </section>
-
+            </motion.section>
             {/* Categorized Features */}
             <div className="w-full">
                 <CategorySection categoryDef={categoriesDef.explore} categoryKey="explore" />

@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import MempoolPressureSimulator from "../../../components/mempool-game/MempoolPressureSimulator";

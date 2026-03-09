@@ -1,7 +1,7 @@
 "use client";
 
-import { ReactNode } from "react";
-import { motion } from "framer-motion";
+import { ReactNode, useRef } from "react";
+import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 interface CardProps {
     children: ReactNode;
@@ -42,7 +42,8 @@ export default function Card({
         backdrop-blur-sm
         transition-all duration-200
         ${hoverable ? `hover:bg-slate-800/50 hover:border-slate-700 ${accentColors[accent].split(' ')[0]}` : ''}
-        ${onClick ? 'cursor-pointer group' : ''}
+        ${hoverable || onClick ? 'group' : ''}
+        ${onClick ? 'cursor-pointer' : ''}
     `;
 
     const variantClasses = {
@@ -51,16 +52,104 @@ export default function Card({
         panel: 'p-4',
     };
 
+    const ref = useRef<HTMLDivElement>(null);
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+
+    const mouseXSpring = useSpring(x, { stiffness: 300, damping: 20 });
+    const mouseYSpring = useSpring(y, { stiffness: 300, damping: 20 });
+
+    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["12deg", "-12deg"]);
+    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-12deg", "12deg"]);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        if (!hoverable) return;
+        const rect = ref.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const width = rect.width;
+        const height = rect.height;
+
+        const clientXRel = e.clientX - rect.left;
+        const clientYRel = e.clientY - rect.top;
+
+        mouseX.set(clientXRel);
+        mouseY.set(clientYRel);
+
+        const xPct = clientXRel / width - 0.5;
+        const yPct = clientYRel / height - 0.5;
+
+        x.set(xPct);
+        y.set(yPct);
+    };
+
+    const handleMouseLeave = () => {
+        if (!hoverable) return;
+        x.set(0);
+        y.set(0);
+    };
+
+    const glowColors = {
+        cyan: 'rgba(13, 204, 242, 0.15)',
+        orange: 'rgba(249, 115, 22, 0.15)',
+        blue: 'rgba(59, 130, 246, 0.15)',
+        violet: 'rgba(139, 92, 246, 0.15)',
+        emerald: 'rgba(16, 185, 129, 0.15)',
+        red: 'rgba(239, 68, 68, 0.15)',
+    };
+
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`${baseClasses} ${variantClasses[variant]} ${className}`}
-            onClick={onClick}
-        >
-            {children}
-        </motion.div>
+        <div style={{ perspective: 1200 }} className={`h-full ${className.includes('w-full') ? 'w-full' : ''}`}>
+            <motion.div
+                ref={ref}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 20 }}
+                style={{
+                    rotateX: hoverable ? rotateX : 0,
+                    rotateY: hoverable ? rotateY : 0,
+                    transformStyle: "preserve-3d"
+                }}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                whileHover={hoverable ? { scale: 1.02 } : {}}
+                className={`${baseClasses} ${variantClasses[variant]} ${className} relative h-full shadow-xl ${hoverable ? 'hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]' : ''}`}
+                onClick={onClick}
+            >
+                {/* Background Glow Layer */}
+                {hoverable && (
+                    <div
+                        className="absolute inset-0 pointer-events-none transition duration-500 opacity-0 group-hover:opacity-100 rounded-xl overflow-hidden"
+                        style={{ transform: "translateZ(0px)" }}
+                    >
+                        <motion.div
+                            className="absolute inset-0"
+                            style={{
+                                background: useMotionTemplate`
+                                    radial-gradient(
+                                        400px circle at ${mouseX}px ${mouseY}px,
+                                        ${glowColors[accent]},
+                                        transparent 80%
+                                    )
+                                `,
+                            }}
+                        />
+                    </div>
+                )}
+
+                <div
+                    className="relative z-10 flex flex-col h-full pointer-events-none transition-transform duration-300"
+                    style={{ transform: hoverable ? "translateZ(40px)" : "none", transformStyle: "preserve-3d" }}
+                >
+                    <div className="pointer-events-auto h-full w-full flex flex-col justify-center">
+                        {children}
+                    </div>
+                </div>
+            </motion.div>
+        </div>
     );
 }
 

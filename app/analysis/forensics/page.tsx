@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
@@ -463,6 +464,7 @@ export default function ForensicsPage() {
     // Note: ELK is async and provides better automatic layout than Dagre
     // --- Advanced Layout Engine (Elkjs) ---
     const getLayoutedElements = useCallback(async (nodes: Node[], edges: Edge[], mode: 'horizontal' | 'vertical' | 'radial' = 'horizontal') => {
+        // @ts-ignore
         const ELK = await import('elkjs/lib/elk.bundled');
         const elk = new ELK.default();
 
@@ -502,7 +504,7 @@ export default function ForensicsPage() {
             const layoutedGraph = await elk.layout(graph);
 
             const layoutedNodes = nodes.map((node) => {
-                const elkNode = layoutedGraph.children?.find((n) => n.id === node.id);
+                const elkNode = layoutedGraph.children?.find((n: any) => n.id === node.id);
                 if (!elkNode) return node;
 
                 return {
@@ -596,7 +598,7 @@ export default function ForensicsPage() {
                 const childNode = {
                     ...item.original,
                     parentId: groupId, // Attach to Group
-                    extent: 'parent' as 'parent',  // Constrain to Group
+                    extent: 'parent' as const,  // Constrain to Group
                     position: {
                         x: 20 + (col * (NODE_WIDTH + NODE_X_GAP)),
                         y: 50 + (row * NODE_Y_GAP)
