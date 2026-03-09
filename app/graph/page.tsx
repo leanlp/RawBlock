@@ -25,7 +25,7 @@ import Header from "@/components/Header";
 import { useTranslation } from "@/lib/i18n";
 import { graphStore } from "@/lib/graph/store";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
-import { NODE_TYPE_PRESENTATION } from "@/lib/graph/nodeTypePresentation";
+import { NODE_TYPE_PRESENTATION, getLocalizedNodeTypeLabel } from "@/lib/graph/nodeTypePresentation";
 
 const TYPE_ORDER = [
   "primitive",
@@ -61,21 +61,21 @@ const DIFFICULTY_COLORS: Record<1 | 2 | 3 | 4, string> = {
 };
 
 const RELATION_LEGEND = [
-  { type: "DEPENDS_ON", meaning: "A concept requires another prerequisite." },
-  { type: "PART_OF", meaning: "A component belongs to a larger structure." },
-  { type: "VALIDATED_BY", meaning: "A rule/mechanism verifies another element." },
-  { type: "INTRODUCES", meaning: "An upgrade/process introduces a new capability." },
-  { type: "CREATES", meaning: "A process creates a new object/state." },
-  { type: "SPENDS", meaning: "An input consumes an existing UTXO state." },
-  { type: "IS_UNSPENT_FORM_OF", meaning: "UTXO is the unspent state of an output." },
-  { type: "EXPLOITS", meaning: "An attack/vulnerability targets a weakness." },
-  { type: "MITIGATED_BY", meaning: "A control/rule reduces attack impact." },
-  { type: "STRENGTHENS", meaning: "Improves resilience or confidence." },
-  { type: "WEAKENS", meaning: "Reduces resilience or trust assumptions." },
-  { type: "POLICY_ONLY", meaning: "Relay/mempool behavior, not consensus validity." },
+  { type: "DEPENDS_ON", meaningKey: "dependsOn" },
+  { type: "PART_OF", meaningKey: "partOf" },
+  { type: "VALIDATED_BY", meaningKey: "validatedBy" },
+  { type: "INTRODUCES", meaningKey: "introduces" },
+  { type: "CREATES", meaningKey: "creates" },
+  { type: "SPENDS", meaningKey: "spends" },
+  { type: "IS_UNSPENT_FORM_OF", meaningKey: "isUnspentFormOf" },
+  { type: "EXPLOITS", meaningKey: "exploits" },
+  { type: "MITIGATED_BY", meaningKey: "mitigatedBy" },
+  { type: "STRENGTHENS", meaningKey: "strengthens" },
+  { type: "WEAKENS", meaningKey: "weakens" },
+  { type: "POLICY_ONLY", meaningKey: "policyOnly" },
   {
     type: "NOT_CONSENSUS_CRITICAL",
-    meaning: "A mechanism affects operations, not global validity rules.",
+    meaningKey: "notConsensusCritical",
   },
 ] as const;
 
@@ -429,7 +429,8 @@ function GraphFitController({
 }
 
 export default function BitcoinMapPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const graphCopy = t.graph;
   const router = useRouter();
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const [showFullGraph, setShowFullGraph] = useState(false);
@@ -443,16 +444,10 @@ export default function BitcoinMapPage() {
   const [showOnlyAttackEdges, setShowOnlyAttackEdges] = useState(false);
   const [showOnlyAssumptions, setShowOnlyAssumptions] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
-  const [isMobileViewport, setIsMobileViewport] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(max-width: 768px)").matches : false,
-  );
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [mobileViewMode, setMobileViewMode] = useState<"story" | "graph">(() =>
-    typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches
-      ? "story"
-      : "graph",
-  );
+  const [mobileViewMode, setMobileViewMode] = useState<"story" | "graph">("graph");
   const [mobileStoryIndex, setMobileStoryIndex] = useState(0);
   const threatMode =
     showFullGraph &&
@@ -504,6 +499,7 @@ export default function BitcoinMapPage() {
       }
     };
 
+    syncViewport();
     media.addEventListener("change", syncViewport);
     return () => media.removeEventListener("change", syncViewport);
   }, []);
@@ -809,30 +805,35 @@ export default function BitcoinMapPage() {
           <Header />
         </div>
         <header className="page-header">
-          <p className="page-kicker">Knowledge Graph</p>
-          <h1 className="page-title">{t.graph.title}</h1>
+          <p className="page-kicker">{graphCopy.kicker}</p>
+          <h1 className="page-title">{graphCopy.title}</h1>
           <p className="page-subtitle" style={{ color: theme.textMuted }}>
             {isMobileViewport && mobileViewMode === "story"
-              ? "Mobile Story mode is active. Step through the canonical path before exploring the full graph."
+              ? graphCopy.mobileStoryActive
               : effectiveFocusMode
-                ? "Focus Mode is active. Click a node to isolate it with direct prerequisites and dependents."
-                : t.graph.subtitle}
+                ? graphCopy.focusModeActive
+                : graphCopy.subtitle}
           </p>
           {!threatMode ? (
             <p className="text-xs text-cyan-300">
-              Highlighting canonical path: {canonicalPath.title} ({canonicalPath.orderedNodes.length} steps)
+              {graphCopy.highlightingCanonicalPath
+                .replace("{0}", canonicalPath.title)
+                .replace("{1}", String(canonicalPath.orderedNodes.length))}
             </p>
           ) : null}
           {effectiveFocusMode && effectiveFocusedNodeId ? (
             <p className="text-xs text-amber-300">
-              Focused concept: {graphStore.getNode(effectiveFocusedNodeId)?.title ?? effectiveFocusedNodeId}
+              {graphCopy.focusedConcept.replace(
+                "{0}",
+                graphStore.getNode(effectiveFocusedNodeId)?.title ?? effectiveFocusedNodeId,
+              )}
             </p>
           ) : null}
         </header>
 
         <details className="rounded-lg border border-slate-800 bg-slate-900/40 p-3 text-xs md:hidden">
           <summary className="cursor-pointer list-none text-slate-300">
-            Options & Legend
+            {graphCopy.optionsLegend}
           </summary>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             {TYPE_ORDER.map((type) => (
@@ -841,14 +842,14 @@ export default function BitcoinMapPage() {
                 className="rounded-full border px-2 py-1 uppercase tracking-wide"
                 style={{ borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type] }}
               >
-                {NODE_TYPE_PRESENTATION[type].icon} {NODE_TYPE_PRESENTATION[type].label}
+                {NODE_TYPE_PRESENTATION[type].icon} {getLocalizedNodeTypeLabel(type, locale)}
               </span>
             ))}
             <span
               className="rounded-full border px-2 py-1"
               style={{ borderColor: theme.sectionBorder, color: theme.textMuted }}
             >
-              Difficulty: 1 easy → 4 advanced
+              {graphCopy.difficultyLegend}
             </span>
           </div>
         </details>
@@ -860,14 +861,14 @@ export default function BitcoinMapPage() {
               className="rounded-full border px-2 py-1 uppercase tracking-wide"
               style={{ borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type] }}
             >
-              {NODE_TYPE_PRESENTATION[type].icon} {NODE_TYPE_PRESENTATION[type].label}
+              {NODE_TYPE_PRESENTATION[type].icon} {getLocalizedNodeTypeLabel(type, locale)}
             </span>
           ))}
           <span
             className="ml-2 rounded-full border px-2 py-1"
             style={{ borderColor: theme.sectionBorder, color: theme.textMuted }}
           >
-            Difficulty: 1 easy → 4 advanced
+            {graphCopy.difficultyLegend}
           </span>
         </div>
 
@@ -881,7 +882,7 @@ export default function BitcoinMapPage() {
                 : "border-slate-700 bg-slate-950/70 text-slate-300"
                 }`}
             >
-              Story
+              {graphCopy.storyTab}
             </button>
             <button
               type="button"
@@ -891,7 +892,7 @@ export default function BitcoinMapPage() {
                 : "border-slate-700 bg-slate-950/70 text-slate-300"
                 }`}
             >
-              Graph
+              {graphCopy.graphTab}
             </button>
           </div>
         ) : null}
@@ -903,12 +904,12 @@ export default function BitcoinMapPage() {
           >
             <section className="space-y-2">
               <h2 className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: theme.textMuted }}>
-                Search
+                {graphCopy.searchLabel}
               </h2>
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search by title, id, or type..."
+                placeholder={graphCopy.searchPlaceholder}
                 className="w-full rounded-lg border px-3 py-2 text-sm"
                 style={{
                   borderColor: theme.sectionBorder,
@@ -920,7 +921,7 @@ export default function BitcoinMapPage() {
 
             <section className="space-y-2">
               <h2 className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: theme.textMuted }}>
-                View Mode
+                {graphCopy.viewMode}
               </h2>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -935,7 +936,7 @@ export default function BitcoinMapPage() {
                     : "border-slate-700 bg-slate-950/70 text-slate-300"
                     }`}
                 >
-                  Focused
+                  {graphCopy.focusedButton}
                 </button>
                 <button
                   type="button"
@@ -949,18 +950,18 @@ export default function BitcoinMapPage() {
                     : "border-slate-700 bg-slate-950/70 text-slate-300"
                     }`}
                 >
-                  Full
+                  {graphCopy.fullButton}
                 </button>
               </div>
               <p className="text-xs" style={{ color: theme.textMuted }}>
                 {!showFullGraph
-                  ? "Focused view highlights learning-path context and node isolation."
-                  : "Full view renders all mapped concepts and relations."}
+                  ? graphCopy.focusedDescription
+                  : graphCopy.fullDescription}
               </p>
               {isMobileViewport ? (
                 <label className="mt-2 flex flex-col gap-1">
                   <span className="text-xs font-medium" style={{ color: theme.textMuted }}>
-                    Mobile Focus Node
+                    {graphCopy.mobileFocusNode}
                   </span>
                   <select
                     value={effectiveFocusedNodeId ?? ""}
@@ -974,7 +975,7 @@ export default function BitcoinMapPage() {
                   >
                     {mobileSourceNodes.map((node) => (
                       <option key={node.id} value={node.id}>
-                        {NODE_TYPE_PRESENTATION[node.type].icon} {node.title}
+                        {NODE_TYPE_PRESENTATION[node.type].icon} {getLocalizedNodeTypeLabel(node.type, locale)} · {node.title}
                       </option>
                     ))}
                   </select>
@@ -984,7 +985,7 @@ export default function BitcoinMapPage() {
 
             <section className="space-y-2">
               <h2 className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: theme.textMuted }}>
-                Filters
+                {graphCopy.filters}
               </h2>
               <label className="flex items-center gap-2 text-xs">
                 <input
@@ -993,7 +994,7 @@ export default function BitcoinMapPage() {
                   disabled={!showFullGraph}
                   onChange={(event) => setShowOnlyVulnerabilities(event.target.checked)}
                 />
-                Vulnerabilities
+                {graphCopy.vulnerabilitiesFilter}
               </label>
               <label className="flex items-center gap-2 text-xs">
                 <input
@@ -1002,7 +1003,7 @@ export default function BitcoinMapPage() {
                   disabled={!showFullGraph}
                   onChange={(event) => setShowOnlyAttackEdges(event.target.checked)}
                 />
-                Attacks
+                {graphCopy.attacksFilter}
               </label>
               <label className="flex items-center gap-2 text-xs">
                 <input
@@ -1011,24 +1012,24 @@ export default function BitcoinMapPage() {
                   disabled={!showFullGraph}
                   onChange={(event) => setShowOnlyAssumptions(event.target.checked)}
                 />
-                Assumptions
+                {graphCopy.assumptionsFilter}
               </label>
               {!showFullGraph ? (
                 <p className="text-[11px]" style={{ color: theme.textMuted }}>
-                  Switch to Full view to apply security-only filters.
+                  {graphCopy.filtersRequireFullView}
                 </p>
               ) : null}
             </section>
 
             <section className="space-y-2">
               <h2 className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: theme.textMuted }}>
-                Relation Legend
+                {graphCopy.relationLegendTitle}
               </h2>
               <ul className="max-h-56 space-y-1 overflow-auto pr-1 text-[11px]">
                 {RELATION_LEGEND.map((item) => (
                   <li key={item.type} className="rounded-md border border-slate-800 bg-slate-950/50 px-2 py-1">
                     <p className="font-mono text-[10px] text-cyan-300">{item.type}</p>
-                    <p style={{ color: theme.textMuted }}>{item.meaning}</p>
+                    <p style={{ color: theme.textMuted }}>{graphCopy.relationLegend[item.meaningKey]}</p>
                   </li>
                 ))}
               </ul>
@@ -1044,8 +1045,8 @@ export default function BitcoinMapPage() {
                 {mobileStoryNode ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 text-xs" style={{ color: theme.textMuted }}>
-                      <span>Step {activeMobileStoryIndex + 1} / {canonicalPath.orderedNodes.length}</span>
-                      <span>{NODE_TYPE_PRESENTATION[mobileStoryNode.type].icon} {NODE_TYPE_PRESENTATION[mobileStoryNode.type].label}</span>
+                      <span>{graphCopy.storyStep.replace("{0}", String(activeMobileStoryIndex + 1)).replace("{1}", String(canonicalPath.orderedNodes.length))}</span>
+                      <span>{NODE_TYPE_PRESENTATION[mobileStoryNode.type].icon} {getLocalizedNodeTypeLabel(mobileStoryNode.type, locale)}</span>
                     </div>
                     <h3 className="text-xl font-semibold" style={{ color: theme.textPrimary }}>
                       {mobileStoryNode.title}
@@ -1061,7 +1062,7 @@ export default function BitcoinMapPage() {
                         className="rounded-lg border px-3 py-2 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40"
                         style={{ borderColor: theme.sectionBorder, color: theme.textPrimary }}
                       >
-                        Previous
+                        {graphCopy.previousButton}
                       </button>
                       <button
                         type="button"
@@ -1072,7 +1073,7 @@ export default function BitcoinMapPage() {
                         className="rounded-lg border px-3 py-2 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40"
                         style={{ borderColor: theme.sectionBorder, color: theme.textPrimary }}
                       >
-                        Next
+                        {graphCopy.nextButton}
                       </button>
                       <button
                         type="button"
@@ -1083,13 +1084,13 @@ export default function BitcoinMapPage() {
                         }}
                         className="ml-auto rounded-lg border border-cyan-500/50 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-200"
                       >
-                        Open on Graph
+                        {graphCopy.openOnGraph}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <p className="text-sm" style={{ color: theme.textMuted }}>
-                    No story steps available for the current mode.
+                    {graphCopy.noStorySteps}
                   </p>
                 )}
               </section>
@@ -1175,16 +1176,18 @@ export default function BitcoinMapPage() {
                 {hasSearchMiss ? (
                   <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-slate-950/55 p-4">
                     <div className="pointer-events-auto max-w-md rounded-xl border border-slate-700 bg-slate-950/90 p-4 text-center">
-                      <p className="text-sm font-semibold text-slate-100">No graph matches for {searchQuery.trim()}</p>
+                      <p className="text-sm font-semibold text-slate-100">
+                        {graphCopy.noGraphMatches.replace("{0}", searchQuery.trim())}
+                      </p>
                       <p className="mt-1 text-xs text-slate-300">
-                        Try a broader term like segwit, utxo, policy, or clear the search.
+                        {graphCopy.noGraphMatchesHint}
                       </p>
                       <button
                         type="button"
                         onClick={() => setSearchQuery("")}
                         className="mt-3 rounded-md border border-cyan-500/50 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200"
                       >
-                        Clear Search
+                        {graphCopy.clearSearch}
                       </button>
                     </div>
                   </div>

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../../../components/Header';
 import Card from '../../../../components/Card';
@@ -36,7 +36,6 @@ interface BlockSummary {
 export const dynamic = "force-dynamic";
 
 function BlockCompareContent() {
-    const router = useRouter();
     const searchParams = useSearchParams();
 
     // b1 and b2 can be heights or hashes
@@ -94,14 +93,6 @@ function BlockCompareContent() {
         if (initialB2) fetchBlock(initialB2, 2);
     }, [initialB1, initialB2]);
 
-    const handleCompare = (e: React.FormEvent) => {
-        e.preventDefault();
-        const params = new URLSearchParams();
-        if (b1Input) params.set('b1', b1Input);
-        if (b2Input) params.set('b2', b2Input);
-        router.push(`/explorer/blocks/compare?${params.toString()}`);
-    };
-
     const renderMetricRow = (label: string, val1: React.ReactNode, val2: React.ReactNode, highlight: 'higher' | 'lower' | 'none' = 'none') => {
         // Very basic numeric comparison for highlighting
         let w1 = false;
@@ -153,11 +144,12 @@ function BlockCompareContent() {
                 </div>
 
                 {/* Input Form */}
-                <Card variant="panel" className="p-4 md:p-6">
-                    <form onSubmit={handleCompare} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                <Card variant="panel" hoverable={false} className="p-4 md:p-6">
+                    <form action="/explorer/blocks/compare" method="GET" className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                         <div className="md:col-span-5 space-y-2">
                             <label className="text-xs text-slate-500 uppercase tracking-widest font-bold">Block A (Height or Hash)</label>
                             <input
+                                name="b1"
                                 value={b1Input}
                                 onChange={e => setB1Input(e.target.value)}
                                 placeholder="e.g. 840000"
@@ -172,6 +164,7 @@ function BlockCompareContent() {
                             <label className="text-xs text-slate-500 uppercase tracking-widest font-bold">Block B (Height or Hash)</label>
                             <div className="flex gap-2">
                                 <input
+                                    name="b2"
                                     value={b2Input}
                                     onChange={e => setB2Input(e.target.value)}
                                     placeholder="e.g. 840001"
@@ -202,7 +195,7 @@ function BlockCompareContent() {
 
                 {/* Comparison Details */}
                 {(block1 || block2) && (
-                    <Card variant="panel" className="p-0 overflow-hidden">
+                    <Card variant="panel" hoverable={false} className="p-0 overflow-hidden">
 
                         {/* Headers */}
                         <div className="grid grid-cols-[120px_1fr_1fr] md:grid-cols-[200px_1fr_1fr] gap-4 p-4 md:p-6 bg-slate-900/80 border-b border-slate-800 items-end">

@@ -1,4 +1,3 @@
-/* eslint-disable */
 "use client";
 
 import MempoolPressureSimulator from "../../../components/mempool-game/MempoolPressureSimulator";
@@ -15,8 +14,8 @@ export default function MempoolSimulatorPage() {
                 <Header />
             </div>
             <PageHeader
-                title="Mempool Eviction + CPFP/RBF Simulator"
-                subtitle="Raise mempool pressure, observe fee floor movement, then rescue a stuck transaction with replacement or package fee bumping."
+                title={t.mempoolSimulator.title}
+                subtitle={t.mempoolSimulator.subtitle}
             />
 
             <MempoolPressureSimulator />
@@ -26,7 +25,7 @@ export default function MempoolSimulatorPage() {
                     href="/explorer/mempool"
                     className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2 text-sm text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors min-h-11"
                 >
-                    ← View Live Mempool Feed
+                    ← {t.mempoolSimulator.backToExplorer}
                 </Link>
             </div>
         </>

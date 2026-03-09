@@ -156,7 +156,7 @@ function FeatureCard({ feature }: { feature: FeatureItem }) {
                     </p>
                 </div>
                 <div className="flex items-center gap-1 text-primary text-sm font-medium mt-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span>View</span>
+                    <span>{t.dashboard.viewCta}</span>
                     <span className="text-sm transition-transform group-hover:translate-x-1">→</span>
                 </div>
             </Link>

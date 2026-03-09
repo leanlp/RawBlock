@@ -1,49 +1,7 @@
-const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:3000";
-const REQUEST_TIMEOUT_MS = Number(process.env.ROUTE_TIMEOUT_MS || 12000);
+import { BASE_URL } from "./qa/runtime.mjs";
+import { ROUTE_COUNTS, ROUTE_REDIRECTS, STATIC_PAGE_ROUTES } from "./qa/inventory.mjs";
 
-const criticalRoutes = [
-  "/",
-  "/about",
-  "/explorer/vitals",
-  "/explorer/mempool",
-  "/explorer/network",
-  "/explorer/blocks",
-  "/explorer/decoder",
-  "/explorer/miners",
-  "/explorer/rpc",
-  "/analysis/forensics",
-  "/analysis/utxo",
-  "/analysis/evolution",
-  "/analysis/graffiti",
-  "/analysis/d-index",
-  "/lab/script",
-  "/lab/consensus",
-  "/lab/hashing",
-  "/lab/keys",
-  "/lab/taproot",
-  "/lab/lightning",
-  "/game/tetris",
-  "/game/mining",
-  "/academy",
-  "/research",
-  "/research/vulnerabilities",
-  "/research/attacks",
-  "/research/assumptions",
-  "/research/policy-vs-consensus",
-];
-
-const legacyRedirects = [
-  { path: "/vitals", destination: "/explorer/vitals" },
-  { path: "/labs", destination: "/lab/script" },
-  { path: "/labs/script-lab", destination: "/lab/script" },
-  { path: "/labs/consensus-debugger", destination: "/lab/consensus" },
-  { path: "/knowledge", destination: "/research" },
-  { path: "/knowledge/academy", destination: "/academy" },
-  { path: "/knowledge/vulnerabilities", destination: "/research/vulnerabilities" },
-  { path: "/knowledge/attacks", destination: "/research/attacks" },
-  { path: "/knowledge/assumptions", destination: "/research/assumptions" },
-  { path: "/knowledge/policy-vs-consensus", destination: "/research/policy-vs-consensus" },
-];
+const REQUEST_TIMEOUT_MS = Number(process.env.ROUTE_TIMEOUT_MS || 12_000);
 
 function withTimeout(url, init = {}) {
   const controller = new AbortController();
@@ -51,24 +9,25 @@ function withTimeout(url, init = {}) {
   return fetch(url, { ...init, signal: controller.signal }).finally(() => clearTimeout(timeout));
 }
 
-async function checkCriticalRoute(path) {
-  const url = new URL(path, BASE_URL).toString();
+function isRedirect(status) {
+  return status === 301 || status === 302 || status === 307 || status === 308;
+}
+
+async function checkStaticRoute(route) {
+  const url = new URL(route, BASE_URL).toString();
   const response = await withTimeout(url, { redirect: "manual" });
   const ok = response.status >= 200 && response.status < 400;
+
   return {
-    kind: "critical",
-    path,
+    kind: "page",
+    route,
     ok,
     status: response.status,
     location: response.headers.get("location"),
   };
 }
 
-function isRedirect(status) {
-  return status === 301 || status === 302 || status === 307 || status === 308;
-}
-
-async function checkLegacyRedirect({ path, destination }) {
+async function checkRedirectRoute({ path, destination }) {
   const url = new URL(path, BASE_URL).toString();
   const response = await withTimeout(url, { redirect: "manual" });
   const location = response.headers.get("location");
@@ -78,7 +37,7 @@ async function checkLegacyRedirect({ path, destination }) {
 
   return {
     kind: "redirect",
-    path,
+    route: path,
     ok,
     status: response.status,
     location,
@@ -89,13 +48,13 @@ async function checkLegacyRedirect({ path, destination }) {
 async function run() {
   const results = [];
 
-  for (const path of criticalRoutes) {
+  for (const route of STATIC_PAGE_ROUTES) {
     try {
-      results.push(await checkCriticalRoute(path));
+      results.push(await checkStaticRoute(route));
     } catch (error) {
       results.push({
-        kind: "critical",
-        path,
+        kind: "page",
+        route,
         ok: false,
         status: null,
         location: null,
@@ -104,25 +63,28 @@ async function run() {
     }
   }
 
-  for (const redirectCase of legacyRedirects) {
+  for (const redirectRoute of ROUTE_REDIRECTS) {
     try {
-      results.push(await checkLegacyRedirect(redirectCase));
+      results.push(await checkRedirectRoute(redirectRoute));
     } catch (error) {
       results.push({
         kind: "redirect",
-        path: redirectCase.path,
+        route: redirectRoute.path,
         ok: false,
         status: null,
         location: null,
-        expected: redirectCase.destination,
+        expected: redirectRoute.destination,
         error: error instanceof Error ? error.message : String(error),
       });
     }
   }
 
   const failures = results.filter((entry) => !entry.ok);
+
   console.log(`Route check base: ${BASE_URL}`);
-  console.log(`Checked ${results.length} routes (${criticalRoutes.length} critical, ${legacyRedirects.length} redirects).`);
+  console.log(
+    `Checked ${results.length} routes (${ROUTE_COUNTS.staticPages} static pages, ${ROUTE_COUNTS.redirects} redirects).`,
+  );
 
   if (failures.length === 0) {
     console.log("All route checks passed.");
@@ -133,17 +95,18 @@ async function run() {
   for (const failure of failures) {
     if (failure.kind === "redirect") {
       console.error(
-        `- [redirect] ${failure.path} status=${String(failure.status)} location=${String(
+        `- [redirect] ${failure.route} status=${String(failure.status)} location=${String(
           failure.location,
         )} expected=${String(failure.expected)}${failure.error ? ` error=${failure.error}` : ""}`,
       );
-    } else {
-      console.error(
-        `- [critical] ${failure.path} status=${String(failure.status)} location=${String(
-          failure.location,
-        )}${failure.error ? ` error=${failure.error}` : ""}`,
-      );
+      continue;
     }
+
+    console.error(
+      `- [page] ${failure.route} status=${String(failure.status)} location=${String(
+        failure.location,
+      )}${failure.error ? ` error=${failure.error}` : ""}`,
+    );
   }
 
   process.exit(1);
