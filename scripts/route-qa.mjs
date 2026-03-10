@@ -68,7 +68,8 @@ async function run() {
                   `[route-qa] Server appears dead after ${MAX_CONSECUTIVE_DEAD} consecutive connection failures. Aborting.`,
                 );
                 results.push(result);
-                throw new Error("Server crashed during responsive QA.");
+                writeJson(path.join(outDir, "results.json"), results);
+                process.exit(1);
               }
             } else {
               consecutiveDead = 0;
