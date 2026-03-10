@@ -14,8 +14,17 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "[release-gate:local] starting next dev on ${HOST}:${PORT}"
-NODE_OPTIONS="--max-old-space-size=4096" npm run dev -- --hostname "${HOST}" --port "${PORT}" >"${NEXT_LOG}" 2>&1 &
+# ── 1. Production build ──────────────────────────────────────────────
+# Dev mode (next dev) compiles on-demand and leaks memory under heavy
+# QA load (76 routes × 3 viewports).  A production build compiles
+# everything upfront and `next start` serves from the built artifacts
+# with minimal memory — no OOM crashes.
+echo "[release-gate:local] building production bundle"
+NODE_OPTIONS="--max-old-space-size=4096" npm run build 2>&1 | tail -n 30
+
+# ── 2. Start production server ────────────────────────────────────────
+echo "[release-gate:local] starting next start on ${HOST}:${PORT}"
+npm run start -- --hostname "${HOST}" --port "${PORT}" >"${NEXT_LOG}" 2>&1 &
 NEXT_PID=$!
 
 echo "[release-gate:local] waiting for app boot"
@@ -32,6 +41,7 @@ if ! curl -sf "${BASE_URL}" >/dev/null; then
   exit 1
 fi
 
+# ── 3. Run QA suite ──────────────────────────────────────────────────
 echo "[release-gate:local] running qa:release-gate against ${BASE_URL}"
 BASE_URL="${BASE_URL}" HEADLESS="${HEADLESS}" npm run qa:release-gate
 
