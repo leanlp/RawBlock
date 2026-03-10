@@ -66,6 +66,8 @@ const en = {
   dashboard: {
     subtitle: "Your command center for analyzing the",
     subtitleHighlight: "Bitcoin P2P network",
+    heroSearchPlaceholder: "Search TX, Address, or Block...",
+    heroSearchAction: "Search",
     viewCta: "View",
     explore: {
       title: "🔬 Explore",

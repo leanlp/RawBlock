@@ -68,6 +68,8 @@ const es: TranslationKeys = {
   dashboard: {
     subtitle: "Tu centro de comando para analizar la",
     subtitleHighlight: "red P2P de Bitcoin",
+    heroSearchPlaceholder: "Buscar TX, direccion o bloque...",
+    heroSearchAction: "Buscar",
     viewCta: "Ver",
     explore: {
       title: "🔬 Explorar",

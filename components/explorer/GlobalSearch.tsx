@@ -1,43 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { getSearchDestination } from "./searchRouting";
 
-export default function GlobalSearch() {
+type GlobalSearchProps = {
+    variant?: "sidebar" | "hero";
+};
+
+export default function GlobalSearch({ variant = "sidebar" }: GlobalSearchProps) {
     const [query, setQuery] = useState("");
     const router = useRouter();
+    const { t } = useTranslation();
+    const isHero = variant === "hero";
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        const trimmed = query.trim();
-        if (!trimmed) return;
+    const handleSearch = (event: FormEvent) => {
+        event.preventDefault();
+        const destination = getSearchDestination(query);
+        if (!destination) return;
 
-        // Routing Logic
-        if (/^\d+$/.test(trimmed)) {
-            // Block Height
-            router.push(`/explorer/block/${trimmed}`);
-        } else if (/^[a-fA-F0-9]{64}$/.test(trimmed)) {
-            // If it starts with several zeros, assume Block Hash, otherwise TXID
-            // Mainnet blocks typically have at least 8 leading zeros.
-            if (trimmed.startsWith("00000000") || trimmed.startsWith("0000000")) {
-                router.push(`/explorer/block/${trimmed}`);
-            } else {
-                router.push(`/explorer/decoder?query=${trimmed}`);
-            }
-        } else if (/^(1|3|bc1)[a-zA-HJ-NP-Z0-9]+$/.test(trimmed)) {
-            // Address
-            router.push(`/explorer/address/${trimmed}`);
-        } else {
-            // Fallback (assume tx if unknown format, or let the specific pages handle errors)
-            router.push(`/explorer/decoder?query=${trimmed}`);
-        }
-
+        router.push(destination);
         setQuery("");
     };
 
-    const { t } = useTranslation();
+    if (isHero) {
+        return (
+            <form onSubmit={handleSearch} className="relative group glow-border rounded-xl">
+                <div className="flex w-full items-stretch rounded-xl h-16 glass-panel relative z-10 overflow-hidden">
+                    <div className="flex items-center justify-center pl-6 text-slate-400 group-focus-within:text-primary transition-colors">
+                        <span className="text-2xl">🔍</span>
+                    </div>
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        placeholder={t.dashboard.heroSearchPlaceholder}
+                        className="form-input flex w-full min-w-0 flex-1 bg-transparent border-none text-white focus:ring-0 h-full placeholder:text-slate-500 px-4 text-lg"
+                    />
+                    <div className="flex items-center justify-center pr-2 py-2">
+                        <button
+                            type="submit"
+                            className="flex items-center justify-center rounded-lg h-full px-6 bg-primary text-background-dark text-base font-bold hover:bg-primary/90 transition-colors"
+                        >
+                            {t.dashboard.heroSearchAction}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        );
+    }
 
     return (
         <form onSubmit={handleSearch} className="relative w-full">

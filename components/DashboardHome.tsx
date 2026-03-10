@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRef, useState } from "react";
 import HeroMetrics from "./HeroMetrics";
 import AnimatedBlockLogo from "./AnimatedBlockLogo";
+import GlobalSearch from "./explorer/GlobalSearch";
 import { useGuidedLearning } from "./providers/GuidedLearningProvider";
 import { CANONICAL_PATH_ID, getCanonicalPath } from "@/lib/graph/pathEngine";
 import { useTranslation } from "@/lib/i18n";
@@ -394,19 +395,7 @@ export default function DashboardHome() {
                     {t.dashboard.subtitle} <span className="text-primary font-medium">{t.dashboard.subtitleHighlight}</span>.
                 </p>
                 <div className="w-full max-w-2xl mt-10 mx-auto">
-                    <div className="relative group glow-border rounded-xl">
-                        <div className="flex w-full items-stretch rounded-xl h-16 glass-panel relative z-10 overflow-hidden">
-                            <div className="flex items-center justify-center pl-6 text-slate-400 group-focus-within:text-primary transition-colors">
-                                <span className="text-2xl">🔍</span>
-                            </div>
-                            <input type="text" className="form-input flex w-full min-w-0 flex-1 bg-transparent border-none text-white focus:ring-0 h-full placeholder:text-slate-500 px-4 text-lg" placeholder="Search TX, Address, or Block..." />
-                            <div className="flex items-center justify-center pr-2 py-2">
-                                <button className="flex items-center justify-center rounded-lg h-full px-6 bg-primary text-background-dark text-base font-bold hover:bg-primary/90 transition-colors">
-                                    Search
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <GlobalSearch variant="hero" />
                 </div>
             </motion.div>
 
