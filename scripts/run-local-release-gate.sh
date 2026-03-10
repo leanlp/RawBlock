@@ -15,7 +15,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "[release-gate:local] starting next dev on ${HOST}:${PORT}"
-npm run dev -- --hostname "${HOST}" --port "${PORT}" >"${NEXT_LOG}" 2>&1 &
+NODE_OPTIONS="--max-old-space-size=4096" npm run dev -- --hostname "${HOST}" --port "${PORT}" >"${NEXT_LOG}" 2>&1 &
 NEXT_PID=$!
 
 echo "[release-gate:local] waiting for app boot"
