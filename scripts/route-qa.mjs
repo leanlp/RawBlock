@@ -1,3 +1,4 @@
+import http from "node:http";
 import path from "node:path";
 import { QA_VIEWPORTS, ROUTE_MATRIX, ROUTE_COUNTS } from "./qa/inventory.mjs";
 import {
@@ -12,6 +13,19 @@ import {
   writeJson,
 } from "./qa/runtime.mjs";
 
+const MAX_CONSECUTIVE_DEAD = 3;
+
+async function isServerAlive() {
+  return new Promise((resolve) => {
+    const req = http.get(BASE_URL, { timeout: 5000 }, (res) => {
+      res.resume();
+      resolve(true);
+    });
+    req.on("error", () => resolve(false));
+    req.on("timeout", () => { req.destroy(); resolve(false); });
+  });
+}
+
 function shouldCaptureBaseline(route) {
   return route === "/";
 }
@@ -23,6 +37,11 @@ async function run() {
 
   try {
     for (const viewport of QA_VIEWPORTS) {
+      const alive = await isServerAlive();
+      if (!alive) {
+        console.error(`[route-qa] Server is not reachable before ${viewport.name} viewport round. Aborting.`);
+        break;
+      }
       for (const matrixEntry of ROUTE_MATRIX) {
         const context = await createLocaleContext(browser, {
           viewport,
@@ -31,6 +50,7 @@ async function run() {
         const page = await context.newPage();
 
         try {
+          let consecutiveDead = 0;
           for (const route of matrixEntry.routes) {
             const result = await inspectResponsiveRoute(page, {
               route,
@@ -40,6 +60,19 @@ async function run() {
             result.viewport = viewport.name;
             result.matrixKey = matrixEntry.key;
             result.routeKind = matrixEntry.routeKind;
+
+            if (result.status === 0) {
+              consecutiveDead++;
+              if (consecutiveDead >= MAX_CONSECUTIVE_DEAD) {
+                console.error(
+                  `[route-qa] Server appears dead after ${MAX_CONSECUTIVE_DEAD} consecutive connection failures. Aborting.`,
+                );
+                results.push(result);
+                throw new Error("Server crashed during responsive QA.");
+              }
+            } else {
+              consecutiveDead = 0;
+            }
 
             const hasAnyIssue = result.issues.length > 0;
             if (shouldCaptureBaseline(route) || hasAnyIssue) {

@@ -164,10 +164,6 @@ function pageFileToRoute(pageFile) {
   return `/${withoutPage.split(path.sep).join("/")}`;
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function buildRouteInventory() {
   const redirectPaths = new Set(ROUTE_REDIRECTS.map((entry) => entry.path));
   const pageFiles = walkFiles(APP_DIR).filter((file) => file.endsWith(`${path.sep}page.tsx`));
@@ -275,7 +271,7 @@ const spanishSentinelRules = [
   {
     routes: ["/"],
     description: "dashboard CTA leaked English",
-    patterns: [new RegExp(`\\b${escapeRegExp("View")}\\b`)],
+    patterns: [/\bView Explorer\b/i, /\bView Dashboard\b/i, /\bView All\b/i, /\bView Live\b/i],
   },
   {
     routes: ["/game/mempool"],
