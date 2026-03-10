@@ -13,7 +13,7 @@ export function getSearchDestination(query: string) {
   }
 
   if (/^(1|3|bc1)[a-zA-HJ-NP-Z0-9]+$/.test(trimmed)) {
-    return `/explorer/address/${trimmed}`;
+    return `/explorer/decoder?query=${trimmed}`;
   }
 
   return `/explorer/decoder?query=${trimmed}`;
