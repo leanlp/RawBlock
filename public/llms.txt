@@ -1,9 +1,11 @@
 # Raw Block
 
 Raw Block is a Bitcoin exploration and protocol-learning workspace that combines:
-- live explorer views (blocks, mempool, fees, miners, network, vitals)
-- educational labs (Script, Taproot, Keys, Hashing, Consensus)
+- live explorer views (blocks, mempool, fees, miners, network, vitals, decoder)
+- educational labs (Script, Taproot, Keys, Hashing, Consensus, Lightning, Scenarios)
+- analysis modules (UTXO, forensics, privacy, bridges, incidents, D-Index, graffiti)
 - research registries (vulnerabilities, attack models, assumptions, policy vs consensus)
+- structured Academy paths and protocol glossary
 
 Primary site: https://www.rawblock.net
 Repository: https://github.com/leanlp/rawblock
@@ -11,17 +13,56 @@ Repository: https://github.com/leanlp/rawblock
 ## Core sections
 - Home: https://www.rawblock.net/
 - About & Trust: https://www.rawblock.net/about
-- Explorer / Network: https://www.rawblock.net/explorer/network
-- Explorer / Blocks: https://www.rawblock.net/explorer/blocks
-- Explorer / Decoder: https://www.rawblock.net/explorer/decoder
-- Explorer / Rich List: https://www.rawblock.net/explorer/rich-list
-- Explorer / Fees: https://www.rawblock.net/explorer/fees
-- Academy: https://www.rawblock.net/academy
-- Research: https://www.rawblock.net/research
+- Product updates: https://www.rawblock.net/blog
+- Protocol glossary: https://www.rawblock.net/glossary
+- Knowledge graph: https://www.rawblock.net/graph
+
+## Explorer
+- Network: https://www.rawblock.net/explorer/network
+- Blocks ledger: https://www.rawblock.net/explorer/blocks
+- Transaction decoder: https://www.rawblock.net/explorer/decoder
+- Mempool feed: https://www.rawblock.net/explorer/mempool
+- Fee estimates: https://www.rawblock.net/explorer/fees
+- Rich list: https://www.rawblock.net/explorer/rich-list
+- Miners: https://www.rawblock.net/explorer/miners
+- Protocol vitals: https://www.rawblock.net/explorer/vitals
+
+## Labs
 - Script Lab: https://www.rawblock.net/lab/script
 - Taproot Playground: https://www.rawblock.net/lab/taproot
+- Keys: https://www.rawblock.net/lab/keys
+- Hashing: https://www.rawblock.net/lab/hashing
 - Consensus Debugger: https://www.rawblock.net/lab/consensus
-- Mempool Simulator: https://www.rawblock.net/game/mempool
+- Lightning Simulator: https://www.rawblock.net/lab/lightning
+- Scenarios: https://www.rawblock.net/lab/scenarios
+
+## Analysis
+- UTXO set: https://www.rawblock.net/analysis/utxo
+- Forensics: https://www.rawblock.net/analysis/forensics
+- Privacy: https://www.rawblock.net/analysis/privacy
+- Bridges: https://www.rawblock.net/analysis/bridges
+- Incidents: https://www.rawblock.net/analysis/incidents
+- Evolution: https://www.rawblock.net/analysis/evolution
+- D-Index: https://www.rawblock.net/analysis/d-index
+- Graffiti: https://www.rawblock.net/analysis/graffiti
+- Lightning threats: https://www.rawblock.net/analysis/lightning/threats
+
+## Learn & research
+- Academy: https://www.rawblock.net/academy
+- Spanish Academy: https://www.rawblock.net/es/academy
+- Research hub: https://www.rawblock.net/research
+- Policy vs consensus: https://www.rawblock.net/research/policy
+
+## Games / simulations
+- Mempool Tetris: https://www.rawblock.net/game/tetris
+- Mining Simulator: https://www.rawblock.net/game/mining
+- Mempool game: https://www.rawblock.net/game/mempool
+
+## SEO-friendly aliases (redirect to canonical tools)
+- /tools/bitcoin-transaction-decoder → /explorer/decoder
+- /tools/bitcoin-script-debugger → /lab/script
+- /tools/taproot-playground → /lab/taproot
+- /tools/mempool-explorer → /explorer/mempool
 
 ## Data and source policy
 - Primary data comes from Raw Block hosted Bitcoin infrastructure (node/indexers/gateway).
@@ -30,6 +71,7 @@ Repository: https://github.com/leanlp/rawblock
 
 ## API / machine-readable discovery
 - Sitemap: https://www.rawblock.net/sitemap.xml
+- Localized sitemaps: https://www.rawblock.net/sitemaps/en.xml , https://www.rawblock.net/sitemaps/es.xml
+- Recent blocks sitemap: https://www.rawblock.net/sitemap-blocks.xml
 - API gateway (public endpoints vary): https://apigoland.rawblock.net/
 - More detail: https://www.rawblock.net/llms-full.txt
-

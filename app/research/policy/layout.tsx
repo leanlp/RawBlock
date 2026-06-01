@@ -8,15 +8,8 @@ export const metadata = buildPageMetadata({
     "Reference guide distinguishing Bitcoin relay policy behavior from consensus-critical rules with structured examples and sources.",
   path: "/research/policy",
   keywords: ["bitcoin policy vs consensus", "standardness", "relay policy", "consensus rules"],
+  locales: { enPath: "/research/policy", esPath: "/es/research/policy" },
 });
-metadata.alternates = {
-  canonical: "https://www.rawblock.net/research/policy",
-  languages: {
-    en: "https://www.rawblock.net/research/policy",
-    es: "https://www.rawblock.net/es/research/policy",
-    "x-default": "https://www.rawblock.net/research/policy",
-  },
-};
 
 export default function ResearchPolicyLayout({ children }: { children: ReactNode }) {
   return (

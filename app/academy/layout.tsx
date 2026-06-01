@@ -1,24 +1,16 @@
 import type { ReactNode } from "react";
-import type { Metadata } from "next";
 import JsonLd from "@/components/seo/JsonLd";
-import { breadcrumbJsonLd, collectionPageJsonLd } from "@/lib/seo";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import { breadcrumbJsonLd, buildPageMetadata, collectionPageJsonLd } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Bitcoin Academy",
-    template: "%s | Raw Block",
-  },
+export const metadata = buildPageMetadata({
+  title: "Bitcoin Academy",
   description:
     "Structured Bitcoin learning paths and concept nodes covering validation, blocks, mempool, consensus, mining, and security fundamentals.",
-  alternates: {
-    canonical: "https://www.rawblock.net/academy",
-    languages: {
-      en: "https://www.rawblock.net/academy",
-      es: "https://www.rawblock.net/es/academy",
-      "x-default": "https://www.rawblock.net/academy",
-    },
-  },
-};
+  path: "/academy",
+  keywords: ["bitcoin academy", "bitcoin learning path", "bitcoin education"],
+  locales: { enPath: "/academy", esPath: "/es/academy" },
+});
 
 export default function AcademyLayout({ children }: { children: ReactNode }) {
   return (
@@ -38,6 +30,7 @@ export default function AcademyLayout({ children }: { children: ReactNode }) {
         })}
       />
       {children}
+      <SeoContentSection pageKey="academy" />
     </>
   );
 }
