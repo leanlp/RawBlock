@@ -55,6 +55,7 @@ interface AddressInfo {
     address: string;
     balance: number;
     utxoCount: number;
+    totalUtxoCount?: number;
     scanHeight: number;
     utxos: Array<{
         txid: string;
@@ -67,6 +68,7 @@ interface AddressInfo {
 
 type DecoderResult = (DecodedTx & { type?: 'transaction' }) | AddressInfo;
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const MEMPOOL_API = "https://mempool.space/api";
 const MEMPOOL_TX_API = "https://mempool.space/api/tx";
 type DecoderDataSource = "live" | "fallback" | "demo" | "unknown";
 
@@ -101,8 +103,42 @@ interface MempoolTx {
     vout?: MempoolTxOutput[];
 }
 
+interface MempoolAddressSummary {
+    address?: string;
+    chain_stats?: {
+        funded_txo_count?: number;
+        funded_txo_sum?: number;
+        spent_txo_count?: number;
+        spent_txo_sum?: number;
+    };
+}
+
+interface MempoolAddressUtxo {
+    txid?: string;
+    vout?: number;
+    value?: number;
+    status?: {
+        block_height?: number;
+    };
+}
+
 function isLikelyTxid(value: string): boolean {
     return /^[a-fA-F0-9]{64}$/.test(value.trim());
+}
+
+function isLikelyAddress(value: string): boolean {
+    return /^(1|3|bc1)[a-zA-HJ-NP-Z0-9]+$/.test(value.trim());
+}
+
+function inferScriptPubKeyFromAddress(address: string): string {
+    const normalized = address.toLowerCase();
+
+    if (normalized.startsWith("1")) return "76a914";
+    if (normalized.startsWith("3")) return "a914";
+    if (normalized.startsWith("bc1p")) return "5120";
+    if (normalized.startsWith("bc1q")) return normalized.length <= 42 ? "0014" : "0020";
+
+    return "";
 }
 
 async function decodeViaMempool(txid: string): Promise<DecodedTx> {
@@ -152,6 +188,65 @@ async function decodeViaMempool(txid: string): Promise<DecodedTx> {
     };
 }
 
+async function decodeAddressViaMempool(address: string): Promise<AddressInfo> {
+    const normalizedAddress = address.trim();
+    const summaryRes = await fetch(`${MEMPOOL_API}/address/${encodeURIComponent(normalizedAddress)}`, {
+        cache: "no-store",
+    });
+
+    if (!summaryRes.ok) {
+        throw new Error(`Address fallback failed (HTTP ${summaryRes.status})`);
+    }
+
+    const summary = (await summaryRes.json()) as MempoolAddressSummary;
+    const chainStats = summary.chain_stats ?? {};
+    const totalUtxoCount = Math.max(
+        0,
+        Number(chainStats.funded_txo_count ?? 0) - Number(chainStats.spent_txo_count ?? 0)
+    );
+    const balanceSats = Math.max(
+        0,
+        Number(chainStats.funded_txo_sum ?? 0) - Number(chainStats.spent_txo_sum ?? 0)
+    );
+    const shouldFetchUtxos = totalUtxoCount > 0 && totalUtxoCount <= 500;
+
+    const [utxoRes, tipRes] = await Promise.allSettled([
+        shouldFetchUtxos
+            ? fetch(`${MEMPOOL_API}/address/${encodeURIComponent(normalizedAddress)}/utxo`, { cache: "no-store" })
+            : Promise.resolve(null),
+        fetch(`${MEMPOOL_API}/blocks/tip/height`, { cache: "no-store" }),
+    ]);
+
+    let utxos: AddressInfo["utxos"] = [];
+    if (utxoRes.status === "fulfilled" && utxoRes.value?.ok) {
+        const scriptPubKey = inferScriptPubKeyFromAddress(normalizedAddress);
+        const utxoData = (await utxoRes.value.json()) as MempoolAddressUtxo[];
+        utxos = utxoData.map((utxo) => ({
+            txid: String(utxo.txid ?? ""),
+            vout: Number(utxo.vout ?? 0),
+            amount: Number(utxo.value ?? 0) / 100_000_000,
+            height: Number(utxo.status?.block_height ?? 0),
+            scriptPubKey,
+        }));
+    }
+
+    let scanHeight = 0;
+    if (tipRes.status === "fulfilled" && tipRes.value.ok) {
+        const tipText = await tipRes.value.text();
+        scanHeight = Number(tipText.trim()) || 0;
+    }
+
+    return {
+        type: 'address',
+        address: String(summary.address ?? normalizedAddress),
+        balance: balanceSats / 100_000_000,
+        utxoCount: utxos.length,
+        totalUtxoCount,
+        scanHeight,
+        utxos,
+    };
+}
+
 function DecoderContent() {
     const { t } = useTranslation();
     const searchParams = useSearchParams();
@@ -183,6 +278,13 @@ function DecoderContent() {
         setDataSource(API_URL ? "unknown" : "demo");
 
         try {
+            if (isLikelyAddress(txQuery)) {
+                const fallbackAddress = await decodeAddressViaMempool(txQuery.trim());
+                setResult(fallbackAddress);
+                setDataSource("fallback");
+                return;
+            }
+
             if (API_URL) {
                 const res = await fetch(`${API_URL}/api/decode-tx`, {
                     method: 'POST',
@@ -464,7 +566,7 @@ function DecoderContent() {
                             <AddressAnalyticsPanel
                                 address={result.address}
                                 utxos={result.utxos}
-                                currentHeight={840000} // Mocked block height
+                                currentHeight={result.scanHeight || 840000}
                             />
                         </div>
 
@@ -472,7 +574,12 @@ function DecoderContent() {
                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
                             <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
                                 <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                            {t.decoder.unspentOutputs} - {result.utxoCount}
+                                {t.decoder.unspentOutputs} - {" "}
+                                {result.totalUtxoCount !== undefined && result.totalUtxoCount !== result.utxoCount
+                                    ? t.decoder.showingOf
+                                        .replace("{0}", result.utxoCount.toLocaleString())
+                                        .replace("{1}", result.totalUtxoCount.toLocaleString())
+                                    : result.utxoCount.toLocaleString()}
                             </h3>
 
                             <div className="grid gap-3">
@@ -497,7 +604,9 @@ function DecoderContent() {
                                 ))}
                                 {result.utxos.length === 0 && (
                                     <div className="p-8 text-center text-slate-600 italic border border-slate-800 rounded-lg border-dashed">
-                                        {t.decoder.noUtxos}
+                                        {result.totalUtxoCount && result.totalUtxoCount > 0
+                                            ? t.decoder.publicAddressLimit
+                                            : t.decoder.noUtxos}
                                     </div>
                                 )}
                             </div>

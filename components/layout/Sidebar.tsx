@@ -9,6 +9,7 @@ import { useGuidedLearning } from "../providers/GuidedLearningProvider";
 import { getCanonicalPath } from "@/lib/graph/pathEngine";
 import GlobalSearch from "../explorer/GlobalSearch";
 import { useTranslation } from "@/lib/i18n";
+import { trackLanguageChange, trackMobileNavigation, trackSidebarNavigation } from "@/lib/analytics/navigation";
 
 type NavItem = {
     nameKey: string;
@@ -194,7 +195,18 @@ export default function Sidebar() {
     };
 
     const toggleLocale = () => {
-        setLocale(locale === "en" ? "es" : "en");
+        const nextLocale = locale === "en" ? "es" : "en";
+        trackLanguageChange(locale, nextLocale);
+        setLocale(nextLocale);
+    };
+
+    const handleNavClick = (destination: string, isMobile = false) => {
+        if (isMobile) {
+            trackMobileNavigation(destination);
+        } else {
+            trackSidebarNavigation(destination);
+        }
+        setMobileOpen(false);
     };
 
     const sidebarContent = (
@@ -248,7 +260,7 @@ export default function Sidebar() {
                                     <Link
                                         key={item.path}
                                         href={item.path}
-                                        onClick={() => setMobileOpen(false)}
+                                        onClick={() => handleNavClick(item.path)}
                                         className={`
                                             group relative flex items-center gap-3 px-3 py-2.5 min-h-11 rounded-lg
                                             transition-all duration-200
@@ -322,7 +334,12 @@ export default function Sidebar() {
                 <div className="flex items-center gap-2">
                     {/* Hamburger Toggle */}
                     <button
-                        onClick={() => setMobileOpen(!mobileOpen)}
+                        onClick={() => {
+                            if (!mobileOpen) {
+                                trackMobileNavigation("mobile_menu_open");
+                            }
+                            setMobileOpen(!mobileOpen);
+                        }}
                         className="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-cyan-400 transition-colors"
                     >
                         <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

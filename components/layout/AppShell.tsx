@@ -3,6 +3,7 @@
 import Sidebar from "./Sidebar";
 
 import Footer from "./Footer";
+import { PostHogAnalyticsBridge } from "@/components/analytics/PostHogAnalyticsBridge";
 import { GuidedLearningProvider } from "@/components/providers/GuidedLearningProvider";
 import { LanguageProvider, type Locale } from "@/lib/i18n";
 
@@ -15,6 +16,7 @@ export default function AppShell({
 }) {
     return (
         <LanguageProvider initialLocale={initialLocale}>
+            <PostHogAnalyticsBridge>
             <GuidedLearningProvider>
                 <div className="min-h-screen w-full overflow-x-clip bg-slate-950 text-slate-200 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
                     {/* The Permanent Sidebar */}
@@ -37,6 +39,7 @@ export default function AppShell({
                     </main>
                 </div>
             </GuidedLearningProvider>
+            </PostHogAnalyticsBridge>
         </LanguageProvider>
     );
 }

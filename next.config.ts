@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { posthogRewrites } from "./config/posthog";
 
 const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "";
 const configuredConnectSrc = (() => {
@@ -32,6 +33,11 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    const analyticsRewrites = await posthogRewrites();
+    return analyticsRewrites;
+  },
   async headers() {
     return [
       {
