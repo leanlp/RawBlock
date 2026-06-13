@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+import { GLOSSARY_EN } from "@/data/glossary";
+import { BLOG_POSTS } from "@/data/blogPosts";
 import { graphStore } from "@/lib/graph/store";
 import { getAllPaths } from "@/lib/graph/pathEngine";
 import { getAllAcademyNodeContent } from "@/lib/content/academy";
@@ -57,6 +59,14 @@ function getSeoMetadata(route: string): Pick<MetadataRoute.Sitemap[number], "cha
     return { changeFrequency: "weekly", priority: 0.72 };
   }
 
+  if (route === "/glossary" || route.startsWith("/glossary/")) {
+    return { changeFrequency: "monthly", priority: 0.7 };
+  }
+
+  if (route === "/blog" || route.startsWith("/blog/")) {
+    return { changeFrequency: "monthly", priority: 0.65 };
+  }
+
   return { changeFrequency: "weekly", priority: 0.68 };
 }
 
@@ -83,6 +93,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/",
     "/about",
     "/academy",
+    "/blog",
+    "/glossary",
+    "/graph",
     "/research",
     "/research/vulnerabilities",
     "/research/attacks",
@@ -102,12 +115,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/analysis/evolution",
     "/analysis/d-index",
     "/analysis/graffiti",
+    "/analysis/privacy",
+    "/analysis/bridges",
+    "/analysis/incidents",
+    "/analysis/lightning/threats",
     "/lab/script",
     "/lab/taproot",
     "/lab/keys",
     "/lab/hashing",
     "/lab/consensus",
     "/lab/lightning",
+    "/lab/scenarios",
     "/game/tetris",
     "/game/mining",
     "/game/mempool",
@@ -115,8 +133,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const pathRoutes = getAllPaths().map((path) => `/paths/${path.id}`);
   const academyNodeRoutes = graphStore.nodes.map((node) => `/academy/${node.id}`);
+  const glossaryRoutes = Object.keys(GLOSSARY_EN).map((term) => `/glossary/${term}`);
+  const blogRoutes = BLOG_POSTS.map((post) => `/blog/${post.slug}`);
 
-  const uniqueRoutes = Array.from(new Set([...staticRoutes, ...pathRoutes, ...academyNodeRoutes]));
+  const uniqueRoutes = Array.from(
+    new Set([...staticRoutes, ...pathRoutes, ...academyNodeRoutes, ...glossaryRoutes, ...blogRoutes]),
+  );
 
   return uniqueRoutes.map((route) => {
     const seo = getSeoMetadata(route);

@@ -60,6 +60,7 @@ const en = {
     allRightsReserved: "All rights reserved.",
     mainnetConnected: "Mainnet Connected",
     aboutAndTrust: "About & Trust",
+    support: "Support",
   },
 
   // Dashboard Home
@@ -282,6 +283,14 @@ const en = {
     phase2Text: "Guided journeys, progress tracking, and interactive simulators for mining and mempool mechanics.",
     phase3: "Phase 3: Network Attacks & Forensics",
     phase3Text: "Simulating 51% attacks, strict signature validation paths, and UTXO graph clustering maps.",
+    supportTitle: "Support Raw Block",
+    supportText:
+      "If this explorer and lab help you learn or operate on Bitcoin, you can send a voluntary on-chain donation. There is no paywall — contributions only help cover infrastructure.",
+    donationWarning: "Only send Bitcoin (BTC) on mainnet to this address. Other assets sent here will be lost.",
+    donationCopy: "Copy address",
+    donationCopied: "Copied",
+    donationViewOnMempool: "View on mempool.space",
+    donationQrAlt: "QR code to donate Bitcoin to Raw Block",
   },
 
   // Language toggle

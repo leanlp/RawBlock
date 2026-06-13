@@ -270,6 +270,31 @@ const nextConfig: NextConfig = {
         destination: "/paths/bitcoin-foundations",
         permanent: true,
       },
+      {
+        source: "/research/policy-vs-consensus",
+        destination: "/research/policy",
+        permanent: true,
+      },
+      {
+        source: "/tools/bitcoin-transaction-decoder",
+        destination: "/explorer/decoder",
+        permanent: true,
+      },
+      {
+        source: "/tools/bitcoin-script-debugger",
+        destination: "/lab/script",
+        permanent: true,
+      },
+      {
+        source: "/tools/taproot-playground",
+        destination: "/lab/taproot",
+        permanent: true,
+      },
+      {
+        source: "/tools/mempool-explorer",
+        destination: "/explorer/mempool",
+        permanent: true,
+      },
     ];
   },
 };

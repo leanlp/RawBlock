@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import JsonLd from "@/components/seo/JsonLd";
-import { buildPageMetadata } from "@/lib/seo";
-import { breadcrumbJsonLd } from "@/lib/seo";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import { buildPageMetadata, breadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
   title: "About & Trust",
@@ -21,6 +21,7 @@ export default function AboutLayout({ children }: { children: ReactNode }) {
         ])}
       />
       {children}
+      <SeoContentSection pageKey="about" />
     </>
   );
 }

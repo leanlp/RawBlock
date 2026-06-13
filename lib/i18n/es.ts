@@ -62,6 +62,7 @@ const es: TranslationKeys = {
     allRightsReserved: "Todos los derechos reservados.",
     mainnetConnected: "Mainnet Conectada",
     aboutAndTrust: "Acerca de y Confianza",
+    support: "Apoyar",
   },
 
   // Panel Principal
@@ -284,6 +285,15 @@ const es: TranslationKeys = {
     phase2Text: "Recorridos guiados, seguimiento de progreso y simuladores interactivos para mecánicas de minería y mempool.",
     phase3: "Fase 3: Ataques de Red y Forense",
     phase3Text: "Simulación de ataques del 51%, rutas de validación estricta de firmas y mapas de agrupamiento de grafos UTXO.",
+    supportTitle: "Apoya Raw Block",
+    supportText:
+      "Si este explorador y laboratorio te ayudan a aprender u operar en Bitcoin, puedes enviar una donación voluntaria on-chain. No hay muro de pago — las contribuciones solo ayudan con la infraestructura.",
+    donationWarning:
+      "Envía solo Bitcoin (BTC) en mainnet a esta dirección. Otros activos enviados aquí se perderán.",
+    donationCopy: "Copiar dirección",
+    donationCopied: "Copiado",
+    donationViewOnMempool: "Ver en mempool.space",
+    donationQrAlt: "Código QR para donar Bitcoin a Raw Block",
   },
 
   // Toggle de idioma

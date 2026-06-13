@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0f172a"/>
+  <text x="60" y="120" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="28" font-weight="600">Raw Block</text>
+  <text x="60" y="220" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="56" font-weight="700">Script Lab</text>
+  <text x="60" y="290" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="28">Visual Bitcoin Script debugger</text>
+</svg>

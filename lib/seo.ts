@@ -11,6 +11,8 @@ type MetadataInput = {
   path: string;
   keywords?: string[];
   image?: string;
+  /** Bilingual hreflang pair when /es mirror exists */
+  locales?: { enPath: string; esPath: string };
 };
 
 export function absoluteUrl(path: string): string {
@@ -25,15 +27,22 @@ export function buildPageMetadata({
   path,
   keywords = [],
   image = "/icon.png",
+  locales,
 }: MetadataInput): Metadata {
   const url = absoluteUrl(path);
   const imageUrl = absoluteUrl(image);
+  const alternates: Metadata["alternates"] = { canonical: url };
+  if (locales) {
+    alternates.languages = {
+      en: absoluteUrl(locales.enPath),
+      es: absoluteUrl(locales.esPath),
+      "x-default": absoluteUrl(locales.enPath),
+    };
+  }
   return {
     title,
     description,
-    alternates: {
-      canonical: url,
-    },
+    alternates,
     keywords,
     openGraph: {
       type: "website",
@@ -76,6 +85,65 @@ export function websiteJsonLd() {
     url: SITE_URL,
     description: SITE_DESCRIPTION,
     inLanguage: ["en", "es"],
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: absoluteUrl("/explorer/decoder?query={search_term_string}"),
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
+
+export type FaqItem = { question: string; answer: string };
+
+export function faqJsonLd(items: FaqItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}
+
+type SoftwareApplicationInput = {
+  name: string;
+  description: string;
+  path: string;
+  applicationCategory?: string;
+};
+
+export function softwareApplicationJsonLd({
+  name,
+  description,
+  path,
+  applicationCategory = "DeveloperApplication",
+}: SoftwareApplicationInput) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name,
+    description,
+    url: absoluteUrl(path),
+    applicationCategory,
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
