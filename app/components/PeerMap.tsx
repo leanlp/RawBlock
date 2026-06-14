@@ -164,7 +164,7 @@ export default function PeerMap({ peers, knownPeers = [], onCountrySelect, selec
 
     const position = useMemo(() => {
         if (focusCoordinates && focusCoordinates.length === 2) {
-            return { coordinates: [focusCoordinates[1], focusCoordinates[0]], zoom: 6 };
+            return { coordinates: [focusCoordinates[1], focusCoordinates[0]], zoom: 4 };
         }
         if (selectedCountryCode && COUNTRY_CENTERS[selectedCountryCode]) {
             return { coordinates: COUNTRY_CENTERS[selectedCountryCode], zoom: 4 };

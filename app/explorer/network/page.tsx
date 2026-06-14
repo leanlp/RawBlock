@@ -171,6 +171,44 @@ const hasCoordinates = <T extends { location?: NodeLocation | null }>(
     return Array.isArray(ll) && ll.length === 2 && Number.isFinite(ll[0]) && Number.isFinite(ll[1]);
 };
 
+interface MyLocationResponse {
+    lat: number;
+    lon: number;
+    country?: string;
+    city?: string;
+    source?: string;
+}
+
+const fetchBrowserLocation = (): Promise<[number, number] | null> =>
+    new Promise((resolve) => {
+        if (typeof navigator === "undefined" || !navigator.geolocation) {
+            resolve(null);
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            ({ coords }) => resolve([coords.latitude, coords.longitude]),
+            () => resolve(null),
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 60_000 }
+        );
+    });
+
+const fetchServerLocation = async (signal?: AbortSignal): Promise<[number, number] | null> => {
+    if (!API_URL) return null;
+
+    try {
+        const res = await fetch(`${API_URL}/api/my-location`, { cache: "no-store", signal });
+        if (!res.ok) return null;
+
+        const data = (await res.json()) as MyLocationResponse;
+        if (!Number.isFinite(data.lat) || !Number.isFinite(data.lon)) return null;
+
+        return [data.lat, data.lon];
+    } catch {
+        return null;
+    }
+};
+
 function NetworkContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -269,39 +307,24 @@ function NetworkContent() {
             return;
         }
 
-        const browserLocation = await new Promise<[number, number] | null>((resolve) => {
-            if (typeof navigator === "undefined" || !navigator.geolocation) {
-                resolve(null);
-                return;
-            }
+        let userLocation = await fetchBrowserLocation();
+        if (!userLocation) {
+            userLocation = await fetchServerLocation();
+        }
 
-            navigator.geolocation.getCurrentPosition(
-                ({ coords }) => resolve([coords.latitude, coords.longitude]),
-                () => resolve(null),
-                { enableHighAccuracy: false, timeout: 5000, maximumAge: 60_000 }
-            );
-        });
+        if (!userLocation) {
+            setMapFocus(null);
+            return;
+        }
 
         let nearestNode = locatedNodes[0];
-        if (browserLocation) {
-            let closestDistance = haversineDistanceKm(browserLocation, nearestNode.location.ll);
-            for (let i = 1; i < locatedNodes.length; i += 1) {
-                const candidate = locatedNodes[i];
-                const distance = haversineDistanceKm(browserLocation, candidate.location.ll);
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    nearestNode = candidate;
-                }
-            }
-        } else {
-            let lowestPing = Number.isFinite(nearestNode?.ping) ? Number(nearestNode.ping) : Number.POSITIVE_INFINITY;
-            for (let i = 1; i < locatedNodes.length; i += 1) {
-                const candidate = locatedNodes[i];
-                const candidatePing = Number.isFinite(candidate?.ping) ? Number(candidate.ping) : Number.POSITIVE_INFINITY;
-                if (candidatePing < lowestPing) {
-                    lowestPing = candidatePing;
-                    nearestNode = candidate;
-                }
+        let closestDistance = haversineDistanceKm(userLocation, nearestNode.location.ll);
+        for (let i = 1; i < locatedNodes.length; i += 1) {
+            const candidate = locatedNodes[i];
+            const distance = haversineDistanceKm(userLocation, candidate.location.ll);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                nearestNode = candidate;
             }
         }
 
