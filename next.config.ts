@@ -16,6 +16,8 @@ const connectSrc = ["'self'", "https:", "wss:", ...configuredConnectSrc]
   .filter((value, index, values) => values.indexOf(value) === index)
   .join(" ");
 
+const isSecureDeployment = process.env.VERCEL === "1";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -29,7 +31,7 @@ const contentSecurityPolicy = [
   `connect-src ${connectSrc}`,
   "frame-src 'self' https:",
   "manifest-src 'self'",
-  "upgrade-insecure-requests",
+  ...(isSecureDeployment ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
 const nextConfig: NextConfig = {
