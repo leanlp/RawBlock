@@ -17,6 +17,11 @@ const connectSrc = ["'self'", "https:", "wss:", ...configuredConnectSrc]
   .join(" ");
 
 const isSecureDeployment = process.env.VERCEL === "1";
+const isProductionBuild = isSecureDeployment || process.env.NODE_ENV === "production";
+const trustedScriptHosts = "https://va.vercel-scripts.com https://us-assets.i.posthog.com https://us.i.posthog.com";
+const scriptSrc = isProductionBuild
+  ? `script-src 'self' 'unsafe-inline' ${trustedScriptHosts}`
+  : `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${trustedScriptHosts}`;
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -24,7 +29,8 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+  scriptSrc,
+  "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline' https:",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",

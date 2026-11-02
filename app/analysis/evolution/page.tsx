@@ -1,4 +1,3 @@
-/* eslint-disable */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -34,6 +33,13 @@ export default function EvolutionPage() {
         const controller = new AbortController();
         let isActive = true;
 
+        const handleUnload = () => {
+            isActive = false;
+            controller.abort();
+        };
+        window.addEventListener("beforeunload", handleUnload);
+        window.addEventListener("pagehide", handleUnload);
+
         const fetchEvolution = async () => {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/evolution`, { cache: "no-store", signal: controller.signal });
@@ -44,17 +50,21 @@ export default function EvolutionPage() {
                 if (isActive) {
                     setData(payload);
                 }
-            } catch (err) {
-                if ((err as Error).name === "AbortError") return;
-                console.error("Failed to load evolution payload:", err);
+            } catch {
+                // Ignore transient network errors or navigation aborts; pollTimer retries every 15s.
+                if (!isActive || controller.signal.aborted) return;
             }
         };
 
-        fetchEvolution();
-        const pollTimer = window.setInterval(fetchEvolution, 15_000);
+        void fetchEvolution();
+        const pollTimer = window.setInterval(() => {
+            void fetchEvolution();
+        }, 15_000);
 
         return () => {
             isActive = false;
+            window.removeEventListener("beforeunload", handleUnload);
+            window.removeEventListener("pagehide", handleUnload);
             controller.abort();
             window.clearInterval(pollTimer);
         };
@@ -110,7 +120,7 @@ export default function EvolutionPage() {
                                         </Pie>
                                         <Tooltip
                                             contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }}
-                                            formatter={(val: any) => Number(val).toFixed(1) + '%'}
+                                            formatter={(val) => `${Number(val ?? 0).toFixed(1)}%`}
                                         />
                                         <Legend verticalAlign="bottom" height={36} />
                                     </PieChart>
@@ -129,7 +139,7 @@ export default function EvolutionPage() {
                         {/* FAT FINGER DETECTOR */}
                         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm">
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-slate-500 text-xs font-bold uppercase tracking-widest">⚠️ "Fat Finger" Monitor</h2>
+                                <h2 className="text-slate-500 text-xs font-bold uppercase tracking-widest">⚠️ &ldquo;Fat Finger&rdquo; Monitor</h2>
                                 <div className="text-xs text-red-400 bg-red-900/20 px-2 py-1 rounded-full border border-red-900/50 animate-pulse">Live Feed</div>
                             </div>
 

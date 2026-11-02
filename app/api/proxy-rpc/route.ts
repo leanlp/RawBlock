@@ -1,124 +1,146 @@
-/* eslint-disable */
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-// Configuration
-const RPC_USER = process.env.BITCOIN_RPC_USER;
-const RPC_PASS = process.env.BITCOIN_RPC_PASSWORD;
-const RPC_HOST = process.env.BITCOIN_RPC_HOST || 'localhost';
-const RPC_PORT = process.env.BITCOIN_RPC_PORT || 8332;
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "https://apigoland.rawblock.net"
+).replace(/\/+$/, "");
 
-async function rpcCall(method: string, params: any[] = []) {
-    if (!RPC_USER || !RPC_PASS) {
-        throw new Error("Missing BITCOIN_RPC_USER or BITCOIN_RPC_PASSWORD in .env");
+const REQUEST_TIMEOUT_MS = 8000;
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX_REQUESTS = 30;
+
+const ipBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  if (ipBuckets.size > 2048) {
+    for (const [key, entry] of ipBuckets) {
+      if (entry.resetAt <= now) ipBuckets.delete(key);
     }
+  }
+  const existing = ipBuckets.get(ip);
+  if (!existing || existing.resetAt <= now) {
+    ipBuckets.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (existing.count >= RATE_MAX_REQUESTS) {
+    return false;
+  }
+  existing.count += 1;
+  return true;
+}
 
-    const auth = Buffer.from(`${RPC_USER}:${RPC_PASS}`).toString('base64');
-    
-    // Using native fetch (Node 18+)
-    const response = await fetch(`http://${RPC_HOST}:${RPC_PORT}`, {
-        method: 'POST',
-        body: JSON.stringify({
-            jsonrpc: '1.0',
-            id: 'proxy-rpc',
-            method,
-            params
-        }),
-        headers: {
-            'Content-Type': 'text/plain',
-            'Authorization': `Basic ${auth}`
-        }
+async function fetchBackendJson(path: string): Promise<Record<string, unknown>> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+      cache: "no-store",
     });
-
-    if (!response.ok) {
-         try {
-             // Try to read error body if possible
-             const errText = await response.text();
-             throw new Error(`RPC HTTP Error: ${response.status} ${response.statusText} - ${errText}`);
-         } catch {
-             throw new Error(`RPC HTTP Error: ${response.status} ${response.statusText}`);
-         }
+    if (!res.ok) {
+      throw new Error(`Upstream status ${res.status}`);
     }
-
-    const json = await response.json();
-    if (json.error) {
-        throw new Error(typeof json.error === 'object' ? json.error.message : json.error);
-    }
-    return json.result;
+    return (await res.json()) as Record<string, unknown>;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function POST(req: Request) {
-    try {
-        const body = await req.json();
-        const { query } = body;
-        
-        if (!query) {
-            return NextResponse.json({ error: "Query required" }, { status: 400 });
-        }
+  const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  if (!checkRateLimit(forwarded)) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Please retry shortly." },
+      { status: 429 },
+    );
+  }
 
-        const cleanQuery = query.trim();
-        let result: any = {};
-
-        // 1. Logic: Is this a Hash (TxID) or Address?
-        const isTxID = /^[0-9a-fA-F]{64}$/.test(cleanQuery);
-        // Basic regex for legacy/segwit/taproot addresses
-        const isAddress = /^(1|3|bc1)[a-zA-Z0-9]{25,62}$/.test(cleanQuery);
-
-        if (isTxID) {
-            console.log(`[Proxy] Fetching transaction: ${cleanQuery}`);
-            const tx = await rpcCall('getrawtransaction', [cleanQuery, true]);
-            
-            // Fetch Block Data (Time & Confirmations)
-            let blockInfo: any = {};
-            if (tx.blockhash) {
-                try {
-                    console.log(`[Proxy] Fetching block info: ${tx.blockhash}`);
-                    blockInfo = await rpcCall('getblock', [tx.blockhash, 1]);
-                } catch (err) {
-                    console.warn("Failed to fetch block details", err);
-                }
-            }
-
-            result = {
-                type: 'transaction',
-                ...tx,
-                blocktime: blockInfo.time ? blockInfo.time : undefined,
-                blockheight: blockInfo.height ? blockInfo.height : undefined,
-                confirmations: tx.confirmations || 0
-            };
-        } else if (isAddress) {
-            console.log(`[Proxy] Scanning UTXO set for address: ${cleanQuery}`);
-             // IMPORTANT: scantxoutset is blocking. Next.js serverless functions have timeouts (usually 10s-60s).
-             // If local node, it should be fast for single address.
-             // 'start' action, [ { desc: addr(X) } ]
-             const scan = await rpcCall('scantxoutset', ['start', [{ desc: `addr(${cleanQuery})` }]]);
-             
-             // Transform to match frontend expectations
-             result = {
-                 type: 'address',
-                 address: cleanQuery,
-                 balance: scan.total_amount,
-                 utxoCount: scan.txouts,
-                 scanHeight: scan.height,
-                 utxos: scan.unspents.map((u: any) => ({
-                    txid: u.txid,
-                    vout: u.vout,
-                    amount: u.amount,
-                    height: u.height,
-                    scriptPubKey: u.scriptPubKey
-                 }))
-             };
-        } else {
-             // Fallback: Try decoding raw hex? Or just error.
-             console.log(`[Proxy] Validation failed for: '${cleanQuery}' (Length: ${cleanQuery.length})`);
-             return NextResponse.json({ error: `Invalid format. Expected TxID or Address. Received: '${cleanQuery}'` }, { status: 400 });
-        }
-
-        return NextResponse.json(result);
-
-    } catch (error: any) {
-        console.error("RPC Proxy Error:", error.message);
-        return NextResponse.json({ 
-            error: error.message || "Failed to process request via local RPC." 
-        }, { status: 500 });
+  try {
+    const body = (await req.json()) as { query?: unknown };
+    if (typeof body?.query !== "string" || !body.query.trim()) {
+      return NextResponse.json({ error: "Query required" }, { status: 400 });
     }
+
+    const cleanQuery = body.query.trim();
+    const isTxID = /^[0-9a-fA-F]{64}$/.test(cleanQuery);
+    const isAddress = /^(1|3|bc1)[a-zA-Z0-9]{25,62}$/.test(cleanQuery);
+
+    if (isTxID) {
+      const tx = await fetchBackendJson(`/api/tx/${encodeURIComponent(cleanQuery)}`);
+      const statusObj = (tx.status ?? {}) as Record<string, unknown>;
+      const rawVout = Array.isArray(tx.vout) ? tx.vout : [];
+
+      const normalizedVout = rawVout.map((item) => {
+        const entry = (item ?? {}) as Record<string, unknown>;
+        if (entry.scriptPubKey && typeof entry.scriptPubKey === "object") {
+          return entry;
+        }
+        const sats = typeof entry.value === "number" ? entry.value : 0;
+        const address =
+          typeof entry.scriptpubkey_address === "string"
+            ? entry.scriptpubkey_address
+            : undefined;
+        const hex =
+          typeof entry.scriptpubkey === "string" ? entry.scriptpubkey : "";
+        return {
+          ...entry,
+          value: sats > 1e6 ? sats / 1e8 : sats,
+          scriptPubKey: {
+            address,
+            addresses: address ? [address] : [],
+            hex,
+          },
+        };
+      });
+
+      return NextResponse.json({
+        type: "transaction",
+        ...tx,
+        vout: normalizedVout,
+        blocktime:
+          typeof tx.blocktime === "number"
+            ? tx.blocktime
+            : typeof statusObj.block_time === "number"
+              ? statusObj.block_time
+              : undefined,
+        blockheight:
+          typeof tx.blockheight === "number"
+            ? tx.blockheight
+            : typeof statusObj.block_height === "number"
+              ? statusObj.block_height
+              : undefined,
+        confirmations:
+          typeof tx.confirmations === "number"
+            ? tx.confirmations
+            : statusObj.confirmed
+              ? 1
+              : 0,
+      });
+    }
+
+    if (isAddress) {
+      const wallet = await fetchBackendJson(
+        `/api/wallet/${encodeURIComponent(cleanQuery)}/balance`,
+      );
+      return NextResponse.json({
+        type: "address",
+        address: cleanQuery,
+        balance: typeof wallet.balance === "number" ? wallet.balance : 0,
+        utxoCount: typeof wallet.utxoCount === "number" ? wallet.utxoCount : 0,
+        utxos: Array.isArray(wallet.utxos) ? wallet.utxos : [],
+      });
+    }
+
+    return NextResponse.json(
+      { error: "Invalid format. Expected mainnet TxID or Bitcoin address." },
+      { status: 400 },
+    );
+  } catch {
+    return NextResponse.json(
+      { error: "Unable to resolve blockchain query from backend." },
+      { status: 502 },
+    );
+  }
 }
