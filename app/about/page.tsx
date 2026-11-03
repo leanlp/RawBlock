@@ -3,6 +3,7 @@
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import Card from "@/components/Card";
+import DonationBlock from "@/components/DonationBlock";
 import { useTranslation } from "@/lib/i18n";
 
 const API_GATEWAY_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
@@ -49,6 +50,8 @@ export default function AboutPage() {
           {t.about.missionText}
         </p>
       </Card>
+
+      <DonationBlock id="donate" />
 
       {/* Open Source */}
       <Card className="p-6" onClick={() => { }}>

@@ -80,7 +80,7 @@ export default function GraffitiPage() {
     };
 
     return (
-        <main className="min-h-screen overflow-x-hidden bg-black text-green-500 font-mono p-4 md:p-8 selection:bg-green-900 selection:text-white">
+        <div className="min-h-screen overflow-x-hidden bg-black text-green-500 font-mono p-4 md:p-8 selection:bg-green-900 selection:text-white">
             <div className="max-w-4xl mx-auto space-y-8 relative">
                 <div className="md:hidden">
                     <Header />
@@ -150,6 +150,6 @@ export default function GraffitiPage() {
                     background: #006600; 
                 }
             `}</style>
-        </main>
+        </div>
     );
 }

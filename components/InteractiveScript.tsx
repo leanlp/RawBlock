@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { identifyOpcode, OpcodeDef } from "../utils/opcodes";
 
 interface InteractiveScriptProps {

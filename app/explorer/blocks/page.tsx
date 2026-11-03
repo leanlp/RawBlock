@@ -7,6 +7,7 @@ import Card, { CardRow, MetricValue } from "../../../components/Card";
 import EmptyState, { LoadingState, ErrorState } from "../../../components/EmptyState";
 import PageHeader from "../../../components/PageHeader";
 import { useTranslation } from "@/lib/i18n";
+import { useExplorerDataTracking } from "@/hooks/useExplorerDataTracking";
 
 export const dynamic = "force-dynamic";
 
@@ -65,8 +66,15 @@ export default function BlocksIndexPage() {
     const [blocks, setBlocks] = useState<BlockInfo[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [dataSource, setDataSource] = useState<"api" | "fallback" | undefined>(undefined);
     const [nowMs, setNowMs] = useState(() => Date.now());
     const { t } = useTranslation();
+
+    useExplorerDataTracking({
+        connected: !loading && !error && blocks.length > 0,
+        source: dataSource,
+        errorType: error ? "load_failed" : undefined,
+    });
 
     const orderedBlocks = useMemo(() => {
         const dedupByHeight = new Map<number, BlockInfo>();
@@ -137,9 +145,16 @@ export default function BlocksIndexPage() {
         };
 
         fetchPrimary()
+            .then((resolvedBlocks) => {
+                setDataSource("api");
+                return resolvedBlocks;
+            })
             .catch((primaryErr) => {
                 console.warn("Primary blocks feed failed, trying fallback:", primaryErr);
-                return fetchFallback();
+                return fetchFallback().then((resolvedBlocks) => {
+                    setDataSource("fallback");
+                    return resolvedBlocks;
+                });
             })
             .then((resolvedBlocks) => {
                 setBlocks(resolvedBlocks);
@@ -195,7 +210,7 @@ export default function BlocksIndexPage() {
     }, [orderedBlocks, timelineSecondsByHash, nowMs]);
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans">
+        <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans">
             <div className="max-w-6xl mx-auto space-y-8">
                 <Header />
 
@@ -408,6 +423,6 @@ export default function BlocksIndexPage() {
                     </>
                 )}
             </div>
-        </main>
+        </div>
     );
 }

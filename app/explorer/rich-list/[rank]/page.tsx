@@ -185,7 +185,7 @@ export default function WhaleDetailPage() {
 
     if (loading) {
         return (
-            <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
+            <div className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
                 <div className="max-w-4xl mx-auto">
                     <div className="md:hidden">
                         <Header />
@@ -194,13 +194,13 @@ export default function WhaleDetailPage() {
                         {t.richListDetail.loading}
                     </div>
                 </div>
-            </main>
+            </div>
         );
     }
 
     if (error) {
         return (
-            <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
+            <div className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
                 <div className="max-w-4xl mx-auto">
                     <div className="md:hidden">
                         <Header />
@@ -212,13 +212,13 @@ export default function WhaleDetailPage() {
                         </Link>
                     </div>
                 </div>
-            </main>
+            </div>
         );
     }
 
     if (!whale) {
         return (
-            <main className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
+            <div className="min-h-screen bg-slate-950 text-slate-200 p-8 font-mono">
                 <div className="max-w-4xl mx-auto">
                     <div className="md:hidden">
                         <Header />
@@ -230,12 +230,12 @@ export default function WhaleDetailPage() {
                         </Link>
                     </div>
                 </div>
-            </main>
+            </div>
         );
     }
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
+        <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
             <div className="max-w-6xl mx-auto space-y-6">
                 <div className="md:hidden">
                     <Header />
@@ -427,6 +427,6 @@ export default function WhaleDetailPage() {
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

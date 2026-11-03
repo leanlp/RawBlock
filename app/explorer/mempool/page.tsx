@@ -163,11 +163,15 @@ export default function MempoolPage() {
                         throw new Error(`HTTP ${res.status}`);
                     }
                     const json = await res.json();
-                    setData(normalizeTransactions(Array.isArray(json) ? json : []));
-                    setDataMode("live");
-                    setModeNotice(null);
-                    setLastUpdateAt(Date.now());
-                    return;
+                    const txs = normalizeTransactions(Array.isArray(json) ? json : []);
+                    if (txs.length > 0) {
+                        setData(txs);
+                        setDataMode("live");
+                        setModeNotice(null);
+                        setLastUpdateAt(Date.now());
+                        return;
+                    }
+                    console.warn("Live mempool returned empty transaction list, falling back to snapshot mode");
                 } catch (primaryError) {
                     console.warn("Live mempool feed unavailable, falling back to snapshot mode:", primaryError);
                 }
@@ -517,7 +521,7 @@ export default function MempoolPage() {
                 </p>
             </div>
 
-            {API_URL ? <NetworkHud /> : null}
+            <NetworkHud />
         </>
     );
 }

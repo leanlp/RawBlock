@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Card, { MetricValue, PanelHeader } from "./Card";
+import { AnimatedCounter, AnimatedDecimalCounter } from "./AnimatedCounter";
 import { useBitcoinLiveMetrics } from "@/hooks/useBitcoinLiveMetrics";
 import { formatFeeTime, useFeeMarketData } from "@/hooks/useFeeMarketData";
 import { Area, AreaChart, CartesianGrid, ReferenceArea, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
@@ -116,16 +117,11 @@ const HERO_FALLBACK_FEE_HISTORY: FeeHistoryPoint[] = (() => {
   }));
 })();
 
-function formatHashrateEh(value: number | null | undefined, unavailableText: string): string {
+function parseHashrateEh(value: number | null | undefined): number | null {
   if (value === null || value === undefined || !Number.isFinite(value)) {
-    return unavailableText;
+    return null;
   }
-
-  const hasFraction = Math.abs(value % 1) > Number.EPSILON;
-  return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: hasFraction ? 2 : 0,
-    maximumFractionDigits: 2,
-  })} EH/s`;
+  return value;
 }
 
 function getShortTxid(txid: string): string {
@@ -290,9 +286,9 @@ export default function HeroMetrics() {
             <MetricValue
               icon="📦"
               value={
-                suppressStartupValuesWhileConnecting
+                suppressStartupValuesWhileConnecting || displayMetrics.blockHeight == null
                   ? "—"
-                  : displayMetrics.blockHeight?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable
+                  : <AnimatedCounter value={displayMetrics.blockHeight} />
               }
               label={t.hero.blockHeight}
               sublabel={
@@ -312,9 +308,9 @@ export default function HeroMetrics() {
             <MetricValue
               icon="⛏️"
               value={
-                suppressStartupValuesWhileConnecting
-                  ? "—"
-                  : formatHashrateEh(displayMetrics.hashrateEh, t.hero.dataTemporarilyUnavailable)
+                (suppressStartupValuesWhileConnecting || parseHashrateEh(displayMetrics.hashrateEh) === null)
+                  ? t.hero.dataTemporarilyUnavailable
+                  : <><AnimatedDecimalCounter value={parseHashrateEh(displayMetrics.hashrateEh)!} /> <span className="text-sm">EH/s</span></>
               }
               label={t.hero.hashrate}
               sublabel={suppressStartupValuesWhileConnecting ? t.hero.connectingToLiveNode : t.hero.threeDayAverage}
@@ -328,15 +324,15 @@ export default function HeroMetrics() {
             <MetricValue
               icon="🌊"
               value={
-                suppressStartupValuesWhileConnecting
+                suppressStartupValuesWhileConnecting || displayMetrics.mempoolTxCount == null
                   ? "—"
-                  : displayMetrics.mempoolTxCount?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable
+                  : <AnimatedCounter value={displayMetrics.mempoolTxCount} />
               }
               label={t.hero.pendingTxs}
               sublabel={
                 !suppressStartupValuesWhileConnecting &&
-                displayMetrics.mempoolVsizeMb !== null &&
-                displayMetrics.mempoolVsizeMb !== undefined
+                  displayMetrics.mempoolVsizeMb !== null &&
+                  displayMetrics.mempoolVsizeMb !== undefined
                   ? `${displayMetrics.mempoolVsizeMb} MB`
                   : ""
               }
@@ -350,15 +346,15 @@ export default function HeroMetrics() {
             <MetricValue
               icon="⏳"
               value={
-                suppressStartupValuesWhileConnecting
+                suppressStartupValuesWhileConnecting || displayMetrics.daysUntilHalving == null
                   ? "—"
-                  : displayMetrics.daysUntilHalving?.toLocaleString() ?? t.hero.dataTemporarilyUnavailable
+                  : <AnimatedCounter value={displayMetrics.daysUntilHalving} />
               }
               label={t.hero.daysToHalving}
               sublabel={
                 !suppressStartupValuesWhileConnecting &&
-                displayMetrics.blocksUntilHalving !== null &&
-                displayMetrics.blocksUntilHalving !== undefined
+                  displayMetrics.blocksUntilHalving !== null &&
+                  displayMetrics.blocksUntilHalving !== undefined
                   ? `${displayMetrics.blocksUntilHalving.toLocaleString()} ${t.hero.blocks}`
                   : ""
               }
@@ -402,8 +398,8 @@ export default function HeroMetrics() {
                 </span>
                 <span
                   className={`rounded-full border px-2 py-0.5 ${heroFeeMeta.expressDelta >= 0
-                      ? "border-red-500/25 bg-red-500/10 text-red-300"
-                      : "border-cyan-500/25 bg-cyan-500/10 text-cyan-300"
+                    ? "border-red-500/25 bg-red-500/10 text-red-300"
+                    : "border-cyan-500/25 bg-cyan-500/10 text-cyan-300"
                     }`}
                 >
                   Δ24h {heroFeeMeta.expressDelta >= 0 ? "+" : ""}

@@ -9,7 +9,7 @@ on:
 
 jobs:
   qa-release-gate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
 
     steps:
@@ -28,9 +28,12 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Build app
+        run: NODE_OPTIONS="--max-old-space-size=4096" npm run build
+
       - name: Start app
         run: |
-          npm run dev -- --hostname 127.0.0.1 --port 3000 > /tmp/rawblock-next.log 2>&1 &
+          npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/rawblock-next.log 2>&1 &
           echo "NEXT_PID=$!" >> "$GITHUB_ENV"
 
       - name: Wait for app

@@ -1,18 +1,20 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Latest Blocks Ledger",
-    template: "%s | Raw Block",
-  },
+export const metadata = buildPageMetadata({
+  title: "Latest Blocks Ledger",
   description:
     "Track recent Bitcoin blocks with miner attribution, timing, and direct drill-down into block header fields, transaction distribution, and coinbase trace.",
-  alternates: {
-    canonical: "https://www.rawblock.net/explorer/blocks",
-  },
-};
+  path: "/explorer/blocks",
+  keywords: ["bitcoin block explorer", "recent blocks", "block height", "miner attribution"],
+});
 
 export default function ExplorerBlocksLayout({ children }: { children: ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <SeoContentSection pageKey="blocks" />
+    </>
+  );
 }

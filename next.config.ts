@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { posthogRewrites } from "./config/posthog";
 
 const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "";
 const configuredConnectSrc = (() => {
@@ -15,23 +16,34 @@ const connectSrc = ["'self'", "https:", "wss:", ...configuredConnectSrc]
   .filter((value, index, values) => values.indexOf(value) === index)
   .join(" ");
 
+const isSecureDeployment = process.env.VERCEL === "1";
+const trustedScriptHosts =
+  "https://static.cloudflareinsights.com https://cloudflareinsights.com https://va.vercel-scripts.com https://us-assets.i.posthog.com https://us.i.posthog.com https:";
+const scriptSrc = `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${trustedScriptHosts}`;
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+  scriptSrc,
+  "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline' https:",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
   `connect-src ${connectSrc}`,
   "frame-src 'self' https:",
   "manifest-src 'self'",
-  "upgrade-insecure-requests",
+  ...(isSecureDeployment ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    const analyticsRewrites = await posthogRewrites();
+    return analyticsRewrites;
+  },
   async headers() {
     return [
       {
@@ -262,6 +274,31 @@ const nextConfig: NextConfig = {
       {
         source: "/academy/1",
         destination: "/paths/bitcoin-foundations",
+        permanent: true,
+      },
+      {
+        source: "/research/policy-vs-consensus",
+        destination: "/research/policy",
+        permanent: true,
+      },
+      {
+        source: "/tools/bitcoin-transaction-decoder",
+        destination: "/explorer/decoder",
+        permanent: true,
+      },
+      {
+        source: "/tools/bitcoin-script-debugger",
+        destination: "/lab/script",
+        permanent: true,
+      },
+      {
+        source: "/tools/taproot-playground",
+        destination: "/lab/taproot",
+        permanent: true,
+      },
+      {
+        source: "/tools/mempool-explorer",
+        destination: "/explorer/mempool",
         permanent: true,
       },
     ];

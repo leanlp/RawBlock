@@ -25,6 +25,12 @@ export default function Footer() {
 
                 <div className="flex flex-wrap items-center justify-center gap-4">
                     <Link
+                        href="/about#donate"
+                        className="text-slate-400 hover:text-amber-300 transition-colors inline-flex items-center gap-2 text-sm min-h-11"
+                    >
+                        {t.footer.support}
+                    </Link>
+                    <Link
                         href="/about"
                         className="text-slate-400 hover:text-cyan-400 transition-colors inline-flex items-center gap-2 text-sm min-h-11"
                     >

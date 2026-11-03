@@ -86,7 +86,7 @@ export default function PathPage() {
 
   if (!path) {
     return (
-      <main className="page-shell-lg bg-slate-950">
+      <div className="page-shell-lg bg-slate-950">
         <div className="mx-auto max-w-4xl rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
           <div className="mb-6 md:hidden">
             <Header />
@@ -94,7 +94,7 @@ export default function PathPage() {
           <h1 className="text-2xl font-semibold">{copy.pathNotFound}</h1>
           <p className="mt-2 text-sm text-slate-400">{copy.pathNotFoundSubtitle}</p>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -136,7 +136,7 @@ export default function PathPage() {
   );
 
   return (
-    <main className="page-shell-lg bg-slate-950">
+    <div className="page-shell-lg bg-slate-950">
       <div className="page-wrap-reading">
         <div className="md:hidden">
           <Header />
@@ -273,6 +273,6 @@ export default function PathPage() {
           </button>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

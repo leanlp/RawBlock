@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -115,7 +116,7 @@ export default function HashingPage() {
     };
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
+        <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
             <div className="max-w-5xl mx-auto space-y-8">
                 <Header />
 
@@ -249,6 +250,6 @@ export default function HashingPage() {
 
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

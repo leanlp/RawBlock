@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import JsonLd from "@/components/seo/JsonLd";
+import SeoContentSection from "@/components/seo/SeoContentSection";
 import { breadcrumbJsonLd, collectionPageJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function EsAcademyLayout({ children }: { children: ReactNode }) {
         })}
       />
       {children}
+      <SeoContentSection pageKey="academy" locale="es" />
     </>
   );
 }

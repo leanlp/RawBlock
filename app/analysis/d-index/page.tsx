@@ -51,7 +51,7 @@ export default function DIndexPage() {
     };
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans">
+        <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans">
             <div className="max-w-6xl mx-auto space-y-8">
                 <Header />
 
@@ -158,6 +158,6 @@ export default function DIndexPage() {
                     </div>
                 )}
             </div>
-        </main>
+        </div>
     );
 }

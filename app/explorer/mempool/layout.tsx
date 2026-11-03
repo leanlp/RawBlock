@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
-import { buildPageMetadata } from "@/lib/seo";
+import JsonLd from "@/components/seo/JsonLd";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import { buildPageMetadata, faqJsonLd } from "@/lib/seo";
+import { getSeoPageContent } from "@/lib/seo/pageContent";
+
+const seo = getSeoPageContent("mempool");
 
 export const metadata = buildPageMetadata({
   title: "Live Mempool Feed",
@@ -10,6 +15,11 @@ export const metadata = buildPageMetadata({
 });
 
 export default function ExplorerMempoolLayout({ children }: { children: ReactNode }) {
-  return children;
+  return (
+    <>
+      <JsonLd data={faqJsonLd(seo.faqs)} />
+      {children}
+      <SeoContentSection pageKey="mempool" />
+    </>
+  );
 }
-

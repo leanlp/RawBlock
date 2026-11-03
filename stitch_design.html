@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Raw Block Explorer Landing Page</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0dccf2",
+                        "secondary": "#7f0df2",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0a0a0a",
+                        "surface-dark": "rgba(255, 255, 255, 0.03)",
+                        "surface-border": "rgba(255, 255, 255, 0.08)",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glow-border {
+            position: relative;
+        }
+        
+        .glow-border::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px; right: -1px; bottom: -1px;
+            background: linear-gradient(45deg, #0dccf2, #7f0df2);
+            z-index: -1;
+            border-radius: inherit;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .glow-border:hover::before {
+            opacity: 1;
+        }
+
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -2;
+            background: radial-gradient(circle at 15% 50%, rgba(13, 204, 242, 0.08), transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(127, 13, 242, 0.08), transparent 25%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<div class="ambient-bg"></div>
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-surface-border px-10 py-4 glass-panel sticky top-0 z-50">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-white text-xl font-bold leading-tight tracking-tight">Raw Block</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<div class="flex items-center gap-9 hidden md:flex">
+<a class="text-slate-300 hover:text-white text-sm font-medium transition-colors" href="#">Explore</a>
+<a class="text-slate-300 hover:text-white text-sm font-medium transition-colors" href="#">Network</a>
+<a class="text-slate-300 hover:text-white text-sm font-medium transition-colors" href="#">Labs</a>
+<a class="text-slate-300 hover:text-white text-sm font-medium transition-colors" href="#">API</a>
+</div>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-6 bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary text-sm font-bold transition-all">
+<span class="truncate">Connect Wallet</span>
+</button>
+</div>
+</header>
+<main class="flex-1 px-4 md:px-10 lg:px-20 py-10 flex flex-col items-center">
+<div class="w-full max-w-[1200px] flex flex-col gap-12">
+<!-- Hero Section -->
+<section class="flex flex-col items-center justify-center py-20 gap-8 text-center relative">
+<div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl -z-10 blur-3xl"></div>
+<div class="flex flex-col gap-4 max-w-3xl">
+<h1 class="text-white text-5xl md:text-6xl font-black leading-tight tracking-tight">
+<span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Premium</span> Bitcoin Explorer
+                            </h1>
+<p class="text-slate-400 text-lg md:text-xl font-normal leading-relaxed">
+                                Navigate the blockchain with unprecedented clarity, precision, and speed.
+                            </p>
+</div>
+<div class="w-full max-w-2xl mt-8">
+<div class="relative group glow-border rounded-xl">
+<div class="flex w-full items-stretch rounded-xl h-16 glass-panel relative z-10">
+<div class="flex items-center justify-center pl-6 text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 bg-transparent border-none text-white focus:ring-0 h-full placeholder:text-slate-500 px-4 text-lg" placeholder="Search TX, Address, or Block..." value=""/>
+<div class="flex items-center justify-center pr-2">
+<button class="flex items-center justify-center rounded-lg h-12 px-6 bg-primary text-background-dark text-base font-bold hover:bg-primary/90 transition-colors">
+                                            Search
+                                        </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Network Vitals -->
+<section class="flex flex-col gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">monitoring</span>
+<h2 class="text-white text-2xl font-bold tracking-tight">Live Network Vitals</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="flex flex-col gap-3 rounded-xl p-6 glass-panel border border-surface-border hover:border-primary/30 transition-colors group">
+<div class="flex justify-between items-center">
+<p class="text-slate-400 text-sm font-medium">Current Hashrate</p>
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors text-sm">speed</span>
+</div>
+<p class="text-white text-3xl font-bold tracking-tight">634.5 <span class="text-lg text-slate-500 font-medium">EH/s</span></p>
+<div class="flex items-center gap-1 text-green-400 text-sm font-medium mt-auto">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+2.4%</span>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl p-6 glass-panel border border-surface-border hover:border-primary/30 transition-colors group">
+<div class="flex justify-between items-center">
+<p class="text-slate-400 text-sm font-medium">Difficulty</p>
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors text-sm">psychology</span>
+</div>
+<p class="text-white text-3xl font-bold tracking-tight">83.72 <span class="text-lg text-slate-500 font-medium">T</span></p>
+<div class="flex items-center gap-1 text-green-400 text-sm font-medium mt-auto">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+1.1%</span>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl p-6 glass-panel border border-surface-border hover:border-secondary/30 transition-colors group">
+<div class="flex justify-between items-center">
+<p class="text-slate-400 text-sm font-medium">Next Halving</p>
+<span class="material-symbols-outlined text-slate-500 group-hover:text-secondary transition-colors text-sm">hourglass_empty</span>
+</div>
+<p class="text-white text-3xl font-bold tracking-tight">1,052 <span class="text-lg text-slate-500 font-medium">Blocks</span></p>
+<div class="flex items-center gap-1 text-slate-500 text-sm font-medium mt-auto">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>~7 Days</span>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl p-6 glass-panel border border-surface-border hover:border-secondary/30 transition-colors group">
+<div class="flex justify-between items-center">
+<p class="text-slate-400 text-sm font-medium">Mempool Size</p>
+<span class="material-symbols-outlined text-slate-500 group-hover:text-secondary transition-colors text-sm">layers</span>
+</div>
+<p class="text-white text-3xl font-bold tracking-tight">45.2 <span class="text-lg text-slate-500 font-medium">vMB</span></p>
+<div class="flex items-center gap-1 text-red-400 text-sm font-medium mt-auto">
+<span class="material-symbols-outlined text-sm">warning</span>
+<span>Congested</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Primary Actions -->
+<section class="flex flex-col gap-6 pt-8">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">explore</span>
+<h2 class="text-white text-2xl font-bold tracking-tight">Primary Actions</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<a class="group relative overflow-hidden rounded-2xl glass-panel border border-surface-border p-8 flex flex-col gap-4 hover:-translate-y-1 transition-transform duration-300" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="size-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 text-primary">
+<span class="material-symbols-outlined text-2xl">view_in_ar</span>
+</div>
+<div>
+<h3 class="text-white text-xl font-bold mb-2">Explore Blocks</h3>
+<p class="text-slate-400 text-sm">Dive deep into the latest mined blocks, view miner details, and block rewards in real-time.</p>
+</div>
+<div class="mt-auto pt-4 flex items-center text-primary text-sm font-bold group-hover:gap-2 transition-all">
+                                    View Blocks <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</a>
+<a class="group relative overflow-hidden rounded-2xl glass-panel border border-surface-border p-8 flex flex-col gap-4 hover:-translate-y-1 transition-transform duration-300" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="size-12 rounded-xl bg-secondary/20 flex items-center justify-center border border-secondary/30 text-secondary">
+<span class="material-symbols-outlined text-2xl">account_tree</span>
+</div>
+<div>
+<h3 class="text-white text-xl font-bold mb-2">Trace Transaction</h3>
+<p class="text-slate-400 text-sm">Follow the money. Visually trace transaction inputs and outputs through the UTXO graph.</p>
+</div>
+<div class="mt-auto pt-4 flex items-center text-secondary text-sm font-bold group-hover:gap-2 transition-all">
+                                    Start Tracing <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</a>
+<a class="group relative overflow-hidden rounded-2xl glass-panel border border-surface-border p-8 flex flex-col gap-4 hover:-translate-y-1 transition-transform duration-300" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="size-12 rounded-xl bg-surface-dark flex items-center justify-center border border-surface-border text-white">
+<span class="material-symbols-outlined text-2xl">lan</span>
+</div>
+<div>
+<h3 class="text-white text-xl font-bold mb-2">Network Monitor</h3>
+<p class="text-slate-400 text-sm">Monitor node health, peer connections, and geographic distribution of the global network.</p>
+</div>
+<div class="mt-auto pt-4 flex items-center text-white text-sm font-bold group-hover:gap-2 transition-all">
+                                    Open Monitor <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</a>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</body></html>

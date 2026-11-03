@@ -1,6 +1,10 @@
-
 import DashboardHome from "../components/DashboardHome";
-import { buildPageMetadata } from "@/lib/seo";
+import JsonLd from "@/components/seo/JsonLd";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import { buildPageMetadata, faqJsonLd } from "@/lib/seo";
+import { getSeoPageContent } from "@/lib/seo/pageContent";
+
+const seoHome = getSeoPageContent("home");
 
 export const metadata = buildPageMetadata({
   title: "Bitcoin Explorer, Labs, and Research",
@@ -14,8 +18,15 @@ export const metadata = buildPageMetadata({
     "bitcoin script lab",
     "taproot playground",
   ],
+  image: "/og/home.svg",
 });
 
 export default function Home() {
-  return <DashboardHome />;
+  return (
+    <>
+      <JsonLd data={faqJsonLd(seoHome.faqs)} />
+      <DashboardHome />
+      <SeoContentSection pageKey="home" />
+    </>
+  );
 }
