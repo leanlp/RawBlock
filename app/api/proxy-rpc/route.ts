@@ -33,24 +33,29 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-async function fetchBackendJson(path: string): Promise<Record<string, unknown>> {
+async function fetchBackendJson(path: string, clientUserAgent?: string | null): Promise<Record<string, unknown>> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const baseUrl = getApiBaseUrl();
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   const targetUrl = `${baseUrl}${cleanPath}`;
+  const userAgent =
+    clientUserAgent && !clientUserAgent.includes("RawBlock-Proxy")
+      ? clientUserAgent
+      : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
   try {
     const res = await fetch(targetUrl, {
       method: "GET",
       headers: {
         Accept: "application/json",
-        "User-Agent": "RawBlock-Proxy/1.0",
+        "User-Agent": userAgent,
       },
       signal: controller.signal,
       cache: "no-store",
     });
     if (!res.ok) {
-      throw new Error(`Upstream ${targetUrl} status ${res.status}`);
+      const errBody = await res.text().catch(() => "");
+      throw new Error(`Upstream ${targetUrl} status ${res.status}: ${errBody.slice(0, 150)}`);
     }
     return (await res.json()) as Record<string, unknown>;
   } finally {
@@ -68,6 +73,7 @@ export async function POST(req: Request) {
   }
 
   try {
+    const clientUserAgent = req.headers.get("user-agent");
     const body = (await req.json()) as { query?: unknown };
     if (typeof body?.query !== "string" || !body.query.trim()) {
       return NextResponse.json({ error: "Query required" }, { status: 400 });
@@ -78,7 +84,22 @@ export async function POST(req: Request) {
     const isAddress = /^(1|3|bc1)[a-zA-Z0-9]{25,62}$/.test(cleanQuery);
 
     if (isTxID) {
-      const tx = await fetchBackendJson(`/api/tx/${encodeURIComponent(cleanQuery)}`);
+      let tx: Record<string, unknown>;
+      try {
+        tx = await fetchBackendJson(`/api/tx/${encodeURIComponent(cleanQuery)}`, clientUserAgent);
+      } catch (err) {
+        console.warn("Primary backend /api/tx fetch failed, using fallback:", err);
+        const fbRes = await fetch(`https://mempool.space/api/tx/${encodeURIComponent(cleanQuery)}`, {
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        if (fbRes.ok) {
+          tx = (await fbRes.json()) as Record<string, unknown>;
+        } else {
+          throw err;
+        }
+      }
+
       const statusObj = (tx.status ?? {}) as Record<string, unknown>;
       const rawVout = Array.isArray(tx.vout) ? tx.vout : [];
 
@@ -131,9 +152,34 @@ export async function POST(req: Request) {
     }
 
     if (isAddress) {
-      const wallet = await fetchBackendJson(
-        `/api/wallet/${encodeURIComponent(cleanQuery)}/balance`,
-      );
+      let wallet: Record<string, unknown>;
+      try {
+        wallet = await fetchBackendJson(
+          `/api/wallet/${encodeURIComponent(cleanQuery)}/balance`,
+          clientUserAgent,
+        );
+      } catch (err) {
+        console.warn("Primary backend /api/wallet fetch failed, using fallback:", err);
+        const fbRes = await fetch(`https://mempool.space/api/address/${encodeURIComponent(cleanQuery)}`, {
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        if (fbRes.ok) {
+          const fbData = (await fbRes.json()) as {
+            chain_stats?: { funded_txo_sum?: number; spent_txo_sum?: number; funded_txo_count?: number };
+          };
+          const funded = fbData.chain_stats?.funded_txo_sum || 0;
+          const spent = fbData.chain_stats?.spent_txo_sum || 0;
+          wallet = {
+            balance: (funded - spent) / 1e8,
+            utxoCount: fbData.chain_stats?.funded_txo_count || 0,
+            utxos: [],
+          };
+        } else {
+          throw err;
+        }
+      }
+
       return NextResponse.json({
         type: "address",
         address: cleanQuery,
