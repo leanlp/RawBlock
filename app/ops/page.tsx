@@ -99,7 +99,7 @@ export default function OpsPage() {
     }, []);
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-cyan-900 selection:text-cyan-100 pb-20">
+        <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-cyan-900 selection:text-cyan-100 pb-20">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Header />
 
@@ -179,6 +179,6 @@ export default function OpsPage() {
                     </div>
                 )}
             </div>
-        </main>
+        </div>
     );
 }

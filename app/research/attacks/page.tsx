@@ -62,7 +62,7 @@ export default function AttacksResearchPage() {
   });
 
   return (
-    <main className="page-shell bg-slate-950">
+    <div className="page-shell bg-slate-950">
       <div className="page-wrap-wide">
         <div className="md:hidden">
           <Header />
@@ -174,6 +174,6 @@ export default function AttacksResearchPage() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

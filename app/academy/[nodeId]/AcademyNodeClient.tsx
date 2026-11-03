@@ -182,7 +182,7 @@ export default function AcademyNodeClient({ nodeId }: { nodeId: string }) {
     const glossaryItems = locale === "es" ? GLOSSARY_ITEMS_ES : GLOSSARY_ITEMS_EN;
 
     return (
-        <main className="page-shell-lg bg-slate-950">
+        <div className="page-shell-lg bg-slate-950">
             <div className="page-wrap-reading">
                 <div className="md:hidden">
                     <Header />
@@ -483,6 +483,6 @@ export default function AcademyNodeClient({ nodeId }: { nodeId: string }) {
                     </aside>
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

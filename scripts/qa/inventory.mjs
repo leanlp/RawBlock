@@ -305,6 +305,7 @@ export function isAllowedConsoleError({ route, text }) {
     /A tree hydrated but some attributes of the server rendered HTML didn't match the client properties/,
     /Failed to fetch peers:/i,
     /Failed to fetch candidate block/i,
+    /cloudflareinsights\.com/i,
   ];
   if (globalPatterns.some((pattern) => pattern.test(value))) return true;
 

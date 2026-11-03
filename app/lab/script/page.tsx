@@ -633,7 +633,7 @@ export default function ScriptLabPage() {
   }, [realTraceMaxSteps, runConsensusTrace, scriptInput, t.scriptLab.consensusTraceFailed]);
 
   return (
-    <main className="min-h-screen bg-slate-950 p-4 font-mono text-slate-200 md:p-8 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-950 p-4 font-mono text-slate-200 md:p-8 overflow-x-hidden">
       <div className="mx-auto flex w-full max-w-7xl flex-col space-y-6">
         <Header />
 
@@ -1151,6 +1151,6 @@ export default function ScriptLabPage() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

@@ -796,8 +796,7 @@ export default function BitcoinMapPage() {
     : null;
 
   return (
-    <main
-      className="min-h-screen px-4 py-8 md:px-8"
+    <div      className="min-h-screen px-4 py-8 md:px-8"
       style={{ background: theme.pageBg, color: theme.textPrimary }}
     >
       <div className="mx-auto max-w-[1600px] space-y-5">
@@ -1331,6 +1330,6 @@ export default function BitcoinMapPage() {
           }
         }
       `}</style>
-    </main>
+    </div>
   );
 }

@@ -1394,7 +1394,7 @@ export default function ForensicsPage() {
 
 
     return (
-        <main className="h-screen w-full bg-slate-950 flex flex-col relative overflow-hidden">
+        <div className="h-screen w-full bg-slate-950 flex flex-col relative overflow-hidden">
             <div className="bg-slate-950 px-4 pt-4 md:hidden">
                 <Header />
             </div>
@@ -1817,6 +1817,6 @@ export default function ForensicsPage() {
                     )}
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

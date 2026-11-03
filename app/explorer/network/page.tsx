@@ -386,7 +386,7 @@ function NetworkContent() {
     }, [knownPeers, peers, selectedCountry]);
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-cyan-900 selection:text-cyan-100 pb-20 relative overflow-x-hidden">
+        <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-cyan-900 selection:text-cyan-100 pb-20 relative overflow-x-hidden">
             {selectedCountry && (
                 <CountryDetailPanel
                     countryCode={selectedCountry.code}
@@ -584,7 +584,7 @@ function NetworkContent() {
                     </>
                 )}
             </div>
-        </main>
+        </div>
     );
 }
 

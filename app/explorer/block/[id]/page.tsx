@@ -181,7 +181,7 @@ export default function BlockPage() {
     }, [block]);
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 font-sans">
+        <div className="min-h-screen bg-slate-950 text-slate-200 font-sans">
             <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
                 <Header />
 
@@ -330,6 +330,6 @@ export default function BlockPage() {
                     </>
                 )}
             </div>
-        </main>
+        </div>
     );
 }

@@ -122,7 +122,7 @@ function BlockCompareContent() {
     };
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono selection:bg-cyan-500/30">
+        <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono selection:bg-cyan-500/30">
             <div className="max-w-6xl mx-auto space-y-8">
                 <div className="md:hidden">
                     <Header />
@@ -196,9 +196,11 @@ function BlockCompareContent() {
                 {/* Comparison Details */}
                 {(block1 || block2) && (
                     <Card variant="panel" hoverable={false} className="p-0 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <div className="min-w-[480px] md:min-w-0">
 
                         {/* Headers */}
-                        <div className="grid grid-cols-[120px_1fr_1fr] md:grid-cols-[200px_1fr_1fr] gap-4 p-4 md:p-6 bg-slate-900/80 border-b border-slate-800 items-end">
+                        <div className="grid grid-cols-[140px_1fr_1fr] md:grid-cols-[200px_1fr_1fr] gap-4 p-4 md:p-6 bg-slate-900/80 border-b border-slate-800 items-end">
                             <div className="text-xs text-slate-500 font-bold uppercase tracking-widest">Metric</div>
                             <div>
                                 <div className="text-xs font-bold text-purple-400 uppercase tracking-widest mb-1">Block A</div>
@@ -261,10 +263,12 @@ function BlockCompareContent() {
                                 'none'
                             )}
                         </div>
+                            </div>
+                        </div>
                     </Card>
                 )}
             </div>
-        </main>
+        </div>
     );
 }
 

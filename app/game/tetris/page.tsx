@@ -9,7 +9,7 @@ import { useTranslation } from "@/lib/i18n";
 export default function MempoolGamePage() {
     const { t } = useTranslation();
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
+        <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono">
             <div className="max-w-7xl mx-auto space-y-6">
                 <Header />
 
@@ -46,6 +46,6 @@ export default function MempoolGamePage() {
                 </div>
 
             </div>
-        </main>
+        </div>
     );
 }

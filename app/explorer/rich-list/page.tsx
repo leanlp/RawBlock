@@ -118,7 +118,7 @@ export default function RichListPage() {
     }, [filter, enhancedWhales]);
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono selection:bg-cyan-500/30">
+        <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-mono selection:bg-cyan-500/30">
             <div className="max-w-6xl mx-auto space-y-8">
                 <div className="md:hidden">
                     <Header />
@@ -318,6 +318,6 @@ export default function RichListPage() {
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

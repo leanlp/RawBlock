@@ -17,11 +17,9 @@ const connectSrc = ["'self'", "https:", "wss:", ...configuredConnectSrc]
   .join(" ");
 
 const isSecureDeployment = process.env.VERCEL === "1";
-const isProductionBuild = isSecureDeployment || process.env.NODE_ENV === "production";
-const trustedScriptHosts = "https://va.vercel-scripts.com https://us-assets.i.posthog.com https://us.i.posthog.com";
-const scriptSrc = isProductionBuild
-  ? `script-src 'self' 'unsafe-inline' ${trustedScriptHosts}`
-  : `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${trustedScriptHosts}`;
+const trustedScriptHosts =
+  "https://static.cloudflareinsights.com https://cloudflareinsights.com https://va.vercel-scripts.com https://us-assets.i.posthog.com https://us.i.posthog.com https:";
+const scriptSrc = `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${trustedScriptHosts}`;
 
 const contentSecurityPolicy = [
   "default-src 'self'",

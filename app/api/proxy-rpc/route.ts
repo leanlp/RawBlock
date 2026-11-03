@@ -86,7 +86,7 @@ export async function POST(req: Request) {
           typeof entry.scriptpubkey === "string" ? entry.scriptpubkey : "";
         return {
           ...entry,
-          value: sats > 1e6 ? sats / 1e8 : sats,
+          value: sats / 1e8,
           scriptPubKey: {
             address,
             addresses: address ? [address] : [],

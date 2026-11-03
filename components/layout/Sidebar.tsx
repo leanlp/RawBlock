@@ -296,7 +296,7 @@ export default function Sidebar() {
                 <div className="flex justify-center">
                     <button
                         onClick={toggleLocale}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs font-medium text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-4 min-h-11 text-xs font-medium text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
                         aria-label="Toggle language"
                     >
                         <span>🌐</span>

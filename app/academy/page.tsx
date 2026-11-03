@@ -32,7 +32,7 @@ export default function AcademyLandingPage() {
   }, [query]);
 
   return (
-    <main className="page-shell bg-slate-950">
+    <div className="page-shell bg-slate-950">
       <div className="page-wrap reading-flow">
         <div className="md:hidden">
           <Header />
@@ -95,6 +95,6 @@ export default function AcademyLandingPage() {
           </ul>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

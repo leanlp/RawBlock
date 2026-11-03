@@ -521,7 +521,7 @@ export default function MempoolPage() {
                 </p>
             </div>
 
-            {API_URL ? <NetworkHud /> : null}
+            <NetworkHud />
         </>
     );
 }

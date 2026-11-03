@@ -24,7 +24,7 @@ export default function AppShell({
 
                     {/* Main Content Area */}
                     {/* md:ml-64 matches the width of the expanded sidebar (w-64) */}
-                    <main className="min-h-screen min-w-0 transition-all duration-300 ease-in-out md:ml-64 relative flex flex-col">
+                    <main id="main-content" className="min-h-screen min-w-0 transition-all duration-300 ease-in-out md:ml-64 relative flex flex-col">
                         {/* Premium Stitch Background Effects (Global) */}
                         <div className="ambient-bg pointer-events-none" />
                         <div className="fixed inset-0 bg-[url('/noise.svg')] opacity-10 brightness-100 mix-blend-overlay pointer-events-none -z-10"></div>

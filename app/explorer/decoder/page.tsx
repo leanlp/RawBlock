@@ -358,7 +358,7 @@ function DecoderContent() {
     };
 
     return (
-        <main className="relative min-h-screen overflow-x-hidden bg-slate-950 px-4 py-4 font-mono text-slate-200 leading-6 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <div className="relative min-h-screen overflow-x-hidden bg-slate-950 px-4 py-4 font-mono text-slate-200 leading-6 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute -left-[10%] -top-[10%] h-2/5 w-2/5 rounded-full bg-cyan-900/20 blur-3xl animate-pulse"></div>
@@ -778,7 +778,7 @@ function DecoderContent() {
                     </div>
                 ) : null}
             </div>
-        </main>
+        </div>
     );
 }
 
