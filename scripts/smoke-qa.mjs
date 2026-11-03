@@ -369,18 +369,20 @@ async function runScenario(browser, definition, outDir) {
             { timeout: 45_000 },
           ),
         ]).catch(() => null);
-        const firstRow = page.locator("table tbody tr").first();
+
+        const bodyText = await page.locator("body").innerText();
+        if (
+          bodyHasAny(bodyText, [
+            "No rich-list rows available",
+            "Unable to load rich list snapshot",
+            "snapshot is temporarily unavailable",
+          ])
+        ) {
+          return skip("Rich-list snapshot was unavailable, but the page degraded cleanly.");
+        }
+
+        const firstRow = page.locator("table tbody tr[class*='cursor-pointer']").first();
         if (!(await firstRow.isVisible().catch(() => false))) {
-          const bodyText = await page.locator("body").innerText();
-          if (
-            bodyHasAny(bodyText, [
-              "No rich-list rows available",
-              "Unable to load rich list snapshot",
-              "snapshot is temporarily unavailable",
-            ])
-          ) {
-            return skip("Rich-list snapshot was unavailable, but the page degraded cleanly.");
-          }
           throw new Error("Rich-list table did not expose a detail row.");
         }
         await firstRow.click();
