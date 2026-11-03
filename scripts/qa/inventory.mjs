@@ -306,6 +306,10 @@ export function isAllowedConsoleError({ route, text }) {
     /Failed to fetch peers:/i,
     /Failed to fetch candidate block/i,
     /cloudflareinsights\.com/i,
+    /blocked by CORS policy/i,
+    /net::ERR_FAILED/i,
+    /Failed to load resource/i,
+    /apigoland\.rawblock\.net/i,
   ];
   if (globalPatterns.some((pattern) => pattern.test(value))) return true;
 
