@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL || "https://apigoland.rawblock.net"
-).replace(/\/+$/, "");
+function getApiBaseUrl(): string {
+  const raw =
+    process.env.RAWBLOCK_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://apigoland.rawblock.net";
+  return raw.trim().replace(/\/+$/, "").replace(/\/api$/, "");
+}
 
 const REQUEST_TIMEOUT_MS = 8000;
 const RATE_WINDOW_MS = 60_000;
@@ -32,15 +36,21 @@ function checkRateLimit(ip: string): boolean {
 async function fetchBackendJson(path: string): Promise<Record<string, unknown>> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const baseUrl = getApiBaseUrl();
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const targetUrl = `${baseUrl}${cleanPath}`;
   try {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(targetUrl, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "RawBlock-Proxy/1.0",
+      },
       signal: controller.signal,
       cache: "no-store",
     });
     if (!res.ok) {
-      throw new Error(`Upstream status ${res.status}`);
+      throw new Error(`Upstream ${targetUrl} status ${res.status}`);
     }
     return (await res.json()) as Record<string, unknown>;
   } finally {
@@ -137,9 +147,13 @@ export async function POST(req: Request) {
       { error: "Invalid format. Expected mainnet TxID or Bitcoin address." },
       { status: 400 },
     );
-  } catch {
+  } catch (err) {
+    console.error("proxy-rpc error:", err);
     return NextResponse.json(
-      { error: "Unable to resolve blockchain query from backend." },
+      {
+        error: "Unable to resolve blockchain query from backend.",
+        detail: err instanceof Error ? err.message : String(err),
+      },
       { status: 502 },
     );
   }
