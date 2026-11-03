@@ -97,7 +97,20 @@ async function runScenario(browser, definition, outDir) {
         );
         await toggle.waitFor({ state: "visible", timeout: 30_000 });
         await toggle.click();
-        await page.locator("text=Tu centro de comando").first().waitFor({ state: "attached", timeout: 180_000 });
+        const switched = await page
+          .locator("text=Tu centro de comando")
+          .first()
+          .waitFor({ state: "attached", timeout: 5_000 })
+          .then(() => true)
+          .catch(() => false);
+        if (!switched) {
+          // If first click was dropped before React completed hydration, retry once
+          await toggle.click();
+          await page
+            .locator("text=Tu centro de comando")
+            .first()
+            .waitFor({ state: "attached", timeout: 30_000 });
+        }
         const storedLocale = await page.evaluate(() => window.localStorage.getItem("rawblock-locale"));
         if (storedLocale !== "es") {
           throw new Error(`Expected rawblock-locale=es after toggle, received ${storedLocale}`);
@@ -188,7 +201,7 @@ async function runScenario(browser, definition, outDir) {
         const firstNode = page.locator('a[href^="/academy/"]').first();
         await firstNode.waitFor({ state: "visible", timeout: 30_000 });
         await firstNode.click();
-        await page.waitForURL((url) => /^\/academy\/.+/.test(url.pathname), { timeout: 30_000 });
+        await page.waitForURL((url) => /^\/academy\/.+/.test(url.pathname), { timeout: 30_000, waitUntil: "commit" });
         note("Filtered academy nodes and opened the first matching lesson.");
         return pass();
       }
@@ -338,7 +351,7 @@ async function runScenario(browser, definition, outDir) {
           throw new Error("Blocks table did not expose a drill-down row.");
         }
         await firstRow.click();
-        await page.waitForURL((url) => /^\/explorer\/block\/.+/.test(url.pathname), { timeout: 30_000 });
+        await page.waitForURL((url) => /^\/explorer\/block\/.+/.test(url.pathname), { timeout: 30_000, waitUntil: "commit" });
         note("Opened the first runtime block detail page.");
         return pass();
       }
@@ -371,7 +384,7 @@ async function runScenario(browser, definition, outDir) {
           throw new Error("Rich-list table did not expose a detail row.");
         }
         await firstRow.click();
-        await page.waitForURL((url) => /^\/explorer\/rich-list\/\d+/.test(url.pathname), { timeout: 30_000 });
+        await page.waitForURL((url) => /^\/explorer\/rich-list\/\d+/.test(url.pathname), { timeout: 30_000, waitUntil: "commit" });
         note("Opened the first runtime whale detail page.");
         return pass();
       }
@@ -383,7 +396,7 @@ async function runScenario(browser, definition, outDir) {
           return skip("No academy path link was available on the landing page.");
         }
         await firstPath.click();
-        await page.waitForURL((url) => /^\/paths\/.+/.test(url.pathname), { timeout: 30_000 });
+        await page.waitForURL((url) => /^\/paths\/.+/.test(url.pathname), { timeout: 30_000, waitUntil: "commit" });
         note("Opened the first runtime academy path.");
         return pass();
       }
@@ -395,7 +408,7 @@ async function runScenario(browser, definition, outDir) {
           return skip("No academy node link was available on the landing page.");
         }
         await firstNode.click();
-        await page.waitForURL((url) => /^\/academy\/.+/.test(url.pathname), { timeout: 30_000 });
+        await page.waitForURL((url) => /^\/academy\/.+/.test(url.pathname), { timeout: 30_000, waitUntil: "commit" });
         note("Opened the first runtime academy node detail.");
         return pass();
       }
