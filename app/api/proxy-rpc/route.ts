@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { rawblockGatewayHeaders } from "@/lib/rawblockGateway";
 
 function getApiBaseUrl(): string {
   const raw =
@@ -40,10 +39,17 @@ async function fetchBackendJson(path: string, clientUserAgent?: string | null): 
   const baseUrl = getApiBaseUrl();
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   const targetUrl = `${baseUrl}${cleanPath}`;
+  const userAgent =
+    clientUserAgent && !clientUserAgent.includes("RawBlock-Proxy")
+      ? clientUserAgent
+      : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
   try {
     const res = await fetch(targetUrl, {
       method: "GET",
-      headers: rawblockGatewayHeaders(clientUserAgent),
+      headers: {
+        Accept: "application/json",
+        "User-Agent": userAgent,
+      },
       signal: controller.signal,
       cache: "no-store",
     });

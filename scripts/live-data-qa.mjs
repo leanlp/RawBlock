@@ -28,7 +28,7 @@ function row(txid) {
 
 function startGateway(mode = "healthy") {
   const server = createServer((request, response) => {
-    if (request.headers.accept !== "application/json" || !request.headers["user-agent"]?.startsWith("Mozilla/")) {
+    if (request.headers.accept !== "application/json" || request.headers.authorization) {
       response.writeHead(403);
       response.end();
       return;

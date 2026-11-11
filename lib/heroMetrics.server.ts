@@ -1,6 +1,5 @@
 import { unstable_cache } from "next/cache";
 import { convertHashrateToEh } from "@/lib/hashrate";
-import { rawblockGatewayHeaders } from "@/lib/rawblockGateway";
 import type { RecentMempoolTx } from "@/lib/bitcoinData";
 import {
   displayableHeroReading,
@@ -15,19 +14,38 @@ import {
 const CORE_TIMEOUT_MS = 1_000;
 const PANEL_TIMEOUT_MS = 2_000;
 
-function getGatewayUrl() {
+type HeroGateway = { base: string; authenticated: boolean };
+
+function getHeroGateway(): HeroGateway | null {
+  const privateUrl = process.env.RAWBLOCK_HERO_API_URL?.trim();
+  const token = process.env.RAWBLOCK_HERO_API_TOKEN?.trim();
+  if (privateUrl || token) {
+    try {
+      const url = new URL(privateUrl ?? "");
+      if (url.protocol === "https:" && !url.username && !url.password &&
+          url.pathname === "/" && !url.search && !url.hash && /^[a-f0-9]{64}$/.test(token ?? "")) {
+        return { base: url.origin, authenticated: true };
+      }
+    } catch {
+      // An invalid deployment URL cannot receive the gateway credential.
+    }
+    console.warn("RawBlock private hero gateway configuration is invalid");
+    return null;
+  }
+
   for (const configured of [process.env.RAWBLOCK_API_URL, process.env.NEXT_PUBLIC_API_URL]) {
     if (!configured?.trim()) continue;
     try {
       const url = new URL(configured);
       if (url.protocol === "https:" || url.protocol === "http:") {
-        return url.origin + url.pathname.replace(/\/+$/, "").replace(/\/api$/, "");
+        const base = url.origin + url.pathname.replace(/\/+$/, "").replace(/\/api$/, "");
+        return { base, authenticated: false };
       }
     } catch {
       // Try the alternate deployment variable.
     }
   }
-  return "https://apigoland.rawblock.net";
+  return { base: "https://apigoland.rawblock.net", authenticated: false };
 }
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -113,14 +131,19 @@ export function parseHeroHistory(raw: unknown): HeroFeeHistoryPoint[] | null {
 }
 
 async function readUpstream<T>(
-  base: string,
+  gateway: HeroGateway,
   path: string,
   timeoutMs: number,
   parse: (data: unknown) => T | null,
 ): Promise<HeroReading<T>> {
-  const response = await fetch(`${base}/api/${path}`, {
+  const headers = new Headers({ Accept: "application/json" });
+  if (gateway.authenticated) {
+    headers.set("Authorization", `Bearer ${process.env.RAWBLOCK_HERO_API_TOKEN?.trim()}`);
+  }
+  const response = await fetch(`${gateway.base}/api/${path}`, {
     cache: "no-store",
-    headers: rawblockGatewayHeaders(),
+    headers,
+    redirect: gateway.authenticated ? "error" : "follow",
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) {
@@ -139,11 +162,12 @@ async function readUpstream<T>(
 
 function makeCachedReader<T>(path: string, timeoutMs: number, parse: (data: unknown) => T | null, revalidate: number) {
   const inFlight = new Map<string, Promise<HeroReading<T>>>();
-  return unstable_cache((base: string) => {
-    const pending = inFlight.get(base);
+  return unstable_cache((gateway: HeroGateway) => {
+    const key = `${gateway.authenticated}:${gateway.base}`;
+    const pending = inFlight.get(key);
     if (pending) return pending;
-    const next = readUpstream(base, path, timeoutMs, parse).finally(() => inFlight.delete(base));
-    inFlight.set(base, next);
+    const next = readUpstream(gateway, path, timeoutMs, parse).finally(() => inFlight.delete(key));
+    inFlight.set(key, next);
     return next;
   }, [`hero-${path}-v1`], { revalidate });
 }
@@ -177,10 +201,10 @@ function pickValue<T, K extends keyof T>(reading: HeroReading<T> | null, key: K)
 }
 
 export async function getHeroCoreMetrics(): Promise<HeroCoreMetrics> {
-  const base = getGatewayUrl();
-  const [network, mempool] = base ? await Promise.all([
-    readWithinBudget(readNetwork(base), CORE_TIMEOUT_MS, "network-stats"),
-    readWithinBudget(readMempool(base), CORE_TIMEOUT_MS, "vitals"),
+  const gateway = getHeroGateway();
+  const [network, mempool] = gateway ? await Promise.all([
+    readWithinBudget(readNetwork(gateway), CORE_TIMEOUT_MS, "network-stats"),
+    readWithinBudget(readMempool(gateway), CORE_TIMEOUT_MS, "vitals"),
   ]) : [null, null];
   const checkedAt = Date.now();
   const validNetwork = displayableHeroReading(network, checkedAt);
@@ -194,15 +218,15 @@ export async function getHeroCoreMetrics(): Promise<HeroCoreMetrics> {
 }
 
 export async function getHeroRecentMetrics(): Promise<HeroRecentMetrics | null> {
-  const base = getGatewayUrl();
-  if (!base) return null;
-  const reading = await readWithinBudget(readRecentTransactions(base), PANEL_TIMEOUT_MS, "mempool-recent");
+  const gateway = getHeroGateway();
+  if (!gateway) return null;
+  const reading = await readWithinBudget(readRecentTransactions(gateway), PANEL_TIMEOUT_MS, "mempool-recent");
   return displayableHeroReading(reading, Date.now());
 }
 
 export async function getHeroHistoryMetrics(): Promise<HeroHistoryMetrics | null> {
-  const base = getGatewayUrl();
-  if (!base) return null;
-  const reading = await readWithinBudget(readFeeHistory(base), PANEL_TIMEOUT_MS, "fee-history");
+  const gateway = getHeroGateway();
+  if (!gateway) return null;
+  const reading = await readWithinBudget(readFeeHistory(gateway), PANEL_TIMEOUT_MS, "fee-history");
   return displayableHeroReading(reading, Date.now());
 }
