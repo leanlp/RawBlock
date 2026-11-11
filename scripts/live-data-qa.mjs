@@ -28,6 +28,11 @@ function row(txid) {
 
 function startGateway(mode = "healthy") {
   const server = createServer((request, response) => {
+    if (request.headers.accept !== "application/json" || !request.headers["user-agent"]?.startsWith("Mozilla/")) {
+      response.writeHead(403);
+      response.end();
+      return;
+    }
     if (mode === "stalled-body" && request.url === "/api/vitals") {
       response.writeHead(200, { ...snapshotHeaders(), "content-type": "application/json" });
       response.write('{"mempool":');
@@ -95,7 +100,7 @@ let base;
 before(async () => {
   gateway = startGateway();
   await once(gateway, "listening");
-  app = startApp("http://127.0.0.1:" + gateway.address().port);
+  app = startApp("http://127.0.0.1:" + gateway.address().port + "/api/");
   base = await app.ready;
   browser = await launchBrowser();
 });

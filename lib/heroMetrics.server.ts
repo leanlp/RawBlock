@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { convertHashrateToEh } from "@/lib/hashrate";
+import { rawblockGatewayHeaders } from "@/lib/rawblockGateway";
 import type { RecentMempoolTx } from "@/lib/bitcoinData";
 import {
   displayableHeroReading,
@@ -20,7 +21,7 @@ function getGatewayUrl() {
     try {
       const url = new URL(configured);
       if (url.protocol === "https:" || url.protocol === "http:") {
-        return `${url.origin}${url.pathname.replace(/\/$/, "")}`;
+        return url.origin + url.pathname.replace(/\/+$/, "").replace(/\/api$/, "");
       }
     } catch {
       // Try the alternate deployment variable.
@@ -119,9 +120,13 @@ async function readUpstream<T>(
 ): Promise<HeroReading<T>> {
   const response = await fetch(`${base}/api/${path}`, {
     cache: "no-store",
+    headers: rawblockGatewayHeaders(),
     signal: AbortSignal.timeout(timeoutMs),
   });
-  if (!response.ok) throw new Error(`Hero ${path} HTTP ${response.status}`);
+  if (!response.ok) {
+    const challenge = response.headers.get("cf-mitigated") === "challenge" ? " (gateway challenge)" : "";
+    throw new Error(`Hero ${path} HTTP ${response.status}${challenge}`);
+  }
   const value = parse(await response.json());
   if (value === null) throw new Error(`Invalid hero ${path} payload`);
   const rawSource = response.headers.get("x-rawblock-data-source");
