@@ -10,6 +10,7 @@ import GlobalSearch from "./explorer/GlobalSearch";
 import { useGuidedLearning } from "./providers/GuidedLearningProvider";
 import { CANONICAL_PATH_ID, getCanonicalPath } from "@/lib/graph/pathEngine";
 import { useTranslation } from "@/lib/i18n";
+import type { HeroCoreMetrics } from "@/lib/heroMetrics";
 
 const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -325,7 +326,7 @@ function PrimaryActionCard({
     );
 }
 
-export default function DashboardHome() {
+export default function DashboardHome({ heroMetrics }: { heroMetrics: HeroCoreMetrics }) {
     const {
         currentLessonIndex,
         completedLessons,
@@ -400,7 +401,7 @@ export default function DashboardHome() {
             </motion.div>
 
             {/* Live Metrics Hero */}
-            <HeroMetrics />
+            <HeroMetrics initialMetrics={heroMetrics} />
 
             {/* ===== PRIMARY ACTIONS ROW ===== */}
             <motion.div

@@ -36,6 +36,16 @@ export type AnalyticsEvent =
       properties: BaseProps & { tool: string; error_type: string; duration_ms?: number };
     }
   | {
+      name: 'explorer_data_timing';
+      properties: BaseProps & {
+        tool: 'hero' | 'mempool' | 'candidate-block';
+        phase: 'first_height' | 'snapshot_ready' | 'ws_open' | 'ws_first_frame' | 'ws_recovered' | 'candidate_ready';
+        duration_ms: number;
+        source?: 'api' | 'websocket' | 'fallback' | 'server';
+        age_ms?: number;
+      };
+    }
+  | {
       name: 'explorer_search_submitted';
       properties: BaseProps & { search_type: string; has_result: boolean };
     }

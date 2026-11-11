@@ -117,15 +117,11 @@ type NodeMempoolRecentEntry = {
 };
 
 async function fetchJsonWithRevalidate<T>(url: string, revalidate = 30): Promise<T> {
-  const response = await fetch(url, { next: { revalidate } });
-  if (!response.ok) {
-    throw new Error(`Failed ${url}: ${response.status}`);
-  }
-  return response.json() as Promise<T>;
+  return fetchJsonWithTimeout<T>(url, revalidate);
 }
 
 async function fetchTextWithRevalidate(url: string, revalidate = 30): Promise<string> {
-  const response = await fetch(url, { next: { revalidate } });
+  const response = await fetch(url, { next: { revalidate }, signal: AbortSignal.timeout(2500) });
   if (!response.ok) {
     throw new Error(`Failed ${url}: ${response.status}`);
   }
@@ -144,7 +140,7 @@ async function fetchJsonWithTimeout<T>(url: string, revalidate = 30, timeoutMs =
     if (!response.ok) {
       throw new Error(`Failed ${url}: ${response.status}`);
     }
-    return response.json() as Promise<T>;
+    return await response.json() as T;
   } finally {
     clearTimeout(timer);
   }
@@ -310,13 +306,16 @@ async function fetchNodeGatewaySnapshot(): Promise<{
   let mempoolVsizeMb: number | null = null;
   let recentTxs: RecentMempoolTx[] = [];
 
+  const [networkResult, marketResult, vitalsResult, recentResult] = await Promise.allSettled([
+    fetchJsonWithTimeout<NodeNetworkStatsResponse>(`${NODE_GATEWAY_API}/api/network-stats`, 10),
+    fetchJsonWithTimeout<NodeFeeMarketStatsResponse>(`${NODE_GATEWAY_API}/api/fee-market-stats`, 10),
+    fetchJsonWithTimeout<NodeVitalsResponse>(`${NODE_GATEWAY_API}/api/vitals`, 10),
+    fetchJsonWithTimeout<NodeMempoolRecentEntry[]>(`${NODE_GATEWAY_API}/api/mempool-recent`, 10),
+  ]);
+
   try {
-    const stats = await fetchJsonWithTimeout<NodeNetworkStatsResponse>(
-      `${NODE_GATEWAY_API}/api/network-stats`,
-      10,
-      2500,
-    );
-    const height = Number(stats?.height);
+    const stats = networkResult.status === "fulfilled" ? networkResult.value : null;
+    const height = typeof stats?.height === "number" ? stats.height : NaN;
     blockHeight = Number.isFinite(height) ? height : null;
 
     const networkStatsFees = normalizeOrderedFeesFromAny(
@@ -340,11 +339,7 @@ async function fetchNodeGatewaySnapshot(): Promise<{
   }
 
   try {
-    const marketStats = await fetchJsonWithTimeout<NodeFeeMarketStatsResponse>(
-      `${NODE_GATEWAY_API}/api/fee-market-stats`,
-      10,
-      2500,
-    );
+    const marketStats = marketResult.status === "fulfilled" ? marketResult.value : null;
     const marketFees = normalizeOrderedFeesFromAny(
       marketStats?.percentiles?.p95 ?? marketStats?.percentiles?.p90,
       marketStats?.percentiles?.p75 ?? marketStats?.percentiles?.p50,
@@ -362,11 +357,7 @@ async function fetchNodeGatewaySnapshot(): Promise<{
   }
 
   try {
-    const vitals = await fetchJsonWithTimeout<NodeVitalsResponse>(
-      `${NODE_GATEWAY_API}/api/vitals`,
-      10,
-      2500,
-    );
+    const vitals = vitalsResult.status === "fulfilled" ? vitalsResult.value : null;
     const size = Number(vitals?.mempool?.size ?? NaN);
     const bytes = Number(vitals?.mempool?.bytes ?? NaN);
     mempoolTxCount = Number.isFinite(size) ? size : null;
@@ -376,11 +367,7 @@ async function fetchNodeGatewaySnapshot(): Promise<{
   }
 
   try {
-    const recent = await fetchJsonWithTimeout<NodeMempoolRecentEntry[]>(
-      `${NODE_GATEWAY_API}/api/mempool-recent`,
-      10,
-      2500,
-    );
+    const recent = recentResult.status === "fulfilled" ? recentResult.value : null;
     recentTxs = (recent ?? [])
       .map((row) => {
         const txid = typeof row.txid === "string" ? row.txid : "";
