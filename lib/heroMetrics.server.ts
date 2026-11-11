@@ -11,8 +11,10 @@ import {
   type HeroRecentMetrics,
 } from "@/lib/heroMetrics";
 
-const CORE_TIMEOUT_MS = 1_000;
-const PANEL_TIMEOUT_MS = 2_000;
+// The gateway has its own 1.7s origin deadline. Allow time for both network
+// legs and JSON parsing; cache lookup overhead must not consume that budget.
+const UPSTREAM_TIMEOUT_MS = 2_500;
+const RESPONSE_TIMEOUT_MS = 3_500;
 
 type HeroGateway = { base: string; authenticated: boolean };
 
@@ -157,7 +159,11 @@ async function readUpstream<T>(
   const parsedTime = Date.parse(response.headers.get("x-rawblock-updated-at") ?? "");
   const retrievedAt = Date.now();
   const observedAt = Number.isFinite(parsedTime) && parsedTime <= retrievedAt + 5_000 ? parsedTime : null;
-  return { value, source, observedAt, retrievedAt, fromDisk: response.headers.get("x-rawblock-cache") === "disk" };
+  const reading = { value, source, observedAt, retrievedAt, fromDisk: response.headers.get("x-rawblock-cache") === "disk" } satisfies HeroReading<T>;
+  // Throw rather than caching an expired response over a usable observation.
+  // Next's data cache retains the last successful value on revalidation error.
+  if (!displayableHeroReading(reading, retrievedAt)) throw new Error(`Expired hero ${path} observation`);
+  return reading;
 }
 
 function makeCachedReader<T>(path: string, timeoutMs: number, parse: (data: unknown) => T | null, revalidate: number) {
@@ -172,10 +178,10 @@ function makeCachedReader<T>(path: string, timeoutMs: number, parse: (data: unkn
   }, [`hero-${path}-v1`], { revalidate });
 }
 
-const readNetwork = makeCachedReader("network-stats", CORE_TIMEOUT_MS, parseHeroNetworkStats, 15);
-const readMempool = makeCachedReader("vitals", CORE_TIMEOUT_MS, parseHeroVitals, 10);
-const readRecentTransactions = makeCachedReader("mempool-recent", PANEL_TIMEOUT_MS, parseHeroRecent, 10);
-const readFeeHistory = makeCachedReader("fee-history", PANEL_TIMEOUT_MS, parseHeroHistory, 30);
+const readNetwork = makeCachedReader("network-stats", UPSTREAM_TIMEOUT_MS, parseHeroNetworkStats, 15);
+const readMempool = makeCachedReader("vitals", UPSTREAM_TIMEOUT_MS, parseHeroVitals, 10);
+const readRecentTransactions = makeCachedReader("mempool-recent", UPSTREAM_TIMEOUT_MS, parseHeroRecent, 10);
+const readFeeHistory = makeCachedReader("fee-history", UPSTREAM_TIMEOUT_MS, parseHeroHistory, 30);
 
 async function readWithinBudget<T>(read: Promise<T>, timeoutMs: number, path: string): Promise<T | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -203,8 +209,8 @@ function pickValue<T, K extends keyof T>(reading: HeroReading<T> | null, key: K)
 export async function getHeroCoreMetrics(): Promise<HeroCoreMetrics> {
   const gateway = getHeroGateway();
   const [network, mempool] = gateway ? await Promise.all([
-    readWithinBudget(readNetwork(gateway), CORE_TIMEOUT_MS, "network-stats"),
-    readWithinBudget(readMempool(gateway), CORE_TIMEOUT_MS, "vitals"),
+    readWithinBudget(readNetwork(gateway), RESPONSE_TIMEOUT_MS, "network-stats"),
+    readWithinBudget(readMempool(gateway), RESPONSE_TIMEOUT_MS, "vitals"),
   ]) : [null, null];
   const checkedAt = Date.now();
   const validNetwork = displayableHeroReading(network, checkedAt);
@@ -220,13 +226,13 @@ export async function getHeroCoreMetrics(): Promise<HeroCoreMetrics> {
 export async function getHeroRecentMetrics(): Promise<HeroRecentMetrics | null> {
   const gateway = getHeroGateway();
   if (!gateway) return null;
-  const reading = await readWithinBudget(readRecentTransactions(gateway), PANEL_TIMEOUT_MS, "mempool-recent");
+  const reading = await readWithinBudget(readRecentTransactions(gateway), RESPONSE_TIMEOUT_MS, "mempool-recent");
   return displayableHeroReading(reading, Date.now());
 }
 
 export async function getHeroHistoryMetrics(): Promise<HeroHistoryMetrics | null> {
   const gateway = getHeroGateway();
   if (!gateway) return null;
-  const reading = await readWithinBudget(readFeeHistory(gateway), PANEL_TIMEOUT_MS, "fee-history");
+  const reading = await readWithinBudget(readFeeHistory(gateway), RESPONSE_TIMEOUT_MS, "fee-history");
   return displayableHeroReading(reading, Date.now());
 }
