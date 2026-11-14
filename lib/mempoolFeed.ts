@@ -29,6 +29,7 @@ export type MempoolChange = {
 
 type StreamFrame =
     | { kind: "heartbeat"; observedAt: number; txCount: number }
+    | { kind: "activity"; observedAt: number }
     | { kind: "change"; observedAt: number; change: MempoolChange };
 
 function asObject(value: unknown): Record<string, unknown> | null {
@@ -101,9 +102,16 @@ export function parseMempoolStreamFrame(data: unknown, receivedAt: number): Stre
     }
 
     if (envelope?.type !== "mempool:lifecycle") return null;
-    const sequence = integerFrom(payload.seq, 1);
+    const sequence = integerFrom(payload.seq);
     const txid = txidFrom(payload.txid);
     if (sequence === null || txid === null) return null;
+    if (payload.type !== "added" && payload.type !== "removed" && payload.type !== "confirmed" && payload.type !== "replacement") return null;
+
+    // The deployed node can broadcast activity before assigning a sequence or
+    // looking up fees and size. Renew the stream lease without editing rows.
+    if (sequence === 0) {
+        return payload.source === "mempool-delta-v2" ? { kind: "activity", observedAt } : null;
+    }
 
     if (payload.type === "added") {
         const feeSats = feeToSats(payload.feeBTC, "btc");
@@ -114,7 +122,6 @@ export function parseMempoolStreamFrame(data: unknown, receivedAt: number): Stre
         return { kind: "change", observedAt, change: { txid, sequence, observedAt, transaction, replacedBy: null } };
     }
 
-    if (payload.type !== "removed" && payload.type !== "confirmed" && payload.type !== "replacement") return null;
     const replacedBy = payload.type === "replacement" ? txidFrom(payload.replacedBy) : null;
     return { kind: "change", observedAt, change: { txid, sequence, observedAt, transaction: null, replacedBy } };
 }

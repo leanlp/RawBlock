@@ -361,6 +361,20 @@ test("REST stays usable while the socket is silent and the stream reconnects aut
   await expect(stream).toContainText(/Live Node/i);
 });
 
+test("unsequenced gateway activity marks the stream live without adding incomplete transactions", async (t) => {
+  const { page, sockets, stream, table } = await startExplorer(t, route =>
+    route.fulfill({ json: [row(retained)], headers: snapshotHeaders() }));
+  await expect.poll(() => sockets.length).toBe(1);
+  await expect(table.getByText(retained, { exact: true }).first()).toBeAttached();
+  const now = await page.evaluate(() => Math.floor(Date.now() / 1000));
+  sockets[0].send(JSON.stringify({
+    type: "mempool:lifecycle",
+    payload: { type: "added", txid: added, seq: 0, timestamp: now, vsize: 0, feeBTC: 0, source: "mempool-delta-v2" },
+  }));
+  await expect(stream).toContainText(/Live Node/i);
+  await expect(table.getByText(added, { exact: true })).toHaveCount(0);
+});
+
 test("a public fallback preserves one satoshi without changing healthy socket status", async (t) => {
   const { page, sockets, stream, table } = await startExplorer(t, (route) =>
     route.fulfill({ status: 503, json: { error: "Fixture node outage" }, headers: snapshotHeaders() }),

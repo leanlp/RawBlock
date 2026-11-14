@@ -251,7 +251,7 @@ export function useMempoolFeed() {
                     const evictedAt = applyMempoolChange(changes, frame.change, currentSnapshot);
                     if (evictedAt !== null) evictedThrough = Math.max(evictedThrough, evictedAt);
                     publishRows();
-                } else {
+                } else if (frame.kind === "heartbeat") {
                     setMempoolCount({ value: frame.txCount, observedAt: frame.observedAt });
                 }
 

@@ -33,6 +33,10 @@ const frame = (type: string, payload: unknown, receivedAt = now) =>
 
 assert.equal(frame("tx:new", add), null);
 assert.equal(frame("mempool:lifecycle", { ...add, seq: 0 }), null);
+const unsequenced = { ...add, seq: 0, source: "mempool-delta-v2", vsize: 0, feeBTC: 0 };
+assert.deepEqual(frame("mempool:lifecycle", unsequenced), { kind: "activity", observedAt: now });
+assert.equal(frame("mempool:lifecycle", { ...unsequenced, timestamp: seconds - 200 }), null);
+assert.equal(frame("mempool:lifecycle", { ...unsequenced, type: "unknown" }), null);
 assert.equal(frame("mempool:lifecycle", { ...add, vsize: 0 }), null);
 assert.equal(frame("mempool:lifecycle", { ...add, timestamp: seconds + 60 }), null);
 assert.equal(frame("rbf:conflict", { txid: addedTxid, replacedTxid: removedTxid, feeDiff: 10 }), null);
