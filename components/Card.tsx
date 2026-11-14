@@ -8,6 +8,7 @@ interface CardProps {
     className?: string;
     onClick?: () => void;
     hoverable?: boolean;
+    animateEntrance?: boolean;
     /** Card style variants */
     variant?: 'default' | 'metric' | 'panel';
     /** Accent color for hover effects */
@@ -32,6 +33,7 @@ export default function Card({
     className = "",
     onClick,
     hoverable = true,
+    animateEntrance = true,
     variant = 'default',
     accent = 'cyan'
 }: CardProps) {
@@ -127,7 +129,7 @@ export default function Card({
         <div style={{ perspective: 1200 }} className={`h-full ${className.includes('w-full') ? 'w-full' : ''}`}>
             <motion.div
                 ref={ref}
-                initial={{ opacity: 0, y: 10 }}
+                initial={animateEntrance ? { opacity: 0, y: 10 } : false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 20 }}
                 style={{

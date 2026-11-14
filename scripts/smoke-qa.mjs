@@ -181,8 +181,9 @@ async function runScenario(browser, definition, outDir) {
 
       case "rpc-safe-command": {
         await gotoScenario(page, "/explorer/rpc", definition.locale);
-        await page.getByRole("button", { name: /getblockcount/i }).click();
-        await page.getByRole("button", { name: /exec/i }).click();
+        const input = page.getByPlaceholder(/Type a command/i);
+        await input.fill("getblockcount");
+        await input.press("Enter");
         await page.waitForFunction(() => {
           const terminalOutput = [...document.querySelectorAll("pre")]
             .map((node) => node.textContent?.trim() ?? "")
