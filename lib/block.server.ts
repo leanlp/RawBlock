@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { getHeroGateway } from "@/lib/heroMetrics.server";
+import { gatewayChallengeSuffix, rawblockServerHeaders } from "@/lib/rawblockGateway";
 import { isBlockId, isHeightId, normalizeBlock, type BlockData } from "@/lib/block";
 
 // Block facts are immutable once mined: a confirmed block's header, size,
@@ -53,7 +54,7 @@ const readBlockFromGateway = unstable_cache(
   async (gateway: NonNullable<ReturnType<typeof getHeroGateway>>, id: string): Promise<BlockData | null> => {
     const isHeight = isHeightId(id);
     const path = isHeight ? `block/height/${id}` : `block/${id}`;
-    const headers = new Headers({ Accept: "application/json" });
+    const headers = new Headers(rawblockServerHeaders());
     if (gateway.authenticated) {
       headers.set("Authorization", `Bearer ${process.env.RAWBLOCK_HERO_API_TOKEN?.trim()}`);
     }
@@ -68,7 +69,7 @@ const readBlockFromGateway = unstable_cache(
       // Distinguish "absent" from "broken" using the node's error text.
       const text = await response.text().catch(() => "");
       if (response.status === 404 || BLOCK_ABSENT_RE.test(text)) return null;
-      throw new Error(`Block gateway HTTP ${response.status}`);
+      throw new Error(`Block gateway HTTP ${response.status}${gatewayChallengeSuffix(response)}`);
     }
 
     const parsed = normalizeBlock(await response.json());
@@ -117,7 +118,7 @@ export async function getBlockById(rawId: string | undefined): Promise<BlockFetc
 async function readLatestHeight(
   gateway: NonNullable<ReturnType<typeof getHeroGateway>>,
 ): Promise<number> {
-  const headers = new Headers({ Accept: "application/json" });
+  const headers = new Headers(rawblockServerHeaders());
   if (gateway.authenticated) {
     headers.set("Authorization", `Bearer ${process.env.RAWBLOCK_HERO_API_TOKEN?.trim()}`);
   }
@@ -127,7 +128,7 @@ async function readLatestHeight(
     redirect: gateway.authenticated ? "error" : "follow",
     signal: AbortSignal.timeout(LATEST_HEIGHT_TIMEOUT_MS),
   });
-  if (!response.ok) throw new Error(`Network stats HTTP ${response.status}`);
+  if (!response.ok) throw new Error(`Network stats HTTP ${response.status}${gatewayChallengeSuffix(response)}`);
   const data = (await response.json()) as { blocks?: unknown };
   const height = Number(data.blocks);
   if (!Number.isFinite(height) || height < 0) throw new Error("Invalid network-stats payload");

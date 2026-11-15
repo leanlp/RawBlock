@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { convertHashrateToEh } from "@/lib/hashrate";
+import { gatewayChallengeSuffix, rawblockServerHeaders } from "@/lib/rawblockGateway";
 import type { RecentMempoolTx } from "@/lib/bitcoinData";
 import {
   displayableHeroReading,
@@ -138,7 +139,7 @@ async function readUpstream<T>(
   timeoutMs: number,
   parse: (data: unknown) => T | null,
 ): Promise<HeroReading<T>> {
-  const headers = new Headers({ Accept: "application/json" });
+  const headers = new Headers(rawblockServerHeaders());
   if (gateway.authenticated) {
     headers.set("Authorization", `Bearer ${process.env.RAWBLOCK_HERO_API_TOKEN?.trim()}`);
   }
@@ -149,8 +150,7 @@ async function readUpstream<T>(
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) {
-    const challenge = response.headers.get("cf-mitigated") === "challenge" ? " (gateway challenge)" : "";
-    throw new Error(`Hero ${path} HTTP ${response.status}${challenge}`);
+    throw new Error(`Hero ${path} HTTP ${response.status}${gatewayChallengeSuffix(response)}`);
   }
   const value = parse(await response.json());
   if (value === null) throw new Error(`Invalid hero ${path} payload`);

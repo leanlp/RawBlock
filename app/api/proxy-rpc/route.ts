@@ -1,11 +1,25 @@
 import { NextResponse } from "next/server";
+import { getHeroGateway } from "@/lib/heroMetrics.server";
+import { gatewayChallengeSuffix, rawblockServerHeaders } from "@/lib/rawblockGateway";
 
-function getApiBaseUrl(): string {
+function getGateway(): { base: string; authenticated: boolean } {
+  // Share the hero reader's resolution so one configuration (the optional
+  // authenticated worker) covers every server-side gateway read.
+  const hero = getHeroGateway();
+  if (hero) return hero;
   const raw =
     process.env.RAWBLOCK_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     "https://apigoland.rawblock.net";
-  return raw.trim().replace(/\/+$/, "").replace(/\/api$/, "");
+  try {
+    const url = new URL(raw.trim());
+    return {
+      base: url.origin + url.pathname.replace(/\/+$/, "").replace(/\/api$/, ""),
+      authenticated: false,
+    };
+  } catch {
+    return { base: "https://apigoland.rawblock.net", authenticated: false };
+  }
 }
 
 const REQUEST_TIMEOUT_MS = 8000;
@@ -33,29 +47,26 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-async function fetchBackendJson(path: string, clientUserAgent?: string | null): Promise<Record<string, unknown>> {
+async function fetchBackendJson(path: string): Promise<Record<string, unknown>> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  const baseUrl = getApiBaseUrl();
+  const gateway = getGateway();
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  const targetUrl = `${baseUrl}${cleanPath}`;
-  const userAgent =
-    clientUserAgent && !clientUserAgent.includes("RawBlock-Proxy")
-      ? clientUserAgent
-      : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+  const targetUrl = `${gateway.base}${cleanPath}`;
+  const headers = new Headers(rawblockServerHeaders());
+  if (gateway.authenticated) {
+    headers.set("Authorization", `Bearer ${process.env.RAWBLOCK_HERO_API_TOKEN?.trim()}`);
+  }
   try {
     const res = await fetch(targetUrl, {
       method: "GET",
-      headers: {
-        Accept: "application/json",
-        "User-Agent": userAgent,
-      },
+      headers,
       signal: controller.signal,
       cache: "no-store",
     });
     if (!res.ok) {
       const errBody = await res.text().catch(() => "");
-      throw new Error(`Upstream ${targetUrl} status ${res.status}: ${errBody.slice(0, 150)}`);
+      throw new Error(`Upstream ${targetUrl} status ${res.status}${gatewayChallengeSuffix(res)}: ${errBody.slice(0, 150)}`);
     }
     return (await res.json()) as Record<string, unknown>;
   } finally {
@@ -73,7 +84,6 @@ export async function POST(req: Request) {
   }
 
   try {
-    const clientUserAgent = req.headers.get("user-agent");
     const body = (await req.json()) as { query?: unknown };
     if (typeof body?.query !== "string" || !body.query.trim()) {
       return NextResponse.json({ error: "Query required" }, { status: 400 });
@@ -86,7 +96,7 @@ export async function POST(req: Request) {
     if (isTxID) {
       let tx: Record<string, unknown>;
       try {
-        tx = await fetchBackendJson(`/api/tx/${encodeURIComponent(cleanQuery)}`, clientUserAgent);
+        tx = await fetchBackendJson(`/api/tx/${encodeURIComponent(cleanQuery)}`);
       } catch (err) {
         console.warn("Primary backend /api/tx fetch failed, using fallback:", err);
         const fbRes = await fetch(`https://mempool.space/api/tx/${encodeURIComponent(cleanQuery)}`, {
@@ -156,7 +166,6 @@ export async function POST(req: Request) {
       try {
         wallet = await fetchBackendJson(
           `/api/wallet/${encodeURIComponent(cleanQuery)}/balance`,
-          clientUserAgent,
         );
       } catch (err) {
         console.warn("Primary backend /api/wallet fetch failed, using fallback:", err);
