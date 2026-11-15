@@ -6,6 +6,8 @@
     "test": "npm run qa:release-gate",
     "dev": "next dev --webpack",
     "dev:turbo": "next dev --turbopack",
+    "og:build": "node scripts/og-build.mjs",
+    "prebuild": "npm run og:build",
     "build": "next build",
     "build:retry": "bash scripts/build-with-retry.sh",
     "start": "next start",
@@ -61,6 +63,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

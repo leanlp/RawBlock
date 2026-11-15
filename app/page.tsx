@@ -20,7 +20,8 @@ export const metadata = buildPageMetadata({
     "bitcoin script lab",
     "taproot playground",
   ],
-  image: "/og/home.svg",
+  image: "/og/home-wide.png",
+  wide: true,
 });
 
 export default async function Home() {

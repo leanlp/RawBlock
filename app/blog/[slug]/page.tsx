@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: post.title,
     description: post.description,
     path: `/blog/${post.slug}`,
-    image: "/og/blog.svg",
+    image: "/og/blog.png",
   });
 }
 

@@ -8,7 +8,7 @@ export const metadata = buildPageMetadata({
     "Release notes and product updates for Raw Block explorer tools, protocol labs, and educational content.",
   path: "/blog",
   keywords: ["bitcoin explorer updates", "raw block changelog"],
-  image: "/og/blog.svg",
+  image: "/og/blog.png",
 });
 
 export default function BlogLayout({ children }: { children: ReactNode }) {

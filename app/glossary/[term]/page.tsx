@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: entry.definition,
     path: `/glossary/${term}`,
     keywords: [entry.term, ...entry.aliases],
-    image: "/og/glossary.svg",
+    image: "/og/glossary.png",
   });
 }
 

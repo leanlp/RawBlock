@@ -11,6 +11,8 @@ type MetadataInput = {
   path: string;
   keywords?: string[];
   image?: string;
+  /** Use the 1600px wide OG card variant (home route). */
+  wide?: boolean;
   /** Bilingual hreflang pair when /es mirror exists */
   locales?: { enPath: string; esPath: string };
 };
@@ -26,11 +28,19 @@ export function buildPageMetadata({
   description,
   path,
   keywords = [],
-  image = "/icon.png",
+  image,
+  wide = false,
   locales,
 }: MetadataInput): Metadata {
+  // Default to the rendered home card, not the 32px /icon.png (which the
+  // 1200x630 declaration would misrepresent). `wide` opts into the 1600px
+  // home variant for the one route that actually gets shared.
   const url = absoluteUrl(path);
-  const imageUrl = absoluteUrl(image);
+  const chosenImage = image ?? (wide ? "/og/home-wide.png" : "/og/home.png");
+  const imageUrl = absoluteUrl(chosenImage);
+  // Route cards render at 1200x630; the wide home variant at 1600x840.
+  const imageWidth = wide ? 1600 : 1200;
+  const imageHeight = wide ? 840 : 630;
   const alternates: Metadata["alternates"] = { canonical: url };
   if (locales) {
     alternates.languages = {
@@ -50,7 +60,7 @@ export function buildPageMetadata({
       description,
       url,
       siteName: SITE_NAME,
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: `${SITE_NAME} preview` }],
+      images: [{ url: imageUrl, width: imageWidth, height: imageHeight, alt: `${SITE_NAME} preview` }],
     },
     twitter: {
       card: "summary_large_image",

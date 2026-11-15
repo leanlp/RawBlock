@@ -16,7 +16,7 @@ export const metadata = buildPageMetadata({
     "Visual Bitcoin Script interpreter and consensus trace lab with stack stepping, opcode stream inspection, and scenario presets.",
   path: "/lab/script",
   keywords: ["bitcoin script", "script debugger", "opcode stack", "script interpreter"],
-  image: "/og/script-lab.svg",
+  image: "/og/script-lab.png",
 });
 
 export default function LabScriptLayout({ children }: { children: ReactNode }) {

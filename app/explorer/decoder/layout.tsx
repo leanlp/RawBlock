@@ -16,7 +16,7 @@ export const metadata = buildPageMetadata({
     "Decode Bitcoin transactions by txid, address, or raw hex with human-readable fields, raw bytes, scripts, witnesses, and privacy heuristics.",
   path: "/explorer/decoder",
   keywords: ["bitcoin transaction decoder", "raw tx hex", "script disassembly", "segwit witness"],
-  image: "/og/decoder.svg",
+  image: "/og/decoder.png",
 });
 
 export default function ExplorerDecoderLayout({ children }: { children: ReactNode }) {

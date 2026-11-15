@@ -44,14 +44,14 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} | Bitcoin Explorer & Labs`,
     description: SITE_DESCRIPTION,
-    images: [{ url: "/icon.png", width: 1200, height: 630, alt: `${SITE_NAME} preview` }],
+    images: [{ url: "/og/home.png", width: 1200, height: 630, alt: `${SITE_NAME} preview` }],
   },
   twitter: {
     card: "summary_large_image",
     creator: "@rawblocknet",
     title: `${SITE_NAME} | Bitcoin Explorer & Labs`,
     description: SITE_DESCRIPTION,
-    images: ["/icon.png"],
+    images: ["/og/home.png"],
   },
   category: "technology",
 };
