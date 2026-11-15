@@ -16,11 +16,26 @@ export interface BlockHeaderData {
     hash: string;
     height: number;
     txCount: number;
+    /** How many transactions the loaded copy actually carries. */
+    loadedTxCount?: number;
 }
 
 interface BlockHeaderInspectorProps {
     header: BlockHeaderData;
     computedMerkleRoot: string | null;
+    /**
+     * Set while the block UI is still on a partial (sampled) transaction
+     * list and the full-list fetch is in flight. Merkle verification is
+     * skipped until the full list arrives, so the badge reports "waiting"
+     * instead of a guaranteed false mismatch.
+     */
+    merklePending?: boolean;
+    /**
+     * Set when the full-list fetch failed: the list will never become
+     * complete, so verification is reported as "not possible" with the
+     * loaded/total counts instead of pretending a match is coming.
+     */
+    merkleFailed?: boolean;
     onOpenMerklePanel: () => void;
 }
 
@@ -68,6 +83,8 @@ function readVersionSignals(version?: number): string {
 export default function BlockHeaderInspector({
     header,
     computedMerkleRoot,
+    merklePending = false,
+    merkleFailed = false,
     onOpenMerklePanel,
 }: BlockHeaderInspectorProps) {
     const [selectedField, setSelectedField] = useState<HeaderFieldKey>("version");
@@ -131,7 +148,13 @@ export default function BlockHeaderInspector({
                 value: shortHash(header.merkleroot ?? computedMerkleRoot ?? undefined),
                 extra:
                     derived.merkleMatch === null
-                        ? "Header root unavailable from API"
+                        ? !header.merkleroot
+                            ? "Header root unavailable from API"
+                            : merklePending
+                                ? "Waiting for full transaction list to verify"
+                                : merkleFailed
+                                    ? `Not verified — ${(header.loadedTxCount ?? 0).toLocaleString()} of ${header.txCount.toLocaleString()} transactions loaded`
+                                    : "Computing transaction tree root…"
                         : derived.merkleMatch
                             ? "Matches computed tx tree root"
                             : "Header root mismatch with computed tx tree",

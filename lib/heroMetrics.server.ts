@@ -16,9 +16,9 @@ import {
 const UPSTREAM_TIMEOUT_MS = 2_500;
 const RESPONSE_TIMEOUT_MS = 3_500;
 
-type HeroGateway = { base: string; authenticated: boolean };
+export type HeroGateway = { base: string; authenticated: boolean };
 
-function getHeroGateway(): HeroGateway | null {
+export function getHeroGateway(): HeroGateway | null {
   const privateUrl = process.env.RAWBLOCK_HERO_API_URL?.trim();
   const token = process.env.RAWBLOCK_HERO_API_TOKEN?.trim();
   if (privateUrl || token) {
