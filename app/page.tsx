@@ -9,7 +9,7 @@ import { getSeoPageContent } from "@/lib/seo/pageContent";
 const seoHome = getSeoPageContent("home");
 
 export const metadata = buildPageMetadata({
-  title: "Bitcoin Explorer, Labs, and Research",
+  title: seoHome.h1,
   description:
     "Explore live Bitcoin blocks, mempool, network peers, fees, and miners, then learn protocol mechanics with interactive Script, Taproot, and consensus labs.",
   path: "/",
@@ -30,7 +30,7 @@ export default async function Home() {
   return (
     <>
       <JsonLd data={faqJsonLd(seoHome.faqs)} />
-      <DashboardHome heroMetrics={heroMetrics} />
+      <DashboardHome heroMetrics={heroMetrics} heroHeading={seoHome.h1} />
       <SeoContentSection pageKey="home" />
     </>
   );
