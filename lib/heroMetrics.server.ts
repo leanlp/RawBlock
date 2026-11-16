@@ -1,8 +1,10 @@
 import { unstable_cache } from "next/cache";
+import { getSnapshotStore } from "@/infra/hero-snapshot/r2.mjs";
 import { convertHashrateToEh } from "@/lib/hashrate";
 import type { RecentMempoolTx } from "@/lib/bitcoinData";
 import {
   displayableHeroReading,
+  hasCompleteHeroCore,
   type HeroCoreMetrics,
   type HeroFeeHistoryPoint,
   type HeroFees,
@@ -15,6 +17,8 @@ import {
 // legs and JSON parsing; cache lookup overhead must not consume that budget.
 const UPSTREAM_TIMEOUT_MS = 2_500;
 const RESPONSE_TIMEOUT_MS = 3_500;
+const HERO_SNAPSHOT_DELAY_MS = 400;
+const HERO_SNAPSHOT_TIMEOUT_MS = 750;
 
 type HeroGateway = { base: string; authenticated: boolean };
 
@@ -206,7 +210,7 @@ function pickValue<T, K extends keyof T>(reading: HeroReading<T> | null, key: K)
   return reading && value != null ? { ...reading, value } : null;
 }
 
-export async function getHeroCoreMetrics(): Promise<HeroCoreMetrics> {
+async function readGatewayCore(): Promise<HeroCoreMetrics> {
   const gateway = getHeroGateway();
   const [network, mempool] = gateway ? await Promise.all([
     readWithinBudget(readNetwork(gateway), RESPONSE_TIMEOUT_MS, "network-stats"),
@@ -221,6 +225,81 @@ export async function getHeroCoreMetrics(): Promise<HeroCoreMetrics> {
     mempool: displayableHeroReading(mempool, checkedAt),
     checkedAt,
   };
+}
+
+const readStoredSnapshot = unstable_cache(async (url: string): Promise<unknown> => {
+  const store = getSnapshotStore();
+  if (store?.url !== url) throw new Error("Hero snapshot store is unavailable");
+  const request = await store.client.sign(url);
+  const response = await fetch(request, {
+    cache: "no-store",
+    redirect: "error",
+    signal: AbortSignal.timeout(HERO_SNAPSHOT_TIMEOUT_MS),
+  });
+  if (!response.ok) throw new Error(`Hero snapshot HTTP ${response.status}`);
+  const data: unknown = await response.json();
+  if (record(data)?.version !== 1) throw new Error("Invalid hero snapshot version");
+  return data;
+}, ["hero-object-snapshot-v1"], { revalidate: 5 });
+
+function storedReading<T>(raw: unknown, now: number, parse: (payload: unknown) => T | null): HeroReading<T> | null {
+  const observation = record(raw);
+  if (!observation) return null;
+  const observedAt = observation.observedAt;
+  if (typeof observedAt !== "number" || !Number.isSafeInteger(observedAt) ||
+      observedAt <= 0 || observedAt > now + 5_000) return null;
+  const value = parse(observation.payload);
+  if (value === null) return null;
+  return displayableHeroReading({
+    value, observedAt, retrievedAt: now, source: "node", fromDisk: false, lastKnown: true,
+  }, now);
+}
+
+function fillFromSnapshot(live: HeroCoreMetrics | null, snapshot: unknown): HeroCoreMetrics {
+  const checkedAt = Date.now();
+  const data = record(snapshot);
+  const network = storedReading(data?.network, checkedAt, parseHeroNetworkStats);
+  const mempool = storedReading(data?.vitals, checkedAt, parseHeroVitals);
+  const liveFees = live?.fees;
+  const completeFees = liveFees?.value.fast != null && liveFees.value.medium != null && liveFees.value.slow != null;
+  return {
+    height: live?.height ?? pickValue(network, "height"),
+    hashrate: live?.hashrate ?? pickValue(network, "hashrate"),
+    fees: completeFees ? liveFees : pickValue(network, "fees") ?? liveFees ?? null,
+    mempool: live?.mempool?.value.count != null ? live.mempool : mempool ?? live?.mempool ?? null,
+    checkedAt,
+  };
+}
+
+export async function getHeroCoreMetrics(): Promise<HeroCoreMetrics> {
+  const live = readGatewayCore();
+  const store = getSnapshotStore();
+  if (!store) return live;
+
+  // Give normal gateway reads a head start. With a cold or slow gateway,
+  // a complete snapshot can render the hero before the upstream deadline.
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let current: HeroCoreMetrics | null = null;
+  const observedLive = live.then(metrics => (current = metrics));
+  const early = await Promise.race([
+    observedLive,
+    new Promise<null>(resolve => { timer = setTimeout(resolve, HERO_SNAPSHOT_DELAY_MS, null); }),
+  ]).finally(() => clearTimeout(timer));
+  if (early && hasCompleteHeroCore(early)) return early;
+
+  const stored = readWithinBudget(
+    readStoredSnapshot(store.url), HERO_SNAPSHOT_TIMEOUT_MS, "snapshot-store",
+  );
+  const resolvedLive = observedLive.then(async metrics =>
+    hasCompleteHeroCore(metrics) ? metrics : fillFromSnapshot(metrics, await stored),
+  );
+  return Promise.race([
+    resolvedLive,
+    stored.then(snapshot => {
+      const metrics = fillFromSnapshot(current, snapshot);
+      return hasCompleteHeroCore(metrics) ? metrics : resolvedLive;
+    }),
+  ]);
 }
 
 export async function getHeroRecentMetrics(): Promise<HeroRecentMetrics | null> {

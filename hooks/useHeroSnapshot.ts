@@ -25,7 +25,7 @@ export function useHeroSnapshot<T>(
       const deadline = AbortSignal.any([controller.signal, AbortSignal.timeout(5_000)]);
       try {
         const response = await fetch(`/api/bitcoin/metrics?view=${view}`, {
-          cache: "no-store",
+          cache: view === "hero" ? "default" : "no-store",
           signal: deadline,
         });
         if (response.ok) {

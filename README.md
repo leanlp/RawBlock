@@ -161,6 +161,48 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 
 Make sure your middleware server is configured with Bitcoin Core RPC access.
 
+### Hero snapshot fallback
+
+The homepage normally reads the Go gateway. If the gateway is slow or returns
+incomplete data, it can read the last verified height, hashrate, fees, and mempool
+count from a private Cloudflare R2 object. The cards keep the node's observation
+times and label those readings **Cached Snapshot** for up to five minutes.
+
+1. Use a private R2 Standard bucket per environment. Create an Object Read &
+   Write credential restricted to the bucket for the node and a separate Object
+   Read Only credential for Vercel.
+2. On the node and in Vercel, set the following values using the credential for
+   that runtime. The URL is the same for both within one environment.
+
+   ```dotenv
+   RAWBLOCK_HERO_SNAPSHOT_URL=https://<account-id>.r2.cloudflarestorage.com/<bucket>/hero/v1/latest.json
+   RAWBLOCK_HERO_SNAPSHOT_ACCESS_KEY_ID=<access-key-id>
+   RAWBLOCK_HERO_SNAPSHOT_SECRET_ACCESS_KEY=<secret-access-key>
+   ```
+
+3. Run the publisher on the node with Node.js 22. From this repository, run the
+   commands below. For a standalone installation, copy `infra/hero-snapshot`,
+   run `npm install --no-save aws4fetch@1.0.20` in the copied directory, and use
+   `node publish.mjs` there. Set `RAWBLOCK_HERO_PUBLISHER_ORIGIN` if the Go API
+   listens on a different loopback port. Its default is `http://127.0.0.1:8080`.
+
+   ```bash
+   node infra/hero-snapshot/publish.mjs --once
+   node infra/hero-snapshot/publish.mjs
+   ```
+
+   Use the one-shot command to seed the object. Run the continuous command under
+   the node's process supervisor. It refreshes on `block:new` and every 15 seconds
+   between blocks. The publisher skips duplicate observations and keeps the last
+   valid R2 object if the Go API returns stale, partial, or unverified data.
+
+Run `npm run build` and `npm run qa:hero-snapshot` for local verification. In
+preview, issue two consecutive GETs to `/api/bitcoin/metrics?view=hero` within
+five seconds and inspect `x-vercel-cache`. Confirm a cache hit serves complete,
+fresh readings. During a gateway outage, confirm the page renders the cached
+values with their original timestamps. Backup, partial, and unavailable
+responses are served with `Cache-Control: no-store`.
+
 ---
 
 ## 🏗️ Architecture

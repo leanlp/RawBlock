@@ -38,6 +38,7 @@ assert.equal(retained?.observedAt, reading.observedAt);
 assert.equal(retained?.lastKnown, true);
 assert.equal(updateHeroReading(reading, { ...reading, value: 975_370, observedAt: now - 10_000 }, now)?.value, 975_371);
 assert.equal(updateHeroReading(reading, { ...reading, value: 975_372, observedAt: now }, now)?.value, 975_372);
+assert.equal(updateHeroReading(reading, { ...reading, lastKnown: true }, now), reading);
 
 const empty: HeroReading<[]> = { ...reading, value: [] };
 assert.deepEqual(updateHeroReading(null, empty, now)?.value, []);

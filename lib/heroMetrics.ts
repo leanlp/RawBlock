@@ -49,11 +49,19 @@ export function displayableHeroReading<T>(reading: HeroReading<T> | null, now: n
   return reading;
 }
 
+export function hasCompleteHeroCore(metrics: HeroCoreMetrics): boolean {
+  const fees = metrics.fees?.value;
+  return metrics.height !== null && metrics.hashrate !== null && metrics.mempool?.value.count != null &&
+    fees?.fast != null && fees.medium != null && fees.slow != null;
+}
+
 export function updateHeroReading<T>(previous: HeroReading<T> | null, next: HeroReading<T> | null, now: number) {
   const usablePrevious = displayableHeroReading(previous, now);
   const usableNext = displayableHeroReading(next, now);
   if (!usablePrevious) return usableNext;
   if (usableNext) {
+    if (usableNext.lastKnown && !usablePrevious.lastKnown && usablePrevious.observedAt !== null &&
+        usableNext.observedAt === usablePrevious.observedAt) return usablePrevious;
     if (usablePrevious.observedAt === null ||
         (usableNext.observedAt !== null && usableNext.observedAt >= usablePrevious.observedAt)) {
       return usableNext;
