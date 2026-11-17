@@ -28,6 +28,7 @@ import {
 } from "@/lib/heroMetrics";
 import { useTranslation } from "@/lib/i18n";
 import { useHeroSnapshot } from "@/hooks/useHeroSnapshot";
+import styles from "./HeroMetrics.module.css";
 
 function mergeCore(previous: HeroCoreMetrics, incoming: HeroCoreMetrics | null) {
   return mergeHeroCore(previous, incoming ?? {
@@ -43,14 +44,23 @@ function mergePanel<T>(previous: HeroReading<T> | null, incoming: HeroReading<T>
   return updateHeroReading(previous, incoming, Date.now());
 }
 
-function ReadingProvenance({ reading, now, maxAgeMs }: {
+function HeroPlaceholder({ className }: { className: string }) {
+  return <span aria-hidden="true" data-hero-loading className={`${styles.placeholder} ${className}`} />;
+}
+
+function ReadingProvenance({ reading, now, maxAgeMs, pending = false }: {
   reading: HeroReading<unknown> | null;
   now: number;
   maxAgeMs: number;
+  pending?: boolean;
 }) {
   const { locale, t } = useTranslation();
   if (!reading) {
-    return <p className="mt-2 text-xs text-slate-400">{t.hero.dataTemporarilyUnavailable}</p>;
+    return pending ? (
+      <div className="mt-2 flex min-h-[26px] items-center justify-center">
+        <HeroPlaceholder className="h-2 w-20 rounded-full text-slate-400" />
+      </div>
+    ) : <p className="mt-2 text-xs text-slate-400">{t.hero.dataTemporarilyUnavailable}</p>;
   }
   const fresh = isHeroReadingFresh(reading, now, maxAgeMs);
   const source = reading.source === "unknown" ? "Unverified Source"
@@ -135,10 +145,11 @@ export default function HeroMetrics({ initialMetrics }: { initialMetrics: HeroCo
     isHeroReadingFresh(initialMetrics.fees, initialMetrics.checkedAt, NETWORK_FRESH_MS) &&
     isHeroReadingFresh(initialMetrics.mempool, initialMetrics.checkedAt, MEMPOOL_FRESH_MS)
     ? HERO_POLL_MS : 0;
-  const { snapshot, firstRefreshPending: corePending, retry: retryCore } = useHeroSnapshot("hero", initialMetrics, mergeCore, initialRefreshDelay);
-  const { snapshot: recentSnapshot, firstRefreshPending: recentPending, retry: retryRecent } =
+  const { snapshot, pending: corePending, retrying: coreRetrying, retry: retryCore } =
+    useHeroSnapshot("hero", initialMetrics, mergeCore, initialRefreshDelay);
+  const { snapshot: recentSnapshot, pending: recentPending, retrying: recentRetrying, retry: retryRecent } =
     useHeroSnapshot<HeroRecentMetrics | null>("hero-recent", null, mergePanel);
-  const { snapshot: historySnapshot, firstRefreshPending: historyPending, retry: retryHistory } =
+  const { snapshot: historySnapshot, pending: historyPending, retrying: historyRetrying, retry: retryHistory } =
     useHeroSnapshot<HeroHistoryMetrics | null>("hero-history", null, mergePanel);
 
   const height = displayableHeroReading(snapshot.height, now);
@@ -180,15 +191,26 @@ export default function HeroMetrics({ initialMetrics }: { initialMetrics: HeroCo
     }
   }, [height, initialMetrics.height]);
 
-  const unavailable = !height || !hashrate || !mempool || !fees || (!recentPending && !recent) || (!historyPending && !history);
+  const coreMissing = !height || !hashrate || mempool?.value.count == null || !fees;
+  const retryCoreAvailable = coreMissing && !corePending;
+  const retryRecentAvailable = !recent && !recentPending;
+  const retryHistoryAvailable = !history && !historyPending;
+  const unavailable = retryCoreAvailable || retryRecentAvailable || retryHistoryAvailable;
+  const loading = (corePending && coreMissing) || (recentPending && !recent) || (historyPending && !history);
+  const retrying = coreRetrying || recentRetrying || historyRetrying;
 
   return (
     <div className="w-full mb-12">
+      <p role="status" className="sr-only">
+        {loading ? t.common.loading : unavailable ? t.hero.dataTemporarilyUnavailable : ""}
+      </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr">
         <Link href="/explorer/blocks">
           <Card variant="metric" accent="cyan" animateEntrance={false}>
-            <MetricValue icon="📦" value={height ? integers.format(height.value) : "—"} label={t.hero.blockHeight} accent="cyan" />
-            <ReadingProvenance reading={height} now={now} maxAgeMs={NETWORK_FRESH_MS} />
+            <MetricValue icon="📦" value={height ? integers.format(height.value) : corePending
+              ? <HeroPlaceholder className="h-[.64em] w-[6.5ch] rounded-md text-cyan-300" /> : "—"}
+              label={t.hero.blockHeight} accent="cyan" />
+            <ReadingProvenance reading={height} now={now} maxAgeMs={NETWORK_FRESH_MS} pending={corePending} />
           </Card>
         </Link>
 
@@ -196,11 +218,12 @@ export default function HeroMetrics({ initialMetrics }: { initialMetrics: HeroCo
           <Card variant="metric" accent="orange" animateEntrance={false}>
             <MetricValue
               icon="⛏️"
-              value={hashrate ? <>{decimals.format(hashrate.value)} <span className="text-sm">EH/s</span></> : "—"}
+              value={hashrate ? <>{decimals.format(hashrate.value)} <span className="text-sm">EH/s</span></> : corePending
+                ? <HeroPlaceholder className="h-[.64em] w-[5.75ch] rounded-md text-orange-300 [--hero-sweep-delay:60ms]" /> : "—"}
               label={t.hero.hashrate}
               accent="orange"
             />
-            <ReadingProvenance reading={hashrate} now={now} maxAgeMs={NETWORK_FRESH_MS} />
+            <ReadingProvenance reading={hashrate} now={now} maxAgeMs={NETWORK_FRESH_MS} pending={corePending} />
           </Card>
         </Link>
 
@@ -208,12 +231,14 @@ export default function HeroMetrics({ initialMetrics }: { initialMetrics: HeroCo
           <Card variant="metric" accent="blue" animateEntrance={false}>
             <MetricValue
               icon="🌊"
-              value={mempool?.value.count != null ? integers.format(mempool.value.count) : "—"}
+              value={mempool?.value.count != null ? integers.format(mempool.value.count) : corePending
+                ? <HeroPlaceholder className="h-[.64em] w-[4.5ch] rounded-md text-blue-300 [--hero-sweep-delay:120ms]" /> : "—"}
               label={t.hero.pendingTxs}
               sublabel={mempool?.value.vsizeMb != null ? `${decimals.format(mempool.value.vsizeMb)} vMB` : undefined}
               accent="blue"
             />
-            <ReadingProvenance reading={mempool} now={now} maxAgeMs={MEMPOOL_FRESH_MS} />
+            <ReadingProvenance reading={mempool?.value.count == null ? null : mempool} now={now}
+              maxAgeMs={MEMPOOL_FRESH_MS} pending={corePending} />
           </Card>
         </Link>
 
@@ -221,12 +246,13 @@ export default function HeroMetrics({ initialMetrics }: { initialMetrics: HeroCo
           <Card variant="metric" accent="violet" animateEntrance={false}>
             <MetricValue
               icon="⏳"
-              value={daysUntilHalving === null ? "—" : integers.format(daysUntilHalving)}
+              value={daysUntilHalving !== null ? integers.format(daysUntilHalving) : corePending
+                ? <HeroPlaceholder className="h-[.64em] w-[3ch] rounded-md text-violet-300 [--hero-sweep-delay:180ms]" /> : "—"}
               label={t.hero.daysToHalving}
               sublabel={blocksUntilHalving === null ? undefined : `${integers.format(blocksUntilHalving)} ${t.hero.blocks}`}
               accent="violet"
             />
-            <ReadingProvenance reading={height} now={now} maxAgeMs={NETWORK_FRESH_MS} />
+            <ReadingProvenance reading={height} now={now} maxAgeMs={NETWORK_FRESH_MS} pending={corePending} />
           </Card>
         </Link>
       </div>
@@ -243,11 +269,14 @@ export default function HeroMetrics({ initialMetrics }: { initialMetrics: HeroCo
               ] as const).map(([label, fee, color]) => (
                 <div key={label} className="flex items-center justify-between">
                   <dt className="text-xs text-slate-400">{label}</dt>
-                  <dd className={`font-mono font-bold ${color}`}>{fee == null ? "—" : `${formatSatVb(fee)} sat/vB`}</dd>
+                  <dd className={`font-mono font-bold ${color}`}>
+                    {fee != null ? `${formatSatVb(fee)} sat/vB` : corePending
+                      ? <HeroPlaceholder className="h-2.5 w-12 rounded-sm" /> : "—"}
+                  </dd>
                 </div>
               ))}
             </dl>
-            <ReadingProvenance reading={fees} now={now} maxAgeMs={NETWORK_FRESH_MS} />
+            <ReadingProvenance reading={fees} now={now} maxAgeMs={NETWORK_FRESH_MS} pending={corePending} />
             {history && history.value.length > 0 ? (
               <>
               <div className="mt-3 h-24 rounded-lg border border-slate-800/80 bg-slate-950/50 px-2 py-1.5">
@@ -329,8 +358,10 @@ export default function HeroMetrics({ initialMetrics }: { initialMetrics: HeroCo
               </div>
                 <ReadingProvenance reading={history} now={now} maxAgeMs={HISTORY_FRESH_MS} />
               </>
+            ) : historyPending && !history ? (
+              <HeroPlaceholder className="mt-3 h-24 w-full rounded-lg border border-slate-800/80 text-cyan-900" />
             ) : (
-              <p className="mt-3 text-xs text-slate-400">{historyPending ? t.common.loading : t.hero.noFeeHistory}</p>
+              <p className="mt-3 text-xs text-slate-400">{t.hero.noFeeHistory}</p>
             )}
           </Card>
         </Link>
@@ -361,7 +392,17 @@ export default function HeroMetrics({ initialMetrics }: { initialMetrics: HeroCo
             ) : recent ? (
               <p className="text-xs text-slate-400">{t.hero.noRecentTransactions}</p>
             ) : recentPending ? (
-              <p className="text-xs text-slate-400">{t.common.loading}</p>
+              <div aria-hidden="true" className="space-y-1.5">
+                {["w-28", "w-24", "w-32"].map(width => (
+                  <div key={width} className="rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-1.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <HeroPlaceholder className={`h-2.5 ${width} rounded-sm text-cyan-300`} />
+                      <HeroPlaceholder className="h-2.5 w-10 rounded-sm text-slate-400" />
+                    </div>
+                    <HeroPlaceholder className="mt-2 h-2 w-16 rounded-sm text-slate-500" />
+                  </div>
+                ))}
+              </div>
             ) : null}
             {(!recentPending || recent) && <ReadingProvenance reading={recent} now={now} maxAgeMs={MEMPOOL_FRESH_MS} />}
             <p className="pt-2 text-[10px] uppercase tracking-wider text-cyan-400/90">{t.hero.viewFullMempool}</p>
@@ -369,13 +410,19 @@ export default function HeroMetrics({ initialMetrics }: { initialMetrics: HeroCo
         </Link>
       </div>
 
-      {!corePending && unavailable && (
+      {(unavailable || retrying) && (
         <button
           type="button"
-          onClick={() => { retryCore(); retryRecent(); retryHistory(); }}
+          aria-disabled={retrying}
+          onClick={() => {
+            if (retrying) return;
+            if (retryCoreAvailable) retryCore();
+            if (retryRecentAvailable) retryRecent();
+            if (retryHistoryAvailable) retryHistory();
+          }}
           className="mt-3 min-h-11 rounded border border-slate-700 px-3 text-xs text-slate-300 focus-visible:outline-2 focus-visible:outline-cyan-300"
         >
-          {t.hero.retry}
+          {retrying ? t.common.loading : t.hero.retry}
         </button>
       )}
     </div>

@@ -26,7 +26,7 @@ function row(txid) {
   return { txid, fee: 0.00001, size: 100, time: Math.floor(Date.now() / 1000) - 5 };
 }
 
-function startGateway(mode = "healthy") {
+function startGateway(mode = "healthy", requests = new Map()) {
   const server = createServer((request, response) => {
     if (request.headers.accept !== "application/json" || request.headers.authorization) {
       response.writeHead(403);
@@ -43,9 +43,12 @@ function startGateway(mode = "healthy") {
       response.write('{"mempool":');
       return;
     }
+    const attempt = (requests.get(request.url) ?? 0) + 1;
+    requests.set(request.url, attempt);
+    const refreshing = mode === "expiring-core" && attempt > 1;
     const payloads = {
       "/api/network-stats": {
-        height,
+        height: refreshing ? height + 1 : height,
         hashrate: 950e18,
         fees: { fast: 3, medium: 2, slow: 1 },
       },
@@ -54,12 +57,15 @@ function startGateway(mode = "healthy") {
     };
     const body = payloads[request.url];
     const status = request.url === "/api/fee-history" ? 503 : body ? 200 : 404;
+    const observationAge = mode === "old-observation" ? 600_000
+      : mode === "expiring-core" && !refreshing ? 290_000 : 0;
     response.writeHead(status, {
-      ...snapshotHeaders(mode === "old-observation" ? Date.now() - 600_000 : Date.now()),
+      ...snapshotHeaders(Date.now() - observationAge),
       "content-type": "application/json",
     });
     const send = () => response.end(JSON.stringify(body ?? { error: "Fixture endpoint unavailable" }));
     if (mode === "slow" && body) setTimeout(send, 1_400);
+    else if (refreshing) setTimeout(send, 500);
     else send();
   });
   server.listen(0, "127.0.0.1");
@@ -112,8 +118,8 @@ before(async () => {
   browser = await launchBrowser();
 });
 
-async function isolatedApp(t, mode) {
-  const isolatedGateway = startGateway(mode);
+async function isolatedApp(t, mode, requests) {
+  const isolatedGateway = startGateway(mode, requests);
   await once(isolatedGateway, "listening");
   const isolated = startApp("http://127.0.0.1:" + isolatedGateway.address().port);
   t.after(async () => {
@@ -204,9 +210,58 @@ test("a cold node outage is HTTP 503 and cannot masquerade as healthy metrics", 
     const body = await response.json();
     assert.equal(response.status, 503);
     assert.equal(response.headers.get("cache-control"), "no-store");
-    assert.equal(response.headers.get("retry-after"), "5");
+    assert.equal(response.headers.get("retry-after"), view === "hero" ? "1" : "5");
     assert.equal(body.ok, false);
     assert.equal(body.status, "unavailable");
+  }
+});
+
+test("the cold hero shows a placeholder until the first quick retry recovers", async t => {
+  const url = await isolatedApp(t, "offline");
+  const context = await browser.newContext({ locale: "en-US", reducedMotion: "reduce" });
+  try {
+    await context.route("**/ingest/**", route => route.abort());
+    const requests = [];
+    let finishRecovery;
+    const recovery = new Promise(resolve => { finishRecovery = resolve; });
+    await context.route("**/api/bitcoin/metrics?view=hero", async route => {
+      requests.push(performance.now());
+      if (requests.length === 1) {
+        return route.fulfill({
+          status: 503,
+          headers: { "Retry-After": "1" },
+          json: { ok: false, status: "unavailable" },
+        });
+      }
+      await recovery;
+      const reading = value => ({ value, source: "node", observedAt: Date.now(), retrievedAt: Date.now(), fromDisk: false });
+      return route.fulfill({ json: { ok: true, status: "ready", metrics: {
+        height: reading(height), hashrate: reading(950), fees: reading({ fast: 3, medium: 2, slow: 1 }),
+        mempool: reading({ count: 0, vsizeMb: 0 }), checkedAt: Date.now(),
+      } } });
+    });
+    const page = await context.newPage();
+    await page.goto(url + "/", { waitUntil: "domcontentloaded" });
+    const card = homeCard(page, "/explorer/blocks", /Block Height/i);
+    const indicator = card.locator("[data-hero-loading]").first();
+    try {
+      await expect(indicator).toBeVisible();
+      assert.equal(await indicator.evaluate(el => getComputedStyle(el, "::after").animationName), "none");
+      await expect.poll(() => requests.length).toBe(2);
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      assert.ok(requests[1] - requests[0] < 2_500, "the first retry should be faster than the old five-second delay");
+      await expect(indicator).toBeVisible();
+      assert.notEqual(await indicator.evaluate(el => getComputedStyle(el, "::after").animationName), "none");
+      await expect(card).not.toContainText(/Data temporarily unavailable/i);
+    } finally {
+      finishRecovery();
+    }
+    await expectVisibleValue(card, "981,234");
+    await expect(card.locator("[data-hero-loading]")).toHaveCount(0);
+    assert.equal(requests.length, 2, "success must return to the regular poll interval");
+  } finally {
+    await context.close();
   }
 });
 
@@ -250,6 +305,29 @@ test("over-age observations cannot become fresh SSR numbers", async (t) => {
   const { metrics } = await response.json();
   assert.equal(metrics.height, null);
   assert.equal(metrics.mempool, null);
+});
+
+test("expired hero cache waits for one shared refresh per route", async (t) => {
+  const requests = new Map();
+  const url = await isolatedApp(t, "expiring-core", requests) + "/api/bitcoin/metrics?view=hero";
+  const seed = await fetch(url);
+  assert.equal(seed.status, 200);
+  assert.equal((await seed.json()).metrics.height?.value, height);
+
+  // Age the readings past five minutes and both Next cache entries past revalidation.
+  await new Promise(resolve => setTimeout(resolve, 17_000));
+  const firstWave = await Promise.all(Array.from({ length: 5 }, () => fetch(url)));
+  for (const response of firstWave) {
+    const { status, metrics } = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(status, "ready");
+    assert.equal(metrics.height?.value, height + 1);
+    assert.equal(metrics.hashrate?.value, 950);
+    assert.deepEqual(metrics.fees?.value, { fast: 3, medium: 2, slow: 1 });
+    assert.equal(metrics.mempool?.value.count, 0);
+  }
+  assert.equal(requests.get("/api/network-stats"), 2);
+  assert.equal(requests.get("/api/vitals"), 2);
 });
 
 test("mobile Spanish homepage retains the seeded height during hydration and shows no fake rows", async () => {

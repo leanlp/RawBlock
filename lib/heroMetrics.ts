@@ -34,6 +34,7 @@ export type HeroRecentMetrics = HeroReading<RecentMempoolTx[]>;
 export type HeroHistoryMetrics = HeroReading<HeroFeeHistoryPoint[]>;
 
 export const HERO_POLL_MS = 30_000;
+export const HERO_FIRST_RETRY_MS = 1_000;
 export const NETWORK_FRESH_MS = 75_000;
 export const MEMPOOL_FRESH_MS = 45_000;
 export const HISTORY_FRESH_MS = 90_000;

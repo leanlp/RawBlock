@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { getBitcoinLiveMetrics } from "@/lib/bitcoinData";
+import { HERO_FIRST_RETRY_MS } from "@/lib/heroMetrics";
 import { getHeroCoreMetrics, getHeroHistoryMetrics, getHeroRecentMetrics } from "@/lib/heroMetrics.server";
 
 const headers = { "Cache-Control": "no-store" };
 
-function heroResponse(metrics: unknown, available: number, total: number) {
+function heroResponse(metrics: unknown, available: number, total: number, retryAfter = "5") {
   const status = available === 0 ? "unavailable" : available < total ? "partial" : "ready";
   return NextResponse.json({ ok: available > 0, status, metrics }, {
     status: available === 0 ? 503 : 200,
-    headers: { ...headers, "X-RawBlock-Metrics-Status": status, ...(available === 0 ? { "Retry-After": "5" } : {}) },
+    headers: { ...headers, "X-RawBlock-Metrics-Status": status, ...(available === 0 ? { "Retry-After": retryAfter } : {}) },
   });
 }
 
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
     if (view === "hero") {
       const metrics = await getHeroCoreMetrics();
       const available = [metrics.height, metrics.hashrate, metrics.fees, metrics.mempool].filter(Boolean).length;
-      return heroResponse(metrics, available, 4);
+      return heroResponse(metrics, available, 4, String(HERO_FIRST_RETRY_MS / 1_000));
     }
     if (view === "hero-recent") {
       const metrics = await getHeroRecentMetrics();

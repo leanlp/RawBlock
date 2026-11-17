@@ -1,0 +1,30 @@
+.placeholder {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: middle;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.placeholder::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(105deg, transparent 15%, currentColor 50%, transparent 85%);
+  opacity: 0.28;
+  transform: translateX(-105%);
+  animation: sweep 1.4s ease-in-out 3;
+  animation-delay: var(--hero-sweep-delay, 0ms);
+}
+
+@keyframes sweep {
+  70%, 100% {
+    transform: translateX(105%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placeholder::after {
+    animation: none;
+  }
+}

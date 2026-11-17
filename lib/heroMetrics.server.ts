@@ -166,20 +166,35 @@ async function readUpstream<T>(
   return reading;
 }
 
-function makeCachedReader<T>(path: string, timeoutMs: number, parse: (data: unknown) => T | null, revalidate: number) {
+function makeCachedReader<T>(
+  path: string,
+  timeoutMs: number,
+  parse: (data: unknown) => T | null,
+  revalidate: number,
+  refreshExpired = false,
+) {
   const inFlight = new Map<string, Promise<HeroReading<T>>>();
-  return unstable_cache((gateway: HeroGateway) => {
+  const readFresh = (gateway: HeroGateway) => {
     const key = `${gateway.authenticated}:${gateway.base}`;
     const pending = inFlight.get(key);
     if (pending) return pending;
     const next = readUpstream(gateway, path, timeoutMs, parse).finally(() => inFlight.delete(key));
     inFlight.set(key, next);
     return next;
-  }, [`hero-${path}-v1`], { revalidate });
+  };
+  const readCached = unstable_cache(readFresh, [`hero-${path}-${refreshExpired ? "v2" : "v1"}`], { revalidate });
+  if (!refreshExpired) return readCached;
+
+  return async (gateway: HeroGateway) => {
+    const cached = await readCached(gateway);
+    // Next may return a stale entry while it revalidates. Join that refresh
+    // when the cached observation is already too old to display.
+    return displayableHeroReading(cached, Date.now()) ?? readFresh(gateway);
+  };
 }
 
-const readNetwork = makeCachedReader("network-stats", UPSTREAM_TIMEOUT_MS, parseHeroNetworkStats, 15);
-const readMempool = makeCachedReader("vitals", UPSTREAM_TIMEOUT_MS, parseHeroVitals, 10);
+const readNetwork = makeCachedReader("network-stats", UPSTREAM_TIMEOUT_MS, parseHeroNetworkStats, 15, true);
+const readMempool = makeCachedReader("vitals", UPSTREAM_TIMEOUT_MS, parseHeroVitals, 10, true);
 const readRecentTransactions = makeCachedReader("mempool-recent", UPSTREAM_TIMEOUT_MS, parseHeroRecent, 10);
 const readFeeHistory = makeCachedReader("fee-history", UPSTREAM_TIMEOUT_MS, parseHeroHistory, 30);
 
