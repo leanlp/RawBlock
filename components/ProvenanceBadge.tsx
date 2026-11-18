@@ -2,7 +2,7 @@ import { Info } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 interface ProvenanceBadgeProps {
-    source: "Live Node" | "Cached Snapshot" | "Public API Fallback";
+    source: "Live Node" | "Node Snapshot" | "Cached Snapshot" | "Public API Fallback" | "Unverified Source";
     timestamp?: string; // ISO string or human string
     latencyMs?: number;
     className?: string;
@@ -13,6 +13,8 @@ export default function ProvenanceBadge({ source, timestamp, latencyMs, classNam
     const isLive = source === "Live Node";
     const isFallback = source === "Public API Fallback";
     const isCached = source === "Cached Snapshot";
+    const isNodeSnapshot = source === "Node Snapshot";
+    const isUnverified = source === "Unverified Source";
 
     return (
         <div className={`flex items-center gap-2 px-2 py-1 rounded bg-slate-900/50 border border-slate-800 ${className}`}>
@@ -28,11 +30,15 @@ export default function ProvenanceBadge({ source, timestamp, latencyMs, classNam
                     )}
                     {isCached && <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>}
                     {isFallback && <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>}
+                    {isNodeSnapshot && <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>}
+                    {isUnverified && <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-500"></span>}
                 </span>
                 <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
                     {isLive && t.components.provenance.liveNode}
                     {isCached && t.components.provenance.cachedSnapshot}
                     {isFallback && t.components.provenance.publicApiFallback}
+                    {isNodeSnapshot && t.components.provenance.nodeSnapshot}
+                    {isUnverified && t.components.provenance.unverifiedSource}
                 </span>
             </div>
 
@@ -52,6 +58,8 @@ export default function ProvenanceBadge({ source, timestamp, latencyMs, classNam
                     {isLive && t.components.provenance.liveTooltip}
                     {isCached && t.components.provenance.cachedTooltip}
                     {isFallback && t.components.provenance.fallbackTooltip}
+                    {isNodeSnapshot && t.components.provenance.nodeSnapshotTooltip}
+                    {isUnverified && t.components.provenance.unverifiedSourceTooltip}
                 </div>
             </div>
 

@@ -1,6 +1,8 @@
 import DashboardHome from "../components/DashboardHome";
+import { connection } from "next/server";
 import JsonLd from "@/components/seo/JsonLd";
 import SeoContentSection from "@/components/seo/SeoContentSection";
+import { getHeroCoreMetrics } from "@/lib/heroMetrics.server";
 import { buildPageMetadata, faqJsonLd } from "@/lib/seo";
 import { getSeoPageContent } from "@/lib/seo/pageContent";
 
@@ -21,11 +23,13 @@ export const metadata = buildPageMetadata({
   image: "/og/home.svg",
 });
 
-export default function Home() {
+export default async function Home() {
+  await connection();
+  const heroMetrics = await getHeroCoreMetrics();
   return (
     <>
       <JsonLd data={faqJsonLd(seoHome.faqs)} />
-      <DashboardHome />
+      <DashboardHome heroMetrics={heroMetrics} />
       <SeoContentSection pageKey="home" />
     </>
   );

@@ -5,6 +5,8 @@ import { Treemap, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import SafeResponsiveContainer from "@/components/charts/SafeResponsiveContainer";
 import { useTranslation } from "@/lib/i18n";
+import { track } from "@/lib/analytics/track";
+import ProvenanceBadge from "./ProvenanceBadge";
 
 interface BlockTransaction {
     [key: string]: unknown;
@@ -24,6 +26,19 @@ interface BlockTemplate {
 }
 
 type VisualizationMode = 'treemap' | 'stream';
+type CandidateSnapshot = { block: BlockTemplate; observedAt: number | null };
+const candidateEndpoint = (process.env.NEXT_PUBLIC_API_URL?.trim() || "https://apigoland.rawblock.net").replace(/\/$/, "") + "/api/candidate-block";
+const candidateDeadlineMs = 4500;
+const candidatePollMs = 15_000;
+
+function validBlockTransaction(value: unknown): value is BlockTransaction {
+    if (value === null || typeof value !== "object") return false;
+    const transaction = value as Partial<BlockTransaction>;
+    return typeof transaction.txid === "string" && /^[a-f0-9]{64}$/i.test(transaction.txid) &&
+        [transaction.weight, transaction.fee, transaction.feeRate, transaction.value].every(
+            (number) => typeof number === "number" && Number.isFinite(number) && number >= 0,
+        );
+}
 
 // Treemap Custom Content
 const TreemapContent = (props: { x?: number, y?: number, width?: number, height?: number, payload?: { feeRate?: number } }) => {
@@ -102,59 +117,106 @@ const StreamView = ({ transactions }: { transactions: BlockTransaction[] }) => {
 
 export default function MempoolVisualizer() {
     const { t } = useTranslation();
-    const [data, setData] = useState<BlockTemplate | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
+    const [snapshot, setSnapshot] = useState<CandidateSnapshot | null>(null);
+    const [phase, setPhase] = useState<"loading" | "ready" | "failed">("loading");
+    const [retry, setRetry] = useState(0);
     const [mode, setMode] = useState<VisualizationMode>('treemap');
 
-    const fetchBlock = async () => {
-        try {
-            const apiUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
-            const res = await fetch(`${apiUrl}/api/candidate-block`);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const json = await res.json();
-            setData(json);
-            setError(null);
-            setLastUpdatedAt(Date.now());
-        } catch (e) {
-            console.error("Failed to fetch candidate block:", e);
-            setError(e instanceof Error ? e.message : "Failed to fetch candidate block");
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchBlock();
-        const interval = setInterval(fetchBlock, 15000);
-        return () => clearInterval(interval);
-    }, []);
+        let disposed = false;
+        let request: AbortController | undefined;
+        let poll: ReturnType<typeof setTimeout> | undefined;
+        let recordedReady = false;
+        let recordedFailure = false;
+        const startedAt = performance.now();
 
-    if (loading && !data) {
+        async function fetchBlock() {
+            const active = new AbortController();
+            request = active;
+            const deadline = setTimeout(() => active.abort(), candidateDeadlineMs);
+            try {
+                const response = await fetch(candidateEndpoint, { signal: active.signal, cache: "no-store" });
+                if (!response.ok) throw new Error("Candidate block request failed");
+                const block: BlockTemplate | null = await response.json();
+                if (!block || !Number.isSafeInteger(block.height) || block.height < 0 ||
+                    !Number.isFinite(block.totalFees) || block.totalFees < 0 ||
+                    !Array.isArray(block.transactions) || !block.transactions.every(validBlockTransaction)) {
+                    throw new Error("Invalid candidate block");
+                }
+                if (disposed) return;
+                const time = Date.parse(response.headers.get("X-RawBlock-Updated-At") ?? "");
+                const observedAt = response.headers.get("X-RawBlock-Data-Source") === "local_node" &&
+                    Number.isFinite(time) && time <= Date.now() + 5000 ? time : null;
+                setSnapshot({ block, observedAt });
+                setPhase("ready");
+                if (!recordedReady) {
+                    track({
+                        name: "explorer_data_timing",
+                        properties: {
+                            tool: "candidate-block",
+                            phase: "candidate_ready",
+                            source: "api",
+                            duration_ms: Math.round(performance.now() - startedAt),
+                            ...(observedAt !== null ? { age_ms: Math.max(0, Date.now() - observedAt) } : {}),
+                        },
+                    });
+                    recordedReady = true;
+                }
+            } catch {
+                if (disposed) return;
+                setPhase("failed");
+                if (!recordedFailure) {
+                    track({
+                        name: "explorer_data_failed",
+                        properties: {
+                            tool: "candidate-block",
+                            error_type: active.signal.aborted ? "timeout" : "request_failed",
+                            duration_ms: Math.round(performance.now() - startedAt),
+                        },
+                    });
+                    recordedFailure = true;
+                }
+            } finally {
+                clearTimeout(deadline);
+                if (!disposed) poll = setTimeout(fetchBlock, candidatePollMs);
+            }
+        }
+
+        void fetchBlock();
+        return () => {
+            disposed = true;
+            clearTimeout(poll);
+            request?.abort();
+        };
+    }, [retry]);
+
+    if (!snapshot && phase === "loading") {
         return (
-            <div className="h-96 animate-pulse bg-slate-900/30 rounded-xl border border-slate-800 flex items-center justify-center text-slate-500 font-mono text-sm">
-                CONNECTING TO CANDIDATE BLOCK FEED...
+            <div data-testid="candidate-block-panel" role="status" className="h-96 animate-pulse bg-slate-900/30 rounded-xl border border-slate-800 flex items-center justify-center text-slate-500 font-mono text-sm">
+                {t.mempool.candidateLoading}
             </div>
         );
     }
 
-    if (!data) {
+    if (!snapshot) {
         return (
-            <div className="h-96 rounded-xl border border-red-500/20 bg-slate-900/30 p-6 flex flex-col items-center justify-center gap-3 text-center">
-                <p className="text-sm font-mono text-red-300">Candidate block feed unavailable.</p>
-                <p className="text-xs text-slate-400">{error ?? "Node endpoint is unreachable."}</p>
+            <div data-testid="candidate-block-panel" className="h-96 rounded-xl border border-red-500/20 bg-slate-900/30 p-6 flex flex-col items-center justify-center gap-3 text-center">
+                <p role="status" className="text-sm font-mono text-red-300">{t.mempool.candidateUnavailable}</p>
                 <button
                     type="button"
-                    onClick={fetchBlock}
-                    className="rounded border border-red-400/40 bg-red-400/10 px-3 py-1 text-xs text-red-100 hover:bg-red-400/20"
+                    onClick={() => {
+                        setPhase("loading");
+                        setRetry((attempt) => attempt + 1);
+                    }}
+                    className="min-h-11 rounded border border-red-400/40 bg-red-400/10 px-3 py-1 text-xs text-red-100 hover:bg-red-400/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
                 >
-                    Retry
+                    {t.mempool.retry}
                 </button>
             </div>
         );
     }
 
+    const { block: data, observedAt } = snapshot;
     const vizData = data.transactions.slice(0, 500).map((tx, index) => ({
         ...tx,
         // Recharts treemap internally derives node keys from coordinates + name.
@@ -168,23 +230,23 @@ export default function MempoolVisualizer() {
     ];
 
     return (
-        <div className="space-y-4">
-            {error ? (
-                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                    Live candidate feed interrupted. Showing last-known block template{lastUpdatedAt ? ` (${new Date(lastUpdatedAt).toLocaleTimeString()})` : ""}.
+        <div data-testid="candidate-block-panel" className="space-y-4">
+            {phase === "failed" ? (
+                <div role="status" className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                    {t.mempool.candidateLastKnown}
                 </div>
             ) : null}
 
             {/* Header with Mode Switcher */}
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-bold text-slate-200 flex items-center gap-2 text-lg">
-                        <span className="relative flex h-3 w-3">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-                        </span>
                         {t.mempool.visualization}
                     </h3>
+                    <ProvenanceBadge
+                        source={observedAt === null ? "Unverified Source" : "Cached Snapshot"}
+                        timestamp={observedAt === null ? undefined : new Date(observedAt).toLocaleTimeString()}
+                    />
                 </div>
 
                 {/* Mode Switcher */}
@@ -192,6 +254,9 @@ export default function MempoolVisualizer() {
                     {modes.map(m => (
                         <button
                             key={m.id}
+                            type="button"
+                            aria-label={m.label}
+                            aria-pressed={mode === m.id}
                             onClick={() => setMode(m.id)}
                             className={`flex items-center justify-center gap-2 px-3 py-2 min-h-11 min-w-11 rounded-md text-xs font-bold transition-all ${mode === m.id
                                 ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/50'
