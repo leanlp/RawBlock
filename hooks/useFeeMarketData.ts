@@ -39,6 +39,7 @@ type NetworkStatsResponse = {
 };
 
 type FeeMarketStatsResponse = {
+  timestamp?: string;
   snapshot?: {
     minObservedSatVB?: number | string;
     avgObservedSatVB?: number | string;
@@ -78,12 +79,14 @@ function sameFeeSnapshot(a: FeeSnapshot, b: FeeSnapshot): boolean {
   );
 }
 
-function alignHistoryWithCurrent(history: FeeHistoryPoint[], current: FeeSnapshot | null): FeeHistoryPoint[] {
-  if (!current) return history;
-
-  const now = Date.now();
+export function alignHistoryWithCurrent(
+  history: FeeHistoryPoint[],
+  current: FeeSnapshot | null,
+  observedAt: number | null,
+): FeeHistoryPoint[] {
+  if (!current || observedAt === null) return history;
   const livePoint: FeeHistoryPoint = {
-    timestamp: now,
+    timestamp: observedAt,
     fast: current.fast,
     medium: current.medium,
     slow: current.slow,
@@ -94,16 +97,16 @@ function alignHistoryWithCurrent(history: FeeHistoryPoint[], current: FeeSnapsho
   }
 
   const last = history[history.length - 1];
+  if (observedAt <= last.timestamp) return history;
   const lastSnapshot: FeeSnapshot = {
     fast: last.fast,
     medium: last.medium,
     slow: last.slow,
   };
 
-  // Keep chart tail coherent with the cards. If latest history is stale or differs
-  // from live snapshot, append a real-time point from /api/network-stats.
+  // Add only a newly observed sample, preserving its source observation time.
   const staleMs = 2 * 60 * 1000;
-  if (now-last.timestamp > staleMs || !sameFeeSnapshot(lastSnapshot, current)) {
+  if (observedAt - last.timestamp > staleMs || !sameFeeSnapshot(lastSnapshot, current)) {
     return [...history, livePoint].slice(-192);
   }
 
@@ -140,10 +143,10 @@ function normalizeOrderedFees(fast: unknown, medium: unknown, slow: unknown): Fe
 
 async function fetchBlockstreamFeeSnapshot(): Promise<FeeSnapshot | null> {
   try {
-    const response = await fetch(`${BLOCKSTREAM_API}/fee-estimates`, { cache: "no-store" });
+    const response = await fetchWithTimeout(`${BLOCKSTREAM_API}/fee-estimates`);
     if (!response.ok) return null;
 
-    const estimates = (await response.json()) as Record<string, number>;
+    const estimates = response.data as Record<string, number>;
     return normalizeOrderedFees(
       estimates["1"] ?? estimates["2"],
       estimates["3"] ?? estimates["4"] ?? estimates["2"],
@@ -156,10 +159,10 @@ async function fetchBlockstreamFeeSnapshot(): Promise<FeeSnapshot | null> {
 
 async function fetchBlockstreamLongHorizonFee(): Promise<FeeLongHorizon | null> {
   try {
-    const response = await fetch(`${BLOCKSTREAM_API}/fee-estimates`, { cache: "no-store" });
+    const response = await fetchWithTimeout(`${BLOCKSTREAM_API}/fee-estimates`);
     if (!response.ok) return null;
 
-    const estimates = (await response.json()) as Record<string, number>;
+    const estimates = response.data as Record<string, number>;
     const preferredTargets = [144, 72, 36, 24];
     for (const target of preferredTargets) {
       const fee = parseFee(estimates[String(target)]);
@@ -178,12 +181,15 @@ async function fetchBlockstreamLongHorizonFee(): Promise<FeeLongHorizon | null> 
   }
 }
 
-async function fetchWithTimeout(url: string, timeoutMs = 2500): Promise<Response> {
+type JsonResponse = { ok: boolean; headers: Headers; data: unknown };
+
+async function fetchWithTimeout(url: string, timeoutMs = 2500): Promise<JsonResponse> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    return await fetch(url, { cache: "no-store", signal: controller.signal });
+    const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+    return { ok: response.ok, headers: response.headers, data: response.ok ? await response.json() : null };
   } finally {
     clearTimeout(timer);
   }
@@ -220,8 +226,13 @@ function toHistoryPoint(entry: unknown): FeeHistoryPoint | null {
   };
 }
 
-function isFulfilledOk(result: PromiseSettledResult<Response>): result is PromiseFulfilledResult<Response> {
+function isFulfilledOk(result: PromiseSettledResult<JsonResponse>): result is PromiseFulfilledResult<JsonResponse> {
   return result.status === "fulfilled" && result.value.ok;
+}
+
+function observationTime(raw: string | null | undefined): number | null {
+  const timestamp = Date.parse(raw ?? "");
+  return Number.isFinite(timestamp) && timestamp <= Date.now() + 5_000 ? timestamp : null;
 }
 
 export function formatFeeTime(timestamp: number): string {
@@ -254,7 +265,7 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
 
       let normalizedHistory: FeeHistoryPoint[] | null = null;
       if (isFulfilledOk(historyRes)) {
-        const payload = (await historyRes.value.json()) as unknown;
+        const payload = historyRes.value.data;
         const entries = Array.isArray(payload) ? payload : [];
         normalizedHistory = entries
           .map((entry) => toHistoryPoint(entry))
@@ -265,15 +276,15 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
       let normalizedCurrent: FeeSnapshot | null = null;
       let normalizedCurrentTimestamp: number | null = null;
       if (isFulfilledOk(currentRes)) {
-        const payload = (await currentRes.value.json()) as NetworkStatsResponse;
+        const payload = currentRes.value.data as NetworkStatsResponse;
         normalizedCurrent = normalizeOrderedFees(payload.fees?.fast, payload.fees?.medium, payload.fees?.slow);
-        normalizedCurrentTimestamp = Date.now();
+        normalizedCurrentTimestamp = observationTime(currentRes.value.headers.get("x-rawblock-updated-at"));
       }
 
       let normalizedStats: FeeMarketStats | null = null;
       let normalizedCurrentFromStats: FeeSnapshot | null = null;
       if (isFulfilledOk(statsRes)) {
-        const payload = (await statsRes.value.json()) as FeeMarketStatsResponse;
+        const payload = statsRes.value.data as FeeMarketStatsResponse;
         const minObservedSatVB = parseFee(payload.snapshot?.minObservedSatVB);
         const avgObservedSatVB = parseFee(payload.snapshot?.avgObservedSatVB);
         const maxObservedSatVB = parseFee(payload.snapshot?.maxObservedSatVB);
@@ -313,7 +324,8 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
 
       if (normalizedCurrentFromStats) {
         normalizedCurrent = normalizedCurrentFromStats;
-        normalizedCurrentTimestamp = Date.now();
+        normalizedCurrentTimestamp = statsRes.status === "fulfilled"
+          ? observationTime((statsRes.value.data as FeeMarketStatsResponse).timestamp) : null;
       }
 
       // Legacy backends can floor fees around 1 sat/vB. When fee-market stats
@@ -324,14 +336,14 @@ export function useFeeMarketData(pollIntervalMs = 30_000) {
 
       if (blockstreamCurrent && (normalizedCurrent === null || !statsEndpointAvailable)) {
         normalizedCurrent = blockstreamCurrent;
-        normalizedCurrentTimestamp = Date.now();
+        normalizedCurrentTimestamp = null;
       }
 
       setState((prev) => {
         const current = normalizedCurrent ?? prev.current;
-        const currentTimestamp = normalizedCurrentTimestamp ?? prev.currentTimestamp;
+        const currentTimestamp = normalizedCurrent ? normalizedCurrentTimestamp : prev.currentTimestamp;
         const historyBase = normalizedHistory ?? prev.history;
-        const history = alignHistoryWithCurrent(historyBase, current);
+        const history = alignHistoryWithCurrent(historyBase, normalizedCurrent, normalizedCurrentTimestamp);
         const stats = normalizedStats ?? prev.stats;
         const longHorizon = longHorizonFee ?? prev.longHorizon;
         const hasAnyData = history.length > 0 || current !== null || stats !== null;

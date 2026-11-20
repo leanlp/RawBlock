@@ -10,6 +10,7 @@ import GlobalSearch from "./explorer/GlobalSearch";
 import { useGuidedLearning } from "./providers/GuidedLearningProvider";
 import { CANONICAL_PATH_ID, getCanonicalPath } from "@/lib/graph/pathEngine";
 import { useTranslation } from "@/lib/i18n";
+import type { HeroCoreMetrics } from "@/lib/heroMetrics";
 
 const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -325,7 +326,7 @@ function PrimaryActionCard({
     );
 }
 
-export default function DashboardHome() {
+export default function DashboardHome({ heroMetrics, heroHeading }: { heroMetrics: HeroCoreMetrics; heroHeading?: string }) {
     const {
         currentLessonIndex,
         completedLessons,
@@ -381,17 +382,27 @@ export default function DashboardHome() {
             >
                 <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl -z-10 blur-3xl"></div>
 
-                <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-5">
+                {/* The wordmark is decorative brand art (logo + gradient title).
+                    It is hidden from the accessibility/crawl tree: the real H1
+                    is the keyword sentence below, so crawlers and screen
+                    readers lead with the money phrase, not the logo. */}
+                <div aria-hidden="true" className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-5">
                     <AnimatedBlockLogo />
-                    <h1
+                    <div
                         className="home-brand-title !text-[clamp(2.4rem,8vw,5.25rem)] !leading-[0.9] font-black uppercase tracking-[0.06em] select-none text-center md:text-left"
                     >
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary block md:inline">RAW </span>
                         <span className="text-white drop-shadow-[0_2px_20px_rgba(13,204,242,0.35)] block md:inline">BLOCK</span>
-                    </h1>
+                    </div>
                 </div>
 
-                <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto font-light leading-relaxed">
+                <h1
+                    className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-100 max-w-2xl mx-auto leading-snug"
+                >
+                    {heroHeading ?? "Bitcoin Explorer, Protocol Labs, and Research"}
+                </h1>
+
+                <p className="mt-3 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto font-light leading-relaxed">
                     {t.dashboard.subtitle} <span className="text-primary font-medium">{t.dashboard.subtitleHighlight}</span>.
                 </p>
                 <div className="w-full max-w-2xl mt-10 mx-auto">
@@ -400,7 +411,7 @@ export default function DashboardHome() {
             </motion.div>
 
             {/* Live Metrics Hero */}
-            <HeroMetrics />
+            <HeroMetrics initialMetrics={heroMetrics} />
 
             {/* ===== PRIMARY ACTIONS ROW ===== */}
             <motion.div

@@ -9,7 +9,7 @@ type Props = {
 
 function sanitizeBlockIdentifier(raw: string): string {
   const trimmed = raw.trim();
-  if (/^[0-9a-fA-F]{64}$/.test(trimmed) || /^\d{1,8}$/.test(trimmed)) {
+  if (/^[0-9a-fA-F]{64}$/.test(trimmed) || /^(0|[1-9]\d{0,9})$/.test(trimmed)) {
     return trimmed;
   }
   return "Unknown";
@@ -23,7 +23,8 @@ export async function generateMetadata({
   const { id } = await params;
   const safeId = sanitizeBlockIdentifier(id);
   return buildPageMetadata({
-    title: `Block ${safeId}`,
+    // The genesis block is the one block people search for by name.
+    title: safeId === "1" ? "The Genesis Block" : `Block ${safeId}`,
     description:
       "Inspect Bitcoin block headers, merkle root/proof visualization, block transaction distribution, and coinbase decoding.",
     path: `/explorer/block/${encodeURIComponent(safeId)}`,
@@ -45,7 +46,7 @@ export default async function ExplorerBlockDetailLayout({
           { name: "Home", path: "/" },
           { name: "Explorer", path: "/explorer/blocks" },
           { name: "Blocks", path: "/explorer/blocks" },
-          { name: `Block ${safeId}`, path },
+          { name: safeId === "1" ? "The Genesis Block" : `Block ${safeId}`, path },
         ])}
       />
       {children}

@@ -8,6 +8,14 @@ interface MerkleProofPanelProps {
     headerMerkleRoot?: string;
     isOpen: boolean;
     onClose: () => void;
+    /**
+     * Set when the block copy only holds a partial transaction list.
+     * "pending": the full-list fetch is in flight; "failed": it will never
+     * arrive. Either way no proof can be built yet/ever from this copy.
+     */
+    incompleteReason?: "pending" | "failed";
+    /** Explanatory line shown while `incompleteReason` is set. */
+    incompleteNote?: string;
 }
 
 function shortenHash(hash: string): string {
@@ -25,7 +33,7 @@ function renderStatus(isMatch: boolean | null) {
     return <span className="rounded-full border border-red-500/40 bg-red-500/10 px-2 py-0.5 text-[11px] text-red-300">Proof root mismatch</span>;
 }
 
-export default function MerkleProofPanel({ txids, headerMerkleRoot, isOpen, onClose }: MerkleProofPanelProps) {
+export default function MerkleProofPanel({ txids, headerMerkleRoot, isOpen, onClose, incompleteReason, incompleteNote }: MerkleProofPanelProps) {
     const [query, setQuery] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [proof, setProof] = useState<MerkleProofResult | null>(null);
@@ -97,8 +105,34 @@ export default function MerkleProofPanel({ txids, headerMerkleRoot, isOpen, onCl
                 <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-950/40 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Inclusion Proof Path</div>
-                        {renderStatus(rootMatch)}
+                        {incompleteReason ? (
+                            <span
+                                className={`rounded-full border px-2 py-0.5 text-[11px] ${
+                                    incompleteReason === "failed"
+                                        ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                                        : "border-slate-600 bg-slate-700/30 text-slate-300"
+                                }`}
+                            >
+                                {incompleteReason === "failed"
+                                    ? "Partial list — cannot verify"
+                                    : "Waiting for full list"}
+                            </span>
+                        ) : (
+                            renderStatus(rootMatch)
+                        )}
                     </div>
+
+                    {incompleteNote ? (
+                        <div
+                            className={`rounded border p-3 text-xs ${
+                                incompleteReason === "failed"
+                                    ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+                                    : "border-slate-700 bg-slate-900/70 text-slate-300"
+                            }`}
+                        >
+                            {incompleteNote}
+                        </div>
+                    ) : null}
 
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                         <div className="rounded border border-slate-800 bg-slate-900/70 p-3">
@@ -111,7 +145,7 @@ export default function MerkleProofPanel({ txids, headerMerkleRoot, isOpen, onCl
                         </div>
                         <div className="rounded border border-slate-800 bg-slate-900/70 p-3">
                             <div className="text-[11px] uppercase text-slate-500">Computed Root</div>
-                            <div className="mt-1 font-mono text-xs text-emerald-300">{shortenHash(computedRoot ?? "Computing...")}</div>
+                            <div className="mt-1 font-mono text-xs text-emerald-300">{shortenHash(computedRoot ?? (txids.length === 0 ? "Unavailable" : "Computing..."))}</div>
                         </div>
                     </div>
 
@@ -173,7 +207,9 @@ export default function MerkleProofPanel({ txids, headerMerkleRoot, isOpen, onCl
                         })}
                         {filteredTxids.length === 0 ? (
                             <div className="rounded border border-slate-800 bg-slate-900/70 p-3 text-xs text-slate-400">
-                                No transactions match your filter.
+                                {incompleteReason
+                                    ? "No transactions are loaded yet, so there is nothing to select."
+                                    : "No transactions match your filter."}
                             </div>
                         ) : null}
                     </div>
